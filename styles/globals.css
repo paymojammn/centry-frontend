@@ -1,0 +1,292 @@
+/* Tailwind Core */
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+/* Metronic Configuration */
+@import './config.metronic.css';
+
+/** Dark Mode Variant **/
+@custom-variant dark (&:is(.dark *));
+
+/** Colors - https://tailwindcss.com/docs/colors **/
+:root {
+  /** Metronic Font - Inter **/
+  --font-inter: var(--font-inter);
+  
+  /** Metronic Breakpoints **/
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /** Brand Colors - Professional Sage Green Theme **/
+  --brand-primary: 99 140 128; /* #638C80 - Sage Green */
+  --brand-primary-light: 119 160 148; /* Lighter variant */
+  --brand-primary-dark: 79 120 108; /* Darker variant */
+  --brand-black: 0 0 0;
+  --brand-white: 255 255 255;
+  --brand-gray-light: 249 250 251;
+  --brand-gray: 156 163 175;
+  --brand-gray-dark: 75 85 99;
+  
+  /** Border & Divider Colors **/
+  --divider-light: 229 231 235; /* #E5E7EB - Light grey divider, standard table lines */
+  --divider-warm: 209 213 219; /* #D1D5DB - Warm neutral grey, more visible */
+  --divider-teal: rgba(99, 140, 128, 0.15); /* Teal accent border for headers */
+  --hover-row: rgba(99, 140, 128, 0.15); /* Hover/selected row highlight */
+  
+  --background: rgb(var(--brand-white));
+  --foreground: rgb(var(--brand-black));
+  --card: rgb(var(--brand-white));
+  --card-foreground: rgb(var(--brand-black));
+  --popover: rgb(var(--brand-white));
+  --popover-foreground: rgb(var(--brand-black));
+  --primary: rgb(var(--brand-primary));
+  --primary-foreground: rgb(var(--brand-white));
+  --secondary: rgb(var(--brand-gray-light));
+  --secondary-foreground: rgb(var(--brand-black));
+  --muted: rgb(var(--brand-gray-light));
+  --muted-foreground: rgb(var(--brand-gray));
+  --accent: rgb(var(--brand-primary-light));
+  --accent-foreground: rgb(var(--brand-black));
+  --destructive: 220 38 38; /* Red for errors */
+  --destructive-foreground: rgb(var(--brand-white));
+  --chart-1: rgb(var(--brand-primary));
+  --chart-2: rgb(var(--brand-primary-light));
+  --chart-3: rgb(var(--brand-gray));
+  --chart-4: rgb(var(--brand-gray-dark));
+  --chart-5: rgb(var(--brand-primary-dark));
+  --border: var(--divider-light); /* Default border - light grey */
+  --border-warm: var(--divider-warm); /* More visible borders */
+  --border-accent: var(--divider-teal); /* Accent borders */
+  --input: 229 231 235;
+  --ring: rgb(var(--brand-primary));
+  --radius: 0.375rem; /* Slightly smaller for classic look */
+}
+
+.dark {
+  --background: var(--color-zinc-950);
+  --foreground: var(--color-zinc-50);
+  --card: var(--color-zinc-950);
+  --card-foreground: var(--color-zinc-50);
+  --popover: var(--color-zinc-950);
+  --popover-foreground: var(--color-zinc-50);
+  --primary: var(--color-zinc-300);
+  --primary-foreground: var(--color-zinc-950);
+  --secondary: var(--color-zinc-800);
+  --secondary-foreground: var(--color-zinc-50);
+  --muted: var(--color-zinc-900);
+  --muted-foreground: var(--color-zinc-500);
+  --accent: var(--color-zinc-900);
+  --accent-foreground: var(--color-zinc-50);
+  --destructive: var(--color-red-600);
+  --destructive-foreground: var(--color-white);
+  --chart-1: var(--color-blue-500);
+  --chart-2: var(--color-green-500);
+  --chart-3: var(--color-yellow-500);
+  --chart-4: var(--color-red-500);
+  --chart-5: var(--color-purple-500);
+  --border: var(--color-zinc-800);
+  --input: var(--color-zinc-800);
+  --ring: var(--color-zinc-600);
+}
+
+/** Theme Setup **/
+@theme inline {
+  /** Metronic Breakpoints **/
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /** Metronic Font Family **/
+  --font-family-inter: var(--font-inter);
+  --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /** Base Colors **/
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /** Base Styles **/
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /** Animations **/
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+}
+
+/** Global Styles **/
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  *:focus-visible {
+    @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
+  }
+}
+
+/** Custom Scrollbar **/
+@layer base {
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--input);
+    border-radius: 5px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
+  }
+}
+
+/** Smooth scroll **/
+html {
+  scroll-behavior: smooth;
+}
+
+/** Custom Containers **/
+@utility container {
+  @apply mx-auto max-w-none px-4 lg:px-5;
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    @apply max-w-(--breakpoint-xl);
+  }
+}
+
+@utility container-fluid {
+  @apply w-full mx-auto px-4 lg:px-5;
+}
+
+/** Metronic Font Utilities **/
+@utility font-inter {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/** Classy Card Styles - Inspired by Xero Dashboard **/
+@layer base {
+  /* Subtle card with barely-visible border and soft shadow */
+  .card-classy {
+    background: white;
+    border: 1px solid rgb(249, 250, 251); /* Very light grey, almost invisible */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .card-classy:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border-color: rgb(243, 244, 246);
+  }
+}
+
+/** Professional Table Styles **/
+@layer base {
+  /* Light grey divider - standard table lines, clean and barely there */
+  .table-divider-light,
+  .divide-light > * + * {
+    border-color: rgb(var(--divider-light));
+  }
+  
+  /* Warm neutral grey - more visible on white backgrounds */
+  .table-divider-warm,
+  .divide-warm > * + * {
+    border-color: rgb(var(--divider-warm));
+  }
+  
+  /* Teal accent border - for table headers or highlight rows */
+  .table-divider-accent,
+  .divide-accent > * + * {
+    border-color: var(--divider-teal);
+  }
+  
+  /* Hover/selected row - subtle highlight */
+  .table-row-hover:hover,
+  .table-row-selected {
+    background-color: var(--hover-row);
+  }
+  
+  /* Professional table base styles */
+  .table-professional {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-professional thead {
+    border-bottom: 2px solid var(--divider-teal);
+  }
+  
+  .table-professional th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: rgb(var(--brand-black));
+    background-color: rgba(99, 140, 128, 0.05);
+  }
+  
+  .table-professional td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgb(var(--divider-light));
+    font-size: 0.875rem;
+  }
+  
+  .table-professional tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  
+  .table-professional tbody tr:hover {
+    background-color: var(--hover-row);
+  }
+  
+  .table-professional tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+/* Metronic Configs */
+@import './config.metronic.css';

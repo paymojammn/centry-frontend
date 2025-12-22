@@ -1,0 +1,20 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with subtle fill -->
+  <circle cx="24" cy="24" r="22" fill="#638C80" fill-opacity="0.08"/>
+
+  <!-- Main C arc - thicker and more prominent -->
+  <path d="M24 4C12.954 4 4 12.954 4 24C4 35.046 12.954 44 24 44C29.523 44 34.523 41.761 38.142 38.142"
+        stroke="#638C80"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Financial growth bars - ascending pattern inside C -->
+  <g id="growth-bars">
+    <rect x="14" y="28" width="4" height="8" rx="1.5" fill="#638C80"/>
+    <rect x="20" y="22" width="4" height="14" rx="1.5" fill="#4D7A6D"/>
+    <rect x="26" y="16" width="4" height="20" rx="1.5" fill="#3D695D"/>
+  </g>
+
+  <!-- Accent dot - represents precision/data point -->
+  <circle cx="38" cy="10" r="3" fill="#638C80"/>
+</svg>

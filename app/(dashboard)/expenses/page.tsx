@@ -1,0 +1,661 @@
+/**
+ * Expenses Page - Petty Cash Management
+ *
+ * Track and manage employee expenses and petty cash requests
+ */
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useExpenses, useExpenseStats, useApproveExpense } from '@/hooks/use-expenses';
+import { useOrganizations } from '@/hooks/use-organization';
+import {
+  Receipt,
+  Plus,
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Search,
+  Filter,
+  Building2,
+  RefreshCw,
+  FileText,
+  TrendingUp,
+  AlertCircle,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { ExpenseFilters, Expense, ExpenseCategory, ExpenseStatus } from '@/types/expense';
+import { EXPENSE_CATEGORIES } from '@/types/expense';
+import CreateExpenseModal from '@/components/expenses/CreateExpenseModal';
+import PayExpensesModal from '@/components/expenses/PayExpensesModal';
+
+export default function ExpensesPage() {
+  const [filters, setFilters] = useState<ExpenseFilters>({ status: 'all' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedExpenses, setSelectedExpenses] = useState<Expense[]>([]);
+
+  const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+
+  // Include organization in filters for API query
+  const expenseFilters = {
+    ...filters,
+    organization: selectedOrganizationId || undefined,
+  };
+
+  const { data: expensesResponse, isLoading, error, refetch } = useExpenses(expenseFilters);
+  const { data: stats } = useExpenseStats(selectedOrganizationId || undefined);
+
+  // Handle both array format and paginated format { results: [] }
+  const expenses = Array.isArray(expensesResponse)
+    ? expensesResponse
+    : (expensesResponse as any)?.results || [];
+
+  // Extract organizations from paginated response
+  const organizations = Array.isArray(organizationsResponse)
+    ? organizationsResponse
+    : (organizationsResponse as any)?.results || [];
+
+  // Set default organization on mount
+  useEffect(() => {
+    if (!selectedOrganizationId && organizations?.length > 0) {
+      setSelectedOrganizationId(organizations[0].id);
+    }
+  }, [organizations, selectedOrganizationId]);
+
+  // Filter expenses by search query
+  const filteredExpenses = expenses?.filter((expense: Expense) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      expense.description?.toLowerCase().includes(query) ||
+      expense.employee_name?.toLowerCase().includes(query) ||
+      expense.category?.toLowerCase().includes(query)
+    );
+  });
+
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
+        <div className="space-y-6">
+          {/* Header with brand gradient background */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#638C80] via-[#547568] to-[#456050] p-8 shadow-xl">
+            <div className="absolute inset-0 bg-black opacity-5"></div>
+            <div className="relative flex items-center justify-between">
+              <div className="text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                    <Receipt className="h-8 w-8" />
+                  </div>
+                  <h1 className="text-4xl font-bold tracking-tight">Expenses</h1>
+                </div>
+                <p className="text-white/90 text-lg mt-3 ml-16">
+                  Track and manage employee expenses and petty cash
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Organization Selector */}
+                <Select
+                  value={selectedOrganizationId || undefined}
+                  onValueChange={setSelectedOrganizationId}
+                  disabled={orgsLoading || !organizations?.length}
+                >
+                  <SelectTrigger className="w-[280px] bg-white/95 backdrop-blur-sm border-white/20 text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-[#638C80]" />
+                      <SelectValue placeholder="Select organization..." />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations?.map((org: any) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-white/95 backdrop-blur-sm text-[#638C80] hover:bg-white shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+
+                <Button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-white/95 backdrop-blur-sm text-[#638C80] hover:bg-white shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Expense
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards with brand-themed gradients */}
+          {stats && (
+            <div className="grid gap-6 md:grid-cols-5">
+              {/* Pending Manager Approval */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-white/80 text-sm font-medium mb-1">Manager Review</div>
+                  <div className="text-4xl font-bold text-white">{stats.pending_manager_approval}</div>
+                  {stats.pending_manager_amount && (
+                    <div className="text-sm text-white/90 mt-1 font-medium">
+                      UGX {parseFloat(stats.pending_manager_amount).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pending Finance Approval */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <FileText className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-white/80 text-sm font-medium mb-1">Finance Review</div>
+                  <div className="text-4xl font-bold text-white">{stats.pending_finance_approval}</div>
+                  {stats.pending_finance_amount && (
+                    <div className="text-sm text-white/90 mt-1 font-medium">
+                      UGX {parseFloat(stats.pending_finance_amount).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Awaiting Receipts */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <Receipt className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-white/80 text-sm font-medium mb-1">Awaiting Receipts</div>
+                  <div className="text-4xl font-bold text-white">{stats.awaiting_receipts}</div>
+                  {stats.awaiting_receipts_amount && (
+                    <div className="text-sm text-white/90 mt-1 font-medium">
+                      UGX {parseFloat(stats.awaiting_receipts_amount).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Approved */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-400 to-green-500 p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <CheckCircle2 className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-white/80 text-sm font-medium mb-1">Approved</div>
+                  <div className="text-4xl font-bold text-white">{stats.approved}</div>
+                  {stats.approved_amount && (
+                    <div className="text-sm text-white/90 mt-1 font-medium">
+                      UGX {parseFloat(stats.approved_amount).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Paid */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#638C80] to-[#547568] p-6 shadow-lg hover:shadow-xl transition-all">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <DollarSign className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-white/80 text-sm font-medium mb-1">Paid</div>
+                  <div className="text-4xl font-bold text-white">{stats.paid}</div>
+                  {stats.paid_amount && (
+                    <div className="text-sm text-white/90 mt-1 font-medium">
+                      UGX {parseFloat(stats.paid_amount).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filters with modern design */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#638C80]" />
+                <Input
+                  placeholder="Search by description, employee, or category..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 border-2 border-gray-200 focus:border-[#638C80] rounded-xl text-base"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Expenses Tabs */}
+          <Tabs
+            value={filters.status || 'all'}
+            onValueChange={(value) =>
+              setFilters((prev) => ({ ...prev, status: value as ExpenseStatus | 'all' }))
+            }
+          >
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
+              <TabsList className="bg-gray-50 p-1.5 rounded-xl w-full grid grid-cols-6 gap-1">
+                <TabsTrigger
+                  value="all"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#638C80] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  All
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pending_manager_approval"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-400 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  Manager
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pending_finance_approval"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  Finance
+                </TabsTrigger>
+                <TabsTrigger
+                  value="manager_approved"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-400 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  Receipts
+                </TabsTrigger>
+                <TabsTrigger
+                  value="approved"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-400 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  Approved
+                </TabsTrigger>
+                <TabsTrigger
+                  value="rejected"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-400 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                >
+                  Rejected
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value={filters.status || 'all'} className="mt-6">
+              {isLoading ? (
+                <ExpensesLoadingSkeleton />
+              ) : error ? (
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+                  <div className="p-4 bg-red-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    <AlertCircle className="h-10 w-10 text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Expenses</h3>
+                  <p className="text-gray-600">{(error as any).message}</p>
+                </div>
+              ) : !filteredExpenses || filteredExpenses.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+                  <div className="p-4 bg-gray-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    <Receipt className="h-10 w-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Expenses Found</h3>
+                  <p className="text-gray-600 mb-6">
+                    {searchQuery
+                      ? 'Try adjusting your search criteria'
+                      : 'There are no expenses to display'}
+                  </p>
+                  <Button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-[#638C80] text-white hover:bg-[#547568]"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create Expense
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <ExpensesTable
+                    expenses={filteredExpenses}
+                    selectedExpenses={selectedExpenses}
+                    onSelectExpenses={setSelectedExpenses}
+                    onRefresh={handleRefresh}
+                  />
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Floating Pay Button */}
+      {selectedExpenses.length > 0 && (
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button
+            onClick={() => setIsPayModalOpen(true)}
+            className="bg-[#638C80] hover:bg-[#547568] text-white shadow-2xl hover:shadow-3xl transition-all px-8 py-6 text-lg rounded-2xl"
+            size="lg"
+          >
+            <DollarSign className="h-5 w-5 mr-2" />
+            Pay {selectedExpenses.length} Expense{selectedExpenses.length > 1 ? 's' : ''}
+          </Button>
+        </div>
+      )}
+
+      {/* Modals */}
+      {selectedOrganizationId && (
+        <>
+          <CreateExpenseModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            organizationId={selectedOrganizationId}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
+          />
+
+          <PayExpensesModal
+            isOpen={isPayModalOpen}
+            onClose={() => {
+              setIsPayModalOpen(false);
+              setSelectedExpenses([]);
+            }}
+            expenses={selectedExpenses}
+            organizationId={selectedOrganizationId}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+// Expenses Table Component
+interface ExpensesTableProps {
+  expenses: Expense[];
+  selectedExpenses: Expense[];
+  onSelectExpenses: (expenses: Expense[]) => void;
+  onRefresh: () => void;
+}
+
+function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh }: ExpensesTableProps) {
+  const { mutate: approveExpense, isPending: isApproving } = useApproveExpense();
+
+  // Handle approve/reject actions
+  const handleApprove = (expenseId: string) => {
+    approveExpense(
+      { expense_id: expenseId, approved: true },
+      { onSuccess: onRefresh }
+    );
+  };
+
+  const handleReject = (expenseId: string, reason?: string) => {
+    approveExpense(
+      { expense_id: expenseId, approved: false, rejection_reason: reason || 'Rejected by approver' },
+      { onSuccess: onRefresh }
+    );
+  };
+
+  // Only approved and unpaid expenses can be selected for payment
+  const payableExpenses = expenses.filter(
+    (expense) => expense.status === 'approved' && expense.payment_status === 'unpaid'
+  );
+
+  const isExpenseSelected = (expense: Expense) => {
+    return selectedExpenses.some((e) => e.id === expense.id);
+  };
+
+  const canSelectExpense = (expense: Expense) => {
+    return expense.status === 'approved' && expense.payment_status === 'unpaid';
+  };
+
+  const toggleExpenseSelection = (expense: Expense) => {
+    if (!canSelectExpense(expense)) return;
+
+    if (isExpenseSelected(expense)) {
+      onSelectExpenses(selectedExpenses.filter((e) => e.id !== expense.id));
+    } else {
+      onSelectExpenses([...selectedExpenses, expense]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedExpenses.length === payableExpenses.length) {
+      onSelectExpenses([]);
+    } else {
+      onSelectExpenses(payableExpenses);
+    }
+  };
+
+  const getCategoryInfo = (category: ExpenseCategory) => {
+    return EXPENSE_CATEGORIES.find((c) => c.value === category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
+  };
+
+  const getStatusBadge = (status: ExpenseStatus) => {
+    const configs: Record<ExpenseStatus, { bg: string; text: string; border: string }> = {
+      draft: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' },
+      submitted: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+      pending_manager_approval: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+      manager_approved: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+      pending_finance_approval: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+      approved: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+      rejected: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+      cancelled: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+    };
+    return configs[status] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' };
+  };
+
+  const formatStatusLabel = (status: ExpenseStatus): string => {
+    const labels: Record<ExpenseStatus, string> = {
+      draft: 'Draft',
+      submitted: 'Submitted',
+      pending_manager_approval: 'Pending Manager',
+      manager_approved: 'Manager Approved',
+      pending_finance_approval: 'Pending Finance',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      cancelled: 'Cancelled',
+    };
+    return labels[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-6 py-4 text-left">
+              {payableExpenses.length > 0 && (
+                <input
+                  type="checkbox"
+                  checked={selectedExpenses.length === payableExpenses.length && payableExpenses.length > 0}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 text-[#638C80] bg-gray-100 border-gray-300 rounded focus:ring-[#638C80] focus:ring-2 cursor-pointer"
+                />
+              )}
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Date
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Employee
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Category
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Description
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Amount
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Status
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Payment
+            </th>
+            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {expenses.map((expense) => {
+            const categoryInfo = getCategoryInfo(expense.category);
+            const statusBadge = getStatusBadge(expense.status);
+
+            return (
+              <tr
+                key={expense.id}
+                className={`hover:bg-gray-50 transition-colors ${
+                  isExpenseSelected(expense) ? 'bg-[#638C80]/5' : ''
+                }`}
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {canSelectExpense(expense) && (
+                    <input
+                      type="checkbox"
+                      checked={isExpenseSelected(expense)}
+                      onChange={() => toggleExpenseSelection(expense)}
+                      className="w-4 h-4 text-[#638C80] bg-gray-100 border-gray-300 rounded focus:ring-[#638C80] focus:ring-2 cursor-pointer"
+                    />
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900 font-medium">
+                    {new Date(expense.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{expense.employee_name}</div>
+                    <div className="text-xs text-gray-500">{expense.employee_email}</div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{categoryInfo.icon}</span>
+                    <span className="text-sm text-gray-700 font-medium">{categoryInfo.label}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 max-w-xs truncate">{expense.description}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-bold text-gray-900">
+                    {expense.currency} {parseFloat(expense.amount).toLocaleString()}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text} border ${statusBadge.border}`}
+                  >
+                    {formatStatusLabel(expense.status)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {expense.payment_status === 'paid' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Paid
+                    </span>
+                  ) : expense.payment_status === 'processing' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      <Clock className="w-3 h-3" />
+                      Processing
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                      Unpaid
+                    </span>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    {(expense.status === 'pending_manager_approval' || expense.status === 'pending_finance_approval') && (
+                      <>
+                        <Button
+                          onClick={() => handleApprove(expense.id)}
+                          disabled={isApproving}
+                          size="sm"
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <ThumbsUp className="h-3 w-3 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => handleReject(expense.id)}
+                          disabled={isApproving}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          <ThumbsDown className="h-3 w-3 mr-1" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Loading Skeleton
+function ExpensesLoadingSkeleton() {
+  return (
+    <div className="p-8 space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <div className="h-10 w-10 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-100 animate-pulse rounded w-1/3" />
+            <div className="h-3 bg-gray-50 animate-pulse rounded w-1/4" />
+          </div>
+          <div className="h-5 bg-gray-100 animate-pulse rounded-full w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}

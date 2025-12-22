@@ -1,0 +1,11 @@
+<svg width="140" height="32" viewBox="0 0 140 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- P Icon -->
+  <rect x="2" y="6" width="20" height="20" rx="4" fill="#638C80"/>
+  <path d="M9 12H13C14.6569 12 16 13.3431 16 15C16 16.6569 14.6569 18 13 18H9V12Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 18V22" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Paymoja Text -->
+  <text x="28" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">
+    Paymoja
+  </text>
+</svg>

@@ -1,0 +1,5 @@
+platform_name = "nodejs"
+platform_version = "20"
+
+[metadata]
+compressed_node_modules = "tar-gz"

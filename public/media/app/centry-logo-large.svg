@@ -1,0 +1,68 @@
+<svg width="280" height="72" viewBox="0 0 280 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon: Modern C with integrated growth chart - Large Version -->
+  <g id="icon">
+    <!-- Background circle with gradient effect -->
+    <circle cx="36" cy="36" r="32" fill="#638C80" fill-opacity="0.08"/>
+
+    <!-- Main C arc - bold and prominent -->
+    <path d="M36 6C19.431 6 6 19.431 6 36C6 52.569 19.431 66 36 66C44.284 66 51.784 62.642 57.213 57.213"
+          stroke="#638C80"
+          stroke-width="5.5"
+          stroke-linecap="round"/>
+
+    <!-- Financial growth bars - ascending pattern -->
+    <g id="growth-bars">
+      <rect x="20" y="42" width="6" height="12" rx="2" fill="#638C80"/>
+      <rect x="29" y="32" width="6" height="22" rx="2" fill="#4D7A6D"/>
+      <rect x="38" y="22" width="6" height="32" rx="2" fill="#3D695D"/>
+    </g>
+
+    <!-- Accent dot - data point indicator -->
+    <circle cx="56" cy="14" r="4.5" fill="#638C80"/>
+  </g>
+
+  <!-- Text: CENTRY - Large, modern typography -->
+  <g id="text" transform="translate(84, 12)">
+    <!-- C -->
+    <path d="M10 44C4.477 44 0 39.523 0 34C0 28.477 4.477 24 10 24C14.139 24 17.658 26.456 19.2 30"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          fill="none"/>
+
+    <!-- E -->
+    <path d="M32 24H47M32 34H44M32 44H47M32 24V44"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- N -->
+    <path d="M60 44V24M60 24L78 44M78 24V44"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- T -->
+    <path d="M92 24H112M102 24V44"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- R -->
+    <path d="M126 44V24H135C139.418 24 143 27.582 143 32C143 36.418 139.418 40 135 40H126M135 40L143 44"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- Y -->
+    <path d="M157 24L168 38M168 38L179 24M168 38V44"
+          stroke="#1F2937"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>
