@@ -4,6 +4,7 @@ import { Layout1 } from '@/components/layouts/layout-1';
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { getAuthToken } from '@/lib/api';
+import { getApiUrl } from '@/config/api';
 import { ScreenLoader } from '@/components/screen-loader';
 
 export default function DashboardLayout({children}: {children: ReactNode}) {
@@ -41,7 +42,8 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
 
       // Verify token by calling profile endpoint
       try {
-        const response = await fetch('http://localhost:8000/api/auth/profile/', {
+        const apiUrl = getApiUrl();
+        const response = await fetch(`${apiUrl}/api/auth/profile/`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
