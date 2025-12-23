@@ -64,6 +64,15 @@ interface FormData {
   notes?: string;
 }
 
+// Helper to extract clean currency code from enum-style strings like "CurrencyCode.UGX" -> "UGX"
+const cleanCurrencyCode = (currency: string): string => {
+  if (!currency) return 'USD';
+  if (currency.includes('.')) {
+    return currency.split('.').pop() || currency;
+  }
+  return currency;
+};
+
 export function BankAccountForm({ open, onClose, account }: BankAccountFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!account;
@@ -129,15 +138,16 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
   useEffect(() => {
     if (account && open) {
       // Handle bank_provider - could be object, string ID, or null
-      const bankProviderId = typeof account.bank_provider === 'object' 
-        ? account.bank_provider?.id 
+      const bankProviderId = typeof account.bank_provider === 'object'
+        ? account.bank_provider?.id
         : account.bank_provider;
-      
+
       setValue("bank_provider_id", bankProviderId || "");
       setValue("account_name", account.account_name || "");
       setValue("account_number", account.account_number || "");
       setValue("account_type", account.account_type || "checking");
-      setValue("currency", account.currency || "KES");
+      // Clean currency code from "CurrencyCode.UGX" format to "UGX"
+      setValue("currency", cleanCurrencyCode(account.currency || "KES"));
       setValue("balance", account.balance || 0);
       setValue("branch_name", account.branch_name || "");
       setValue("branch_code", account.branch_code || "");
@@ -157,12 +167,15 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
   }, [account, open, reset, setValue]);
 
   const onSubmit = (data: FormData) => {
-    // Remove undefined/null values for optional fields
-    const cleanedData = {
-      ...data,
-      bank_provider_id: data.bank_provider_id || null,
-    };
-    mutation.mutate(cleanedData);
+    // Clean up the data - remove empty bank_provider_id for PATCH requests
+    const cleanedData: Partial<FormData> = { ...data };
+
+    // Don't send empty/null bank_provider_id
+    if (!cleanedData.bank_provider_id) {
+      delete cleanedData.bank_provider_id;
+    }
+
+    mutation.mutate(cleanedData as FormData);
   };
 
   const handleClose = () => {
@@ -269,6 +282,7 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="UGX">UGX - Ugandan Shilling</SelectItem>
                   <SelectItem value="KES">KES - Kenyan Shilling</SelectItem>
                   <SelectItem value="USD">USD - US Dollar</SelectItem>
                   <SelectItem value="EUR">EUR - Euro</SelectItem>
