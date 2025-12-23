@@ -35,83 +35,99 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
   const getStatusBadge = (status: string, syncedCount: number, totalCount: number) => {
     if (status === 'SYNCED' || syncedCount === totalCount) {
       return (
-        <Badge variant="success">
-          <CheckCircle className="mr-1 h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#49a034]/10 text-[#49a034]">
+          <CheckCircle className="h-3 w-3" />
           Synced
-        </Badge>
+        </span>
       );
     }
     if (status === 'FAILED') {
       return (
-        <Badge variant="destructive">
-          <XCircle className="mr-1 h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f77f00]/10 text-[#f77f00]">
+          <XCircle className="h-3 w-3" />
           Failed
-        </Badge>
+        </span>
       );
     }
     if (syncedCount > 0) {
       return (
-        <Badge variant="secondary">
-          <Clock className="mr-1 h-3 w-3" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#4E97D1]/10 text-[#4E97D1]">
+          <Clock className="h-3 w-3" />
           Partial ({syncedCount}/{totalCount})
-        </Badge>
+        </span>
       );
     }
     return (
-      <Badge variant="outline">
-        <Clock className="mr-1 h-3 w-3" />
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#fed652]/20 text-[#d4a843]">
+        <Clock className="h-3 w-3" />
         Pending
-      </Badge>
+      </span>
     );
   };
 
   if (isLoading) {
     return (
-      <Card className="border-gray-100 shadow-sm">
-        <CardHeader>
-          <CardTitle>Import History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
+              <FileText className="h-5 w-5 text-[#638C80]" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Import History</h3>
+              <p className="text-sm text-gray-500">Recent bank file imports and sync status</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full"></div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-gray-100 shadow-sm">
-        <CardHeader>
-          <CardTitle>Import History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-red-500">
-            <XCircle className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">Failed to load import history</p>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
+              <FileText className="h-5 w-5 text-[#638C80]" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Import History</h3>
+              <p className="text-sm text-gray-500">Recent bank file imports and sync status</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-6">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 rounded-2xl bg-[#f77f00]/10 flex items-center justify-center mx-auto mb-4">
+              <XCircle className="h-8 w-8 text-[#f77f00]" />
+            </div>
+            <p className="text-sm text-gray-600">Failed to load import history</p>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-            <FileText className="h-5 w-5 text-[#638C80]" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#638C80] to-[#4a6b62] shadow-lg shadow-[#638C80]/30 flex items-center justify-center">
+            <FileText className="h-5 w-5 text-white" />
           </div>
           <div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Import History</CardTitle>
-            <CardDescription className="mt-0.5">
-              Recent bank file imports and sync status
-            </CardDescription>
+            <h3 className="text-xl font-semibold text-gray-900">Import History</h3>
+            <p className="text-sm text-gray-500">Recent bank file imports and sync status</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-6">
+      </div>
+      <div className="p-6">
         {imports.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -178,7 +194,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
                     <TableCell>
                       <Button variant="ghost" size="icon" className="hover:bg-[#638C80]/10 rounded-lg">
                         {imp.transactions_synced === imp.transactions_count ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <CheckCircle className="h-4 w-4 text-[#49a034]" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
@@ -190,7 +206,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
             </Table>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

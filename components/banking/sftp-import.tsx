@@ -247,26 +247,32 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
       {/* Task Progress */}
       {activeTaskId && taskStatus && (
-        <Alert
-          className={
+        <div
+          className={`rounded-xl border p-4 ${
             taskStatus.status === "SUCCESS"
-              ? "border-green-200 bg-green-50"
+              ? "border-[#49a034]/30 bg-[#49a034]/5"
               : taskStatus.status === "FAILURE"
-              ? "border-red-200 bg-red-50"
-              : "border-blue-200 bg-blue-50"
-          }
+              ? "border-[#f77f00]/30 bg-[#f77f00]/5"
+              : "border-[#4E97D1]/30 bg-[#4E97D1]/5"
+          }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {taskStatus.status === "SUCCESS" ? (
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <div className="w-10 h-10 rounded-xl bg-[#49a034]/10 flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-[#49a034]" />
+              </div>
             ) : taskStatus.status === "FAILURE" ? (
-              <XCircle className="h-4 w-4 text-red-600" />
+              <div className="w-10 h-10 rounded-xl bg-[#f77f00]/10 flex items-center justify-center">
+                <XCircle className="h-5 w-5 text-[#f77f00]" />
+              </div>
             ) : (
-              <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+              <div className="w-10 h-10 rounded-xl bg-[#4E97D1]/10 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 text-[#4E97D1] animate-spin" />
+              </div>
             )}
-            <AlertDescription>
+            <div>
               {taskStatus.status === "SUCCESS" ? (
-                <span className="text-green-800">
+                <p className="text-[#49a034] font-medium">
                   Download complete!{" "}
                   {taskStatus.result?.files_downloaded
                     ? `${taskStatus.result.files_downloaded} file(s) downloaded`
@@ -274,19 +280,19 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                   {taskStatus.result?.files_imported
                     ? `, ${taskStatus.result.files_imported} imported`
                     : ""}
-                </span>
+                </p>
               ) : taskStatus.status === "FAILURE" ? (
-                <span className="text-red-800">
+                <p className="text-[#f77f00] font-medium">
                   Download failed: {taskStatus.result?.error || "Unknown error"}
-                </span>
+                </p>
               ) : (
-                <span className="text-blue-800">
+                <p className="text-[#4E97D1] font-medium">
                   Downloading files from SFTP server...
-                </span>
+                </p>
               )}
-            </AlertDescription>
+            </div>
           </div>
-        </Alert>
+        </div>
       )}
 
       {/* Remote Files List */}

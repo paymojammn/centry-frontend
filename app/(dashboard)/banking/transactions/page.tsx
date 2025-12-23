@@ -184,14 +184,14 @@ export default function BankTransactionsPage() {
   const getTransactionTypeBadge = (type: string) => {
     if (type === "DEBIT") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 text-xs font-medium">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f77f00]/10 text-[#f77f00] text-xs font-medium">
           <ArrowUpCircle className="h-3.5 w-3.5" />
           Debit
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#49a034]/10 text-[#49a034] text-xs font-medium">
         <ArrowDownCircle className="h-3.5 w-3.5" />
         Credit
       </span>
@@ -200,11 +200,11 @@ export default function BankTransactionsPage() {
 
   const getMatchStatusBadge = (status: string) => {
     const badges: Record<string, { bg: string; text: string; label: string; icon?: React.ReactNode }> = {
-      unmatched: { bg: "bg-amber-50", text: "text-amber-700", label: "Unmatched" },
-      suggested: { bg: "bg-blue-50", text: "text-blue-700", label: "Suggested" },
-      matched: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Matched" },
-      reviewed: { bg: "bg-purple-50", text: "text-purple-700", label: "Reviewed" },
-      posted: { bg: "bg-[#638C80]/10", text: "text-[#638C80]", label: "Posted", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+      unmatched: { bg: "bg-[#fed652]/20", text: "text-[#d4a843]", label: "Unmatched" },
+      suggested: { bg: "bg-[#4E97D1]/10", text: "text-[#4E97D1]", label: "Suggested" },
+      matched: { bg: "bg-[#49a034]/10", text: "text-[#49a034]", label: "Matched" },
+      reviewed: { bg: "bg-[#638C80]/10", text: "text-[#638C80]", label: "Reviewed" },
+      posted: { bg: "bg-[#49a034]/10", text: "text-[#49a034]", label: "Posted", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
     };
     const badge = badges[status] || { bg: "bg-gray-50", text: "text-gray-700", label: status };
     return (
@@ -217,11 +217,11 @@ export default function BankTransactionsPage() {
 
   const getExportStatusBadge = (status: string) => {
     const badges: Record<string, { bg: string; text: string; label: string; icon: React.ReactNode }> = {
-      pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending", icon: <Clock className="h-3.5 w-3.5" /> },
-      generated: { bg: "bg-blue-50", text: "text-blue-700", label: "Generated", icon: <FileText className="h-3.5 w-3.5" /> },
-      uploaded: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Uploaded", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+      pending: { bg: "bg-[#fed652]/20", text: "text-[#d4a843]", label: "Pending", icon: <Clock className="h-3.5 w-3.5" /> },
+      generated: { bg: "bg-[#4E97D1]/10", text: "text-[#4E97D1]", label: "Generated", icon: <FileText className="h-3.5 w-3.5" /> },
+      uploaded: { bg: "bg-[#49a034]/10", text: "text-[#49a034]", label: "Uploaded", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
       processed: { bg: "bg-[#638C80]/10", text: "text-[#638C80]", label: "Processed", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-      failed: { bg: "bg-red-50", text: "text-red-700", label: "Failed", icon: <XCircle className="h-3.5 w-3.5" /> },
+      failed: { bg: "bg-[#f77f00]/10", text: "text-[#f77f00]", label: "Failed", icon: <XCircle className="h-3.5 w-3.5" /> },
     };
     const badge = badges[status] || { bg: "bg-gray-50", text: "text-gray-700", label: status, icon: null };
     return (
@@ -235,13 +235,13 @@ export default function BankTransactionsPage() {
   const getSourceIcon = (sourceType: string) => {
     switch (sourceType) {
       case "mobile_money":
-        return <Wallet className="h-4 w-4 text-purple-500" />;
+        return <Wallet className="h-4 w-4 text-[#fed652]" />;
       case "credit_card":
-        return <FileText className="h-4 w-4 text-blue-500" />;
+        return <FileText className="h-4 w-4 text-[#4E97D1]" />;
       case "bank":
         return <Building2 className="h-4 w-4 text-[#638C80]" />;
       case "payment_gateway":
-        return <Receipt className="h-4 w-4 text-orange-500" />;
+        return <Receipt className="h-4 w-4 text-[#f77f00]" />;
       default:
         return <Receipt className="h-4 w-4 text-gray-500" />;
     }
@@ -288,7 +288,7 @@ export default function BankTransactionsPage() {
                       <div className="flex items-center gap-2">
                         <span>{org.name}</span>
                         {org.external_id?.startsWith('xero_') && (
-                          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] bg-[#49a034]/10 text-[#49a034] px-1.5 py-0.5 rounded">
                             Xero
                           </span>
                         )}
@@ -328,65 +328,65 @@ export default function BankTransactionsPage() {
             <TabsContent value="imports" className="space-y-6">
               {/* Import Stats Cards */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Transactions</p>
-                      <p className="text-2xl font-bold text-[#4E97D1] mt-2">{importStats.total}</p>
+                      <p className="text-sm font-medium text-gray-500">Total Transactions</p>
+                      <p className="text-2xl font-bold text-[#4E97D1] mt-1">{importStats.total}</p>
                     </div>
-                    <div className="p-3 bg-[#4E97D1]/10 rounded-lg">
-                      <Receipt className="h-6 w-6 text-[#4E97D1]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#4E97D1]/10 to-[#4E97D1]/20 flex items-center justify-center">
+                      <Receipt className="h-5 w-5 text-[#4E97D1]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Debits</p>
-                      <p className="text-2xl font-bold text-[#f77f00] mt-2">
+                      <p className="text-sm font-medium text-gray-500">Total Debits</p>
+                      <p className="text-2xl font-bold text-[#f77f00] mt-1">
                         {formatCurrency(importStats.total_debit, "KES")}
                       </p>
                     </div>
-                    <div className="p-3 bg-[#f77f00]/10 rounded-lg">
-                      <TrendingDown className="h-6 w-6 text-[#f77f00]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#f77f00]/10 to-[#f77f00]/20 flex items-center justify-center">
+                      <TrendingDown className="h-5 w-5 text-[#f77f00]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Credits</p>
-                      <p className="text-2xl font-bold text-[#49a034] mt-2">
+                      <p className="text-sm font-medium text-gray-500">Total Credits</p>
+                      <p className="text-2xl font-bold text-[#49a034] mt-1">
                         {formatCurrency(importStats.total_credit, "KES")}
                       </p>
                     </div>
-                    <div className="p-3 bg-[#49a034]/10 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-[#49a034]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#49a034]/10 to-[#49a034]/20 flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-[#49a034]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Posted to ERP</p>
-                      <p className="text-2xl font-bold text-[#638C80] mt-2">{importStats.posted}</p>
+                      <p className="text-sm font-medium text-gray-500">Posted to ERP</p>
+                      <p className="text-2xl font-bold text-[#638C80] mt-1">{importStats.posted}</p>
                     </div>
-                    <div className="p-3 bg-[#638C80]/10 rounded-lg">
-                      <CheckCircle2 className="h-6 w-6 text-[#638C80]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#638C80]/10 to-[#638C80]/20 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-[#638C80]" />
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
 
               {/* Import Transactions Card */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-50 rounded-xl">
-                      <ArrowDownToLine className="h-5 w-5 text-blue-600" />
+                    <div className="p-2.5 bg-[#4E97D1]/10 rounded-xl">
+                      <ArrowDownToLine className="h-5 w-5 text-[#4E97D1]" />
                     </div>
                     <div>
                       <CardTitle className="text-xl font-semibold text-gray-900">Imported Transactions</CardTitle>
@@ -529,8 +529,8 @@ export default function BankTransactionsPage() {
                                 <span
                                   className={`font-semibold ${
                                     transaction.transaction_type === "DEBIT"
-                                      ? "text-red-600"
-                                      : "text-emerald-600"
+                                      ? "text-[#f77f00]"
+                                      : "text-[#49a034]"
                                   }`}
                                 >
                                   {transaction.transaction_type === "DEBIT" ? "-" : "+"}
@@ -557,55 +557,55 @@ export default function BankTransactionsPage() {
             <TabsContent value="exports" className="space-y-6">
               {/* Export Stats Cards */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Export Files</p>
-                      <p className="text-2xl font-bold text-[#4E97D1] mt-2">{exportStats.total_exports}</p>
+                      <p className="text-sm font-medium text-gray-500">Export Files</p>
+                      <p className="text-2xl font-bold text-[#4E97D1] mt-1">{exportStats.total_exports}</p>
                     </div>
-                    <div className="p-3 bg-[#4E97D1]/10 rounded-lg">
-                      <FileText className="h-6 w-6 text-[#4E97D1]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#4E97D1]/10 to-[#4E97D1]/20 flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-[#4E97D1]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                      <p className="text-2xl font-bold text-[#fed652] mt-2">{exportStats.total_payments}</p>
+                      <p className="text-sm font-medium text-gray-500">Total Payments</p>
+                      <p className="text-2xl font-bold text-[#d4a843] mt-1">{exportStats.total_payments}</p>
                     </div>
-                    <div className="p-3 bg-[#fed652]/10 rounded-lg">
-                      <ArrowUpFromLine className="h-6 w-6 text-[#fed652]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#fed652]/10 to-[#fed652]/20 flex items-center justify-center">
+                      <ArrowUpFromLine className="h-5 w-5 text-[#d4a843]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                      <p className="text-2xl font-bold text-[#f77f00] mt-2">
+                      <p className="text-sm font-medium text-gray-500">Total Amount</p>
+                      <p className="text-2xl font-bold text-[#f77f00] mt-1">
                         {formatCurrency(exportStats.total_amount, "UGX")}
                       </p>
                     </div>
-                    <div className="p-3 bg-[#f77f00]/10 rounded-lg">
-                      <TrendingDown className="h-6 w-6 text-[#f77f00]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#f77f00]/10 to-[#f77f00]/20 flex items-center justify-center">
+                      <TrendingDown className="h-5 w-5 text-[#f77f00]" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-5 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Uploaded to Bank</p>
-                      <p className="text-2xl font-bold text-[#49a034] mt-2">{exportStats.uploaded}</p>
+                      <p className="text-sm font-medium text-gray-500">Uploaded to Bank</p>
+                      <p className="text-2xl font-bold text-[#49a034] mt-1">{exportStats.uploaded}</p>
                     </div>
-                    <div className="p-3 bg-[#49a034]/10 rounded-lg">
-                      <CheckCircle2 className="h-6 w-6 text-[#49a034]" />
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#49a034]/10 to-[#49a034]/20 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-[#49a034]" />
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
 
               <div className="grid gap-6 lg:grid-cols-2">
@@ -613,8 +613,8 @@ export default function BankTransactionsPage() {
                 <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                   <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-purple-50 rounded-xl">
-                        <FileText className="h-5 w-5 text-purple-600" />
+                      <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
+                        <FileText className="h-5 w-5 text-[#638C80]" />
                       </div>
                       <div>
                         <CardTitle className="text-xl font-semibold text-gray-900">Export Files</CardTitle>
@@ -712,8 +712,8 @@ export default function BankTransactionsPage() {
                 <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                   <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-emerald-50 rounded-xl">
-                        <User className="h-5 w-5 text-emerald-600" />
+                      <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
+                        <User className="h-5 w-5 text-[#49a034]" />
                       </div>
                       <div>
                         <CardTitle className="text-xl font-semibold text-gray-900">Payments</CardTitle>
@@ -726,8 +726,8 @@ export default function BankTransactionsPage() {
                   <CardContent className="p-6">
                     {!selectedExportId ? (
                       <div className="text-center py-12">
-                        <div className="p-4 bg-amber-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                          <FileText className="h-8 w-8 text-amber-400" />
+                        <div className="p-4 bg-[#fed652]/20 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <FileText className="h-8 w-8 text-[#d4a843]" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No file selected</h3>
                         <p className="text-gray-500 text-sm">Select an export file from the list to view its payments</p>
@@ -775,7 +775,7 @@ export default function BankTransactionsPage() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <p className="font-semibold text-red-600">
+                                <p className="font-semibold text-[#f77f00]">
                                   -{formatCurrency(parseFloat(payment.amount), payment.currency)}
                                 </p>
                                 <div className="mt-1">

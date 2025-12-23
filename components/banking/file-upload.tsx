@@ -116,21 +116,19 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
   const canUpload = file && selectedBankAccount && activeConnection && !uploadFile.isPending;
 
   return (
-    <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-            <Upload className="h-5 w-5 text-[#638C80]" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#638C80] to-[#4a6b62] shadow-lg shadow-[#638C80]/30 flex items-center justify-center">
+            <Upload className="h-5 w-5 text-white" />
           </div>
           <div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Upload Bank File</CardTitle>
-            <CardDescription className="mt-0.5">
-              Import bank statement for reconciliation
-            </CardDescription>
+            <h3 className="text-xl font-semibold text-gray-900">Upload Bank File</h3>
+            <p className="text-sm text-gray-500">Import bank statement for reconciliation</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-5 p-6">
+      </div>
+      <div className="space-y-5 p-6">
         {/* File Input */}
         <div className="space-y-2">
           <Label htmlFor="file" className="text-sm font-medium text-gray-700">Bank Statement File</Label>
@@ -144,6 +142,8 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
               onChange={handleFileChange}
               disabled={uploadFile.isPending}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              aria-label="Upload bank statement file"
+              title="Upload bank statement file"
             />
             <div className="text-center">
               {file ? (
@@ -174,12 +174,12 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
           <Label htmlFor="bank-account" className="text-sm font-medium text-gray-700">Bank Account (from Xero)</Label>
           {isLoading ? (
             <div className="flex items-center justify-center py-8 bg-gray-50 rounded-xl">
-              <Loader2 className="h-6 w-6 animate-spin text-[#638C80]" />
+              <div className="animate-spin h-6 w-6 border-3 border-[#638C80] border-t-transparent rounded-full"></div>
             </div>
           ) : bankAccounts.length === 0 ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="font-medium text-amber-800">No bank accounts synced yet</p>
-              <p className="text-sm text-amber-600 mt-1">
+            <div className="bg-[#fed652]/10 border border-[#fed652]/30 rounded-xl p-4">
+              <p className="font-medium text-[#d4a843]">No bank accounts synced yet</p>
+              <p className="text-sm text-gray-600 mt-1">
                 Please sync bank accounts from Xero first in the{" "}
                 <a href="/banking/accounts" className="text-[#638C80] font-medium hover:underline">
                   Bank Accounts
@@ -225,9 +225,9 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         )}
 
         {!activeConnection && organizationId && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="font-medium text-amber-800">No active Xero connection found</p>
-            <p className="text-sm text-amber-600 mt-1">Please set up a Xero connection first</p>
+          <div className="bg-[#f77f00]/10 border border-[#f77f00]/30 rounded-xl p-4">
+            <p className="font-medium text-[#f77f00]">No active Xero connection found</p>
+            <p className="text-sm text-gray-600 mt-1">Please set up a Xero connection first</p>
           </div>
         )}
 
@@ -235,7 +235,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         <Button
           onClick={handleUpload}
           disabled={!canUpload}
-          className="w-full h-12 bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-lg hover:shadow-xl transition-all rounded-xl font-medium"
+          className="w-full h-12 bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white shadow-lg shadow-[#638C80]/20 hover:shadow-xl transition-all rounded-xl font-medium"
         >
           {uploadFile.isPending ? (
             <>
@@ -249,7 +249,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
             </>
           )}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -76,7 +76,7 @@ export default function BankingExportPage() {
                       <div className="flex items-center gap-2">
                         <span>{org.name}</span>
                         {org.external_id?.startsWith('xero_') && (
-                          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] bg-[#49a034]/10 text-[#49a034] px-1.5 py-0.5 rounded">
                             Xero
                           </span>
                         )}
