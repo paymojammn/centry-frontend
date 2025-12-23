@@ -15,48 +15,55 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
   useEffect(() => {
     const checkAuth = async () => {
       // Check if tokens are in URL (OAuth callback)
-      const urlToken = searchParams?.get('access_token');
-      
-      // If token in URL, save it
-      if (urlToken) {
-        localStorage.setItem('auth_token', urlToken);
+      const urlAccessToken = searchParams?.get('access_token');
+      const urlRefreshToken = searchParams?.get('refresh_token');
+
+      // If tokens in URL, save them and clean URL (security best practice)
+      if (urlAccessToken) {
+        localStorage.setItem('auth_token', urlAccessToken);
+        if (urlRefreshToken) {
+          localStorage.setItem('refresh_token', urlRefreshToken);
+        }
+        // Clean tokens from URL to prevent exposure in browser history
+        const cleanUrl = pathname || '/dashboard';
+        window.history.replaceState({}, '', cleanUrl);
       }
-      
+
       // Check authentication - either from URL or localStorage
-      const token = urlToken || getAuthToken();
-      
-      // Always verify authentication by calling profile endpoint
-      // This works for both JWT tokens and session-based auth (Xero OAuth)
-      const headers: HeadersInit = {
-        'Accept': 'application/json',
-      };
-      
-      // Add token to headers if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const token = urlAccessToken || getAuthToken();
+
+      if (!token) {
+        // No token available, redirect to login
+        const redirectUrl = pathname ? `?redirect=${encodeURIComponent(pathname)}` : '';
+        router.push(`/auth/login${redirectUrl}`);
+        return;
       }
-      
+
+      // Verify token by calling profile endpoint
       try {
         const response = await fetch('http://localhost:8000/api/auth/profile/', {
-          credentials: 'include', // Include cookies for session auth
-          headers,
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
         });
-        
+
         if (response.ok) {
-          // Valid authentication (token or session)
           setIsLoading(false);
         } else {
-          // No valid authentication, redirect to login
+          // Token invalid, clear storage and redirect to login
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
           const redirectUrl = pathname ? `?redirect=${encodeURIComponent(pathname)}` : '';
           router.push(`/auth/login${redirectUrl}`);
         }
       } catch (err) {
-        // Network error or server down, redirect to login
+        // Network error, redirect to login
         const redirectUrl = pathname ? `?redirect=${encodeURIComponent(pathname)}` : '';
         router.push(`/auth/login${redirectUrl}`);
       }
     };
-    
+
     checkAuth();
   }, [router, pathname, searchParams]);
 
