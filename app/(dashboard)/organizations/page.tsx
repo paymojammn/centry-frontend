@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Briefcase,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function OrganizationsPage() {
   const { data, isLoading, error } = useOrganizations();
@@ -75,10 +76,10 @@ export default function OrganizationsPage() {
                 </p>
               </div>
             </div>
-            <button className="bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white px-6 py-2.5 rounded-xl shadow-md shadow-[#638C80]/20 hover:shadow-lg transition-all flex items-center gap-2 font-medium">
+            <Button size="lg">
               <Plus className="h-4 w-4" />
               Create Organization
-            </button>
+            </Button>
           </div>
 
           {/* Stats Cards */}
@@ -168,10 +169,10 @@ export default function OrganizationsPage() {
                   : 'You are not a member of any organizations yet. Create one or ask to be invited.'}
               </p>
               {!searchQuery && (
-                <button className="bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white px-6 py-2.5 rounded-xl shadow-md shadow-[#638C80]/20 hover:shadow-lg transition-all flex items-center gap-2 mx-auto font-medium">
+                <Button size="lg">
                   <Plus className="h-4 w-4" />
                   Create Organization
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -318,12 +319,12 @@ function OrganizationCard({ organization }: OrganizationCardProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-2">
-          <Link href={`/organizations/${organization.id}`} className="flex-1">
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:border-[#638C80] rounded-xl text-gray-700 hover:text-[#638C80] font-medium transition-all shadow-sm hover:shadow group-hover:border-[#638C80]/50">
+          <Button variant="outline" className="flex-1" asChild>
+            <Link href={`/organizations/${organization.id}`}>
               View Details
               <ArrowRight className="h-4 w-4" />
-            </button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

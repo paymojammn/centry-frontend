@@ -92,14 +92,14 @@ export default function WalletPage() {
                     </div>
                   </div>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsLoadModalOpen(true)}
-                  className="flex items-center gap-2 bg-[#638C80] text-white px-6 py-3 rounded-xl hover:bg-[#547568] transition-all shadow-md hover:shadow-lg font-medium"
+                  size="lg"
                 >
                   <Plus className="w-5 h-5" />
                   Load Money
-                </button>
+                </Button>
               </div>
 
               <div className="space-y-2">
@@ -204,14 +204,14 @@ export default function WalletPage() {
                 <p className="text-gray-600 mb-6">
                   Start by loading money into your wallet
                 </p>
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsLoadModalOpen(true)}
-                  className="inline-flex items-center gap-2 bg-[#638C80] text-white px-6 py-3 rounded-xl hover:bg-[#547568] transition-all font-medium shadow-md"
+                  size="lg"
                 >
                   <Plus className="w-5 h-5" />
                   Load Money
-                </button>
+                </Button>
               </div>
             ) : (
               <TransactionsTable transactions={transactions} />

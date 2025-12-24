@@ -73,6 +73,8 @@ function SheetContent({
     <SheetPortal>
       {overlay && <SheetOverlay />}
       <SheetPrimitive.Content className={cn(sheetVariants({ side }), className)} {...props}>
+        {/* Visually hidden title for accessibility - required by Radix UI Dialog */}
+        <SheetPrimitive.Title className="sr-only">Menu</SheetPrimitive.Title>
         {children}
         {close && (
           <SheetPrimitive.Close

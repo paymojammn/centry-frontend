@@ -289,10 +289,9 @@ export default function BankReconciliationPage() {
                 onClick={handleSyncInvoices}
                 disabled={isSyncing || !activeConnectionId}
                 variant="outline"
-                size="sm"
-                className="bg-white shadow-sm"
+                className="bg-[#638C80] border-[#638C80] text-white hover:bg-[#547568] hover:border-[#547568]"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Syncing...' : 'Sync Invoices'}
               </Button>
 
@@ -300,10 +299,8 @@ export default function BankReconciliationPage() {
               <Button
                 onClick={handleAutoReconcile}
                 disabled={isAutoReconciling || !activeConnectionId}
-                size="sm"
-                className="bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white shadow-md shadow-[#638C80]/20"
               >
-                <Sparkles className={`h-4 w-4 mr-2 ${isAutoReconciling ? 'animate-pulse' : ''}`} />
+                <Sparkles className={`h-4 w-4 ${isAutoReconciling ? 'animate-pulse' : ''}`} />
                 {isAutoReconciling ? 'Matching...' : 'AI Auto-Reconcile'}
               </Button>
             </div>

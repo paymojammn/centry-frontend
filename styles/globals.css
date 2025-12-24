@@ -287,6 +287,3 @@ html {
     border-bottom: none;
   }
 }
-
-/* Metronic Configs */
-@import './config.metronic.css';

@@ -129,6 +129,19 @@
       top: 0.25rem;
       transform: translateX(100%);
     }
+
+    /* Hide selected item background when sidebar is collapsed */
+    .demo1.sidebar-collapse .sidebar:not(:hover) [data-selected='true'] {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    /* Center the icon in collapsed state */
+    .demo1.sidebar-collapse .sidebar:not(:hover) [data-slot='accordion-menu-item'],
+    .demo1.sidebar-collapse .sidebar:not(:hover) [data-slot='accordion-menu-sub-trigger'] {
+      justify-content: center;
+      padding-inline: 0;
+    }
   }
 
   .demo1.layout-initialized .wrapper {

@@ -41,6 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -111,12 +112,9 @@ export default function OrganizationDetailsPage() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button 
-              className="h-10 w-10 border border-gray-200 rounded-lg flex items-center justify-center hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all shadow-sm hover:shadow"
-              aria-label="More options"
-            >
-              <MoreVertical className="h-4 w-4 text-gray-600" />
-            </button>
+            <Button variant="outline" size="icon" aria-label="More options">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
             <DropdownMenuLabel className="text-black font-semibold">Actions</DropdownMenuLabel>
@@ -220,22 +218,22 @@ export default function OrganizationDetailsPage() {
                 <p className="text-sm text-gray-600">Common tasks and operations</p>
               </div>
               <div className="p-6 space-y-2">
-                <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-black hover:text-[#638C80] shadow-sm">
+                <Button variant="outline" className="w-full justify-start" type="button">
                   <Mail className="h-4 w-4 text-[#638C80]" />
-                  <span className="font-medium">Invite New Member</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-black hover:text-[#638C80] shadow-sm">
+                  Invite New Member
+                </Button>
+                <Button variant="outline" className="w-full justify-start" type="button">
                   <Globe className="h-4 w-4 text-[#638C80]" />
-                  <span className="font-medium">Connect ERP System</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-black hover:text-[#638C80] shadow-sm">
+                  Connect ERP System
+                </Button>
+                <Button variant="outline" className="w-full justify-start" type="button">
                   <TrendingUp className="h-4 w-4 text-[#638C80]" />
-                  <span className="font-medium">Import Bank Statement</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-black hover:text-[#638C80] shadow-sm">
+                  Import Bank Statement
+                </Button>
+                <Button variant="outline" className="w-full justify-start" type="button">
                   <Settings className="h-4 w-4 text-[#638C80]" />
-                  <span className="font-medium">Organization Settings</span>
-                </button>
+                  Organization Settings
+                </Button>
               </div>
             </div>
           </div>
@@ -251,10 +249,10 @@ export default function OrganizationDetailsPage() {
                   Manage your organization's team members and their roles
                 </p>
               </div>
-              <button className="bg-[#638C80] hover:bg-[#4f7068] text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
+              <Button type="button">
                 <Mail className="h-4 w-4" />
                 Invite Member
-              </button>
+              </Button>
             </div>
             <div className="p-6">
               {membersLoading ? (
@@ -320,12 +318,9 @@ export default function OrganizationDetailsPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button 
-                                className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-                                aria-label="Member actions"
-                              >
-                                <MoreVertical className="h-4 w-4 text-gray-600" />
-                              </button>
+                              <Button variant="ghost" size="sm" mode="icon" aria-label="Member actions">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
                               <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">

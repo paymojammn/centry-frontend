@@ -17,8 +17,8 @@ export function Sidebar() {
       )}
     >
       <SidebarHeader />
-      <div className="overflow-hidden">
-        <div className="w-(--sidebar-default-width)">
+      <div className="sidebar-wrapper overflow-hidden">
+        <div className="sidebar-logo w-(--sidebar-default-width)">
           <SidebarMenu />
         </div>
       </div>

@@ -184,10 +184,9 @@ export default function VendorsPage() {
                 variant="outline"
                 onClick={handleSyncContacts}
                 disabled={isSyncing || !activeConnectionId}
-                size="sm"
-                className="bg-white shadow-sm"
+                className="bg-[#638C80] border-[#638C80] text-white hover:bg-[#547568] hover:border-[#547568]"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Syncing...' : 'Sync'}
               </Button>
             </div>

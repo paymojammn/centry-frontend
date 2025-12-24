@@ -29,18 +29,19 @@ export function SidebarMenu() {
     [pathname],
   );
 
-  // Global classNames for consistent styling - Modern clean theme
+  // Global classNames for consistent styling - Modern clean theme with uniform left alignment
+  // Using ! (important) to override base accordion-menu styles
   const classNames: AccordionMenuClassNames = {
-    root: 'lg:ps-1 space-y-1',
-    group: 'gap-1',
+    root: 'space-y-0.5',
+    group: 'space-y-0.5',
     label:
-      'uppercase text-[11px] font-bold text-gray-400 pt-4 pb-2 px-3 tracking-wider',
+      'uppercase text-[11px] font-bold text-gray-400 pt-5 pb-2 px-3 tracking-wider',
     separator: 'border-gray-200',
-    item: 'h-10 hover:bg-gradient-to-r hover:from-[#638C80]/10 hover:to-[#638C80]/5 text-gray-700 hover:text-[#638C80] data-[selected=true]:text-white data-[selected=true]:bg-gradient-to-r data-[selected=true]:from-[#638C80] data-[selected=true]:to-[#547568] data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg mx-2',
+    item: 'h-10 bg-transparent! text-gray-700! hover:bg-[#638C80]/10! hover:text-[#638C80]! data-[selected=true]:bg-[#638C80]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
     sub: '',
     subTrigger:
-      'h-10 hover:bg-gradient-to-r hover:from-[#638C80]/10 hover:to-[#638C80]/5 text-gray-700 hover:text-[#638C80] data-[selected=true]:text-white data-[selected=true]:bg-gradient-to-r data-[selected=true]:from-[#638C80] data-[selected=true]:to-[#547568] data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg mx-2',
-    subContent: 'py-0',
+      'h-10 bg-transparent! text-gray-700! hover:bg-[#638C80]/10! hover:text-[#638C80]! data-[selected=true]:bg-[#638C80]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+    subContent: 'py-0.5 ps-6',
     indicator: 'text-[#638C80]',
   };
 
@@ -60,15 +61,15 @@ export function SidebarMenu() {
     if (item.children) {
       return (
         <AccordionMenuSub key={index} value={item.path || `root-${index}`}>
-          <AccordionMenuSubTrigger className="text-sm font-medium">
-            {item.icon && <item.icon data-slot="accordion-menu-icon" />}
+          <AccordionMenuSubTrigger className="text-sm font-medium gap-2.5">
+            {item.icon && <item.icon data-slot="accordion-menu-icon" className="size-4 shrink-0" />}
             <span data-slot="accordion-menu-title">{item.title}</span>
           </AccordionMenuSubTrigger>
           <AccordionMenuSubContent
             type="single"
             collapsible
             parentValue={item.path || `root-${index}`}
-            className="ps-6"
+            className=""
           >
             <AccordionMenuGroup>
               {buildMenuItemChildren(item.children, 1)}
@@ -85,9 +86,9 @@ export function SidebarMenu() {
         >
           <Link
             href={item.path || '#'}
-            className="flex items-center justify-between grow gap-2"
+            className="flex items-center grow gap-2.5"
           >
-            {item.icon && <item.icon data-slot="accordion-menu-icon" />}
+            {item.icon && <item.icon data-slot="accordion-menu-icon" className="size-4 shrink-0" />}
             <span data-slot="accordion-menu-title">{item.title}</span>
           </Link>
         </AccordionMenuItem>
@@ -103,12 +104,12 @@ export function SidebarMenu() {
       <AccordionMenuItem
         key={index}
         value={`disabled-${index}`}
-        className="text-sm font-medium"
+        className="text-sm font-medium gap-2.5"
       >
-        {item.icon && <item.icon data-slot="accordion-menu-icon" />}
+        {item.icon && <item.icon data-slot="accordion-menu-icon" className="size-4 shrink-0" />}
         <span data-slot="accordion-menu-title">{item.title}</span>
         {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto me-[-10px]">
+          <Badge variant="secondary" size="sm" className="ms-auto">
             Soon
           </Badge>
         )}
@@ -199,7 +200,7 @@ export function SidebarMenu() {
       >
         <span data-slot="accordion-menu-title">{item.title}</span>
         {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto me-[-10px]">
+          <Badge variant="secondary" size="sm" className="ms-auto">
             Soon
           </Badge>
         )}
@@ -212,7 +213,7 @@ export function SidebarMenu() {
   };
 
   return (
-    <ScrollArea className="flex grow shrink-0 py-5 px-5 lg:h-[calc(100vh-5.5rem)]">
+    <ScrollArea className="flex grow shrink-0 py-5 px-3 lg:h-[calc(100vh-5.5rem)]">
       <AccordionMenu
         selectedValue={pathname}
         matchPath={matchPath}

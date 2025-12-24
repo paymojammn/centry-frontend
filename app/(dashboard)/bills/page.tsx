@@ -275,10 +275,9 @@ export default function BillsPage() {
                 variant="outline"
                 onClick={handleSyncBills}
                 disabled={isSyncing || !activeConnectionId}
-                size="sm"
-                className="bg-white shadow-sm"
+                className="bg-[#638C80] border-[#638C80] text-white hover:bg-[#547568] hover:border-[#547568]"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Syncing...' : 'Sync'}
               </Button>
             </div>
@@ -460,12 +459,12 @@ export default function BillsPage() {
                     <div className="fixed bottom-6 right-6 z-40">
                       <Button
                         onClick={() => setIsPayModalOpen(true)}
-                        className="bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white shadow-xl shadow-[#638C80]/30 px-6 py-3 h-auto rounded-xl font-semibold"
                         size="lg"
+                        className="shadow-lg"
                       >
-                        <CreditCard className="h-5 w-5 mr-2" />
+                        <CreditCard className="h-5 w-5" />
                         Pay {selectedBills.size} Bill{selectedBills.size > 1 ? 's' : ''}
-                        <ArrowUpRight className="h-4 w-4 ml-2" />
+                        <ArrowUpRight className="h-4 w-4" />
                       </Button>
                     </div>
                   )}

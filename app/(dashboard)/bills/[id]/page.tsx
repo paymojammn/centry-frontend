@@ -8,7 +8,7 @@
 
 import { useBill } from '@/hooks/use-bills';
 import { useParams, useRouter } from 'next/navigation';
-import { 
+import {
   ArrowLeft,
   Building2,
   Calendar,
@@ -19,6 +19,7 @@ import {
   XCircle,
   Clock
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function BillDetailPage() {
   const params = useParams();
@@ -41,12 +42,9 @@ export default function BillDetailPage() {
           {billId && (
             <p className="text-sm text-gray-500">Bill ID: {billId}</p>
           )}
-          <button
-            onClick={() => router.push('/bills')}
-            className="mt-4 px-4 py-2 bg-[#638C80] text-white rounded-lg hover:bg-[#4f7068] transition-colors"
-          >
+          <Button onClick={() => router.push('/bills')} className="mt-4">
             Back to Bills
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -68,13 +66,14 @@ export default function BillDetailPage() {
     <div className="container py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => router.push('/bills')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Back to bills"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
-        </button>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-black">Bill Details</h1>
           <p className="text-gray-600 mt-1">
@@ -209,14 +208,14 @@ export default function BillDetailPage() {
 
           {/* Actions */}
           <div className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 space-y-3">
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#638C80] text-white rounded-lg hover:bg-[#4f7068] transition-colors">
+            <Button className="w-full">
               <DollarSign className="h-4 w-4" />
-              <span>Schedule Payment</span>
-            </button>
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              Schedule Payment
+            </Button>
+            <Button variant="outline" className="w-full">
               <Download className="h-4 w-4" />
-              <span>Download Invoice</span>
-            </button>
+              Download Invoice
+            </Button>
           </div>
         </div>
       </div>
