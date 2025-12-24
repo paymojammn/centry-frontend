@@ -290,7 +290,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                    !paymentDetails.bank_account_name && (
                     <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                       <p className="text-sm text-yellow-800">
-                        No bank account details found. Please sync contacts from Xero to update this information.
+                        No bank account details found. Please import csv contacts from Xero to update this information.
                       </p>
                     </div>
                   )}
