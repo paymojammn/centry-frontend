@@ -54,10 +54,23 @@ export interface PaymentIntent {
 export interface PayableStats {
   total_open: number;
   total_open_amount: string;
+  total_open_ugx?: string;  // Currency-converted total (awaiting + overdue)
+  total_open_usd?: string;
   total_scheduled: number;
   total_paid: number;
   overdue_count: number;
   overdue_amount: string;
+  overdue_ugx?: string;  // Currency-converted overdue
+  overdue_usd?: string;
+  // Detailed breakdowns
+  total_awaiting_payment?: number;
+  total_awaiting_payment_amount?: string;
+  total_awaiting_payment_ugx?: string;
+  total_awaiting_payment_usd?: string;
+  total_authorised?: number;
+  total_authorised_amount?: string;
+  total_authorised_ugx?: string;
+  total_authorised_usd?: string;
 }
 
 export interface CreatePaymentIntentData {

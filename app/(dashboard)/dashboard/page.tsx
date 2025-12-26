@@ -8,20 +8,18 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { usePayables, usePayableStats } from '@/hooks/use-purchases';
-import { useWalletTransactions } from '@/hooks/use-wallet';
+import { useImportStats, useExportStats } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
   Receipt,
-  Clock,
   CheckCircle,
   AlertCircle,
   Building2,
-  TrendingUp,
-  TrendingDown,
   ChevronRight,
   ArrowUpRight,
   CreditCard,
-  Calendar,
+  FileUp,
+  FileDown,
   Loader2,
 } from 'lucide-react';
 import {
@@ -80,7 +78,8 @@ export default function DashboardPage() {
     organization: selectedOrganizationId || undefined,
   });
   const { data: stats, isLoading: loadingStats } = usePayableStats(selectedOrganizationId || undefined);
-  const { data: transactions, isLoading: loadingTransactions } = useWalletTransactions('UGX', 10);
+  const { data: importStats, isLoading: loadingImports } = useImportStats({ organizationId: selectedOrganizationId || undefined });
+  const { data: exportStats, isLoading: loadingExports } = useExportStats({ organizationId: selectedOrganizationId || undefined });
 
   // Set greeting based on time of day
   useEffect(() => {
@@ -126,11 +125,11 @@ export default function DashboardPage() {
     return new Date(bill.due_date) < new Date();
   });
 
-  const walletTransactions = Array.isArray(transactions)
-    ? transactions
-    : (transactions as any)?.results || [];
+  // Combine recent imports and exports for activity feed
+  const recentImports = importStats?.recent_imports || [];
+  const recentExports = exportStats?.recent_exports || [];
 
-  const formatTransactionDate = (dateString: string) => {
+  const formatActivityDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
@@ -142,8 +141,9 @@ export default function DashboardPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const totalOpenAmount = stats?.total_open_amount ? parseFloat(stats.total_open_amount) : 0;
-  const overdueAmount = stats?.overdue_amount ? parseFloat(stats.overdue_amount) : 0;
+  // Use currency-converted UGX value (includes both awaiting payment + overdue)
+  const totalOpenAmount = stats?.total_open_ugx ? parseFloat(stats.total_open_ugx) : 0;
+  const overdueAmount = stats?.overdue_ugx ? parseFloat(stats.overdue_ugx) : 0;
 
   const dueThisWeek = openBills.filter((b: Payable) => {
     if (!b.due_date) return false;
@@ -292,7 +292,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Recent Transactions */}
+          {/* Recent Activity */}
           <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100">
               <div className="flex items-center justify-between">
@@ -304,32 +304,45 @@ export default function DashboardPage() {
                   variant="ghost"
                   size="sm"
                   className="text-gray-500 hover:text-gray-900 h-8 px-2"
-                  onClick={() => router.push('/wallet')}
+                  onClick={() => router.push('/banking/transactions')}
                 >
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
 
-            {loadingTransactions ? (
+            {(loadingImports || loadingExports) ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
-            ) : walletTransactions.length === 0 ? (
+            ) : (recentImports.length === 0 && recentExports.length === 0) ? (
               <div className="text-center py-12">
-                <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No transactions yet</p>
+                <Receipt className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No recent activity</p>
+                <p className="text-xs text-gray-400 mt-1">Import or export bank statements to see activity here</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {walletTransactions.slice(0, 6).map((tx: any) => (
-                  <TransactionItem
-                    key={tx.id}
-                    type={parseFloat(tx.amount) > 0 ? 'inflow' : 'outflow'}
-                    description={tx.description || tx.transaction_type || 'Transaction'}
-                    amount={Math.abs(parseFloat(tx.amount)).toString()}
-                    currency={tx.currency || 'UGX'}
-                    date={formatTransactionDate(tx.created_at)}
+                {/* Recent Imports */}
+                {recentImports.slice(0, 3).map((imp: any) => (
+                  <ActivityItem
+                    key={`import-${imp.id}`}
+                    type="import"
+                    title={imp.original_filename || 'Bank Statement'}
+                    subtitle={`${imp.transactions_count} transactions`}
+                    status={imp.status}
+                    date={formatActivityDate(imp.imported_at)}
+                  />
+                ))}
+                {/* Recent Exports */}
+                {recentExports.slice(0, 3).map((exp: any) => (
+                  <ActivityItem
+                    key={`export-${exp.id}`}
+                    type="export"
+                    title={exp.file_name || 'Payment Export'}
+                    subtitle={`${exp.payment_count} payments`}
+                    status={exp.status}
+                    date={formatActivityDate(exp.created_at)}
                   />
                 ))}
               </div>
@@ -399,40 +412,64 @@ function BillItem({ bill }: { bill: Payable }) {
   );
 }
 
-function TransactionItem({
+function ActivityItem({
   type,
-  description,
-  amount,
-  currency,
+  title,
+  subtitle,
+  status,
   date,
 }: {
-  type: 'inflow' | 'outflow';
-  description: string;
-  amount: string;
-  currency: string;
+  type: 'import' | 'export';
+  title: string;
+  subtitle: string;
+  status: string;
   date: string;
 }) {
+  const getStatusBadge = () => {
+    const statusLower = status?.toLowerCase() || '';
+    if (statusLower === 'synced' || statusLower === 'processed' || statusLower === 'success') {
+      return (
+        <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+          Done
+        </span>
+      );
+    }
+    if (statusLower === 'pending' || statusLower === 'imported') {
+      return (
+        <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+          Pending
+        </span>
+      );
+    }
+    if (statusLower === 'failed' || statusLower === 'error') {
+      return (
+        <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+          Failed
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="px-6 py-3 hover:bg-gray-50 transition-colors">
       <div className="flex items-center gap-3">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-          type === 'inflow' ? 'bg-green-50' : 'bg-orange-50'
+          type === 'import' ? 'bg-blue-50' : 'bg-[#638C80]/10'
         }`}>
-          {type === 'inflow' ? (
-            <TrendingUp className="h-4 w-4 text-green-600" />
+          {type === 'import' ? (
+            <FileDown className="h-4 w-4 text-blue-600" />
           ) : (
-            <TrendingDown className="h-4 w-4 text-orange-600" />
+            <FileUp className="h-4 w-4 text-[#638C80]" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{description}</p>
-          <p className="text-xs text-gray-500">{date}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
+            {getStatusBadge()}
+          </div>
+          <p className="text-xs text-gray-500">{subtitle} · {date}</p>
         </div>
-        <p className={`text-sm font-medium ${
-          type === 'inflow' ? 'text-green-600' : 'text-orange-600'
-        }`}>
-          {type === 'inflow' ? '+' : '-'}{formatCurrency(amount, currency)}
-        </p>
       </div>
     </div>
   );

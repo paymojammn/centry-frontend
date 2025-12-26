@@ -4,8 +4,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useBills } from '@/hooks/use-bills';
+import { usePayableStats } from '@/hooks/use-purchases';
 import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
@@ -100,6 +101,7 @@ export default function BillsPage() {
   };
 
   const { data: billsResponse, isLoading, error } = useBills(billFilters);
+  const { data: payableStats } = usePayableStats(selectedOrganizationId || undefined);
   const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
 
@@ -143,56 +145,19 @@ export default function BillsPage() {
     );
   });
 
-  // Calculate stats from bills
-  const stats = useMemo(() => {
-    if (!bills || bills.length === 0) {
-      return {
-        totalPayable: 0,
-        awaitingPayment: 0,
-        overdue: 0,
-        dueThisWeek: 0,
-        paid: 0,
-        currency: 'UGX',
-      };
+  // Use stats from backend API (currency-converted, matches Xero)
+  const totalPayableUgx = payableStats?.total_open_ugx ? parseFloat(payableStats.total_open_ugx) : 0;
+  const overdueUgx = payableStats?.overdue_ugx ? parseFloat(payableStats.overdue_ugx) : 0;
+  const totalOpen = payableStats?.total_open || 0;
+  const overdueCount = payableStats?.overdue_count || 0;
+
+  // Calculate due this week from current bills (local calculation for this specific metric)
+  const dueThisWeekAmount = bills.reduce((sum: number, bill: Bill) => {
+    if (bill.status === 'AUTHORISED' && isDueSoon(bill.due_date || '')) {
+      return sum + parseFloat(bill.amount_due || '0');
     }
-
-    const currency = cleanCurrencyCode(bills[0]?.currency || 'UGX');
-
-    let totalPayable = 0;
-    let awaitingPayment = 0;
-    let overdue = 0;
-    let dueThisWeek = 0;
-    let paid = 0;
-
-    bills.forEach((bill: Bill) => {
-      const amount = parseFloat(bill.amount_due || '0');
-      const total = parseFloat(bill.total || '0');
-
-      if (bill.status === 'AUTHORISED') {
-        awaitingPayment += amount;
-        totalPayable += amount;
-
-        if (isOverdue(bill.due_date || '')) {
-          overdue += amount;
-        } else if (isDueSoon(bill.due_date || '')) {
-          dueThisWeek += amount;
-        }
-      }
-
-      if (bill.status === 'PAID') {
-        paid += total;
-      }
-    });
-
-    return {
-      totalPayable,
-      awaitingPayment,
-      overdue,
-      dueThisWeek,
-      paid,
-      currency,
-    };
-  }, [bills]);
+    return sum;
+  }, 0);
 
   const handleStatusChange = (status: string) => {
     const validStatuses = ['all', 'draft', 'awaiting_approval', 'awaiting_payment', 'paid', 'repeating'];
@@ -263,25 +228,27 @@ export default function BillsPage() {
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Total Payable:</span>
               <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
-                {stats.currency} {formatCompactNumber(stats.totalPayable)}
+                UGX {formatCompactNumber(totalPayableUgx)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Awaiting:</span>
+              <span className="text-gray-500 text-sm">Open Bills:</span>
               <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
-                {bills.filter((b: Bill) => b.status === 'AUTHORISED').length} bills
+                {totalOpen}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Overdue:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-orange-50 text-orange-700">
-                {stats.currency} {formatCompactNumber(stats.overdue)}
+              <span className={`px-2 py-0.5 rounded text-sm font-medium ${
+                overdueCount > 0 ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {overdueCount} ({formatCompactNumber(overdueUgx)})
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Due This Week:</span>
               <span className="px-2 py-0.5 rounded text-sm font-medium bg-amber-50 text-amber-700">
-                {stats.currency} {formatCompactNumber(stats.dueThisWeek)}
+                UGX {formatCompactNumber(dueThisWeekAmount)}
               </span>
             </div>
             {selectedBills.size > 0 && (
