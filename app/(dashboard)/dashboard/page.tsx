@@ -142,8 +142,13 @@ export default function DashboardPage() {
   };
 
   // Use currency-converted UGX value (includes both awaiting payment + overdue)
-  const totalOpenAmount = stats?.total_open_ugx ? parseFloat(stats.total_open_ugx) : 0;
-  const overdueAmount = stats?.overdue_ugx ? parseFloat(stats.overdue_ugx) : 0;
+  // Fallback to raw amounts if UGX fields not available (backwards compatibility)
+  const totalOpenAmount = stats?.total_open_ugx
+    ? parseFloat(stats.total_open_ugx)
+    : (stats?.total_open_amount ? parseFloat(stats.total_open_amount) : 0);
+  const overdueAmount = stats?.overdue_ugx
+    ? parseFloat(stats.overdue_ugx)
+    : (stats?.overdue_amount ? parseFloat(stats.overdue_amount) : 0);
 
   const dueThisWeek = openBills.filter((b: Payable) => {
     if (!b.due_date) return false;

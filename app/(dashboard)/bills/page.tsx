@@ -146,8 +146,13 @@ export default function BillsPage() {
   });
 
   // Use stats from backend API (currency-converted, matches Xero)
-  const totalPayableUgx = payableStats?.total_open_ugx ? parseFloat(payableStats.total_open_ugx) : 0;
-  const overdueUgx = payableStats?.overdue_ugx ? parseFloat(payableStats.overdue_ugx) : 0;
+  // Fallback to raw amounts if UGX fields not available (backwards compatibility)
+  const totalPayableUgx = payableStats?.total_open_ugx
+    ? parseFloat(payableStats.total_open_ugx)
+    : (payableStats?.total_open_amount ? parseFloat(payableStats.total_open_amount) : 0);
+  const overdueUgx = payableStats?.overdue_ugx
+    ? parseFloat(payableStats.overdue_ugx)
+    : (payableStats?.overdue_amount ? parseFloat(payableStats.overdue_amount) : 0);
   const totalOpen = payableStats?.total_open || 0;
   const overdueCount = payableStats?.overdue_count || 0;
 
