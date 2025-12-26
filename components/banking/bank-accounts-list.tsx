@@ -29,6 +29,7 @@ import {
   Building2,
   Pencil,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -157,116 +158,116 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
 
   if (isLoading) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto mb-3"></div>
-        <p className="text-sm">Loading accounts...</p>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
       </div>
     );
   }
 
   return (
-    <div className="p-4">
+    <div>
       {/* Search */}
-      <div className="mb-4">
+      <div className="px-6 py-4 border-b border-gray-100">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search accounts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 bg-gray-50 border-gray-200"
           />
         </div>
       </div>
 
       {/* Table */}
       {accounts.length === 0 ? (
-        <div className="text-center py-16">
-          <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">
+        <div className="text-center py-12">
+          <Building2 className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">
             {searchQuery ? "No accounts match your search" : "No bank accounts yet"}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Add or sync accounts from Xero to get started
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Account</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Bank</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
-                <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
-                <th className="w-[50px] py-3 px-4"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {accounts.map((account: BankAccount) => (
-                <tr key={account.id} className="hover:bg-gray-50/30 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      {account.is_default && (
-                        <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
-                      )}
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">{account.account_name}</div>
-                        <div className="text-xs text-gray-400">{account.account_number}</div>
-                      </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50/50">
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Account</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Bank</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Currency</th>
+              <th className="text-right text-xs font-medium text-gray-500 px-6 py-3">Balance</th>
+              <th className="text-center text-xs font-medium text-gray-500 px-6 py-3">Active</th>
+              <th className="w-10 px-3"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {accounts.map((account: BankAccount) => (
+              <tr key={account.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-3">
+                  <div className="flex items-center gap-2">
+                    {account.is_default && (
+                      <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{account.account_name}</div>
+                      <div className="text-xs text-gray-500">{account.account_number}</div>
                     </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-sm text-gray-700">{account.bank?.name || '-'}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-sm text-gray-600">
-                      {cleanCurrencyCode(account.currency)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="text-sm font-medium text-gray-900">
-                      {formatBalance(account.balance || 0, account.currency)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <Switch
-                      checked={account.is_active}
-                      onCheckedChange={() => handleToggleActive(account)}
-                      className="data-[state=checked]:bg-green-500"
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEditAccount(account)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
+                  </div>
+                </td>
+                <td className="px-6 py-3">
+                  <span className="text-sm text-gray-700">{account.bank?.name || '-'}</span>
+                </td>
+                <td className="px-6 py-3">
+                  <span className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    {cleanCurrencyCode(account.currency)}
+                  </span>
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <span className="text-sm font-medium text-gray-900">
+                    {formatBalance(account.balance || 0, account.currency)}
+                  </span>
+                </td>
+                <td className="px-6 py-3 text-center">
+                  <Switch
+                    checked={account.is_active}
+                    onCheckedChange={() => handleToggleActive(account)}
+                    className="data-[state=checked]:bg-[#638C80]"
+                  />
+                </td>
+                <td className="px-3 py-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onEditAccount(account)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      {!account.is_default && (
+                        <DropdownMenuItem onClick={() => setDefaultMutation.mutate(account.id)}>
+                          <Star className="h-4 w-4 mr-2" />
+                          Set as Default
                         </DropdownMenuItem>
-                        {!account.is_default && (
-                          <DropdownMenuItem onClick={() => setDefaultMutation.mutate(account.id)}>
-                            <Star className="h-4 w-4 mr-2" />
-                            Set as Default
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(account)}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(account)}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       {/* Delete Dialog */}

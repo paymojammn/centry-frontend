@@ -1,22 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Download,
   RefreshCw,
@@ -28,7 +16,6 @@ import {
   Loader2,
   FolderOpen,
   AlertCircle,
-  ArrowDownToLine,
 } from "lucide-react";
 import {
   useBankAccounts,
@@ -66,15 +53,12 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
 
-  // Fetch bank accounts
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
 
-  // Fetch SFTP credentials for selected account
   const { data: credentialsData, isLoading: credentialsLoading } = useSFTPCredentials(selectedAccountId);
   const sftpCredentials = (credentialsData as any)?.results || [];
 
-  // Fetch remote files from SFTP
   const {
     data: filesData,
     isLoading: filesLoading,
@@ -82,34 +66,27 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
     error: filesError,
   } = useSFTPRemoteFiles(selectedAccountId, selectedSFTPCredentialId);
 
-  // Fetch recent transfer logs
-  const { data: logsData, isLoading: logsLoading } = useSFTPTransferLogs({
+  const { data: logsData } = useSFTPTransferLogs({
     bankAccountId: selectedAccountId,
     direction: "download",
     limit: 10,
   });
 
-  // SFTP download mutations
   const downloadStatements = useSFTPDownloadStatements();
   const downloadSingleFile = useSFTPDownloadSingleFile();
-
-  // Track task status
   const { data: taskStatus } = useSFTPTaskStatus(activeTaskId);
 
-  // Auto-select first active SFTP credential when credentials load
   useEffect(() => {
     if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
       const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
       if (activeCredential) {
         setSelectedSFTPCredentialId(activeCredential.id);
       } else {
-        // If no active credentials, select the first one
         setSelectedSFTPCredentialId(sftpCredentials[0].id);
       }
     }
   }, [sftpCredentials, selectedSFTPCredentialId, selectedAccountId]);
 
-  // Clear task when complete
   useEffect(() => {
     if (taskStatus?.status === "SUCCESS" || taskStatus?.status === "FAILURE") {
       setTimeout(() => {
@@ -146,7 +123,6 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
   const handleDownloadAll = async () => {
     if (!selectedAccountId) return;
-
     try {
       const result = await downloadStatements.mutateAsync({
         bank_account_id: selectedAccountId,
@@ -162,8 +138,6 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
   const handleDownloadSelected = async () => {
     if (!selectedAccountId || selectedFiles.size === 0) return;
-
-    // Download files one by one
     const filesToDownload = Array.from(selectedFiles);
     for (const filename of filesToDownload) {
       try {
@@ -184,7 +158,6 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
   const handleDownloadFile = async (filename: string) => {
     if (!selectedAccountId) return;
-
     try {
       const result = await downloadSingleFile.mutateAsync({
         bank_account_id: selectedAccountId,
@@ -203,26 +176,17 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
   return (
     <div className="space-y-6">
-      {/* Header Card */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-                <Server className="h-6 w-6 text-[#638C80]" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">SFTP Import</CardTitle>
-                <CardDescription className="mt-0.5">
-                  Download bank statement files from SFTP server for import
-                </CardDescription>
-              </div>
-            </div>
+      {/* Config Section */}
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Server className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">SFTP Import</h3>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bank Account Selection */}
+          <p className="text-xs text-gray-500 mt-1">Download bank statement files from SFTP server</p>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Bank Account</Label>
               <Select
@@ -233,53 +197,39 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                 }}
                 disabled={accountsLoading}
               >
-                <SelectTrigger className="h-12 bg-gray-50 border-gray-200 rounded-xl hover:bg-white transition-all">
-                  <SelectValue placeholder="Select bank account..." />
+                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                  <SelectValue placeholder="Select account..." />
                 </SelectTrigger>
                 <SelectContent>
                   {bankAccounts.map((account: any) => (
                     <SelectItem key={account.id} value={account.id.toString()}>
-                      <div className="flex items-center gap-2 py-1">
-                        <span className="font-medium text-gray-800">{account.account_name}</span>
-                        <span className="text-gray-500 text-sm">
-                          ({account.account_number})
-                        </span>
-                      </div>
+                      {account.account_name} ({account.account_number})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* SFTP Connection Selection */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">
-                SFTP Connection
-                {!selectedAccountId && <span className="text-gray-400 text-xs ml-2">(Select account first)</span>}
-              </Label>
+              <Label className="text-sm font-medium text-gray-700">SFTP Connection</Label>
               <Select
                 value={selectedSFTPCredentialId?.toString() || ""}
                 onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
                 disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
               >
-                <SelectTrigger className="h-12 bg-gray-50 border-gray-200 rounded-xl hover:bg-white transition-all">
+                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
                   <SelectValue placeholder={
                     credentialsLoading ? "Loading..." :
                     sftpCredentials.length === 0 ? "No connections" :
-                    "Select SFTP connection"
+                    "Select connection"
                   } />
                 </SelectTrigger>
                 <SelectContent>
                   {sftpCredentials.map((credential: SFTPCredential) => (
                     <SelectItem key={credential.id} value={credential.id.toString()}>
-                      <div className="flex items-center gap-2 py-1">
-                        <Server className="h-4 w-4 text-[#638C80]" />
-                        <span className="font-medium text-gray-800">{credential.host}</span>
-                        {credential.is_active ? (
-                          <span className="h-2 w-2 rounded-full bg-green-500" title="Active" />
-                        ) : (
-                          <span className="h-2 w-2 rounded-full bg-gray-400" title="Inactive" />
-                        )}
+                      <div className="flex items-center gap-2">
+                        <span>{credential.host}</span>
+                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-green-500" />}
                       </div>
                     </SelectItem>
                   ))}
@@ -287,15 +237,13 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               </Select>
             </div>
 
-            {/* Options */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Options</Label>
-              <div className="flex items-center space-x-3 h-12 px-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="flex items-center space-x-2 h-10 px-3 bg-gray-50 rounded-md border border-gray-200">
                 <Checkbox
                   id="auto-import"
                   checked={autoImport}
                   onCheckedChange={(checked) => setAutoImport(!!checked)}
-                  className="rounded"
                 />
                 <Label htmlFor="auto-import" className="text-sm text-gray-600 cursor-pointer">
                   Auto-import after download
@@ -304,327 +252,205 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
             </div>
           </div>
 
-          {/* SFTP Connection Details */}
           {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-gray-100">
               {(() => {
-                const selectedCredential = sftpCredentials.find(
-                  (c: SFTPCredential) => c.id === selectedSFTPCredentialId
-                );
-                if (!selectedCredential) return null;
-
+                const cred = sftpCredentials.find((c: SFTPCredential) => c.id === selectedSFTPCredentialId);
+                if (!cred) return null;
                 return (
-                  <div className="bg-gradient-to-br from-[#638C80]/5 to-[#547568]/5 rounded-xl p-4 border border-[#638C80]/20">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Server className="h-4 w-4 text-[#638C80]" />
-                      <span className="text-sm font-semibold text-gray-700">SFTP Connection Details</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-500 mb-1">Host</div>
-                        <div className="font-medium text-gray-800">{selectedCredential.host}:{selectedCredential.port}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">Upload Path</div>
-                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
-                          {selectedCredential.upload_path}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">Download Path</div>
-                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
-                          {selectedCredential.download_path}
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <span><span className="text-gray-400">Host:</span> {cred.host}:{cred.port}</span>
+                    <span><span className="text-gray-400">Download:</span> <code className="text-xs bg-gray-100 px-1 rounded">{cred.download_path}</code></span>
                   </div>
                 );
               })()}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Task Progress */}
       {activeTaskId && taskStatus && (
-        <div
-          className={`rounded-xl border p-4 ${
-            taskStatus.status === "SUCCESS"
-              ? "border-[#49a034]/30 bg-[#49a034]/5"
-              : taskStatus.status === "FAILURE"
-              ? "border-[#f77f00]/30 bg-[#f77f00]/5"
-              : "border-[#4E97D1]/30 bg-[#4E97D1]/5"
-          }`}
-        >
-          <div className="flex items-center gap-3">
+        <div className={`rounded-lg border p-4 flex items-center gap-3 ${
+          taskStatus.status === "SUCCESS" ? "border-green-200 bg-green-50" :
+          taskStatus.status === "FAILURE" ? "border-orange-200 bg-orange-50" :
+          "border-blue-200 bg-blue-50"
+        }`}>
+          {taskStatus.status === "SUCCESS" ? (
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+          ) : taskStatus.status === "FAILURE" ? (
+            <XCircle className="h-5 w-5 text-orange-600" />
+          ) : (
+            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+          )}
+          <span className={`text-sm font-medium ${
+            taskStatus.status === "SUCCESS" ? "text-green-700" :
+            taskStatus.status === "FAILURE" ? "text-orange-700" :
+            "text-blue-700"
+          }`}>
             {taskStatus.status === "SUCCESS" ? (
-              <div className="w-10 h-10 rounded-xl bg-[#49a034]/10 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-[#49a034]" />
-              </div>
+              <>Download complete! {taskStatus.result?.files_downloaded ? `${taskStatus.result.files_downloaded} file(s)` : ""}</>
             ) : taskStatus.status === "FAILURE" ? (
-              <div className="w-10 h-10 rounded-xl bg-[#f77f00]/10 flex items-center justify-center">
-                <XCircle className="h-5 w-5 text-[#f77f00]" />
-              </div>
+              <>Failed: {taskStatus.result?.error || "Unknown error"}</>
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-[#4E97D1]/10 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 text-[#4E97D1] animate-spin" />
-              </div>
+              "Downloading files..."
             )}
-            <div>
-              {taskStatus.status === "SUCCESS" ? (
-                <p className="text-[#49a034] font-medium">
-                  Download complete!{" "}
-                  {taskStatus.result?.files_downloaded
-                    ? `${taskStatus.result.files_downloaded} file(s) downloaded`
-                    : ""}
-                  {taskStatus.result?.files_imported
-                    ? `, ${taskStatus.result.files_imported} imported`
-                    : ""}
-                </p>
-              ) : taskStatus.status === "FAILURE" ? (
-                <p className="text-[#f77f00] font-medium">
-                  Download failed: {taskStatus.result?.error || "Unknown error"}
-                </p>
-              ) : (
-                <p className="text-[#4E97D1] font-medium">
-                  Downloading files from SFTP server...
-                </p>
-              )}
-            </div>
-          </div>
+          </span>
         </div>
       )}
 
-      {/* Remote Files List */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-                <FolderOpen className="h-5 w-5 text-[#638C80]" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">Remote Files</CardTitle>
-                {downloadPath && (
-                  <p className="text-xs text-gray-500 mt-0.5 font-mono">{downloadPath}</p>
-                )}
-              </div>
-            </div>
+      {/* Remote Files */}
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchFiles()}
-                disabled={!selectedAccountId || filesLoading}
-                className="rounded-lg border-gray-200 hover:bg-gray-50"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${filesLoading ? "animate-spin" : ""}`} />
-                Refresh
+              <FolderOpen className="h-4 w-4 text-gray-400" />
+              <h3 className="text-sm font-medium text-gray-900">Remote Files</h3>
+            </div>
+            {downloadPath && <p className="text-xs text-gray-500 mt-1 font-mono">{downloadPath}</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchFiles()}
+              disabled={!selectedAccountId || filesLoading}
+              className="h-8"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1.5 ${filesLoading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            {selectedFiles.size > 0 && (
+              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#638C80] hover:bg-[#547568]">
+                <Download className="h-3 w-3 mr-1.5" />
+                Download ({selectedFiles.size})
               </Button>
-              {selectedFiles.size > 0 && (
-                <Button
-                  size="sm"
-                  onClick={handleDownloadSelected}
-                  disabled={isDownloading}
-                  className="bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-lg shadow-sm"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Selected ({selectedFiles.size})
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={handleDownloadAll}
-                disabled={!selectedAccountId || files.length === 0 || isDownloading}
-                className="bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-lg shadow-sm"
-              >
-                <ArrowDownToLine className="h-4 w-4 mr-2" />
-                Download All
-              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={handleDownloadAll}
+              disabled={!selectedAccountId || files.length === 0 || isDownloading}
+              className="h-8 bg-[#638C80] hover:bg-[#547568]"
+            >
+              <Download className="h-3 w-3 mr-1.5" />
+              Download All
+            </Button>
+          </div>
+        </div>
+
+        {!selectedAccountId ? (
+          <div className="text-center py-12">
+            <Server className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Select a bank account</p>
+          </div>
+        ) : filesLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : filesError ? (
+          <div className="text-center py-12">
+            <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600">{(filesError as any)?.message || "Failed to connect to SFTP"}</p>
+          </div>
+        ) : files.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No files found</p>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="w-10 px-4 py-3">
+                  <Checkbox
+                    checked={selectedFiles.size === files.filter((f) => !f.is_dir).length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Filename</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Size</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Modified</th>
+                <th className="w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {files.map((file: SFTPRemoteFile) => (
+                <tr key={file.name} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    {!file.is_dir && (
+                      <Checkbox
+                        checked={selectedFiles.has(file.name)}
+                        onCheckedChange={() => handleSelectFile(file.name)}
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {file.is_dir ? (
+                        <FolderOpen className="h-4 w-4 text-amber-500" />
+                      ) : (
+                        <FileText className="h-4 w-4 text-gray-400" />
+                      )}
+                      <span className={`text-sm ${file.is_dir ? "text-gray-500" : "text-gray-900"}`}>{file.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{file.is_dir ? "-" : formatFileSize(file.size)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{formatDate(file.mtime)}</td>
+                  <td className="px-4 py-3">
+                    {!file.is_dir && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file.name)} disabled={isDownloading} className="h-8 w-8">
+                        <Download className="h-4 w-4 text-gray-400" />
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Recent Downloads */}
+      {selectedAccountId && transferLogs.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-400" />
+              <h3 className="text-sm font-medium text-gray-900">Recent Downloads</h3>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {!selectedAccountId ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Server className="h-8 w-8 text-gray-300" />
-              </div>
-              <p className="text-sm font-medium text-gray-500">Select a bank account</p>
-              <p className="text-xs text-gray-400 mt-1">Choose an account to view files on the SFTP server</p>
-            </div>
-          ) : filesLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Size</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {transferLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-3 text-sm text-gray-900">{log.remote_file_path.split("/").pop()}</td>
+                  <td className="px-6 py-3 text-sm text-gray-500">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
+                  <td className="px-6 py-3">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                      log.status === "success" ? "bg-green-50 text-green-700" :
+                      log.status === "failed" ? "bg-orange-50 text-orange-700" :
+                      "bg-blue-50 text-blue-700"
+                    }`}>
+                      {log.status === "success" && <CheckCircle2 className="h-3 w-3" />}
+                      {log.status === "failed" && <XCircle className="h-3 w-3" />}
+                      {log.status === "in_progress" && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-sm text-gray-500">{formatDate(log.started_at)}</td>
+                </tr>
               ))}
-            </div>
-          ) : filesError ? (
-            <Alert variant="destructive" className="rounded-xl">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {(filesError as any)?.message || "Failed to connect to SFTP server. Please check the credentials."}
-              </AlertDescription>
-            </Alert>
-          ) : files.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FileText className="h-8 w-8 text-gray-300" />
-              </div>
-              <p className="text-sm font-medium text-gray-500">No files found</p>
-              <p className="text-xs text-gray-400 mt-1">No files available on the SFTP server</p>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-gray-100 overflow-hidden bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50/80 border-b border-gray-100">
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedFiles.size === files.filter((f) => !f.is_dir).length}
-                        onCheckedChange={handleSelectAll}
-                        className="rounded"
-                      />
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-600">Filename</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Size</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Modified</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-600">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {files.map((file: SFTPRemoteFile, index) => (
-                    <TableRow
-                      key={file.name}
-                      className={`border-b border-gray-50 last:border-0 hover:bg-[#638C80]/5 transition-colors ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                      }`}
-                    >
-                      <TableCell>
-                        {!file.is_dir && (
-                          <Checkbox
-                            checked={selectedFiles.has(file.name)}
-                            onCheckedChange={() => handleSelectFile(file.name)}
-                            className="rounded"
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${file.is_dir ? 'bg-amber-50' : 'bg-[#638C80]/10'}`}>
-                            {file.is_dir ? (
-                              <FolderOpen className="h-4 w-4 text-amber-600" />
-                            ) : (
-                              <FileText className="h-4 w-4 text-[#638C80]" />
-                            )}
-                          </div>
-                          <span className={`font-medium ${file.is_dir ? "text-gray-500" : "text-gray-800"}`}>
-                            {file.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {file.is_dir ? "-" : formatFileSize(file.size)}
-                      </TableCell>
-                      <TableCell className="text-gray-500 text-sm">
-                        {formatDate(file.mtime)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {!file.is_dir && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadFile(file.name)}
-                            disabled={isDownloading}
-                            className="hover:bg-[#638C80]/10 rounded-lg"
-                          >
-                            <Download className="h-4 w-4 text-[#638C80]" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Recent Transfer Logs */}
-      {selectedAccountId && transferLogs.length > 0 && (
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-                <Clock className="h-5 w-5 text-[#638C80]" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-900">Recent Downloads</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="rounded-xl border border-gray-100 overflow-hidden bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50/80 border-b border-gray-100">
-                    <TableHead className="font-semibold text-gray-600">File</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Size</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Time</TableHead>
-                    <TableHead className="font-semibold text-gray-600">Duration</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transferLogs.map((log, index) => (
-                    <TableRow
-                      key={log.id}
-                      className={`border-b border-gray-50 last:border-0 hover:bg-[#638C80]/5 transition-colors ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                      }`}
-                    >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-gray-100 rounded-lg">
-                            <FileText className="h-4 w-4 text-[#638C80]" />
-                          </div>
-                          <span className="text-gray-800">{log.remote_file_path.split("/").pop()}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {log.file_size ? formatFileSize(log.file_size) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            log.status === "success"
-                              ? "success"
-                              : log.status === "failed"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                          appearance="light"
-                        >
-                          {log.status === "success" && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                          {log.status === "failed" && <XCircle className="h-3 w-3 mr-1" />}
-                          {log.status === "in_progress" && (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          )}
-                          {log.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-gray-500 text-sm">
-                        {formatDate(log.started_at)}
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {log.duration_seconds ? `${log.duration_seconds.toFixed(1)}s` : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

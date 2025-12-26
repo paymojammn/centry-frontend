@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -26,7 +24,6 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
   const [file, setFile] = useState<File | null>(null);
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
 
-  // API hooks
   const { data: bankAccountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const { data: connectionsData, isLoading: connectionsLoading } = useERPConnections();
   const uploadFile = useUploadBankFile();
@@ -35,25 +32,13 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
     ? bankAccountsData
     : (bankAccountsData as any)?.results || [];
 
-  // Extract connections from paginated response
   const connections = Array.isArray(connectionsData)
     ? connectionsData
     : (connectionsData as any)?.results || [];
 
-  // Find active ERP connection for selected organization
   const activeConnection = connections.find(
     (conn: any) => conn.organization?.id === organizationId && conn.is_active
   );
-
-  // Debug logging
-  console.log('=== FILE UPLOAD DEBUG ===');
-  console.log('organizationId:', organizationId);
-  console.log('Bank accounts data:', bankAccountsData);
-  console.log('Bank accounts array:', bankAccounts);
-  console.log('Connections data:', connectionsData);
-  console.log('Connections array:', connections);
-  console.log('Active connection:', activeConnection);
-  console.log('========================');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -77,12 +62,6 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
       return;
     }
 
-    console.log('Uploading with data:', {
-      file: file.name,
-      bank_account: parseInt(selectedBankAccount),
-      erp_connection: activeConnection.id,
-    });
-
     try {
       await uploadFile.mutateAsync({
         file,
@@ -94,17 +73,14 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         description: `${file.name} has been imported`
       });
 
-      // Reset form
       setFile(null);
       setSelectedBankAccount("");
 
-      // Clear file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
 
       onUploadComplete?.();
     } catch (error) {
-      console.error('Upload error:', error);
       const errorMessage = error instanceof Error ? error.message : "Failed to upload file";
       toast.error("Upload failed", {
         description: errorMessage
@@ -116,24 +92,21 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
   const canUpload = file && selectedBankAccount && activeConnection && !uploadFile.isPending;
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#638C80] to-[#4a6b62] shadow-lg shadow-[#638C80]/30 flex items-center justify-center">
-            <Upload className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">Upload Bank File</h3>
-            <p className="text-sm text-gray-500">Import bank statement for reconciliation</p>
-          </div>
+    <div className="bg-white rounded-lg border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Upload className="h-4 w-4 text-gray-400" />
+          <h3 className="text-sm font-medium text-gray-900">Upload Bank File</h3>
         </div>
+        <p className="text-xs text-gray-500 mt-1">Import bank statement for reconciliation</p>
       </div>
-      <div className="space-y-5 p-6">
+
+      <div className="p-6 space-y-5">
         {/* File Input */}
         <div className="space-y-2">
           <Label htmlFor="file" className="text-sm font-medium text-gray-700">Bank Statement File</Label>
-          <div className={`relative border-2 border-dashed rounded-xl p-6 transition-all ${
-            file ? 'border-[#638C80] bg-[#638C80]/5' : 'border-gray-200 hover:border-[#638C80]/50 hover:bg-gray-50'
+          <div className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
+            file ? 'border-[#638C80] bg-[#638C80]/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
           }`}>
             <input
               id="file"
@@ -148,21 +121,17 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
             <div className="text-center">
               {file ? (
                 <div className="flex items-center justify-center gap-3">
-                  <div className="p-2 bg-[#638C80]/10 rounded-lg">
-                    <CheckCircle2 className="h-6 w-6 text-[#638C80]" />
-                  </div>
+                  <CheckCircle2 className="h-5 w-5 text-[#638C80]" />
                   <div className="text-left">
-                    <p className="font-medium text-gray-800">{file.name}</p>
+                    <p className="text-sm font-medium text-gray-800">{file.name}</p>
                     <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="p-3 bg-gray-100 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                    <FileUp className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <p className="text-sm font-medium text-gray-600">Drop your file here or click to browse</p>
-                  <p className="text-xs text-gray-400 mt-1">Supports CSV, TXT, MT940, XML, XLSX, XLS</p>
+                  <FileUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Drop your file here or click to browse</p>
+                  <p className="text-xs text-gray-400 mt-1">CSV, TXT, MT940, XML, XLSX, XLS</p>
                 </>
               )}
             </div>
@@ -171,37 +140,34 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
 
         {/* Bank Account */}
         <div className="space-y-2">
-          <Label htmlFor="bank-account" className="text-sm font-medium text-gray-700">Bank Account (from Xero)</Label>
+          <Label htmlFor="bank-account" className="text-sm font-medium text-gray-700">Bank Account</Label>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8 bg-gray-50 rounded-xl">
-              <div className="animate-spin h-6 w-6 border-3 border-[#638C80] border-t-transparent rounded-full"></div>
+            <div className="flex items-center justify-center py-6 bg-gray-50 rounded-lg">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
             </div>
           ) : bankAccounts.length === 0 ? (
-            <div className="bg-[#fed652]/10 border border-[#fed652]/30 rounded-xl p-4">
-              <p className="font-medium text-[#d4a843]">No bank accounts synced yet</p>
-              <p className="text-sm text-gray-600 mt-1">
-                Please sync bank accounts from Xero first in the{" "}
+            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+              <p className="text-sm font-medium text-amber-700">No bank accounts synced</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Please sync bank accounts from Xero first in{" "}
                 <a href="/banking/accounts" className="text-[#638C80] font-medium hover:underline">
                   Bank Accounts
-                </a>{" "}
-                page.
+                </a>
               </p>
             </div>
           ) : (
             <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
-              <SelectTrigger id="bank-account" className="h-12 bg-gray-50 border-gray-200 rounded-xl hover:bg-white transition-all">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-[#638C80]" />
-                  <SelectValue placeholder="Select bank account..." />
-                </div>
+              <SelectTrigger id="bank-account" className="h-10 bg-gray-50 border-gray-200">
+                <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                <SelectValue placeholder="Select bank account..." />
               </SelectTrigger>
               <SelectContent>
                 {bankAccounts.map((account: any) => (
                   <SelectItem key={account.id} value={account.id.toString()}>
-                    <div className="flex flex-col py-1">
+                    <div className="flex flex-col">
                       <span className="font-medium text-gray-800">{account.account_name}</span>
                       <span className="text-xs text-gray-500">
-                        {account.account_number} • {account.bank?.name || account.bank_provider?.name} • {account.currency}
+                        {account.account_number} · {account.bank?.name || account.bank_provider?.name} · {account.currency}
                       </span>
                     </div>
                   </SelectItem>
@@ -213,21 +179,19 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
 
         {/* Connection Info */}
         {activeConnection && (
-          <div className="bg-[#638C80]/5 border border-[#638C80]/20 rounded-xl p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-[#638C80]" />
-              <p className="text-sm font-medium text-[#638C80]">Will upload to:</p>
-            </div>
-            <p className="text-sm text-gray-600 mt-1 ml-6">
-              {activeConnection.organization?.name} • {activeConnection.provider?.name}
+          <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-[#638C80]" />
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">{activeConnection.organization?.name}</span>
+              {" · "}{activeConnection.provider?.name}
             </p>
           </div>
         )}
 
         {!activeConnection && organizationId && (
-          <div className="bg-[#f77f00]/10 border border-[#f77f00]/30 rounded-xl p-4">
-            <p className="font-medium text-[#f77f00]">No active Xero connection found</p>
-            <p className="text-sm text-gray-600 mt-1">Please set up a Xero connection first</p>
+          <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+            <p className="text-sm font-medium text-orange-700">No active Xero connection</p>
+            <p className="text-xs text-gray-600 mt-0.5">Please set up a Xero connection first</p>
           </div>
         )}
 
@@ -235,16 +199,16 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         <Button
           onClick={handleUpload}
           disabled={!canUpload}
-          className="w-full h-12 bg-gradient-to-r from-[#638C80] to-[#4a6b62] hover:from-[#5a8073] hover:to-[#436259] text-white shadow-lg shadow-[#638C80]/20 hover:shadow-xl transition-all rounded-xl font-medium"
+          className="w-full h-10 bg-[#638C80] hover:bg-[#547568]"
         >
           {uploadFile.isPending ? (
             <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Uploading...
             </>
           ) : (
             <>
-              <FileUp className="mr-2 h-5 w-5" />
+              <FileUp className="mr-2 h-4 w-4" />
               Upload & Import
             </>
           )}

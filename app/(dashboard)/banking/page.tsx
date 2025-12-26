@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload } from "@/components/banking/file-upload";
 import { ImportHistory } from "@/components/banking/import-history";
@@ -9,7 +8,7 @@ import { StatsOverview } from "@/components/banking/stats-overview";
 import { TransactionList } from "@/components/banking/transaction-list";
 import { SFTPImport } from "@/components/banking/sftp-import";
 import { useOrganizations } from "@/hooks/use-organization";
-import { Building2, ArrowDownToLine } from "lucide-react";
+import { Building2, BarChart3, Upload, Server, FileText, List } from "lucide-react";
 
 export default function BankingPage() {
   const [selectedImportId, setSelectedImportId] = useState<number | undefined>();
@@ -18,12 +17,10 @@ export default function BankingPage() {
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
 
-  // Extract organizations from paginated response
   const organizations = Array.isArray(organizationsResponse)
     ? organizationsResponse
     : (organizationsResponse as any)?.results || [];
 
-  // Set default organization on mount
   useEffect(() => {
     if (!selectedOrganizationId && organizations?.length > 0) {
       setSelectedOrganizationId(organizations[0].id);
@@ -31,7 +28,6 @@ export default function BankingPage() {
   }, [organizations, selectedOrganizationId]);
 
   const handleUploadComplete = () => {
-    // Refresh import history
     setActiveTab("imports");
   };
 
@@ -40,38 +36,30 @@ export default function BankingPage() {
     setActiveTab("transactions");
   };
 
+  const tabs = [
+    { value: "overview", label: "Overview", icon: BarChart3 },
+    { value: "upload", label: "Upload", icon: Upload },
+    { value: "sftp-import", label: "SFTP", icon: Server },
+    { value: "imports", label: "Imports", icon: FileText },
+    { value: "transactions", label: "Transactions", icon: List },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#638C80]/5">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#638C80] via-[#547568] to-[#456050] p-8 shadow-xl">
-            <div className="absolute inset-0 bg-black opacity-5"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                    <ArrowDownToLine className="h-8 w-8 text-white" />
-                  </div>
-                  <h1 className="text-4xl font-bold tracking-tight text-white">Import</h1>
-                </div>
-                <p className="text-white/90 text-lg mt-3 ml-16">
-                  Import bank statements and sync to your ledger.
-                </p>
-              </div>
-
-              {/* Organization Selector */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-semibold text-gray-900">Import</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
                 disabled={orgsLoading || !organizations?.length}
               >
-                <SelectTrigger className="w-[280px] bg-white/95 backdrop-blur-sm border-white/20 text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-[#638C80]" />
-                    <SelectValue placeholder="Select organization..." />
-                  </div>
+                <SelectTrigger className="w-[200px] h-9 text-sm bg-gray-50 border-gray-200">
+                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                  <SelectValue placeholder="Select org" />
                 </SelectTrigger>
                 <SelectContent>
                   {organizations?.map((org: any) => (
@@ -90,63 +78,64 @@ export default function BankingPage() {
               </Select>
             </div>
           </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
-              <TabsList className="bg-gray-50 p-1 rounded-xl w-full grid grid-cols-5 gap-1">
-                {[
-                  { value: "overview", label: "Overview" },
-                  { value: "upload", label: "Upload" },
-                  { value: "sftp-import", label: "SFTP Import" },
-                  { value: "imports", label: "File Imports" },
-                  { value: "transactions", label: "Transactions" },
-                ].map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 data-[state=active]:bg-white data-[state=active]:text-[#638C80] data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 transition-all hover:text-[#638C80]"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            <TabsContent value="overview" className="space-y-6">
-              <StatsOverview organizationId={selectedOrganizationId || undefined} />
-            </TabsContent>
-
-            <TabsContent value="upload">
-              <FileUpload
-                onUploadComplete={handleUploadComplete}
-                organizationId={selectedOrganizationId || undefined}
-              />
-            </TabsContent>
-
-            <TabsContent value="sftp-import">
-              <SFTPImport
-                organizationId={selectedOrganizationId || undefined}
-                onImportComplete={handleUploadComplete}
-              />
-            </TabsContent>
-
-            <TabsContent value="imports">
-              <ImportHistory
-                onSelectImport={handleSelectImport}
-                selectedImportId={selectedImportId}
-                organizationId={selectedOrganizationId || undefined}
-              />
-            </TabsContent>
-
-            <TabsContent value="transactions">
-              <TransactionList
-                fileImportId={selectedImportId}
-                organizationId={selectedOrganizationId || undefined}
-              />
-            </TabsContent>
-          </Tabs>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex gap-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.value
+                      ? "border-[#638C80] text-[#638C80]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {activeTab === "overview" && (
+          <StatsOverview organizationId={selectedOrganizationId || undefined} />
+        )}
+        {activeTab === "upload" && (
+          <FileUpload
+            onUploadComplete={handleUploadComplete}
+            organizationId={selectedOrganizationId || undefined}
+          />
+        )}
+        {activeTab === "sftp-import" && (
+          <SFTPImport
+            organizationId={selectedOrganizationId || undefined}
+            onImportComplete={handleUploadComplete}
+          />
+        )}
+        {activeTab === "imports" && (
+          <ImportHistory
+            onSelectImport={handleSelectImport}
+            selectedImportId={selectedImportId}
+            organizationId={selectedOrganizationId || undefined}
+          />
+        )}
+        {activeTab === "transactions" && (
+          <TransactionList
+            fileImportId={selectedImportId}
+            organizationId={selectedOrganizationId || undefined}
+          />
+        )}
       </div>
     </div>
   );

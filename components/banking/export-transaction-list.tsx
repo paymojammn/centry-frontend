@@ -1,17 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Loader2,
@@ -20,8 +10,6 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  User,
-  Building2
 } from "lucide-react";
 import { useExportPayments, useBankPaymentExports, type ExportPayment } from "@/hooks/use-banking";
 import { format } from "date-fns";
@@ -66,24 +54,24 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
       case "completed":
       case "processed":
         return (
-          <Badge variant="success">
-            <CheckCircle className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+            <CheckCircle className="h-3 w-3" />
             {status}
-          </Badge>
+          </span>
         );
       case "failed":
         return (
-          <Badge variant="destructive">
-            <XCircle className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
+            <XCircle className="h-3 w-3" />
             Failed
-          </Badge>
+          </span>
         );
       default:
         return (
-          <Badge variant="outline">
-            <Clock className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+            <Clock className="h-3 w-3" />
             {status || "Pending"}
-          </Badge>
+          </span>
         );
     }
   };
@@ -91,100 +79,81 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
   // No export selected state
   if (!exportId) {
     return (
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-              <FileText className="h-5 w-5 text-[#638C80]" />
-            </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Payments</CardTitle>
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Payments</h3>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="text-center py-16">
-            <div className="p-4 bg-amber-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <AlertCircle className="h-8 w-8 text-amber-500" />
-            </div>
-            <p className="text-sm font-medium text-gray-500">No export file selected</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Select an export file from the SFTP Export tab to view its payments
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="text-center py-12">
+          <AlertCircle className="h-8 w-8 text-amber-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">No export file selected</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Select an export file from the SFTP Export tab to view its payments
+          </p>
+        </div>
+      </div>
     );
   }
 
   if (isLoading) {
     return (
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-              <FileText className="h-5 w-5 text-[#638C80]" />
-            </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Payments</CardTitle>
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Payments</h3>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-              <FileText className="h-5 w-5 text-[#638C80]" />
-            </div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Payments</CardTitle>
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Payments</h3>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-red-500">
-            <XCircle className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">Failed to load payments</p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="text-center py-12">
+          <XCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">Failed to load payments</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-            <FileText className="h-5 w-5 text-[#638C80]" />
-          </div>
-          <div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Payments</CardTitle>
-            <CardDescription className="mt-0.5">
+    <div className="bg-white rounded-lg border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Payments</h3>
+            <span className="text-xs text-gray-500">
               {filteredPayments.length} payment{filteredPayments.length !== 1 ? 's' : ''} in export
-            </CardDescription>
+            </span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
+      </div>
+
+      <div className="p-4 space-y-4">
         {/* Selected Export Info */}
         {selectedExport && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-blue-800">{selectedExport.file_name}</p>
-                <p className="text-sm text-blue-600">
-                  {selectedExport.payment_count} payments • {formatCurrency(selectedExport.total_amount, selectedExport.currency)}
-                </p>
-              </div>
+          <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-center gap-3">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-800">{selectedExport.file_name}</p>
+              <p className="text-xs text-blue-600">
+                {selectedExport.payment_count} payments · {formatCurrency(selectedExport.total_amount, selectedExport.currency)}
+              </p>
             </div>
           </div>
         )}
@@ -196,82 +165,65 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
             placeholder="Search beneficiary, reference..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 bg-gray-50 border-gray-200 rounded-xl shadow-sm transition-all focus:bg-white focus:border-[#638C80] focus:ring-2 focus:ring-[#638C80]/20"
+            className="pl-9 h-9 bg-gray-50 border-gray-200"
           />
         </div>
 
         {/* Table */}
         {filteredPayments.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <FileText className="h-8 w-8 text-gray-300" />
-            </div>
-            <p className="text-sm font-medium text-gray-500">No payments found</p>
+          <div className="text-center py-12">
+            <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No payments found</p>
             <p className="text-xs text-gray-400 mt-1">Try adjusting your search</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-100 overflow-hidden bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50/80 border-b border-gray-100">
-                  <TableHead className="font-semibold text-gray-600">Reference</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Beneficiary</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Bank</TableHead>
-                  <TableHead className="text-right font-semibold text-gray-600">Amount</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Date</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayments.map((payment: ExportPayment, index) => (
-                  <TableRow
-                    key={payment.id}
-                    className={`border-b border-gray-50 last:border-0 hover:bg-[#638C80]/5 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                    }`}
-                  >
-                    <TableCell className="font-medium">
-                      <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-                        {payment.reference}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-gray-100 rounded-lg">
-                          <User className="h-3.5 w-3.5 text-gray-500" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{payment.beneficiary_name}</p>
-                          <p className="text-xs text-gray-500">{payment.beneficiary_account}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-sm text-gray-600">{payment.beneficiary_bank}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="font-semibold text-gray-800">
-                        {formatCurrency(payment.amount, payment.currency)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-gray-500">
-                        {payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "-"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(payment.status)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Reference</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Beneficiary</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Bank</th>
+                <th className="text-right text-xs font-medium text-gray-500 px-4 py-3">Amount</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Date</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredPayments.map((payment: ExportPayment) => (
+                <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-gray-600 font-mono bg-gray-100 px-2 py-0.5 rounded">
+                      {payment.reference}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{payment.beneficiary_name}</p>
+                      <p className="text-xs text-gray-500">{payment.beneficiary_account}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-gray-600">{payment.beneficiary_bank}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-sm font-medium text-gray-900">
+                      {formatCurrency(payment.amount, payment.currency)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-gray-500">
+                      {payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "-"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {getStatusBadge(payment.status)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

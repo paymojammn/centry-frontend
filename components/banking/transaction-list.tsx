@@ -1,16 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,14 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Loader2, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Loader2,
+  CheckCircle,
+  XCircle,
   Clock,
   ArrowUp,
   ArrowDown,
-  Search
+  Search,
+  List
 } from "lucide-react";
 import { useBankTransactions } from "@/hooks/use-banking";
 import { format } from "date-fns";
@@ -50,7 +41,6 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
 
   const transactions = data?.results || [];
 
-  // Filter by search term
   const filteredTransactions = transactions.filter((tx) => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
@@ -65,83 +55,82 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
     switch (status) {
       case "SYNCED":
         return (
-          <Badge variant="success">
-            <CheckCircle className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+            <CheckCircle className="h-3 w-3" />
             Synced
-          </Badge>
+          </span>
         );
       case "FAILED":
         return (
-          <Badge variant="destructive">
-            <XCircle className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
+            <XCircle className="h-3 w-3" />
             Failed
-          </Badge>
+          </span>
         );
       case "SKIPPED":
         return (
-          <Badge variant="outline">
-            <Clock className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+            <Clock className="h-3 w-3" />
             Skipped
-          </Badge>
+          </span>
         );
       default:
         return (
-          <Badge variant="secondary">
-            <Clock className="mr-1 h-3 w-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+            <Clock className="h-3 w-3" />
             Pending
-          </Badge>
+          </span>
         );
     }
   };
 
   if (isLoading) {
     return (
-      <Card className="border-gray-100 shadow-sm">
-        <CardHeader>
-          <CardTitle>Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <List className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Transactions</h3>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-gray-100 shadow-sm">
-        <CardHeader>
-          <CardTitle>Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-red-500">
-            <XCircle className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">Failed to load transactions</p>
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <List className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-medium text-gray-900">Transactions</h3>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="text-center py-12">
+          <XCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">Failed to load transactions</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-            <Search className="h-5 w-5 text-[#638C80]" />
-          </div>
-          <div>
-            <CardTitle className="text-xl font-semibold text-gray-900">Transactions</CardTitle>
-            <CardDescription className="mt-0.5">
-              {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''} found
-            </CardDescription>
-          </div>
+    <div className="bg-white rounded-lg border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <List className="h-4 w-4 text-gray-400" />
+          <h3 className="text-sm font-medium text-gray-900">Transactions</h3>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 p-6">
-        {/* Filters */}
+        <p className="text-xs text-gray-500 mt-1">
+          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -149,11 +138,11 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
               placeholder="Search description, reference, amount..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-11 bg-gray-50 border-gray-200 rounded-xl shadow-sm transition-all focus:bg-white focus:border-[#638C80] focus:ring-2 focus:ring-[#638C80]/20"
+              className="pl-10 h-9 bg-white border-gray-200"
             />
           </div>
           <Select value={transactionType} onValueChange={setTransactionType}>
-            <SelectTrigger className="w-full sm:w-[150px] h-11 bg-gray-50 border-gray-200 rounded-xl">
+            <SelectTrigger className="w-full sm:w-[130px] h-9 bg-white border-gray-200">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -163,8 +152,8 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
             </SelectContent>
           </Select>
           <Select value={syncFilter} onValueChange={setSyncFilter}>
-            <SelectTrigger className="w-full sm:w-[150px] h-11 bg-gray-50 border-gray-200 rounded-xl">
-              <SelectValue placeholder="Sync Status" />
+            <SelectTrigger className="w-full sm:w-[130px] h-9 bg-white border-gray-200">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
@@ -173,79 +162,68 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
             </SelectContent>
           </Select>
         </div>
+      </div>
 
-        {/* Table */}
-        {filteredTransactions.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <Search className="h-8 w-8 text-gray-300" />
-            </div>
-            <p className="text-sm font-medium text-gray-500">No transactions found</p>
-            <p className="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
-          </div>
-        ) : (
-          <div className="rounded-xl border border-gray-100 overflow-hidden bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50/80 border-b border-gray-100">
-                  <TableHead className="font-semibold text-gray-600">Date</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Description</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Reference</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Type</TableHead>
-                  <TableHead className="text-right font-semibold text-gray-600">Amount</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.map((tx, index) => (
-                  <TableRow
-                    key={tx.id}
-                    className={`border-b border-gray-50 last:border-0 hover:bg-[#638C80]/5 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                    }`}
-                  >
-                    <TableCell className="font-medium text-gray-700">
-                      {format(new Date(tx.transaction_date), "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <span className="truncate block text-gray-800">{tx.description}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-                        {tx.reference}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${
-                        tx.transaction_type === "DEBIT"
-                          ? 'bg-red-50 text-red-700'
-                          : 'bg-green-50 text-green-700'
-                      }`}>
-                        {tx.transaction_type === "DEBIT" ? (
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        ) : (
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        )}
-                        <span className="text-xs font-medium">
-                          {tx.transaction_type}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className={`font-semibold ${tx.transaction_type === "DEBIT" ? "text-red-600" : "text-green-600"}`}>
-                        {tx.currency} {parseFloat(tx.amount).toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {getSyncStatusBadge(tx.sync_status)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Table */}
+      {filteredTransactions.length === 0 ? (
+        <div className="text-center py-12">
+          <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">No transactions found</p>
+          <p className="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
+        </div>
+      ) : (
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50/50">
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Date</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Description</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Reference</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Type</th>
+              <th className="text-right text-xs font-medium text-gray-500 px-6 py-3">Amount</th>
+              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {filteredTransactions.map((tx) => (
+              <tr key={tx.id} className="hover:bg-gray-50">
+                <td className="px-6 py-3 text-sm text-gray-900">
+                  {format(new Date(tx.transaction_date), "MMM dd, yyyy")}
+                </td>
+                <td className="px-6 py-3 max-w-xs">
+                  <span className="text-sm text-gray-900 truncate block">{tx.description}</span>
+                </td>
+                <td className="px-6 py-3">
+                  <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
+                    {tx.reference}
+                  </span>
+                </td>
+                <td className="px-6 py-3">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                    tx.transaction_type === "DEBIT"
+                      ? 'bg-red-50 text-red-700'
+                      : 'bg-green-50 text-green-700'
+                  }`}>
+                    {tx.transaction_type === "DEBIT" ? (
+                      <ArrowDown className="h-3 w-3" />
+                    ) : (
+                      <ArrowUp className="h-3 w-3" />
+                    )}
+                    {tx.transaction_type}
+                  </span>
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <span className={`text-sm font-medium ${tx.transaction_type === "DEBIT" ? "text-red-600" : "text-green-600"}`}>
+                    {tx.currency} {parseFloat(tx.amount).toLocaleString()}
+                  </span>
+                </td>
+                <td className="px-6 py-3">
+                  {getSyncStatusBadge(tx.sync_status)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }
