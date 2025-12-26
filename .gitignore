@@ -682,3 +682,4 @@ node_modules
 .next/types/app/(dashboard)/banking/page.ts
 .next/types/routes.d.ts
 .next/types/validator.ts
+tsconfig.tsbuildinfo
