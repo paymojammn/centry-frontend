@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -14,13 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { BankReconciliationItem } from "@/components/banking/bank-reconciliation-item";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useSyncInvoices, useERPConnections } from "@/hooks/use-erp";
 import { useAutoReconcile, useAutoReconcileStatus } from "@/hooks/use-banking";
@@ -31,11 +22,17 @@ import {
   Clock,
   Building2,
   RefreshCw,
-  ArrowDownCircle,
-  ArrowUpCircle,
+  ArrowRight,
   Sparkles,
-  TrendingUp,
-  DollarSign,
+  FileText,
+  Check,
+  X,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
+  MoreHorizontal,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -60,61 +57,59 @@ interface BankTransaction {
 
 interface ReconciliationStats {
   unmatched_count: number;
+  suggested_count: number;
   matched_count: number;
   posted_count: number;
   total_unmatched_amount: number;
 }
 
+interface SuggestedTransaction extends BankTransaction {
+  matched_to_type: string;
+  matched_to_id: string;
+  matched_to_reference: string;
+  matched_amount: number;
+  match_confidence: number;
+  match_rules_applied: string[];
+  debit_amount: number;
+  credit_amount: number;
+}
+
 export default function BankReconciliationPage() {
-  const [activeTab, setActiveTab] = useState("reconcile");
-  const [bankFilter, setBankFilter] = useState("all");
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [reconcileTaskId, setReconcileTaskId] = useState<string | undefined>();
+  const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
-  const { data: erpConnectionsResponse, isLoading: connectionsLoading } = useERPConnections();
+  const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncInvoices, isPending: isSyncing } = useSyncInvoices();
   const { mutate: autoReconcile, isPending: isAutoReconciling } = useAutoReconcile();
-
-  // Poll for task status
   const { data: reconcileStatus } = useAutoReconcileStatus(reconcileTaskId);
 
-  // Extract organizations from paginated response
   const organizations = Array.isArray(organizationsResponse)
     ? organizationsResponse
     : (organizationsResponse as any)?.results || [];
 
-  // Extract connections from paginated response
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse
     : (erpConnectionsResponse as any)?.results || [];
 
-  // Set default organization on mount
   useEffect(() => {
     if (!selectedOrganizationId && organizations?.length > 0) {
       setSelectedOrganizationId(organizations[0].id);
     }
   }, [organizations, selectedOrganizationId]);
 
-  // Find active ERP connection for selected organization
   useEffect(() => {
     if (!selectedOrganizationId) return;
-
-    // Find connection for selected organization
     const orgConnection = erpConnections?.find(
       (conn: any) => conn.organization?.id === selectedOrganizationId && conn.is_active
     );
-
-    if (orgConnection) {
-      setActiveConnectionId(orgConnection.id);
-    } else {
-      setActiveConnectionId(null);
-    }
+    setActiveConnectionId(orgConnection?.id || null);
   }, [selectedOrganizationId, erpConnections]);
 
-  // Fetch reconciliation summary stats
+  // API Queries
   const { data: stats } = useQuery<ReconciliationStats>({
     queryKey: ["bank-reconciliation-stats", selectedOrganizationId],
     queryFn: () => {
@@ -125,7 +120,6 @@ export default function BankReconciliationPage() {
     enabled: !!selectedOrganizationId,
   });
 
-  // Fetch invoices and bills for reconciliation
   const { data: reconciliationItems, isLoading: itemsLoading } = useQuery<{
     invoices: any[];
     bills: any[];
@@ -141,565 +135,548 @@ export default function BankReconciliationPage() {
     enabled: !!selectedOrganizationId,
   });
 
-  // Fetch unmatched transactions
   const { data: unmatchedData, isLoading: unmatchedLoading } = useQuery<{ results: BankTransaction[] }>({
-    queryKey: ["bank-transactions-unmatched", bankFilter, selectedOrganizationId],
+    queryKey: ["bank-transactions-unmatched", selectedOrganizationId],
     queryFn: () => {
       const params = new URLSearchParams();
       params.append("match_status", "unmatched");
       params.append("source_type", "bank");
       if (selectedOrganizationId) params.append("organization", selectedOrganizationId);
-      if (bankFilter !== "all") params.append("source_provider", bankFilter);
       return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
     },
     enabled: !!selectedOrganizationId,
   });
 
-  // Fetch matched transactions
-  const { data: matchedData, isLoading: matchedLoading } = useQuery<{ results: BankTransaction[] }>({
-    queryKey: ["bank-transactions-matched", bankFilter, selectedOrganizationId],
+  const { data: suggestedData } = useQuery<{ results: SuggestedTransaction[] }>({
+    queryKey: ["bank-transactions-suggested", selectedOrganizationId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.append("match_status", "suggested");
+      params.append("source_type", "bank");
+      if (selectedOrganizationId) params.append("organization", selectedOrganizationId);
+      return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
+    },
+    enabled: !!selectedOrganizationId,
+  });
+
+  const { data: matchedData } = useQuery<{ results: BankTransaction[] }>({
+    queryKey: ["bank-transactions-matched", selectedOrganizationId],
     queryFn: () => {
       const params = new URLSearchParams();
       params.append("match_status", "matched");
       params.append("source_type", "bank");
       if (selectedOrganizationId) params.append("organization", selectedOrganizationId);
-      if (bankFilter !== "all") params.append("source_provider", bankFilter);
-      return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
-    },
-    enabled: !!selectedOrganizationId,
-  });
-
-  // Fetch posted transactions
-  const { data: postedData, isLoading: postedLoading } = useQuery<{ results: BankTransaction[] }>({
-    queryKey: ["bank-transactions-posted", bankFilter, selectedOrganizationId],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      params.append("match_status", "posted");
-      params.append("source_type", "bank");
-      if (selectedOrganizationId) params.append("organization", selectedOrganizationId);
-      if (bankFilter !== "all") params.append("source_provider", bankFilter);
       return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
     },
     enabled: !!selectedOrganizationId,
   });
 
   const unmatchedTransactions = unmatchedData?.results || [];
+  const suggestedTransactions = suggestedData?.results || [];
   const matchedTransactions = matchedData?.results || [];
-  const postedTransactions = postedData?.results || [];
 
-  // Fetch available banks for filter
-  const { data: banksData } = useQuery({
-    queryKey: ["bank-providers"],
-    queryFn: () => api.get("/api/v1/banking/providers/"),
+  // Mutations
+  const approveMutation = useMutation({
+    mutationFn: async ({ transactionId, matchType, matchId, amount }: {
+      transactionId: string;
+      matchType: string;
+      matchId: string;
+      amount: number;
+    }) => {
+      await api.post(`/api/v1/banking/transactions/${transactionId}/match/`, {
+        match_type: matchType,
+        match_id: matchId,
+        amount: amount,
+      });
+      return api.post(`/api/v1/banking/transactions/${transactionId}/post_to_xero/`);
+    },
+    onSuccess: () => {
+      toast.success('Payment posted to Xero');
+      handleTransactionUpdate();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed: ${error.message}`);
+    },
   });
 
-  // Handle both array format and paginated format { results: [] }
-  const banks = Array.isArray(banksData)
-    ? banksData
-    : (banksData as any)?.results || [];
+  const rejectMutation = useMutation({
+    mutationFn: async (transactionId: string) => {
+      return api.post(`/api/v1/banking/transactions/${transactionId}/unmatch/`);
+    },
+    onSuccess: () => {
+      toast.success('Match rejected');
+      handleTransactionUpdate();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed: ${error.message}`);
+    },
+  });
 
   const handleTransactionUpdate = () => {
     queryClient.invalidateQueries({ queryKey: ["bank-transactions-unmatched"] });
+    queryClient.invalidateQueries({ queryKey: ["bank-transactions-suggested"] });
     queryClient.invalidateQueries({ queryKey: ["bank-transactions-matched"] });
     queryClient.invalidateQueries({ queryKey: ["bank-transactions-posted"] });
     queryClient.invalidateQueries({ queryKey: ["bank-reconciliation-stats"] });
   };
 
   const handleSyncInvoices = () => {
-    // Use the active connection ID we found
     if (activeConnectionId) {
       syncInvoices(activeConnectionId);
     } else {
-      // Show error toast if no connection found
-      toast.error('No active ERP connection found for this organization');
+      toast.error('No active ERP connection');
     }
   };
 
   const handleAutoReconcile = () => {
     if (!selectedOrganizationId || !activeConnectionId) {
-      toast.error('Please select an organization with an active ERP connection');
+      toast.error('Select an organization with an active connection');
       return;
     }
-
     autoReconcile(
-      {
-        organization: selectedOrganizationId,
-        erp_connection: activeConnectionId,
-        min_confidence: 0.7,
-        auto_apply: true,
-      },
+      { organization: selectedOrganizationId, erp_connection: activeConnectionId, min_confidence: 0.7, auto_apply: true },
       {
         onSuccess: (data) => {
           setReconcileTaskId(data.task_id);
-          toast.info('Auto-reconciliation started. Processing transactions...');
+          toast.info('Auto-reconciliation started...');
         },
-        onError: (error: any) => {
-          toast.error(`Auto-reconcile failed: ${error.message}`);
-        },
+        onError: (error: any) => toast.error(`Failed: ${error.message}`),
       }
     );
   };
 
-  // Show toast when reconciliation completes
   useEffect(() => {
     if (reconcileStatus?.status === 'SUCCESS') {
       const result = reconcileStatus.result;
       if (result) {
-        toast.success(
-          `Auto-reconciled ${result.matched_count} transactions! ${result.suggested_count} suggestions created.`
-        );
+        toast.success(`Matched ${result.matched_count} transactions, ${result.suggested_count} suggestions`);
         setReconcileTaskId(undefined);
+        handleTransactionUpdate();
       }
     } else if (reconcileStatus?.status === 'FAILURE') {
-      toast.error(`Auto-reconcile failed: ${reconcileStatus.error || 'Unknown error'}`);
+      toast.error(`Failed: ${reconcileStatus.error || 'Unknown error'}`);
       setReconcileTaskId(undefined);
     }
   }, [reconcileStatus]);
 
+  const totalToReconcile = (stats?.unmatched_count || 0) + (stats?.suggested_count || 0);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
-      <div className="container mx-auto py-6 px-4 max-w-7xl">
-        <div className="space-y-6">
-          {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#638C80] to-[#4a6b62] flex items-center justify-center shadow-lg shadow-[#638C80]/20">
-                <Receipt className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Bank Reconciliation</h1>
-                <p className="text-sm text-gray-500">
-                  Match bank transactions with invoices and bills
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Organization Selector */}
+              <h1 className="text-xl font-semibold text-gray-900">Bank Reconciliation</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
-                disabled={orgsLoading || !organizations?.length}
+                disabled={orgsLoading}
               >
-                <SelectTrigger className="w-[220px] bg-white border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-400" />
-                    <SelectValue placeholder="Select organization" />
-                  </div>
+                <SelectTrigger className="w-[200px] h-9 text-sm bg-gray-50 border-gray-200">
+                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                  <SelectValue placeholder="Select org" />
                 </SelectTrigger>
                 <SelectContent>
                   {organizations?.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{org.name}</span>
-                        {org.external_id?.startsWith('xero_') && (
-                          <span className="text-[10px] bg-[#49a034]/10 text-[#49a034] px-1.5 py-0.5 rounded">
-                            Xero
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
+                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              {/* Sync Invoices Button */}
+            <div className="flex items-center gap-2">
               <Button
+                variant="outline"
+                size="sm"
                 onClick={handleSyncInvoices}
                 disabled={isSyncing || !activeConnectionId}
-                variant="outline"
-                className="bg-[#638C80] border-[#638C80] text-white hover:bg-[#547568] hover:border-[#547568]"
+                className="h-9"
               >
-                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync Invoices'}
+                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync
               </Button>
-
-              {/* Auto Reconcile Button */}
               <Button
+                size="sm"
                 onClick={handleAutoReconcile}
                 disabled={isAutoReconciling || !!reconcileTaskId || !activeConnectionId}
+                className="h-9 bg-[#638C80] hover:bg-[#547568]"
               >
-                <Sparkles className={`h-4 w-4 ${(isAutoReconciling || reconcileTaskId) ? 'animate-pulse' : ''}`} />
-                {isAutoReconciling || reconcileTaskId ? 'Matching...' : 'AI Auto-Reconcile'}
+                <Sparkles className={`h-4 w-4 mr-2 ${(isAutoReconciling || reconcileTaskId) ? 'animate-pulse' : ''}`} />
+                Auto Match
               </Button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Unmatched - Hero Card */}
-            <div className="md:col-span-2 bg-gradient-to-br from-[#638C80] via-[#5a8073] to-[#4a6b62] rounded-2xl p-6 text-white shadow-xl shadow-[#638C80]/20 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <DollarSign className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-white/80 text-sm font-medium">To Reconcile</span>
-                  </div>
-                  {(stats?.unmatched_count || 0) > 0 && (
-                    <div className="flex items-center gap-1 text-[#f77f00] text-xs font-medium bg-[#f77f00]/20 px-2 py-1 rounded-full">
-                      <AlertCircle className="h-3 w-3" />
-                      Needs Attention
-                    </div>
-                  )}
-                </div>
-                <div className="text-4xl font-bold tracking-tight">
-                  {formatCurrency(stats?.total_unmatched_amount || 0, "KES")}
-                </div>
-                <p className="text-white/60 text-sm mt-2">
-                  {stats?.unmatched_count || 0} transactions awaiting reconciliation
-                </p>
-              </div>
-            </div>
-
-            {/* Matched */}
-            <StatCard
-              icon={Clock}
-              label="Matched"
-              value={(stats?.matched_count || 0).toString()}
-              color="mustard"
-              subtitle="Awaiting posting"
-            />
-
-            {/* Reconciled */}
-            <StatCard
-              icon={CheckCircle2}
-              label="Reconciled"
-              value={(stats?.posted_count || 0).toString()}
-              color="green"
-              subtitle="Posted to ERP"
-            />
-          </div>
-
-          {/* Mini Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MiniStatCard
-              label="Unmatched"
-              value={(stats?.unmatched_count || 0).toString()}
-              icon={AlertCircle}
+      {/* Stats Bar */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <div className="flex items-center gap-6">
+            <StatPill
+              label="To Reconcile"
+              value={totalToReconcile}
               color="orange"
+              showDot={totalToReconcile > 0}
             />
-            <MiniStatCard
-              label="Matched"
-              value={(stats?.matched_count || 0).toString()}
-              icon={Clock}
-              color="mustard"
-            />
-            <MiniStatCard
-              label="Posted"
-              value={(stats?.posted_count || 0).toString()}
-              icon={CheckCircle2}
-              color="green"
-            />
-            <MiniStatCard
-              label="Invoices"
-              value={(reconciliationItems?.total_invoices || 0).toString()}
-              icon={Receipt}
-              color="blue"
-            />
-          </div>
-
-          {/* Bank Filter */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm p-4">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">Filter by Bank:</label>
-              <Select value={bankFilter} onValueChange={setBankFilter}>
-                <SelectTrigger className="w-[250px] h-10 bg-white border-gray-200">
-                  <SelectValue placeholder="All Banks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Banks</SelectItem>
-                  {banks.map((bank: any) => (
-                    <SelectItem key={bank.id} value={bank.name}>
-                      {bank.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <StatPill label="Suggested" value={stats?.suggested_count || 0} color="amber" />
+            <StatPill label="Matched" value={stats?.matched_count || 0} color="blue" />
+            <StatPill label="Posted" value={stats?.posted_count || 0} color="green" />
+            <div className="ml-auto text-sm text-gray-500">
+              {formatCurrency(stats?.total_unmatched_amount || 0, "UGX")} unreconciled
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Two-column reconciliation layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column: Bank Transactions */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f77f00] to-[#d66d00] shadow-lg shadow-[#f77f00]/30 flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Unmatched Transactions ({unmatchedTransactions.length})
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Bank transactions awaiting reconciliation
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6">
-                {unmatchedLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading transactions...</p>
-                  </div>
-                ) : unmatchedTransactions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-2xl bg-[#49a034]/10 flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle2 className="h-8 w-8 text-[#49a034]" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
-                    <p className="text-gray-500 text-sm">No transactions to reconcile</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {unmatchedTransactions.map((transaction) => (
-                      <div key={transaction.id} className="p-4 rounded-xl border border-gray-200 hover:border-[#638C80] transition-colors cursor-pointer bg-white">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                transaction.transaction_type === "DEBIT"
-                                  ? "bg-[#f77f00]/10 text-[#f77f00]"
-                                  : "bg-[#49a034]/10 text-[#49a034]"
-                              }`}>
-                                {transaction.transaction_type}
-                              </span>
-                              <span className="text-sm text-gray-600">
-                                {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
-                              </span>
-                            </div>
-                            <p className="font-medium text-gray-900">{transaction.description}</p>
-                            {transaction.counterparty_name && (
-                              <p className="text-sm text-gray-600">{transaction.counterparty_name}</p>
-                            )}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Suggested Matches - Priority Section */}
+        {suggestedTransactions.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              <h2 className="text-sm font-medium text-gray-700">
+                Suggested Matches ({suggestedTransactions.length})
+              </h2>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+              {suggestedTransactions.map((txn) => {
+                const amount = txn.debit_amount || txn.credit_amount || 0;
+                const confidence = Math.round((txn.match_confidence || 0) * 100);
+                const isExpanded = expandedTransaction === txn.id;
+
+                return (
+                  <div key={txn.id} className="hover:bg-gray-50 transition-colors">
+                    <div className="px-4 py-3">
+                      <div className="flex items-center gap-4">
+                        {/* Transaction */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">
+                              {format(new Date(txn.transaction_date), "dd MMM")}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {txn.description}
+                            </span>
                           </div>
-                          <div className="text-right">
-                            <p className={`text-lg font-semibold ${
-                              transaction.transaction_type === "DEBIT" ? "text-[#f77f00]" : "text-[#49a034]"
+                          {txn.counterparty_name && (
+                            <p className="text-xs text-gray-500 mt-0.5">{txn.counterparty_name}</p>
+                          )}
+                        </div>
+
+                        {/* Amount */}
+                        <div className={`text-right min-w-[100px] ${
+                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                        }`}>
+                          <span className="text-sm font-medium">
+                            {txn.transaction_type === "DEBIT" ? "-" : "+"}
+                            {formatCurrency(amount, txn.currency)}
+                          </span>
+                        </div>
+
+                        {/* Arrow */}
+                        <ArrowRight className="h-4 w-4 text-gray-300 flex-shrink-0" />
+
+                        {/* Matched Item */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs h-5 px-1.5 bg-gray-50">
+                              {txn.matched_to_type === 'invoice' ? 'INV' : 'BILL'}
+                            </Badge>
+                            <span className="text-sm text-gray-900">#{txn.matched_to_reference}</span>
+                            <Badge className="text-xs h-5 px-1.5 bg-amber-100 text-amber-700 border-0">
+                              {confidence}%
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => approveMutation.mutate({
+                              transactionId: txn.id,
+                              matchType: txn.matched_to_type,
+                              matchId: txn.matched_to_id,
+                              amount: txn.matched_amount || amount,
+                            })}
+                            disabled={approveMutation.isPending}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => rejectMutation.mutate(txn.id)}
+                            disabled={rejectMutation.isPending}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-gray-400"
+                            onClick={() => setExpandedTransaction(isExpanded ? null : txn.id)}
+                          >
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Details */}
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex gap-6 text-xs text-gray-500">
+                            <div>
+                              <span className="text-gray-400">Match rules:</span>{' '}
+                              {txn.match_rules_applied?.map(r => r.replace(/_/g, ' ')).join(', ') || 'None'}
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Bank:</span> {txn.source_provider || 'Unknown'}
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Reference:</span> {txn.reference || 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Unmatched Transactions */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <h2 className="text-sm font-medium text-gray-700">
+                  Bank Transactions ({unmatchedTransactions.length})
+                </h2>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {unmatchedLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto" />
+                </div>
+              ) : unmatchedTransactions.length === 0 ? (
+                <div className="p-8 text-center">
+                  <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">All caught up!</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                  {unmatchedTransactions.map((txn) => (
+                    <div
+                      key={txn.id}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">
+                              {format(new Date(txn.transaction_date), "dd MMM")}
+                            </span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                              txn.transaction_type === "DEBIT"
+                                ? "bg-orange-50 text-orange-600"
+                                : "bg-green-50 text-green-600"
                             }`}>
-                              {transaction.transaction_type === "DEBIT" ? "-" : "+"}
-                              {formatCurrency(transaction.amount, transaction.currency)}
-                            </p>
+                              {txn.transaction_type === "DEBIT" ? "OUT" : "IN"}
+                            </span>
                           </div>
+                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                            {txn.description}
+                          </p>
+                          {txn.counterparty_name && (
+                            <p className="text-xs text-gray-500 truncate">{txn.counterparty_name}</p>
+                          )}
+                        </div>
+                        <div className={`text-right ml-4 ${
+                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                        }`}>
+                          <p className="text-sm font-semibold">
+                            {txn.transaction_type === "DEBIT" ? "-" : "+"}
+                            {formatCurrency(txn.amount, txn.currency)}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Invoices & Bills */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-blue-500" />
+                <h2 className="text-sm font-medium text-gray-700">
+                  Invoices & Bills ({(reconciliationItems?.total_invoices || 0) + (reconciliationItems?.total_bills || 0)})
+                </h2>
               </div>
             </div>
-
-            {/* Right Column: Invoices & Bills */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4E97D1] to-[#3d7ab0] shadow-lg shadow-[#4E97D1]/30 flex items-center justify-center">
-                    <Receipt className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Invoices & Bills</h2>
-                    <p className="text-sm text-gray-500">
-                      Outstanding invoices and paid bills awaiting reconciliation
-                    </p>
-                  </div>
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {itemsLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto" />
                 </div>
-              </div>
-              <div className="p-6">
-                {itemsLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading items...</p>
-                  </div>
-                ) : (!reconciliationItems?.invoices?.length && !reconciliationItems?.bills?.length) ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                      <Receipt className="h-8 w-8 text-gray-300" />
+              ) : (!reconciliationItems?.invoices?.length && !reconciliationItems?.bills?.length) ? (
+                <div className="p-8 text-center">
+                  <Receipt className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No items to match</p>
+                  <p className="text-xs text-gray-400 mt-1">Sync from Xero to see items</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                  {/* Invoices */}
+                  {reconciliationItems?.invoices?.map((inv: any) => (
+                    <div
+                      key={inv.id}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-50 text-green-600">
+                              INV
+                            </span>
+                            <span className="text-xs text-gray-500">#{inv.invoice_number}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                            {inv.contact}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Due {inv.due_date ? format(new Date(inv.due_date), "dd MMM") : "N/A"}
+                          </p>
+                        </div>
+                        <div className="text-right ml-4">
+                          <p className="text-sm font-semibold text-green-600">
+                            +{formatCurrency(inv.amount_due, inv.currency_code)}
+                          </p>
+                          <span className="text-xs text-gray-400">{inv.status}</span>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No items to reconcile</h3>
-                    <p className="text-gray-500 text-sm">Sync invoices and bills from Xero to see them here</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                    {/* Sales Invoices */}
-                    {reconciliationItems?.invoices && reconciliationItems.invoices.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <ArrowDownCircle className="h-4 w-4 text-[#49a034]" />
-                          Sales Invoices ({reconciliationItems.invoices.length})
-                        </h3>
-                        <div className="space-y-2">
-                          {reconciliationItems.invoices.map((invoice: any) => (
-                            <div key={invoice.id} className="p-4 rounded-xl border border-[#49a034]/30 bg-[#49a034]/5 hover:border-[#49a034] transition-colors cursor-pointer">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#49a034]/10 text-[#49a034]">
-                                      INVOICE
-                                    </span>
-                                    <span className="text-xs text-gray-600">#{invoice.invoice_number}</span>
-                                  </div>
-                                  <p className="font-medium text-gray-900">{invoice.contact}</p>
-                                  <p className="text-xs text-gray-600">
-                                    Due: {invoice.due_date ? format(new Date(invoice.due_date), "MMM dd, yyyy") : "N/A"}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-lg font-semibold text-[#49a034]">
-                                    {formatCurrency(invoice.amount_due, invoice.currency_code)}
-                                  </p>
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#f77f00]/10 text-[#f77f00]">
-                                    {invoice.status}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  ))}
 
-                    {/* Bills Awaiting Reconciliation */}
-                    {reconciliationItems?.bills && reconciliationItems.bills.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <ArrowUpCircle className="h-4 w-4 text-[#f77f00]" />
-                          Bills Paid via Bank ({reconciliationItems.bills.length})
-                        </h3>
-                        <div className="space-y-2">
-                          {reconciliationItems.bills.map((bill: any) => (
-                            <div key={bill.id} className="p-4 rounded-xl border border-[#f77f00]/30 bg-[#f77f00]/5 hover:border-[#f77f00] transition-colors cursor-pointer">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#f77f00]/10 text-[#f77f00]">
-                                      BILL
-                                    </span>
-                                    <span className="text-xs text-gray-600">#{bill.invoice_number}</span>
-                                  </div>
-                                  <p className="font-medium text-gray-900">{bill.contact}</p>
-                                  <p className="text-xs text-gray-600">
-                                    Paid: {formatCurrency(bill.amount_paid, bill.currency_code)} via {bill.payment_method}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-lg font-semibold text-[#f77f00]">
-                                    -{formatCurrency(bill.amount_paid, bill.currency_code)}
-                                  </p>
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#638C80]/10 text-[#638C80]">
-                                    {bill.status}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                  {/* Bills */}
+                  {reconciliationItems?.bills?.map((bill: any) => (
+                    <div
+                      key={bill.id}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-orange-50 text-orange-600">
+                              BILL
+                            </span>
+                            <span className="text-xs text-gray-500">#{bill.invoice_number}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                            {bill.contact}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Paid {formatCurrency(bill.amount_paid, bill.currency_code)}
+                          </p>
+                        </div>
+                        <div className="text-right ml-4">
+                          <p className="text-sm font-semibold text-gray-900">
+                            -{formatCurrency(bill.amount_paid, bill.currency_code)}
+                          </p>
+                          <span className="text-xs text-gray-400">{bill.status}</span>
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Matched Transactions (Pending Post) */}
+        {matchedTransactions.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-4 w-4 text-blue-500" />
+              <h2 className="text-sm font-medium text-gray-700">
+                Matched - Pending Post ({matchedTransactions.length})
+              </h2>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
+                {matchedTransactions.map((txn) => (
+                  <div key={txn.id} className="px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400">
+                          {format(new Date(txn.transaction_date), "dd MMM")}
+                        </span>
+                        <span className="text-sm text-gray-900">{txn.description}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className={`text-sm font-medium ${
+                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                        }`}>
+                          {txn.transaction_type === "DEBIT" ? "-" : "+"}
+                          {formatCurrency(txn.amount, txn.currency)}
+                        </span>
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                          Matched
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// Stat Card Component - Using Centry colors
-interface StatCardProps {
-  icon: React.ElementType;
+// Stat Pill Component
+function StatPill({
+  label,
+  value,
+  color,
+  showDot = false
+}: {
   label: string;
-  value: string;
-  color: 'teal' | 'blue' | 'green' | 'orange' | 'mustard';
-  subtitle?: string;
-}
-
-function StatCard({ icon: Icon, label, value, color, subtitle }: StatCardProps) {
-  const colorStyles = {
-    teal: {
-      bg: 'bg-gradient-to-br from-[#638C80]/10 to-[#638C80]/5',
-      icon: 'bg-gradient-to-br from-[#638C80] to-[#4a6b62] shadow-[#638C80]/30',
-      text: 'text-[#638C80]',
-      border: 'border-[#638C80]/20',
-    },
-    blue: {
-      bg: 'bg-gradient-to-br from-[#4E97D1]/10 to-[#4E97D1]/5',
-      icon: 'bg-gradient-to-br from-[#4E97D1] to-[#3d7ab0] shadow-[#4E97D1]/30',
-      text: 'text-[#4E97D1]',
-      border: 'border-[#4E97D1]/20',
-    },
-    green: {
-      bg: 'bg-gradient-to-br from-[#49a034]/10 to-[#49a034]/5',
-      icon: 'bg-gradient-to-br from-[#49a034] to-[#3a8029] shadow-[#49a034]/30',
-      text: 'text-[#49a034]',
-      border: 'border-[#49a034]/20',
-    },
-    orange: {
-      bg: 'bg-gradient-to-br from-[#f77f00]/10 to-[#f77f00]/5',
-      icon: 'bg-gradient-to-br from-[#f77f00] to-[#d66d00] shadow-[#f77f00]/30',
-      text: 'text-[#f77f00]',
-      border: 'border-[#f77f00]/20',
-    },
-    mustard: {
-      bg: 'bg-gradient-to-br from-[#fed652]/10 to-[#fed652]/5',
-      icon: 'bg-gradient-to-br from-[#fed652] to-[#e6c149] shadow-[#fed652]/30',
-      text: 'text-[#d4a843]',
-      border: 'border-[#fed652]/20',
-    },
-  };
-
-  const style = colorStyles[color];
-
-  return (
-    <div className={`${style.bg} rounded-2xl p-5 border ${style.border} shadow-sm`}>
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`w-10 h-10 rounded-xl ${style.icon} shadow-lg flex items-center justify-center`}>
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-        <span className="text-gray-600 text-sm font-medium">{label}</span>
-      </div>
-      <div className={`text-2xl font-bold ${style.text}`}>{value}</div>
-      {subtitle && (
-        <p className="text-gray-400 text-xs mt-1">{subtitle}</p>
-      )}
-    </div>
-  );
-}
-
-// Mini Stat Card Component - Using Centry colors
-interface MiniStatCardProps {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-  color: 'teal' | 'blue' | 'green' | 'orange' | 'mustard';
-}
-
-function MiniStatCard({ label, value, icon: Icon, color }: MiniStatCardProps) {
-  const colorStyles = {
-    teal: 'text-[#638C80] bg-[#638C80]/10',
-    blue: 'text-[#4E97D1] bg-[#4E97D1]/10',
-    green: 'text-[#49a034] bg-[#49a034]/10',
-    orange: 'text-[#f77f00] bg-[#f77f00]/10',
-    mustard: 'text-[#d4a843] bg-[#fed652]/20',
+  value: number;
+  color: 'orange' | 'amber' | 'blue' | 'green';
+  showDot?: boolean;
+}) {
+  const colors = {
+    orange: 'text-orange-600',
+    amber: 'text-amber-600',
+    blue: 'text-blue-600',
+    green: 'text-green-600',
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500 font-medium">{label}</p>
-          <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
-        </div>
-        <div className={`w-9 h-9 rounded-lg ${colorStyles[color]} flex items-center justify-center`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
+    <div className="flex items-center gap-2">
+      {showDot && <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />}
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className={`text-sm font-semibold ${colors[color]}`}>{value}</span>
     </div>
   );
 }
