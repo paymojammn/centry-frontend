@@ -131,7 +131,7 @@ export const contactsApi = {
    * @param file - CSV file containing Xero contacts
    */
   async importContactsCSV(file: File): Promise<{
-    status: 'success' | 'error';
+    status: 'success' | 'error' | 'queued';
     created: number;
     updated: number;
     skipped: number;
@@ -142,6 +142,8 @@ export const contactsApi = {
       error: string;
     }>;
     error?: string;
+    task_id?: string;
+    message?: string;
   }> {
     const formData = new FormData();
     formData.append('file', file);

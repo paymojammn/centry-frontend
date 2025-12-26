@@ -19,7 +19,7 @@ import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Info } from 'lucide
 import { toast } from 'sonner';
 
 interface ImportResult {
-  status: 'success' | 'error';
+  status: 'success' | 'error' | 'queued';
   created: number;
   updated: number;
   skipped: number;
@@ -30,6 +30,8 @@ interface ImportResult {
     error: string;
   }>;
   error?: string;
+  task_id?: string;
+  message?: string;
 }
 
 export function ContactImportDialog() {
@@ -43,17 +45,35 @@ export function ContactImportDialog() {
     mutationFn: (file: File) => contactsApi.importContactsCSV(file),
     onSuccess: (data: ImportResult) => {
       setImportResult(data);
-      
+
       if (data.status === 'success') {
         toast.success(
           `Import Completed: Created ${data.created}, Updated ${data.updated}, Skipped ${data.skipped}`
         );
-        
+
         // Refresh contacts list
         queryClient.invalidateQueries({ queryKey: ['contacts'] });
         queryClient.invalidateQueries({ queryKey: ['contact-stats'] });
-        
+
         // Reset file selection after short delay
+        setTimeout(() => {
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }, 3000);
+      } else if (data.status === 'queued') {
+        toast.success(
+          'Import started! Processing in background...'
+        );
+
+        // Refresh contacts list after a delay to pick up imported contacts
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          queryClient.invalidateQueries({ queryKey: ['contact-stats'] });
+        }, 5000);
+
+        // Reset file selection
         setTimeout(() => {
           setSelectedFile(null);
           if (fileInputRef.current) {
@@ -64,8 +84,14 @@ export function ContactImportDialog() {
         toast.error(data.error || 'Failed to import contacts');
       }
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to import contacts');
+    onError: (error: Error & { code?: string }) => {
+      // Handle session interrupted - suggest retry
+      const errorMessage = error.message || 'Failed to import contacts';
+      if (errorMessage.includes('Session expired') || error.code === 'SESSION_INTERRUPTED') {
+        toast.error('Session expired. Please try again.');
+      } else {
+        toast.error(errorMessage);
+      }
       setImportResult({
         status: 'error',
         error: error.message,
@@ -211,6 +237,24 @@ export function ContactImportDialog() {
                   </div>
                   <p className="text-xs text-green-600">
                     Total: {importResult.total} contacts processed
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Import Queued (Background Processing) */}
+          {importResult && importResult.status === 'queued' && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium text-blue-800">Import Started</p>
+                  <p className="text-sm text-blue-700">
+                    {importResult.message || 'Your contacts are being imported in the background.'}
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    The contacts list will refresh automatically when complete.
                   </p>
                 </div>
               </AlertDescription>
