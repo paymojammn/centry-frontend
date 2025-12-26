@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Download,
-  FileText,
   Building2,
   Smartphone,
   ArrowLeft,
@@ -32,7 +30,7 @@ interface PayBillsModalProps {
   countryCode?: string;
 }
 
-type PaymentStep = 'source' | 'recipients' | 'confirm' | 'processing' | 'export' | 'result';
+type PaymentStep = 'source' | 'recipients' | 'confirm' | 'processing' | 'result';
 
 interface PaymentResult {
   success: boolean;
@@ -96,8 +94,6 @@ export default function PayBillsModal({
   const [note, setNote] = useState('');
   const [results, setResults] = useState<PaymentResult[]>([]);
   const [paymentEventIds, setPaymentEventIds] = useState<number[]>([]);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'xml'>('csv');
-  const [isExporting, setIsExporting] = useState(false);
 
   const currency = bills[0]?.currency_code ? String(bills[0].currency_code).split('.').pop() || 'UGX' : 'UGX';
 
@@ -170,13 +166,11 @@ export default function PayBillsModal({
         .map((r: PaymentResult) => r.payment_event_id!) || [];
       setPaymentEventIds(eventIds);
 
-      if (selectedSource?.type === 'bank_account') {
-        setStep('export');
-      } else {
-        setStep('result');
-      }
+      // Always go to result - file generation now happens in processing queue after approval
+      setStep('result');
 
       queryClient.invalidateQueries({ queryKey: ['bills'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
     },
     onError: (error: any) => {
       console.error('Payment error:', error);
@@ -220,66 +214,12 @@ export default function PayBillsModal({
     onClose();
   };
 
-  const handleExportPayment = async (allowConversion = false) => {
-    setIsExporting(true);
-    console.log('🚀 Exporting payment file with:', { paymentEventIds, exportFormat, allowConversion });
-    try {
-      const sourceAccountId = selectedSource?.type === 'bank_account' ? selectedSource.id : undefined;
-      const result = await billsApi.exportBillPayment(
-        paymentEventIds,
-        exportFormat,
-        allowConversion,
-        sourceAccountId
-      );
-
-      if (result.requires_conversion && !allowConversion) {
-        console.log('💱 Currency conversion required:', result.mismatched_payments);
-
-        const mismatchedPayments = result.mismatched_payments || [];
-        const conversionDetails = mismatchedPayments.map(p =>
-          `• Bill ${p.bill_number || p.bill_id}: ${p.amount} ${p.from_currency} → ${p.to_currency}`
-        ).join('\n');
-
-        const userConfirmed = confirm(
-          `${result.message}\n\n${conversionDetails}\n\n${result.prompt}`
-        );
-
-        if (userConfirmed) {
-          return handleExportPayment(true);
-        } else {
-          setIsExporting(false);
-          return;
-        }
-      }
-
-      console.log('✅ Export successful:', result);
-      alert(`Payment file generated successfully!\n\nFilename: ${result.filename}\nPayments: ${result.payment_count}\n\nFile saved to server.`);
-      setStep('result');
-    } catch (error: any) {
-      console.error('Export error:', error);
-      const errorMessage = error?.message || error?.toString() || 'Failed to export payment file';
-
-      if (errorMessage.includes('conversion') || errorMessage.includes('currency')) {
-        alert(`Currency Conversion Required\n\n${errorMessage}\n\nPlease ensure all payments use the same currency as your bank account.`);
-      } else {
-        alert(`Failed to export payment file\n\n${errorMessage}`);
-      }
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleSkipExport = () => {
-    setStep('result');
-  };
-
   const getCurrentStepIndex = () => {
     const stepMap: Record<PaymentStep, number> = {
       source: 0,
       recipients: 1,
       confirm: 2,
       processing: 2,
-      export: 2,
       result: 2
     };
     return stepMap[step];
@@ -615,101 +555,20 @@ export default function PayBillsModal({
             </div>
           )}
 
-          {/* Export (Bank Transfers Only) */}
-          {step === 'export' && (
-            <div className="space-y-5">
-              <div className="text-center py-6">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-3 shadow-lg shadow-blue-100">
-                  <FileText className="w-7 h-7 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  Download Payment File
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {results.filter(r => r.success).length} payment{results.filter(r => r.success).length > 1 ? 's' : ''} ready
-                </p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <h4 className="font-medium text-blue-900 text-sm mb-3">
-                  Select Format
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setExportFormat('csv')}
-                    className={`p-3 border rounded-xl transition-all text-left ${
-                      exportFormat === 'csv'
-                        ? 'border-[#638C80] bg-white shadow-md ring-2 ring-[#638C80]/20'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-medium text-gray-900 text-sm">CSV</div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      Stanbic & most banks
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExportFormat('xml')}
-                    className={`p-3 border rounded-xl transition-all text-left ${
-                      exportFormat === 'xml'
-                        ? 'border-[#638C80] bg-white shadow-md ring-2 ring-[#638C80]/20'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-medium text-gray-900 text-sm">XML</div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      ISO 20022 (pain.001)
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleSkipExport}
-                  className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm"
-                >
-                  Skip
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleExportPayment(false)}
-                  disabled={isExporting}
-                  className="flex-1 bg-[#638C80] text-white py-2.5 rounded-xl hover:bg-[#4a6b62] transition-all disabled:bg-gray-300 font-medium text-sm flex items-center justify-center gap-2 shadow-md shadow-[#638C80]/20"
-                >
-                  {isExporting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download {exportFormat.toUpperCase()}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Results */}
           {step === 'result' && (
             <div className="space-y-5">
               <div className="text-center py-6">
                 {results.every(r => r.success) ? (
                   <>
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-3 shadow-lg shadow-green-100">
-                      <CheckCircle2 className="w-8 h-8 text-green-600" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-3 shadow-lg shadow-amber-100">
+                      <ClipboardCheck className="w-8 h-8 text-amber-600" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-1">
-                      Payment Successful
+                      Payment Submitted
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {results.length} bill{results.length > 1 ? 's' : ''} paid
+                      {results.length} payment{results.length > 1 ? 's' : ''} pending approval
                     </p>
                   </>
                 ) : (
@@ -726,6 +585,22 @@ export default function PayBillsModal({
                   </>
                 )}
               </div>
+
+              {/* Approval Notice */}
+              {results.some(r => r.success) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-amber-900 text-sm">Awaiting Approval</h4>
+                    <p className="text-sm text-amber-700 mt-0.5">
+                      These payments need to be approved by another user before a payment file can be generated.
+                      Check the Processing Queue to view and manage approvals.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Results List */}
               <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
@@ -750,8 +625,8 @@ export default function PayBillsModal({
                       </div>
                       <div className="flex-shrink-0 ml-3">
                         {result.success ? (
-                          <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          <div className="w-7 h-7 bg-amber-100 rounded-full flex items-center justify-center">
+                            <ClipboardCheck className="w-4 h-4 text-amber-600" />
                           </div>
                         ) : (
                           <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">

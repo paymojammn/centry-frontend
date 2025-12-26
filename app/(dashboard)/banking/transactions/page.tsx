@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -21,8 +22,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useOrganizations } from "@/hooks/use-organization";
-import { useBankPaymentExports } from "@/hooks/use-banking";
+import {
+  useBankPaymentExports,
+  useBankProviders,
+  useERPConnections,
+  useUploadBankFile,
+  useAutoReconcile,
+  useBankAccounts,
+} from "@/hooks/use-banking";
 import {
   Receipt,
   Search,
@@ -41,9 +59,16 @@ import {
   User,
   Clock,
   XCircle,
+  Upload,
+  RefreshCw,
+  Wand2,
+  Link2,
+  ExternalLink,
+  MoreHorizontal,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface ImportedTransaction {
   id: string;
@@ -106,7 +131,33 @@ export default function BankTransactionsPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [selectedExportId, setSelectedExportId] = useState<number | null>(null);
 
+  // Upload dialog state
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Transaction selection for bulk actions
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
+
+  const queryClient = useQueryClient();
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+
+  // Bank providers for upload
+  const { data: providersData } = useBankProviders();
+  const providers = providersData?.results || [];
+
+  // ERP connections for sync
+  const { data: erpConnectionsData } = useERPConnections();
+  const erpConnections = erpConnectionsData?.connections || [];
+
+  // Bank accounts for the organization
+  const { data: bankAccountsData } = useBankAccounts(selectedOrganizationId || undefined);
+  const bankAccounts = (bankAccountsData as any)?.results || [];
+
+  // Mutations
+  const uploadMutation = useUploadBankFile();
+  const autoReconcileMutation = useAutoReconcile();
 
   // Extract organizations from paginated response
   const organizations = Array.isArray(organizationsResponse)
@@ -247,6 +298,105 @@ export default function BankTransactionsPage() {
     }
   };
 
+  // Handle file upload
+  const handleFileUpload = async () => {
+    if (!selectedFile || !selectedBankAccount) {
+      toast.error("Please select a file and bank account");
+      return;
+    }
+
+    const erpConnection = erpConnections.find(
+      (c) => c.organization?.id === selectedOrganizationId
+    );
+
+    if (!erpConnection) {
+      toast.error("No ERP connection found for this organization");
+      return;
+    }
+
+    try {
+      await uploadMutation.mutateAsync({
+        file: selectedFile,
+        bank_account: parseInt(selectedBankAccount),
+        erp_connection: erpConnection.id,
+      });
+      toast.success("Bank statement uploaded successfully!");
+      setUploadDialogOpen(false);
+      setSelectedFile(null);
+      setSelectedBankAccount("");
+      queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload bank statement");
+    }
+  };
+
+  // Handle auto-reconcile
+  const handleAutoReconcile = async () => {
+    if (!selectedOrganizationId) {
+      toast.error("Please select an organization");
+      return;
+    }
+
+    const erpConnection = erpConnections.find(
+      (c) => c.organization?.id === selectedOrganizationId
+    );
+
+    if (!erpConnection) {
+      toast.error("No ERP connection found for this organization");
+      return;
+    }
+
+    try {
+      const result = await autoReconcileMutation.mutateAsync({
+        organization: selectedOrganizationId,
+        erp_connection: erpConnection.id,
+        min_confidence: 0.7,
+        auto_apply: false,
+      });
+      toast.success(
+        `Auto-reconcile complete! Found ${(result as any).matches_found || 0} potential matches.`
+      );
+      queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to auto-reconcile transactions");
+    }
+  };
+
+  // Handle bulk sync to ERP
+  const handleBulkSync = async () => {
+    if (selectedTransactions.length === 0) {
+      toast.error("Please select transactions to sync");
+      return;
+    }
+
+    try {
+      await api.post("/api/v1/banking/transactions/bulk-sync-to-erp/", {
+        transaction_ids: selectedTransactions,
+      });
+      toast.success(`${selectedTransactions.length} transactions synced to ERP!`);
+      setSelectedTransactions([]);
+      queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to sync transactions");
+    }
+  };
+
+  // Toggle transaction selection
+  const toggleTransactionSelection = (id: string) => {
+    setSelectedTransactions((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  };
+
+  // Select all transactions
+  const selectAllTransactions = () => {
+    if (selectedTransactions.length === importedTransactions.length) {
+      setSelectedTransactions([]);
+    } else {
+      setSelectedTransactions(importedTransactions.map((t) => t.id));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#638C80]/5">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -263,12 +413,22 @@ export default function BankTransactionsPage() {
                   <h1 className="text-4xl font-bold tracking-tight text-white">Transactions</h1>
                 </div>
                 <p className="text-white/90 text-lg mt-3 ml-16">
-                  View all imported and exported bank transactions.
+                  Import bank statements, reconcile transactions, and sync to your ERP.
                 </p>
               </div>
 
-              {/* Organization Selector */}
-              <Select
+              <div className="flex items-center gap-3">
+                {/* Action Buttons */}
+                <Button
+                  onClick={() => setUploadDialogOpen(true)}
+                  className="bg-white/95 text-[#638C80] hover:bg-white shadow-lg"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import Statement
+                </Button>
+
+                {/* Organization Selector */}
+                <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={(value) => {
                   setSelectedOrganizationId(value);
@@ -296,7 +456,8 @@ export default function BankTransactionsPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -381,16 +542,64 @@ export default function BankTransactionsPage() {
                 </div>
               </div>
 
+              {/* Action Bar */}
+              <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2">
+                  {selectedTransactions.length > 0 && (
+                    <>
+                      <Badge variant="secondary" className="bg-[#638C80]/10 text-[#638C80]">
+                        {selectedTransactions.length} selected
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleBulkSync}
+                        className="border-[#638C80] text-[#638C80] hover:bg-[#638C80]/10"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Sync to ERP
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAutoReconcile}
+                    disabled={autoReconcileMutation.isPending}
+                    className="border-[#4E97D1] text-[#4E97D1] hover:bg-[#4E97D1]/10"
+                  >
+                    {autoReconcileMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-4 w-4 mr-2" />
+                    )}
+                    Auto-Reconcile
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ["bank-transactions"] })}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+
               {/* Import Transactions Card */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-[#4E97D1]/10 rounded-xl">
-                      <ArrowDownToLine className="h-5 w-5 text-[#4E97D1]" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-semibold text-gray-900">Imported Transactions</CardTitle>
-                      <CardDescription className="mt-0.5">Bank statement transactions synced from your accounts</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-[#4E97D1]/10 rounded-xl">
+                        <ArrowDownToLine className="h-5 w-5 text-[#4E97D1]" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-semibold text-gray-900">Imported Transactions</CardTitle>
+                        <CardDescription className="mt-0.5">Bank statement transactions synced from your accounts</CardDescription>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -463,6 +672,12 @@ export default function BankTransactionsPage() {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-gray-50/80 border-b border-gray-100">
+                            <TableHead className="w-[50px]">
+                              <Checkbox
+                                checked={selectedTransactions.length === importedTransactions.length && importedTransactions.length > 0}
+                                onCheckedChange={selectAllTransactions}
+                              />
+                            </TableHead>
                             <TableHead className="font-semibold text-gray-600">Date</TableHead>
                             <TableHead className="font-semibold text-gray-600">Description</TableHead>
                             <TableHead className="font-semibold text-gray-600">Source</TableHead>
@@ -478,8 +693,14 @@ export default function BankTransactionsPage() {
                               key={transaction.id}
                               className={`border-b border-gray-50 last:border-0 hover:bg-[#638C80]/5 transition-colors ${
                                 index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                              }`}
+                              } ${selectedTransactions.includes(transaction.id) ? 'bg-[#638C80]/10' : ''}`}
                             >
+                              <TableCell>
+                                <Checkbox
+                                  checked={selectedTransactions.includes(transaction.id)}
+                                  onCheckedChange={() => toggleTransactionSelection(transaction.id)}
+                                />
+                              </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   <div className="p-1.5 bg-gray-100 rounded-lg">
@@ -799,6 +1020,120 @@ export default function BankTransactionsPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Upload Bank Statement Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-[#638C80]" />
+              Import Bank Statement
+            </DialogTitle>
+            <DialogDescription>
+              Upload a bank statement file to import transactions. Supported formats: CSV, XLSX, MT940, CAMT.053
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Bank Account Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Bank Account</label>
+              <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select bank account..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {bankAccounts.map((account: any) => (
+                    <SelectItem key={account.id} value={account.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-gray-400" />
+                        <span>{account.account_name}</span>
+                        <span className="text-xs text-gray-400">
+                          ({account.account_number?.slice(-4) || 'N/A'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Statement File</label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                  selectedFile
+                    ? "border-[#638C80] bg-[#638C80]/5"
+                    : "border-gray-200 hover:border-[#638C80]/50 hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.xml,.mt940,.txt"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                {selectedFile ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="p-2 bg-[#638C80]/10 rounded-lg">
+                      <FileText className="h-6 w-6 text-[#638C80]" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-800">{selectedFile.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(selectedFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      CSV, Excel, MT940, or CAMT.053 files
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setUploadDialogOpen(false);
+                setSelectedFile(null);
+                setSelectedBankAccount("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleFileUpload}
+              disabled={!selectedFile || !selectedBankAccount || uploadMutation.isPending}
+              className="bg-[#638C80] hover:bg-[#547568]"
+            >
+              {uploadMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Statement
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

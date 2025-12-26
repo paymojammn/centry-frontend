@@ -38,8 +38,10 @@ import {
   useSFTPTaskStatus,
   useSFTPTransferLogs,
   useLocalExportFiles,
+  useSFTPCredentials,
   type BankPaymentExport,
   type LocalExportFile,
+  type SFTPCredential,
 } from "@/hooks/use-banking";
 
 interface SFTPExportProps {
@@ -85,6 +87,7 @@ function getStatusColor(status: string): string {
 
 export function SFTPExport({ organizationId, onExportComplete, onSelectExport, selectedExportId }: SFTPExportProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
+  const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
   const [uploadingFileId, setUploadingFileId] = useState<number | undefined>();
   const [uploadingLocalFile, setUploadingLocalFile] = useState<string | undefined>();
@@ -92,6 +95,10 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   // Fetch bank accounts
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
+
+  // Fetch SFTP credentials for selected account
+  const { data: credentialsData, isLoading: credentialsLoading } = useSFTPCredentials(selectedAccountId);
+  const sftpCredentials = (credentialsData as any)?.results || [];
 
   // Fetch payment exports (files ready for upload)
   const {
@@ -122,6 +129,28 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
   // Track task status
   const { data: taskStatus } = useSFTPTaskStatus(activeTaskId);
+
+  // Auto-select first active SFTP credential when credentials load
+  useEffect(() => {
+    console.log('SFTP Credentials loaded:', {
+      count: sftpCredentials.length,
+      credentials: sftpCredentials,
+      selectedAccountId,
+      selectedSFTPCredentialId
+    });
+
+    if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
+      const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
+      if (activeCredential) {
+        console.log('Auto-selecting active credential:', activeCredential);
+        setSelectedSFTPCredentialId(activeCredential.id);
+      } else {
+        // If no active credentials, select the first one
+        console.log('Auto-selecting first credential:', sftpCredentials[0]);
+        setSelectedSFTPCredentialId(sftpCredentials[0].id);
+      }
+    }
+  }, [sftpCredentials, selectedSFTPCredentialId, selectedAccountId]);
 
   // Clear task when complete
   useEffect(() => {
@@ -156,14 +185,24 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   const uploadedLocalFiles = localFiles.filter((f) => f.sftp_uploaded);
 
   const handleUploadFile = async (exportFile: BankPaymentExport) => {
-    if (!exportFile.bank_account?.id) return;
+    if (!exportFile.bank_account?.id) {
+      alert("Bank account not found for this export");
+      return;
+    }
+
+    if (!selectedSFTPCredentialId) {
+      alert("Please select an SFTP connection first");
+      return;
+    }
 
     try {
       setUploadingFileId(exportFile.id);
       const result = await uploadFile.mutateAsync({
         bank_account_id: exportFile.bank_account.id,
+        sftp_credential_id: selectedSFTPCredentialId,
         file_path: exportFile.file_path,
         remote_filename: exportFile.file_name,
+        export_id: exportFile.id,
         async_upload: true,
       });
       if (result.task_id) {
@@ -176,12 +215,21 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   };
 
   const handleUploadLocalFile = async (localFile: LocalExportFile) => {
-    if (!selectedAccountId) return;
+    if (!selectedAccountId) {
+      alert("Bank account not selected");
+      return;
+    }
+
+    if (!selectedSFTPCredentialId) {
+      alert("Please select an SFTP connection first");
+      return;
+    }
 
     try {
       setUploadingLocalFile(localFile.absolute_path);
       const result = await uploadFile.mutateAsync({
         bank_account_id: selectedAccountId,
+        sftp_credential_id: selectedSFTPCredentialId,
         file_path: localFile.absolute_path,
         remote_filename: localFile.filename,
         async_upload: true,
@@ -217,14 +265,16 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Bank Account Selection */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Bank Account</Label>
               <Select
                 value={selectedAccountId?.toString() || "all"}
                 onValueChange={(value) => {
-                  setSelectedAccountId(value === "all" ? undefined : Number(value));
+                  const accountId = value === "all" ? undefined : Number(value);
+                  setSelectedAccountId(accountId);
+                  setSelectedSFTPCredentialId(undefined); // Reset SFTP credential when account changes
                 }}
                 disabled={accountsLoading}
               >
@@ -240,6 +290,42 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                         <span className="text-gray-500 text-sm">
                           ({account.account_number})
                         </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* SFTP Connection Selection */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                SFTP Connection
+                {!selectedAccountId && <span className="text-gray-400 text-xs ml-2">(Select account first)</span>}
+              </Label>
+              <Select
+                value={selectedSFTPCredentialId?.toString() || ""}
+                onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
+                disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
+              >
+                <SelectTrigger className="h-12 bg-gray-50 border-gray-200 rounded-xl hover:bg-white transition-all">
+                  <SelectValue placeholder={
+                    credentialsLoading ? "Loading..." :
+                    sftpCredentials.length === 0 ? "No connections" :
+                    "Select SFTP connection"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {sftpCredentials.map((credential: SFTPCredential) => (
+                    <SelectItem key={credential.id} value={credential.id.toString()}>
+                      <div className="flex items-center gap-2 py-1">
+                        <Server className="h-4 w-4 text-[#638C80]" />
+                        <span className="font-medium text-gray-800">{credential.host}</span>
+                        {credential.is_active ? (
+                          <span className="h-2 w-2 rounded-full bg-green-500" title="Active" />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-gray-400" title="Inactive" />
+                        )}
                       </div>
                     </SelectItem>
                   ))}
@@ -263,6 +349,45 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
               </div>
             </div>
           </div>
+
+          {/* SFTP Connection Details */}
+          {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              {(() => {
+                const selectedCredential = sftpCredentials.find(
+                  (c: SFTPCredential) => c.id === selectedSFTPCredentialId
+                );
+                if (!selectedCredential) return null;
+
+                return (
+                  <div className="bg-gradient-to-br from-[#638C80]/5 to-[#547568]/5 rounded-xl p-4 border border-[#638C80]/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Server className="h-4 w-4 text-[#638C80]" />
+                      <span className="text-sm font-semibold text-gray-700">SFTP Connection Details</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-500 mb-1">Host</div>
+                        <div className="font-medium text-gray-800">{selectedCredential.host}:{selectedCredential.port}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 mb-1">Upload Path</div>
+                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
+                          {selectedCredential.upload_path}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 mb-1">Download Path</div>
+                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
+                          {selectedCredential.download_path}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </CardContent>
       </Card>
 

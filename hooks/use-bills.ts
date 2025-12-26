@@ -2,7 +2,7 @@
  * React Query hooks for Bills and Payment Events
  */
 
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { billsApi, paymentEventsApi } from '@/lib/bills-api';
 import type {
   Bill,
@@ -11,6 +11,10 @@ import type {
   PaymentEvent,
   PaymentEventStats,
   PaymentEventFilters,
+  ApprovePaymentsResponse,
+  RejectPaymentsResponse,
+  GenerateFileResponse,
+  DenyPaymentsResponse,
 } from '@/types/bill';
 
 /**
@@ -92,5 +96,71 @@ export function usePaymentEventStats(
     queryKey: ['payment-event-stats', organizationId],
     queryFn: () => paymentEventsApi.getPaymentEventStats(organizationId),
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+/**
+ * Hook to approve payments
+ */
+export function useApprovePayments() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApprovePaymentsResponse, Error, number[]>({
+    mutationFn: (paymentEventIds) => paymentEventsApi.approvePayments(paymentEventIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+    },
+  });
+}
+
+/**
+ * Hook to reject payments
+ */
+export function useRejectPayments() {
+  const queryClient = useQueryClient();
+
+  return useMutation<RejectPaymentsResponse, Error, { ids: number[]; reason?: string }>({
+    mutationFn: ({ ids, reason }) => paymentEventsApi.rejectPayments(ids, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+    },
+  });
+}
+
+/**
+ * Hook to generate payment file
+ */
+export function useGeneratePaymentFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    GenerateFileResponse,
+    Error,
+    { paymentEventIds: number[]; sourceBankAccountId: number; fileFormat: 'csv' | 'xml' }
+  >({
+    mutationFn: ({ paymentEventIds, sourceBankAccountId, fileFormat }) =>
+      paymentEventsApi.generatePaymentFile(paymentEventIds, sourceBankAccountId, fileFormat),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+    },
+  });
+}
+
+/**
+ * Hook to deny payments (cancel and restore bill to payable)
+ */
+export function useDenyPayments() {
+  const queryClient = useQueryClient();
+
+  return useMutation<DenyPaymentsResponse, Error, { ids: number[]; reason?: string }>({
+    mutationFn: ({ ids, reason }) => paymentEventsApi.denyPayments(ids, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['bills'] });
+    },
   });
 }

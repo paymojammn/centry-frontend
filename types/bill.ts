@@ -143,11 +143,14 @@ export interface BillPaymentExportResponse {
  * Represents a payment that has been initiated and is being processed
  */
 export type PaymentEventStatus =
+  | 'PENDING_APPROVAL'
+  | 'PROCESSING'
   | 'PENDING'
   | 'SENT_PAYMENT'
   | 'ERROR_PAYMENT'
   | 'SUCCESS_PAYMENT'
-  | 'FAILED_PAYMENT';
+  | 'FAILED_PAYMENT'
+  | 'REJECTED';
 
 export type PaymentMethod =
   | 'mtn_momo'
@@ -195,18 +198,74 @@ export interface PaymentEvent {
   created_by: number | null;
   created_by_name: string | null;
   created_at: string;
+  // Approval workflow fields
+  approved_by: number | null;
+  approved_by_name: string | null;
+  approved_at: string | null;
+  rejected_by: number | null;
+  rejected_by_name: string | null;
+  rejected_at: string | null;
+  rejection_reason: string;
+  source_bank_account: number | null;
+  source_bank_account_name: string | null;
 }
 
 export interface PaymentEventStats {
   total: number;
+  pending_approval: number;
+  processing: number;
   pending: number;
   sent: number;
   success: number;
   failed: number;
+  rejected: number;
+  total_amount_pending_approval: string;
+  total_amount_processing: string;
   total_amount_pending: string;
   total_amount_sent: string;
   synced_count: number;
   not_synced_count: number;
+}
+
+export interface ApprovePaymentsResponse {
+  success: boolean;
+  approved_count: number;
+  results: Array<{
+    id: number;
+    success: boolean;
+    error?: string;
+  }>;
+}
+
+export interface RejectPaymentsResponse {
+  success: boolean;
+  rejected_count: number;
+  results: Array<{
+    id: number;
+    success: boolean;
+    error?: string;
+  }>;
+}
+
+export interface GenerateFileResponse {
+  success: boolean;
+  file_url: string;
+  filename: string;
+  payment_count: number;
+  total_amount: string;
+  message_id?: string;
+  error?: string;
+}
+
+export interface DenyPaymentsResponse {
+  success: boolean;
+  denied_count: number;
+  results: Array<{
+    id: number;
+    success: boolean;
+    bill_restored?: boolean;
+    error?: string;
+  }>;
 }
 
 export interface PaymentEventFilters {

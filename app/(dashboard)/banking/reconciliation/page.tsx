@@ -23,7 +23,7 @@ import {
 import { BankReconciliationItem } from "@/components/banking/bank-reconciliation-item";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useSyncInvoices, useERPConnections } from "@/hooks/use-erp";
-import { useAutoReconcile } from "@/hooks/use-banking";
+import { useAutoReconcile, useAutoReconcileStatus } from "@/hooks/use-banking";
 import {
   Receipt,
   AlertCircle,
@@ -70,12 +70,16 @@ export default function BankReconciliationPage() {
   const [bankFilter, setBankFilter] = useState("all");
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [reconcileTaskId, setReconcileTaskId] = useState<string | undefined>();
   const queryClient = useQueryClient();
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
   const { data: erpConnectionsResponse, isLoading: connectionsLoading } = useERPConnections();
   const { mutate: syncInvoices, isPending: isSyncing } = useSyncInvoices();
   const { mutate: autoReconcile, isPending: isAutoReconciling } = useAutoReconcile();
+
+  // Poll for task status
+  const { data: reconcileStatus } = useAutoReconcileStatus(reconcileTaskId);
 
   // Extract organizations from paginated response
   const organizations = Array.isArray(organizationsResponse)
@@ -116,7 +120,7 @@ export default function BankReconciliationPage() {
     queryFn: () => {
       const params = new URLSearchParams();
       if (selectedOrganizationId) params.append("organization", selectedOrganizationId);
-      return api.get(`/api/v1/banking/transactions/reconciliation-summary/?${params.toString()}`);
+      return api.get(`/api/v1/banking/transactions/reconciliation_summary/?${params.toString()}`);
     },
     enabled: !!selectedOrganizationId,
   });
@@ -225,10 +229,9 @@ export default function BankReconciliationPage() {
         auto_apply: true,
       },
       {
-        onSuccess: (data: any) => {
-          toast.success(
-            `Auto-reconciled ${data.matched_count} transactions! ${data.suggested_count} suggestions created.`
-          );
+        onSuccess: (data) => {
+          setReconcileTaskId(data.task_id);
+          toast.info('Auto-reconciliation started. Processing transactions...');
         },
         onError: (error: any) => {
           toast.error(`Auto-reconcile failed: ${error.message}`);
@@ -236,6 +239,22 @@ export default function BankReconciliationPage() {
       }
     );
   };
+
+  // Show toast when reconciliation completes
+  useEffect(() => {
+    if (reconcileStatus?.status === 'SUCCESS') {
+      const result = reconcileStatus.result;
+      if (result) {
+        toast.success(
+          `Auto-reconciled ${result.matched_count} transactions! ${result.suggested_count} suggestions created.`
+        );
+        setReconcileTaskId(undefined);
+      }
+    } else if (reconcileStatus?.status === 'FAILURE') {
+      toast.error(`Auto-reconcile failed: ${reconcileStatus.error || 'Unknown error'}`);
+      setReconcileTaskId(undefined);
+    }
+  }, [reconcileStatus]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
@@ -298,10 +317,10 @@ export default function BankReconciliationPage() {
               {/* Auto Reconcile Button */}
               <Button
                 onClick={handleAutoReconcile}
-                disabled={isAutoReconciling || !activeConnectionId}
+                disabled={isAutoReconciling || !!reconcileTaskId || !activeConnectionId}
               >
-                <Sparkles className={`h-4 w-4 ${isAutoReconciling ? 'animate-pulse' : ''}`} />
-                {isAutoReconciling ? 'Matching...' : 'AI Auto-Reconcile'}
+                <Sparkles className={`h-4 w-4 ${(isAutoReconciling || reconcileTaskId) ? 'animate-pulse' : ''}`} />
+                {isAutoReconciling || reconcileTaskId ? 'Matching...' : 'AI Auto-Reconcile'}
               </Button>
             </div>
           </div>

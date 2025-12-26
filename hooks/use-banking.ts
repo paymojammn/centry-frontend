@@ -78,6 +78,25 @@ export interface ImportStats {
   recent_imports: BankFileImport[];
 }
 
+export interface ExportStats {
+  total_exports: number;
+  total_payments: number;
+  total_amount: string;
+  pending_exports: number;
+  uploaded_exports: number;
+  processed_exports: number;
+  failed_exports: number;
+  by_status: Array<{ status: string; count: number; total_payments: number }>;
+  by_bank: Array<{
+    bank_account__account_name: string;
+    bank_account__bank_provider__name: string;
+    count: number;
+    total_payments: number;
+    total_amount: string;
+  }>;
+  recent_exports: BankPaymentExport[];
+}
+
 // API Hooks
 
 /**
@@ -155,6 +174,28 @@ export function useImportStats(filters?: {
 }
 
 /**
+ * Get export statistics
+ */
+export function useExportStats(filters?: {
+  date_from?: string;
+  date_to?: string;
+  organizationId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+  if (filters?.organizationId) params.append('organization', filters.organizationId);
+
+  const queryString = params.toString();
+
+  return useQuery<ExportStats>({
+    queryKey: ['exportStats', queryString],
+    queryFn: () => get(`/api/v1/banking/exports/stats/${queryString ? `?${queryString}` : ''}`),
+    enabled: !!filters?.organizationId,
+  });
+}
+
+/**
  * Get bank transactions
  */
 export function useBankTransactions(filters?: {
@@ -183,13 +224,15 @@ export function useBankTransactions(filters?: {
 
 /**
  * Get bank accounts for organization
+ * Only returns active accounts by default
  */
-export function useBankAccounts(organizationId?: string) {
+export function useBankAccounts(organizationId?: string, includeInactive: boolean = false) {
   return useQuery({
-    queryKey: ['bankAccounts', organizationId],
+    queryKey: ['bankAccounts', organizationId, includeInactive],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (organizationId) params.append('organization', organizationId);
+      if (!includeInactive) params.append('is_active', 'true');
       return get(`/api/v1/banking/accounts/?${params.toString()}`);
     },
     enabled: !!organizationId,
@@ -287,24 +330,56 @@ export function useSyncFromXero() {
  * Hook to auto-reconcile transactions using AI matching
  */
 export function useAutoReconcile() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
+  return useMutation<
+    { status: string; task_id: string; message: string },
+    Error,
+    {
       organization: string;
       erp_connection: string;
       min_confidence?: number;
       auto_apply?: boolean;
-    }) => {
-      return post('/api/v1/banking/transactions/auto-reconcile/', data);
+    }
+  >({
+    mutationFn: async (data) => {
+      return post('/api/v1/banking/transactions/auto_reconcile/', data);
     },
-    onSuccess: () => {
-      // Invalidate all transaction queries to refresh the UI
-      queryClient.invalidateQueries({ queryKey: ['bank-transactions-unmatched'] });
-      queryClient.invalidateQueries({ queryKey: ['bank-transactions-matched'] });
-      queryClient.invalidateQueries({ queryKey: ['bank-transactions-suggested'] });
-      queryClient.invalidateQueries({ queryKey: ['bank-reconciliation-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+  });
+}
+
+export function useAutoReconcileStatus(taskId?: string) {
+  const queryClient = useQueryClient();
+
+  return useQuery<{
+    task_id: string;
+    status: 'PENDING' | 'STARTED' | 'SUCCESS' | 'FAILURE';
+    message: string;
+    result?: {
+      success: boolean;
+      matched_count: number;
+      suggested_count: number;
+      skipped_count: number;
+      total_processed: number;
+      matches: any[];
+      errors: any[];
+    };
+    error?: string;
+  }>({
+    queryKey: ['auto-reconcile-status', taskId],
+    queryFn: () => get(`/api/v1/banking/transactions/auto_reconcile_status/${taskId}/`),
+    enabled: !!taskId,
+    refetchInterval: (data) => {
+      // Stop polling if task is complete or failed
+      if (data?.status === 'SUCCESS' || data?.status === 'FAILURE') {
+        // Invalidate transaction queries when reconciliation completes
+        queryClient.invalidateQueries({ queryKey: ['bank-transactions-unmatched'] });
+        queryClient.invalidateQueries({ queryKey: ['bank-transactions-matched'] });
+        queryClient.invalidateQueries({ queryKey: ['bank-transactions-suggested'] });
+        queryClient.invalidateQueries({ queryKey: ['bank-reconciliation-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+        return false;
+      }
+      // Poll every 2 seconds while running
+      return 2000;
     },
   });
 }
@@ -407,10 +482,11 @@ export interface BankPaymentExport {
 /**
  * List files available on the bank's SFTP server
  */
-export function useSFTPRemoteFiles(bankAccountId?: number) {
+export function useSFTPRemoteFiles(bankAccountId?: number, sftpCredentialId?: number) {
+  const params = sftpCredentialId ? `?sftp_credential_id=${sftpCredentialId}` : '';
   return useQuery<{ success: boolean; files: SFTPRemoteFile[]; download_path: string }>({
-    queryKey: ['sftp-remote-files', bankAccountId],
-    queryFn: () => get(`/api/v1/banking/sftp/files/${bankAccountId}/`),
+    queryKey: ['sftp-remote-files', bankAccountId, sftpCredentialId],
+    queryFn: () => get(`/api/v1/banking/sftp/files/${bankAccountId}/${params}`),
     enabled: !!bankAccountId,
     refetchOnWindowFocus: false,
   });
@@ -483,6 +559,7 @@ export function useSFTPDownloadStatements() {
     Error,
     {
       bank_account_id: number;
+      sftp_credential_id?: number;
       file_patterns?: string[];
       since_hours?: number;
       auto_import?: boolean;
@@ -511,8 +588,10 @@ export function useSFTPDownloadSingleFile() {
     Error,
     {
       bank_account_id: number;
+      sftp_credential_id?: number;
       filename: string;
       auto_import?: boolean;
+      move_to_processed?: boolean;
     }
   >({
     mutationFn: async (data) => {
@@ -537,9 +616,11 @@ export function useSFTPUpload() {
     Error,
     {
       bank_account_id: number;
+      sftp_credential_id?: number;
       file_path: string;
       remote_filename?: string;
       payment_instruction_id?: number;
+      export_id?: number;
       async_upload?: boolean;
     }
   >({

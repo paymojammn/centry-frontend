@@ -17,6 +17,10 @@ import type {
   PaymentEvent,
   PaymentEventStats,
   PaymentEventFilters,
+  ApprovePaymentsResponse,
+  RejectPaymentsResponse,
+  GenerateFileResponse,
+  DenyPaymentsResponse,
 } from '@/types/bill';
 
 const BILLS_BASE_URL = '/api/v1/xero/bills';
@@ -200,5 +204,53 @@ export const paymentEventsApi = {
       : `${PAYMENTS_BASE_URL}/stats/`;
 
     return await api.get<PaymentEventStats>(url);
+  },
+
+  /**
+   * Approve payments - moves from PENDING_APPROVAL to PROCESSING
+   */
+  async approvePayments(paymentEventIds: number[]): Promise<ApprovePaymentsResponse> {
+    return await api.post<ApprovePaymentsResponse>(
+      `${PAYMENTS_BASE_URL}/approve/`,
+      { payment_event_ids: paymentEventIds }
+    );
+  },
+
+  /**
+   * Reject payments - moves from PENDING_APPROVAL to REJECTED
+   */
+  async rejectPayments(paymentEventIds: number[], reason?: string): Promise<RejectPaymentsResponse> {
+    return await api.post<RejectPaymentsResponse>(
+      `${PAYMENTS_BASE_URL}/reject/`,
+      { payment_event_ids: paymentEventIds, reason }
+    );
+  },
+
+  /**
+   * Generate payment file for PROCESSING payments
+   */
+  async generatePaymentFile(
+    paymentEventIds: number[],
+    sourceBankAccountId: number,
+    fileFormat: 'csv' | 'xml' = 'xml'
+  ): Promise<GenerateFileResponse> {
+    return await api.post<GenerateFileResponse>(
+      `${PAYMENTS_BASE_URL}/generate-file/`,
+      {
+        payment_event_ids: paymentEventIds,
+        source_bank_account_id: sourceBankAccountId,
+        file_format: fileFormat,
+      }
+    );
+  },
+
+  /**
+   * Deny payments - cancels payment and restores bill to payable status
+   */
+  async denyPayments(paymentEventIds: number[], reason?: string): Promise<DenyPaymentsResponse> {
+    return await api.post<DenyPaymentsResponse>(
+      `${PAYMENTS_BASE_URL}/deny/`,
+      { payment_event_ids: paymentEventIds, reason }
+    );
   },
 };

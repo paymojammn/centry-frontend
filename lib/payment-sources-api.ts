@@ -25,6 +25,20 @@ export interface BanksResponse {
   count: number;
 }
 
+export interface BankAccount {
+  id: number;
+  account_name: string;
+  account_number: string;
+  currency: string;
+  balance: string;
+  bank_name?: string;
+  bank_provider?: {
+    id: number;
+    name: string;
+  };
+  is_default: boolean;
+}
+
 export const paymentSourcesApi = {
   /**
    * Get all available payment sources for the user's organization
@@ -50,11 +64,26 @@ export const paymentSourcesApi = {
     const params = new URLSearchParams();
     if (country) params.append('country', country);
     if (search) params.append('search', search);
-    
+
     const queryString = params.toString();
     const url = `${BANKING_BASE_URL}/banks/${queryString ? `?${queryString}` : ''}`;
-    
+
     const response = await api.get<BanksResponse>(url);
+    return response;
+  },
+
+  /**
+   * Get bank accounts for file generation
+   * @param organizationId - Optional organization ID filter
+   */
+  async getBankAccounts(organizationId?: string): Promise<BankAccount[]> {
+    const params = new URLSearchParams();
+    if (organizationId) params.append('organization', organizationId);
+
+    const queryString = params.toString();
+    const url = `${BANKING_BASE_URL}/accounts/${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get<BankAccount[]>(url);
     return response;
   },
 };

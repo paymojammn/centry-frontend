@@ -37,7 +37,9 @@ import {
   useSFTPDownloadSingleFile,
   useSFTPTaskStatus,
   useSFTPTransferLogs,
+  useSFTPCredentials,
   type SFTPRemoteFile,
+  type SFTPCredential,
 } from "@/hooks/use-banking";
 
 interface SFTPImportProps {
@@ -62,10 +64,15 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [autoImport, setAutoImport] = useState(true);
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
+  const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
 
   // Fetch bank accounts
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
+
+  // Fetch SFTP credentials for selected account
+  const { data: credentialsData, isLoading: credentialsLoading } = useSFTPCredentials(selectedAccountId);
+  const sftpCredentials = (credentialsData as any)?.results || [];
 
   // Fetch remote files from SFTP
   const {
@@ -73,7 +80,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
     isLoading: filesLoading,
     refetch: refetchFiles,
     error: filesError,
-  } = useSFTPRemoteFiles(selectedAccountId);
+  } = useSFTPRemoteFiles(selectedAccountId, selectedSFTPCredentialId);
 
   // Fetch recent transfer logs
   const { data: logsData, isLoading: logsLoading } = useSFTPTransferLogs({
@@ -88,6 +95,19 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
   // Track task status
   const { data: taskStatus } = useSFTPTaskStatus(activeTaskId);
+
+  // Auto-select first active SFTP credential when credentials load
+  useEffect(() => {
+    if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
+      const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
+      if (activeCredential) {
+        setSelectedSFTPCredentialId(activeCredential.id);
+      } else {
+        // If no active credentials, select the first one
+        setSelectedSFTPCredentialId(sftpCredentials[0].id);
+      }
+    }
+  }, [sftpCredentials, selectedSFTPCredentialId, selectedAccountId]);
 
   // Clear task when complete
   useEffect(() => {
@@ -130,6 +150,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
     try {
       const result = await downloadStatements.mutateAsync({
         bank_account_id: selectedAccountId,
+        sftp_credential_id: selectedSFTPCredentialId,
         auto_import: autoImport,
         move_processed: true,
       });
@@ -148,8 +169,10 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       try {
         const result = await downloadSingleFile.mutateAsync({
           bank_account_id: selectedAccountId,
+          sftp_credential_id: selectedSFTPCredentialId,
           filename,
           auto_import: autoImport,
+          move_to_processed: true,
         });
         setActiveTaskId(result.task_id);
       } catch (error) {
@@ -165,8 +188,10 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
     try {
       const result = await downloadSingleFile.mutateAsync({
         bank_account_id: selectedAccountId,
+        sftp_credential_id: selectedSFTPCredentialId,
         filename,
         auto_import: autoImport,
+        move_to_processed: true,
       });
       setActiveTaskId(result.task_id);
     } catch (error) {
@@ -196,7 +221,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Bank Account Selection */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Bank Account</Label>
@@ -226,6 +251,42 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               </Select>
             </div>
 
+            {/* SFTP Connection Selection */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                SFTP Connection
+                {!selectedAccountId && <span className="text-gray-400 text-xs ml-2">(Select account first)</span>}
+              </Label>
+              <Select
+                value={selectedSFTPCredentialId?.toString() || ""}
+                onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
+                disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
+              >
+                <SelectTrigger className="h-12 bg-gray-50 border-gray-200 rounded-xl hover:bg-white transition-all">
+                  <SelectValue placeholder={
+                    credentialsLoading ? "Loading..." :
+                    sftpCredentials.length === 0 ? "No connections" :
+                    "Select SFTP connection"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {sftpCredentials.map((credential: SFTPCredential) => (
+                    <SelectItem key={credential.id} value={credential.id.toString()}>
+                      <div className="flex items-center gap-2 py-1">
+                        <Server className="h-4 w-4 text-[#638C80]" />
+                        <span className="font-medium text-gray-800">{credential.host}</span>
+                        {credential.is_active ? (
+                          <span className="h-2 w-2 rounded-full bg-green-500" title="Active" />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-gray-400" title="Inactive" />
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Options */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Options</Label>
@@ -242,6 +303,45 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               </div>
             </div>
           </div>
+
+          {/* SFTP Connection Details */}
+          {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              {(() => {
+                const selectedCredential = sftpCredentials.find(
+                  (c: SFTPCredential) => c.id === selectedSFTPCredentialId
+                );
+                if (!selectedCredential) return null;
+
+                return (
+                  <div className="bg-gradient-to-br from-[#638C80]/5 to-[#547568]/5 rounded-xl p-4 border border-[#638C80]/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Server className="h-4 w-4 text-[#638C80]" />
+                      <span className="text-sm font-semibold text-gray-700">SFTP Connection Details</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-500 mb-1">Host</div>
+                        <div className="font-medium text-gray-800">{selectedCredential.host}:{selectedCredential.port}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 mb-1">Upload Path</div>
+                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
+                          {selectedCredential.upload_path}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 mb-1">Download Path</div>
+                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
+                          {selectedCredential.download_path}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </CardContent>
       </Card>
 
