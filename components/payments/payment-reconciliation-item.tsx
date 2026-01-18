@@ -254,9 +254,9 @@ export function PaymentReconciliationItem({
             className="p-0 h-auto hover:bg-transparent"
           >
             {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-[#638C80]" />
+              <ChevronUp className="h-5 w-5 text-[#49a034]" />
             ) : (
-              <ChevronDown className="h-5 w-5 text-[#638C80]" />
+              <ChevronDown className="h-5 w-5 text-[#49a034]" />
             )}
           </Button>
 
@@ -303,14 +303,14 @@ export function PaymentReconciliationItem({
             <Button
               size="sm"
               onClick={() => setIsExpanded(true)}
-              className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+              className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
             >
               OK
             </Button>
           )}
 
           {isReconciled && (
-            <Badge className="bg-[#638C80]/20 text-[#638C80]">
+            <Badge className="bg-[#49a034]/20 text-[#49a034]">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Reconciled
             </Badge>
@@ -325,7 +325,7 @@ export function PaymentReconciliationItem({
             <div className="text-sm text-gray-600">
               Options <ChevronDown className="h-4 w-4 inline ml-1" />
             </div>
-            <div className="text-sm text-[#638C80] font-medium cursor-pointer hover:underline">
+            <div className="text-sm text-[#49a034] font-medium cursor-pointer hover:underline">
               Find & Match
             </div>
           </div>
@@ -362,7 +362,7 @@ export function PaymentReconciliationItem({
                         size="sm"
                         onClick={handleReconcile}
                         disabled={reconcileMutation.isPending}
-                        className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+                        className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
                       >
                         {reconcileMutation.isPending ? "Reconciling..." : "Reconcile"}
                       </Button>
@@ -403,7 +403,7 @@ export function PaymentReconciliationItem({
                         onChange={(e) => setSearchAmount(e.target.value)}
                         className="w-[150px]"
                       />
-                      <Button size="sm" className="bg-[#638C80] hover:bg-[#638C80]/90 text-white">
+                      <Button size="sm" className="bg-[#49a034] hover:bg-[#49a034]/90 text-white">
                         Go
                       </Button>
                       <Button
@@ -413,7 +413,7 @@ export function PaymentReconciliationItem({
                           setSearchQuery("");
                           setSearchAmount("");
                         }}
-                        className="text-[#638C80]"
+                        className="text-[#49a034]"
                       >
                         Clear search
                       </Button>
@@ -467,7 +467,7 @@ export function PaymentReconciliationItem({
                               </td>
                               <td className="p-3">
                                 <div>
-                                  <div className="text-sm font-medium text-[#638C80] hover:underline">
+                                  <div className="text-sm font-medium text-[#49a034] hover:underline">
                                     {match.contact_name}
                                   </div>
                                   {match.confidence && (
@@ -592,7 +592,7 @@ export function PaymentReconciliationItem({
                 </div>
 
                 <div className="text-right">
-                  <Button variant="link" className="text-[#638C80] text-sm">
+                  <Button variant="link" className="text-[#49a034] text-sm">
                     Add details
                   </Button>
                 </div>
@@ -647,7 +647,7 @@ export function PaymentReconciliationItem({
               <Button
                 onClick={handleOkClick}
                 disabled={selectedMatches.length === 0 || matchMutation.isPending}
-                className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
               >
                 {matchMutation.isPending ? "Matching..." : "OK"}
               </Button>
@@ -656,7 +656,7 @@ export function PaymentReconciliationItem({
               <Button
                 onClick={handleCreateTransaction}
                 disabled={!contactName || !accountCode || createMutation.isPending}
-                className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
               >
                 {createMutation.isPending ? "Creating..." : "Create"}
               </Button>
@@ -664,7 +664,7 @@ export function PaymentReconciliationItem({
             {activeTab === "transfer" && (
               <Button
                 disabled={!selectedBankAccount}
-                className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
               >
                 Transfer
               </Button>

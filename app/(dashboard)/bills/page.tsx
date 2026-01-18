@@ -46,6 +46,9 @@ import type { BillFilters, Bill } from '@/types/bill';
 import PayBillsModal from '@/components/bills/PayBillsModal';
 import ProcessingQueue from '@/components/bills/ProcessingQueue';
 import { StatusBadge, StatusDot } from '@/components/ui/status-badge';
+import { PageHeader } from '@/components/layout/page-header';
+import { StatCard } from '@/components/layout/stat-card';
+import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
 
 // Status color constants (Xero-inspired)
 const STATUS_COLORS = {
@@ -198,64 +201,47 @@ export default function BillsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
-      {/* Header - Clean Xero-style */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-semibold text-gray-900">Bills</h1>
-            <div className="flex items-center gap-3">
-              <Select
-                value={selectedOrganizationId || undefined}
-                onValueChange={setSelectedOrganizationId}
-                disabled={orgsLoading || !organizations?.length}
-              >
-                <SelectTrigger className="w-[200px] h-9 bg-white border-gray-200 text-sm">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations?.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSyncBills}
-                disabled={isSyncing || !activeConnectionId}
-                className="h-9"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                Sync
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header */}
+      <PageHeader
+        title="Bills"
+        subtitle="Manage your accounts payable"
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncBills}
+          disabled={isSyncing || !activeConnectionId}
+          className="h-9 btn-press"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+          Sync
+        </Button>
+      </PageHeader>
 
-      {/* Tabs - Xero-style horizontal nav */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex gap-8">
             <button
               onClick={() => setActiveTab('bills')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
                 activeTab === 'bills'
-                  ? 'border-[#1c252c] text-[#1c252c]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-[#49a034] text-[#49a034]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
               Bills
             </button>
             <button
               onClick={() => setActiveTab('processing')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
                 activeTab === 'processing'
-                  ? 'border-[#1c252c] text-[#1c252c]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-[#49a034] text-[#49a034]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
               Processing Queue
@@ -267,85 +253,64 @@ export default function BillsPage() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {activeTab === 'bills' && (
           <>
-            {/* Summary Stats - Clean horizontal cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Payable</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">
-                      UGX {formatCompactNumber(totalPayableUgx)}
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: STATUS_COLORS.awaiting_payment.light }}>
-                    <Wallet className="h-5 w-5" style={{ color: STATUS_COLORS.awaiting_payment.bg }} />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">{totalOpen} open bills</p>
-              </div>
+            {/* Summary Stats - Enhanced cards with animations */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
+              <StatCard
+                label="Total Payable"
+                value={`UGX ${formatCompactNumber(totalPayableUgx)}`}
+                subtext={`${totalOpen} open bills`}
+                icon={Wallet}
+                iconColor={STATUS_COLORS.awaiting_payment.bg}
+                iconBgColor={STATUS_COLORS.awaiting_payment.light}
+                variant="accent"
+              />
 
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due This Week</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">
-                      UGX {formatCompactNumber(dueThisWeekAmount)}
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: STATUS_COLORS.awaiting_approval.light }}>
-                    <Calendar className="h-5 w-5" style={{ color: '#b08b00' }} />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Due within 7 days</p>
-              </div>
+              <StatCard
+                label="Due This Week"
+                value={`UGX ${formatCompactNumber(dueThisWeekAmount)}`}
+                subtext="Due within 7 days"
+                icon={Calendar}
+                iconColor="#b08b00"
+                iconBgColor={STATUS_COLORS.awaiting_approval.light}
+                variant="warning"
+              />
 
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overdue</p>
-                    <p className={`text-2xl font-semibold mt-1 ${overdueCount > 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                      {overdueCount}
-                    </p>
-                  </div>
-                  <div className={`p-2 rounded-lg ${overdueCount > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
-                    <AlertTriangle className={`h-5 w-5 ${overdueCount > 0 ? 'text-red-500' : 'text-gray-400'}`} />
-                  </div>
-                </div>
-                <p className={`text-xs mt-2 ${overdueCount > 0 ? 'text-red-600' : 'text-gray-500'}`}>
-                  UGX {formatCompactNumber(overdueUgx)} overdue
-                </p>
-              </div>
+              <StatCard
+                label="Overdue"
+                value={overdueCount}
+                subtext={`UGX ${formatCompactNumber(overdueUgx)} overdue`}
+                icon={AlertTriangle}
+                variant={overdueCount > 0 ? 'danger' : 'default'}
+              />
 
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Selected</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">{selectedBills.size}</p>
-                  </div>
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: selectedBills.size > 0 ? STATUS_COLORS.paid.light : '#f5f5f5' }}>
-                    <CheckCircle className="h-5 w-5" style={{ color: selectedBills.size > 0 ? STATUS_COLORS.paid.bg : '#9ca3af' }} />
-                  </div>
-                </div>
+              <StatCard
+                label="Selected"
+                value={selectedBills.size}
+                icon={CheckCircle}
+                iconColor={selectedBills.size > 0 ? STATUS_COLORS.paid.bg : undefined}
+                iconBgColor={selectedBills.size > 0 ? STATUS_COLORS.paid.light : undefined}
+                variant={selectedBills.size > 0 ? 'accent' : 'default'}
+              >
                 {selectedBills.size > 0 ? (
                   <Button
                     onClick={() => setIsPayModalOpen(true)}
                     size="sm"
-                    className="mt-2 w-full text-white"
+                    className="w-full text-white btn-press"
                     style={{ backgroundColor: STATUS_COLORS.paid.bg }}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
                     Pay Selected
                   </Button>
                 ) : (
-                  <p className="text-xs text-gray-500 mt-2">Select bills to pay</p>
+                  <p className="text-xs text-gray-500">Select bills to pay</p>
                 )}
-              </div>
+              </StatCard>
             </div>
           </>
         )}
 
         {/* Content Card */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <ContentCard noPadding className="animate-fade-in">
           {activeTab === 'bills' ? (
             <div>
               {/* Filters - Clean toolbar */}
@@ -450,7 +415,7 @@ export default function BillsPage() {
           ) : (
             <ProcessingQueue organizationId={selectedOrganizationId} />
           )}
-        </div>
+        </ContentCard>
       </div>
 
       <PayBillsModal
@@ -527,9 +492,9 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full table-professional">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
+          <tr>
             <th className="py-3 px-4 w-10">
               <input
                 type="checkbox"

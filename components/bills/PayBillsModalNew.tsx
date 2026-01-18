@@ -203,10 +203,10 @@ export default function PayBillsModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-br from-[#638C80]/5 to-white">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-br from-[#49a034]/5 to-white">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-[#638C80]" />
+              <Sparkles className="w-6 h-6 text-[#49a034]" />
               Pay Bills
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -237,7 +237,7 @@ export default function PayBillsModal({
 
               {sourcesLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-10 h-10 animate-spin text-[#638C80]" />
+                  <Loader2 className="w-10 h-10 animate-spin text-[#49a034]" />
                 </div>
               ) : (
                 <PaymentSourceSelector
@@ -263,7 +263,7 @@ export default function PayBillsModal({
               <button
                 onClick={() => setStep('confirm')}
                 disabled={!selectedSource || !hasSufficientBalance}
-                className="w-full bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-semibold text-lg"
+                className="w-full bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-semibold text-lg"
               >
                 Continue to Review
               </button>
@@ -279,14 +279,14 @@ export default function PayBillsModal({
                 </h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#638C80] hover:text-[#4f7068] font-medium"
+                  className="text-sm text-[#49a034] hover:text-[#4f7068] font-medium"
                 >
                   ← Back
                 </button>
               </div>
 
               {/* Selected Payment Source Card */}
-              <div className="bg-gradient-to-br from-[#638C80] to-[#4f7068] rounded-xl p-6 text-white">
+              <div className="bg-gradient-to-br from-[#49a034] to-[#4f7068] rounded-xl p-6 text-white">
                 <div className="flex items-center gap-3 mb-4">
                   {selectedSource.type === 'centry_wallet' && <Wallet className="w-6 h-6" />}
                   {selectedSource.type === 'bank_account' && <Building2 className="w-6 h-6" />}
@@ -354,7 +354,7 @@ export default function PayBillsModal({
                               min="0"
                               max={bill.amount_due}
                               step="0.01"
-                              className="w-full pl-16 pr-4 py-2 text-sm font-medium border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                              className="w-full pl-16 pr-4 py-2 text-sm font-medium border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                             />
                           </div>
                           {isPartial && (
@@ -397,14 +397,14 @@ export default function PayBillsModal({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a note for this payment..."
                   rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#638C80] focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#49a034] focus:border-transparent resize-none"
                 />
               </div>
 
               {/* Confirm Button */}
               <button
                 onClick={handleConfirm}
-                className="w-full bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all font-semibold text-lg flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all font-semibold text-lg flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 Confirm Payment
@@ -415,8 +415,8 @@ export default function PayBillsModal({
           {/* Step 3: Processing */}
           {step === 'processing' && (
             <div className="py-16 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-[#638C80]/10 rounded-full mb-6">
-                <Loader2 className="w-10 h-10 animate-spin text-[#638C80]" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-[#49a034]/10 rounded-full mb-6">
+                <Loader2 className="w-10 h-10 animate-spin text-[#49a034]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Processing Payment...
@@ -451,7 +451,7 @@ export default function PayBillsModal({
                     onClick={() => setExportFormat('csv')}
                     className={`p-4 border-2 rounded-xl transition-all ${
                       exportFormat === 'csv'
-                        ? 'border-[#638C80] bg-white shadow-md'
+                        ? 'border-[#49a034] bg-white shadow-md'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
@@ -464,7 +464,7 @@ export default function PayBillsModal({
                     onClick={() => setExportFormat('xml')}
                     className={`p-4 border-2 rounded-xl transition-all ${
                       exportFormat === 'xml'
-                        ? 'border-[#638C80] bg-white shadow-md'
+                        ? 'border-[#49a034] bg-white shadow-md'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
@@ -486,7 +486,7 @@ export default function PayBillsModal({
                 <button
                   onClick={handleExportPayment}
                   disabled={isExporting}
-                  className="flex-1 bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white py-3 rounded-xl hover:shadow-lg transition-all disabled:from-gray-300 disabled:to-gray-300 font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white py-3 rounded-xl hover:shadow-lg transition-all disabled:from-gray-300 disabled:to-gray-300 font-semibold flex items-center justify-center gap-2"
                 >
                   {isExporting ? (
                     <>
@@ -574,7 +574,7 @@ export default function PayBillsModal({
 
               <button
                 onClick={handleClose}
-                className="w-full bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all font-semibold text-lg"
+                className="w-full bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white py-4 rounded-xl hover:shadow-lg transition-all font-semibold text-lg"
               >
                 Done
               </button>

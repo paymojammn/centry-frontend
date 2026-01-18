@@ -266,7 +266,7 @@ function ExportStatusCard({
   return (
     <div
       className={`bg-white rounded-lg border transition-colors ${
-        isSelected ? "border-[#638C80] ring-1 ring-[#638C80]/20" : "border-gray-200"
+        isSelected ? "border-[#49a034] ring-1 ring-[#49a034]/20" : "border-gray-200"
       }`}
     >
       <div
@@ -565,7 +565,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               <Button
                 onClick={handlePullFiles}
                 disabled={!selectedSFTPCredentialId || isPulling}
-                className="h-10 bg-[#638C80] hover:bg-[#547568]"
+                className="h-10 bg-[#49a034] hover:bg-[#547568]"
               >
                 {isPulling ? (
                   <>

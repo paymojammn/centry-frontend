@@ -112,7 +112,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                   <p className="text-xs text-gray-500 font-mono">{provider.bank_provider__code}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-[#638C80]">
+                  <p className="text-sm font-medium text-[#49a034]">
                     {provider.count} {provider.count === 1 ? 'import' : 'imports'}
                   </p>
                   <p className="text-xs text-gray-500">{provider.total_txs.toLocaleString()} txns</p>
@@ -142,7 +142,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                   <p className="text-xs text-gray-500">{bank.bank_account__bank_provider__name || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-[#638C80]">
+                  <p className="text-sm font-medium text-[#49a034]">
                     {bank.count} {bank.count === 1 ? 'export' : 'exports'}
                   </p>
                   <p className="text-xs text-gray-500">{bank.total_payments.toLocaleString()} payments</p>

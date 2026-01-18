@@ -181,7 +181,7 @@ export default function BankAccountsPage() {
               <Button
                 size="sm"
                 onClick={handleAddAccount}
-                className="h-9 bg-[#638C80] hover:bg-[#547568]"
+                className="h-9 bg-[#49a034] hover:bg-[#547568]"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Account
@@ -197,7 +197,7 @@ export default function BankAccountsPage() {
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Total Balance:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#49a034]/10 text-[#49a034]">
                 {stats.primaryCurrency} {formatCompactNumber(stats.totalBalance)}
               </span>
             </div>

@@ -121,7 +121,7 @@ export default function PayExpensesModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            <CreditCard className="h-6 w-6 text-[#638C80]" />
+            <CreditCard className="h-6 w-6 text-[#49a034]" />
             Pay Expenses
           </DialogTitle>
           <DialogDescription>
@@ -131,7 +131,7 @@ export default function PayExpensesModal({
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* Payment Summary */}
-          <div className="bg-gradient-to-r from-[#638C80]/10 to-transparent rounded-xl p-6 border border-gray-200">
+          <div className="bg-gradient-to-r from-[#49a034]/10 to-transparent rounded-xl p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-gray-600 font-medium">Total Amount</p>
@@ -142,8 +142,8 @@ export default function PayExpensesModal({
                   })}
                 </p>
               </div>
-              <div className="p-3 bg-[#638C80]/10 rounded-xl">
-                <DollarSign className="h-8 w-8 text-[#638C80]" />
+              <div className="p-3 bg-[#49a034]/10 rounded-xl">
+                <DollarSign className="h-8 w-8 text-[#49a034]" />
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -174,8 +174,8 @@ export default function PayExpensesModal({
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#638C80]/10 rounded-lg">
-                      <Wallet className="h-5 w-5 text-[#638C80]" />
+                    <div className="p-2 bg-[#49a034]/10 rounded-lg">
+                      <Wallet className="h-5 w-5 text-[#49a034]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">Wallet Balance</p>
@@ -210,13 +210,13 @@ export default function PayExpensesModal({
                   <Label htmlFor="provider">Mobile Money Provider</Label>
                   <RadioGroup value={paymentProvider} onValueChange={setPaymentProvider}>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#638C80] transition-colors cursor-pointer">
+                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#49a034] transition-colors cursor-pointer">
                         <RadioGroupItem value="mtn" id="mtn" />
                         <Label htmlFor="mtn" className="cursor-pointer flex-1">
                           MTN Mobile Money
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#638C80] transition-colors cursor-pointer">
+                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#49a034] transition-colors cursor-pointer">
                         <RadioGroupItem value="airtel" id="airtel" />
                         <Label htmlFor="airtel" className="cursor-pointer flex-1">
                           Airtel Money
@@ -313,7 +313,7 @@ export default function PayExpensesModal({
             <Button
               type="submit"
               disabled={isPending || (paymentMethod === 'wallet' && !hasSufficientBalance)}
-              className="flex-1 bg-[#638C80] hover:bg-[#547568] text-white"
+              className="flex-1 bg-[#49a034] hover:bg-[#547568] text-white"
             >
               {isPending
                 ? 'Processing...'

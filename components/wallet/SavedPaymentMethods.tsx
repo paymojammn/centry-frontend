@@ -117,7 +117,7 @@ export default function SavedPaymentMethods() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-[#638C80] to-[#4f7068] rounded-xl shadow-sm">
+            <div className="p-2.5 bg-gradient-to-br from-[#49a034] to-[#4f7068] rounded-xl shadow-sm">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -127,7 +127,7 @@ export default function SavedPaymentMethods() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#638C80]/25 transition-all duration-200 font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#49a034]/25 transition-all duration-200 font-medium"
           >
             <Plus className="w-4 h-4" />
             Add Card
@@ -146,7 +146,7 @@ export default function SavedPaymentMethods() {
               </p>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#638C80] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#638C80]/25 transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#49a034]/25 transition-all duration-200 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Add Your First Card
@@ -256,14 +256,14 @@ export default function SavedPaymentMethods() {
               {/* Add New Card Placeholder */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="relative overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 p-5 h-48 hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all duration-300 group"
+                className="relative overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 p-5 h-48 hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all duration-300 group"
               >
                 <div className="h-full flex flex-col items-center justify-center gap-3">
-                  <div className="p-4 bg-gray-100 rounded-2xl group-hover:bg-[#638C80]/10 transition-colors">
-                    <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] transition-colors" />
+                  <div className="p-4 bg-gray-100 rounded-2xl group-hover:bg-[#49a034]/10 transition-colors">
+                    <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] transition-colors" />
                   </div>
                   <div className="text-center">
-                    <p className="font-semibold text-gray-600 group-hover:text-[#638C80] transition-colors">
+                    <p className="font-semibold text-gray-600 group-hover:text-[#49a034] transition-colors">
                       Add New Card
                     </p>
                     <p className="text-sm text-gray-400">

@@ -141,7 +141,7 @@ export default function CreateExpenseModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Receipt className="h-6 w-6 text-[#638C80]" />
+            <Receipt className="h-6 w-6 text-[#49a034]" />
             {advanceRequestId ? 'Submit Accountability' : 'Submit Expense'}
           </DialogTitle>
           <DialogDescription>
@@ -163,13 +163,13 @@ export default function CreateExpenseModal({
                     htmlFor="advance"
                     className={`flex items-center space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all ${
                       type === 'advance_request'
-                        ? 'border-[#638C80] bg-[#638C80]/5'
+                        ? 'border-[#49a034] bg-[#49a034]/5'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <RadioGroupItem value="advance_request" id="advance" />
                     <div className="flex items-center gap-2">
-                      <Wallet className="h-5 w-5 text-[#638C80]" />
+                      <Wallet className="h-5 w-5 text-[#49a034]" />
                       <div>
                         <p className="font-medium text-sm">Advance Request</p>
                         <p className="text-xs text-gray-500">Get money upfront</p>
@@ -181,13 +181,13 @@ export default function CreateExpenseModal({
                     htmlFor="reimbursement"
                     className={`flex items-center space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all ${
                       type === 'reimbursement'
-                        ? 'border-[#638C80] bg-[#638C80]/5'
+                        ? 'border-[#49a034] bg-[#49a034]/5'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <RadioGroupItem value="reimbursement" id="reimbursement" />
                     <div className="flex items-center gap-2">
-                      <Receipt className="h-5 w-5 text-[#638C80]" />
+                      <Receipt className="h-5 w-5 text-[#49a034]" />
                       <div>
                         <p className="font-medium text-sm">Reimbursement</p>
                         <p className="text-xs text-gray-500">Already spent</p>
@@ -281,7 +281,7 @@ export default function CreateExpenseModal({
                     <label
                       htmlFor="mobile_money"
                       className={`flex items-center space-x-3 border-2 rounded-lg p-3 cursor-pointer ${
-                        paymentMethod === 'mobile_money' ? 'border-[#638C80] bg-[#638C80]/5' : 'border-gray-200'
+                        paymentMethod === 'mobile_money' ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200'
                       }`}
                     >
                       <RadioGroupItem value="mobile_money" id="mobile_money" />
@@ -294,7 +294,7 @@ export default function CreateExpenseModal({
                     <label
                       htmlFor="wallet"
                       className={`flex items-center space-x-3 border-2 rounded-lg p-3 cursor-pointer ${
-                        paymentMethod === 'wallet' ? 'border-[#638C80] bg-[#638C80]/5' : 'border-gray-200'
+                        paymentMethod === 'wallet' ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200'
                       }`}
                     >
                       <RadioGroupItem value="wallet" id="wallet" />
@@ -332,7 +332,7 @@ export default function CreateExpenseModal({
             <Label className="text-sm font-medium">
               Receipts {type === 'reimbursement' || advanceRequestId ? '(Required)' : '(Optional)'}
             </Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#638C80] transition-colors">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#49a034] transition-colors">
               <input
                 type="file"
                 id="receipt-upload"
@@ -404,7 +404,7 @@ export default function CreateExpenseModal({
             <Button
               type="submit"
               disabled={isPending}
-              className="flex-1 bg-[#638C80] hover:bg-[#547568] text-white"
+              className="flex-1 bg-[#49a034] hover:bg-[#547568] text-white"
             >
               {isPending ? 'Submitting...' : 'Submit Expense'}
             </Button>

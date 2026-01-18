@@ -90,7 +90,7 @@ export function CurrencyConversionSelector({
     return (
       <div className="text-sm text-gray-600">
         <div className="flex items-center gap-2">
-          <span className="text-[#638C80]">✓</span>
+          <span className="text-[#49a034]">✓</span>
           <span>Payment currency matches bill currency ({fromCurrency})</span>
         </div>
       </div>
@@ -108,7 +108,7 @@ export function CurrencyConversionSelector({
           <select
             value={selectedCurrency}
             onChange={(e) => handleCurrencyChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
           >
             {currencies.map((currency) => (
               <option key={currency.code} value={currency.code}>
@@ -126,7 +126,7 @@ export function CurrencyConversionSelector({
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="text-[#638C80] hover:text-[#4f7068] disabled:opacity-50"
+            className="text-[#49a034] hover:text-[#4f7068] disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -157,10 +157,10 @@ export function CurrencyConversionSelector({
                   <div className="text-xs text-gray-500">{fromCurrency}</div>
                 </div>
 
-                <ArrowRight className="h-5 w-5 text-[#638C80] mx-3" />
+                <ArrowRight className="h-5 w-5 text-[#49a034] mx-3" />
 
                 <div className="text-center flex-1">
-                  <div className="text-lg font-bold text-[#638C80]">
+                  <div className="text-lg font-bold text-[#49a034]">
                     {formatCurrencyAmount(convertedAmount, selectedCurrency)}
                   </div>
                   <div className="text-xs text-gray-500">{selectedCurrency}</div>

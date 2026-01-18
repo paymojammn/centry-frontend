@@ -286,7 +286,7 @@ export default function BankTransactionsPage() {
               <Button
                 size="sm"
                 onClick={() => setUploadDialogOpen(true)}
-                className="h-9 bg-[#638C80] hover:bg-[#547568]"
+                className="h-9 bg-[#49a034] hover:bg-[#547568]"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Import
@@ -304,7 +304,7 @@ export default function BankTransactionsPage() {
               onClick={() => { setActiveTab("imports"); setSearchQuery(""); }}
               className={`py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "imports"
-                  ? "border-[#638C80] text-[#638C80]"
+                  ? "border-[#49a034] text-[#49a034]"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -315,7 +315,7 @@ export default function BankTransactionsPage() {
               onClick={() => { setActiveTab("exports"); setSearchQuery(""); }}
               className={`py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "exports"
-                  ? "border-[#638C80] text-[#638C80]"
+                  ? "border-[#49a034] text-[#49a034]"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -337,7 +337,7 @@ export default function BankTransactionsPage() {
               <StatPill label="Posted" value={importStats.posted} color="teal" />
               {selectedTransactions.length > 0 && (
                 <div className="ml-auto flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-[#638C80]/10 text-[#638C80]">
+                  <Badge variant="secondary" className="bg-[#49a034]/10 text-[#49a034]">
                     {selectedTransactions.length} selected
                   </Badge>
                 </div>
@@ -441,7 +441,7 @@ export default function BankTransactionsPage() {
                     {importedTransactions.map((txn) => (
                       <tr
                         key={txn.id}
-                        className={`hover:bg-gray-50 ${selectedTransactions.includes(txn.id) ? 'bg-[#638C80]/5' : ''}`}
+                        className={`hover:bg-gray-50 ${selectedTransactions.includes(txn.id) ? 'bg-[#49a034]/5' : ''}`}
                       >
                         <td className="px-4 py-3">
                           <Checkbox
@@ -542,7 +542,7 @@ export default function BankTransactionsPage() {
                         onClick={() => setSelectedExportId(exp.id)}
                         className={`px-4 py-3 cursor-pointer transition-colors ${
                           selectedExportId === exp.id
-                            ? "bg-[#638C80]/5 border-l-2 border-l-[#638C80]"
+                            ? "bg-[#49a034]/5 border-l-2 border-l-[#49a034]"
                             : "hover:bg-gray-50"
                         }`}
                       >
@@ -663,7 +663,7 @@ export default function BankTransactionsPage() {
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  selectedFile ? "border-[#638C80] bg-[#638C80]/5" : "border-gray-200 hover:border-gray-300"
+                  selectedFile ? "border-[#49a034] bg-[#49a034]/5" : "border-gray-200 hover:border-gray-300"
                 }`}
               >
                 <input
@@ -675,7 +675,7 @@ export default function BankTransactionsPage() {
                 />
                 {selectedFile ? (
                   <div>
-                    <FileText className="h-6 w-6 mx-auto text-[#638C80] mb-2" />
+                    <FileText className="h-6 w-6 mx-auto text-[#49a034] mb-2" />
                     <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
                     <p className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
                   </div>
@@ -696,7 +696,7 @@ export default function BankTransactionsPage() {
             <Button
               onClick={handleFileUpload}
               disabled={!selectedFile || !selectedBankAccount || uploadMutation.isPending}
-              className="bg-[#638C80] hover:bg-[#547568]"
+              className="bg-[#49a034] hover:bg-[#547568]"
             >
               {uploadMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -718,7 +718,7 @@ function StatPill({ label, value, color }: { label: string; value: string | numb
     blue: "text-blue-600",
     orange: "text-orange-600",
     green: "text-green-600",
-    teal: "text-[#638C80]",
+    teal: "text-[#49a034]",
     amber: "text-amber-600",
   };
   return (
@@ -734,7 +734,7 @@ function StatusBadge({ status }: { status: string }) {
     unmatched: "bg-amber-50 text-amber-600",
     suggested: "bg-blue-50 text-blue-600",
     matched: "bg-green-50 text-green-600",
-    posted: "bg-[#638C80]/10 text-[#638C80]",
+    posted: "bg-[#49a034]/10 text-[#49a034]",
   };
   return (
     <span className={`text-xs px-2 py-1 rounded font-medium ${styles[status] || "bg-gray-50 text-gray-600"}`}>

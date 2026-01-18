@@ -97,8 +97,8 @@ export default function PaymentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-black flex items-center gap-3">
-            <div className="p-2 bg-[#638C80]/10 rounded-lg">
-              <Wallet className="h-7 w-7 text-[#638C80]" />
+            <div className="p-2 bg-[#49a034]/10 rounded-lg">
+              <Wallet className="h-7 w-7 text-[#49a034]" />
             </div>
             Mobile Money
           </h1>
@@ -146,13 +146,13 @@ export default function PaymentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Reconciled</p>
-              <p className="text-2xl font-bold text-[#638C80] mt-2">
+              <p className="text-2xl font-bold text-[#49a034] mt-2">
                 {stats?.posted_count || 0}
               </p>
               <p className="text-sm text-gray-500 mt-1">Posted to ERP</p>
             </div>
-            <div className="p-3 bg-[#638C80]/10 rounded-lg">
-              <CheckCircle2 className="h-6 w-6 text-[#638C80]" />
+            <div className="p-3 bg-[#49a034]/10 rounded-lg">
+              <CheckCircle2 className="h-6 w-6 text-[#49a034]" />
             </div>
           </div>
         </Card>
@@ -163,21 +163,21 @@ export default function PaymentsPage() {
         <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-gray-50 p-1">
           <TabsTrigger 
             value="reconcile" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#638C80]"
+            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
           >
             <AlertCircle className="h-4 w-4" />
             <span>To Reconcile ({unmatchedTransactions.length})</span>
           </TabsTrigger>
           <TabsTrigger 
             value="matched" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#638C80]"
+            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
           >
             <Clock className="h-4 w-4" />
             <span>Matched ({matchedTransactions.length})</span>
           </TabsTrigger>
           <TabsTrigger 
             value="history" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#638C80]"
+            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
           >
             <CheckCircle2 className="h-4 w-4" />
             <span>Reconciled ({postedTransactions.length})</span>
@@ -188,7 +188,7 @@ export default function PaymentsPage() {
         <TabsContent value="reconcile" className="space-y-4">
           {unmatchedLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
               Loading transactions...
             </div>
           ) : unmatchedTransactions.length === 0 ? (
@@ -214,7 +214,7 @@ export default function PaymentsPage() {
         <TabsContent value="matched" className="space-y-4">
           {matchedLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
               Loading transactions...
             </div>
           ) : matchedTransactions.length === 0 ? (
@@ -241,7 +241,7 @@ export default function PaymentsPage() {
         <TabsContent value="history" className="space-y-4">
           {postedLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#638C80] border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
               Loading transactions...
             </div>
           ) : postedTransactions.length === 0 ? (

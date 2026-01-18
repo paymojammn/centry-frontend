@@ -65,19 +65,19 @@ export default function DashboardPage() {
           title="Open Bills"
           value={stats?.total_open || 0}
           amount={stats?.total_open_amount}
-          icon={<AlertCircle className="h-4 w-4 text-[#638C80]" />}
+          icon={<AlertCircle className="h-4 w-4 text-[#49a034]" />}
           trend="neutral"
         />
         <StatCard
           title="Scheduled"
           value={stats?.total_scheduled || 0}
-          icon={<CheckCircle2 className="h-4 w-4 text-[#638C80]" />}
+          icon={<CheckCircle2 className="h-4 w-4 text-[#49a034]" />}
           trend="up"
         />
         <StatCard
           title="Paid"
           value={stats?.total_paid || 0}
-          icon={<CheckCircle2 className="h-4 w-4 text-[#638C80]" />}
+          icon={<CheckCircle2 className="h-4 w-4 text-[#49a034]" />}
           trend="up"
         />
         <StatCard
@@ -259,7 +259,7 @@ function BillItem({ bill }: { bill: Payable }) {
             <CreditCard className="h-3 w-3 mr-1" />
             Bank
           </Button>
-          <Button size="sm" className="text-xs bg-[#638C80] hover:bg-[#4f7068] text-white shadow-sm hover:shadow transition-all">
+          <Button size="sm" className="text-xs bg-[#49a034] hover:bg-[#4f7068] text-white shadow-sm hover:shadow transition-all">
             <Smartphone className="h-3 w-3 mr-1" />
             MoMo
           </Button>
@@ -283,7 +283,7 @@ function PaymentOption({
   return (
     <div className="table-row-hover flex items-center gap-4 p-4 bg-white border border-gray-50 rounded-lg transition-all hover:border-gray-100 hover:shadow-sm">
       <div className="flex-shrink-0 w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center">
-        <div className="text-[#638C80]">{icon}</div>
+        <div className="text-[#49a034]">{icon}</div>
       </div>
       <div className="flex-1">
         <p className="font-semibold text-black">{title}</p>
@@ -313,10 +313,10 @@ function TransactionItem({
     <div className="table-row-hover flex items-center justify-between p-3 border-b border-gray-50 last:border-0 transition-colors">
       <div className="flex items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-          type === 'inflow' ? 'bg-[#638C80]/10' : 'bg-red-50'
+          type === 'inflow' ? 'bg-[#49a034]/10' : 'bg-red-50'
         }`}>
           {type === 'inflow' ? (
-            <TrendingUp className="h-4 w-4 text-[#638C80]" />
+            <TrendingUp className="h-4 w-4 text-[#49a034]" />
           ) : (
             <TrendingDown className="h-4 w-4 text-red-600" />
           )}
@@ -327,7 +327,7 @@ function TransactionItem({
         </div>
       </div>
       <p className={`font-semibold ${
-        type === 'inflow' ? 'text-[#638C80]' : 'text-red-600'
+        type === 'inflow' ? 'text-[#49a034]' : 'text-red-600'
       }`}>
         {type === 'inflow' ? '+' : '-'}{' '}
         {formatCurrency(amount, currency)}
@@ -339,7 +339,7 @@ function TransactionItem({
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="text-center py-8 text-muted-foreground">
-      <CheckCircle2 className="h-12 w-12 mx-auto mb-3 opacity-30 text-[#638C80]" />
+      <CheckCircle2 className="h-12 w-12 mx-auto mb-3 opacity-30 text-[#49a034]" />
       <p className="text-sm">{message}</p>
     </div>
   );

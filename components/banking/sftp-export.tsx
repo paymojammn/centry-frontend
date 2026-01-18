@@ -323,7 +323,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
               {pendingExports.map((exportFile: BankPaymentExport) => (
                 <tr
                   key={exportFile.id}
-                  className={`hover:bg-gray-50 cursor-pointer ${selectedExportId === exportFile.id ? 'bg-[#638C80]/5' : ''}`}
+                  className={`hover:bg-gray-50 cursor-pointer ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}
                   onClick={() => onSelectExport?.(exportFile.id)}
                 >
                   <td className="px-6 py-3">
@@ -355,7 +355,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                         size="sm"
                         onClick={(e) => { e.stopPropagation(); handleUploadFile(exportFile); }}
                         disabled={isUploading || uploadingFileId === exportFile.id}
-                        className="h-8 bg-[#638C80] hover:bg-[#547568]"
+                        className="h-8 bg-[#49a034] hover:bg-[#547568]"
                       >
                         {uploadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                       </Button>
@@ -436,7 +436,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                           size="sm"
                           onClick={() => handleUploadLocalFile(file)}
                           disabled={isUploading || uploadingLocalFile === file.absolute_path}
-                          className="h-8 bg-[#638C80] hover:bg-[#547568]"
+                          className="h-8 bg-[#49a034] hover:bg-[#547568]"
                         >
                           {uploadingLocalFile === file.absolute_path ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         </Button>
@@ -481,7 +481,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             </thead>
             <tbody className="divide-y divide-gray-50">
               {uploadedExports.map((exportFile: BankPaymentExport) => (
-                <tr key={exportFile.id} className={`hover:bg-gray-50 ${selectedExportId === exportFile.id ? 'bg-[#638C80]/5' : ''}`}>
+                <tr key={exportFile.id} className={`hover:bg-gray-50 ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}>
                   <td className="px-6 py-3">
                     <p className="text-sm font-medium text-gray-900">{exportFile.file_name}</p>
                     <p className="text-xs text-gray-500">{formatFileSize(exportFile.file_size)}</p>

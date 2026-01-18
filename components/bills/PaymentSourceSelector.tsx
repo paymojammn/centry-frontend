@@ -34,7 +34,7 @@ export default function PaymentSourceSelector({
     if (isSelected) {
       switch (type) {
         case 'mobile_money':
-          return 'from-[#638C80] to-[#4f7068]';
+          return 'from-[#49a034] to-[#4f7068]';
         case 'bank_account':
           return 'from-blue-600 to-blue-700';
         default:
@@ -47,7 +47,7 @@ export default function PaymentSourceSelector({
   const getBorderColor = (type: string) => {
     switch (type) {
       case 'mobile_money':
-        return 'border-[#638C80]/30 hover:border-[#638C80]';
+        return 'border-[#49a034]/30 hover:border-[#49a034]';
       case 'bank_account':
         return 'border-blue-200 hover:border-blue-500';
       default:
@@ -135,7 +135,7 @@ export default function PaymentSourceSelector({
                     {isSelected && (
                       <div className="flex-shrink-0 ml-3">
                         <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                          <CheckCircle2 className="w-4 h-4 text-[#638C80]" />
+                          <CheckCircle2 className="w-4 h-4 text-[#49a034]" />
                         </div>
                       </div>
                     )}

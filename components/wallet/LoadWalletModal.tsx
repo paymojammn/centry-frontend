@@ -143,8 +143,8 @@ export default function LoadWalletModal({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#638C80]/10 rounded-lg">
-              <WalletIcon className="w-6 h-6 text-[#638C80]" />
+            <div className="p-2 bg-[#49a034]/10 rounded-lg">
+              <WalletIcon className="w-6 h-6 text-[#49a034]" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Load Wallet</h2>
@@ -169,7 +169,7 @@ export default function LoadWalletModal({
             <div className="space-y-6">
               {methodsLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#638C80]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
                 </div>
               ) : savedMethods.length > 0 ? (
                 <>
@@ -182,21 +182,21 @@ export default function LoadWalletModal({
                         <button
                           key={method.id}
                           onClick={() => handleUseSavedMethod(method)}
-                          className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-left group"
+                          className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left group"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="p-2 bg-[#638C80]/10 rounded-lg group-hover:bg-[#638C80]/20 transition-colors">
+                            <div className="p-2 bg-[#49a034]/10 rounded-lg group-hover:bg-[#49a034]/20 transition-colors">
                               {method.method_type === 'mobile_money' ? (
-                                <Smartphone className="w-5 h-5 text-[#638C80]" />
+                                <Smartphone className="w-5 h-5 text-[#49a034]" />
                               ) : (
-                                <Building2 className="w-5 h-5 text-[#638C80]" />
+                                <Building2 className="w-5 h-5 text-[#49a034]" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium text-gray-900">{method.nickname}</h4>
                                 {method.is_default && (
-                                  <span className="px-2 py-0.5 bg-[#638C80] text-white text-xs font-medium rounded">
+                                  <span className="px-2 py-0.5 bg-[#49a034] text-white text-xs font-medium rounded">
                                     Default
                                   </span>
                                 )}
@@ -228,11 +228,11 @@ export default function LoadWalletModal({
 
                   <button
                     onClick={handleAddNewMethod}
-                    className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-center group"
+                    className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-center group"
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <Plus className="w-5 h-5 text-gray-400 group-hover:text-[#638C80]" />
-                      <span className="font-medium text-gray-600 group-hover:text-[#638C80]">
+                      <Plus className="w-5 h-5 text-gray-400 group-hover:text-[#49a034]" />
+                      <span className="font-medium text-gray-600 group-hover:text-[#49a034]">
                         Add New Payment Method
                       </span>
                     </div>
@@ -249,7 +249,7 @@ export default function LoadWalletModal({
                   </p>
                   <button
                     onClick={handleAddNewMethod}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#638C80] text-white rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#49a034] text-white rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
                   >
                     <Plus className="w-5 h-5" />
                     Add Payment Method
@@ -268,9 +268,9 @@ export default function LoadWalletModal({
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => handleMethodSelect('mobile_money')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                 >
-                  <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                  <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                   <h4 className="font-medium text-gray-900">Mobile Money</h4>
                   <p className="text-sm text-gray-500 mt-1">
                     Load via MTN, Airtel, etc.
@@ -279,9 +279,9 @@ export default function LoadWalletModal({
 
                 <button
                   onClick={() => handleMethodSelect('bank')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                 >
-                  <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                  <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                   <h4 className="font-medium text-gray-900">Bank Transfer</h4>
                   <p className="text-sm text-gray-500 mt-1">
                     Load via Stanbic, DFCU, etc.
@@ -300,7 +300,7 @@ export default function LoadWalletModal({
                 </h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#638C80] hover:text-[#4f7068]"
+                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
                 >
                   Back
                 </button>
@@ -308,7 +308,7 @@ export default function LoadWalletModal({
 
               {providersLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#638C80]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
@@ -316,7 +316,7 @@ export default function LoadWalletModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-left"
+                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
                     >
                       <div className="font-medium text-gray-900">{provider.name}</div>
                     </button>
@@ -326,7 +326,7 @@ export default function LoadWalletModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-left"
+                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
                     >
                       <div className="font-medium text-gray-900">{provider.name}</div>
                     </button>
@@ -343,7 +343,7 @@ export default function LoadWalletModal({
                 <h3 className="text-lg font-medium text-gray-900">Load Amount</h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#638C80] hover:text-[#4f7068]"
+                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
                 >
                   Back
                 </button>
@@ -351,20 +351,20 @@ export default function LoadWalletModal({
 
               {/* Selected method/provider */}
               {selectedPaymentMethod ? (
-                <div className="bg-[#638C80]/5 border border-[#638C80]/20 rounded-lg p-4">
+                <div className="bg-[#49a034]/5 border border-[#49a034]/20 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[#638C80]/10 rounded-lg">
+                    <div className="p-2 bg-[#49a034]/10 rounded-lg">
                       {selectedPaymentMethod.method_type === 'mobile_money' ? (
-                        <Smartphone className="w-5 h-5 text-[#638C80]" />
+                        <Smartphone className="w-5 h-5 text-[#49a034]" />
                       ) : (
-                        <Building2 className="w-5 h-5 text-[#638C80]" />
+                        <Building2 className="w-5 h-5 text-[#49a034]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium text-gray-900">{selectedPaymentMethod.nickname}</h4>
                         {selectedPaymentMethod.is_default && (
-                          <span className="px-2 py-0.5 bg-[#638C80] text-white text-xs font-medium rounded">
+                          <span className="px-2 py-0.5 bg-[#49a034] text-white text-xs font-medium rounded">
                             Default
                           </span>
                         )}
@@ -400,7 +400,7 @@ export default function LoadWalletModal({
                   placeholder="e.g., 50000"
                   min="1"
                   step="1"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent text-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent text-lg"
                 />
               </div>
 
@@ -417,7 +417,7 @@ export default function LoadWalletModal({
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="e.g., 256700000000"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         You will receive a prompt on your phone to confirm payment
@@ -436,7 +436,7 @@ export default function LoadWalletModal({
                           value={accountNumber}
                           onChange={(e) => setAccountNumber(e.target.value)}
                           placeholder="e.g., 1234567890"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -448,7 +448,7 @@ export default function LoadWalletModal({
                           value={bankName}
                           onChange={(e) => setBankName(e.target.value)}
                           placeholder="e.g., Stanbic Bank"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         />
                       </div>
                     </>
@@ -466,7 +466,7 @@ export default function LoadWalletModal({
                     (paymentMethod === 'bank' && (!accountNumber || !bankName))
                   ))
                 }
-                className="w-full bg-[#638C80] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
               >
                 Load {currency} {amount || '0'}
               </button>
@@ -482,7 +482,7 @@ export default function LoadWalletModal({
           {/* Step 4: Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <Loader2 className="w-16 h-16 animate-spin text-[#638C80] mx-auto mb-4" />
+              <Loader2 className="w-16 h-16 animate-spin text-[#49a034] mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Processing...</h3>
               <p className="text-sm text-gray-500">
                 Please wait while we process your request
@@ -552,7 +552,7 @@ export default function LoadWalletModal({
 
               <button
                 onClick={handleClose}
-                className="w-full bg-[#638C80] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
+                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
               >
                 Done
               </button>

@@ -68,7 +68,7 @@ export default function OrganizationsPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-gray-900">Organizations</h1>
-            <Button size="sm" className="h-9 bg-[#638C80] hover:bg-[#547568]">
+            <Button size="sm" className="h-9 bg-[#49a034] hover:bg-[#547568]">
               <Plus className="h-4 w-4 mr-2" />
               Create Organization
             </Button>
@@ -82,7 +82,7 @@ export default function OrganizationsPage() {
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Organizations:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#49a034]/10 text-[#49a034]">
                 {stats.total}
               </span>
             </div>
@@ -143,7 +143,7 @@ export default function OrganizationsPage() {
                   : 'Create one or ask to be invited'}
               </p>
               {!searchQuery && (
-                <Button size="sm" className="mt-4 bg-[#638C80] hover:bg-[#547568]">
+                <Button size="sm" className="mt-4 bg-[#49a034] hover:bg-[#547568]">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Organization
                 </Button>

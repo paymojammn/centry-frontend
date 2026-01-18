@@ -113,7 +113,7 @@ export function MatchingModal({
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.8) return "text-green-600 bg-green-50";
-    if (confidence >= 0.6) return "text-[#638C80] bg-[#638C80]/10";
+    if (confidence >= 0.6) return "text-[#49a034] bg-[#49a034]/10";
     if (confidence >= 0.4) return "text-orange-600 bg-orange-50";
     return "text-gray-600 bg-gray-50";
   };
@@ -188,7 +188,7 @@ export function MatchingModal({
         <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-[#638C80]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#49a034]" />
             </div>
           ) : filteredMatches.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-gray-300 rounded-lg">
@@ -213,15 +213,15 @@ export function MatchingModal({
                   onClick={() => setSelectedMatch(match)}
                   className={`w-full p-4 border rounded-lg text-left transition-all duration-200 ${
                     isSelected
-                      ? "border-[#638C80] bg-[#638C80]/5 shadow-md"
-                      : "border-gray-200 hover:border-[#638C80]/30 hover:shadow-sm"
+                      ? "border-[#49a034] bg-[#49a034]/5 shadow-md"
+                      : "border-gray-200 hover:border-[#49a034]/30 hover:shadow-sm"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     {/* Left: Match Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <FileText className="h-5 w-5 text-[#638C80] flex-shrink-0" />
+                        <FileText className="h-5 w-5 text-[#49a034] flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-black truncate">
                             {match.reference}
@@ -267,7 +267,7 @@ export function MatchingModal({
                         </div>
                       )}
                       {isSelected && (
-                        <CheckCircle2 className="h-5 w-5 text-[#638C80] mt-2 ml-auto" />
+                        <CheckCircle2 className="h-5 w-5 text-[#49a034] mt-2 ml-auto" />
                       )}
                     </div>
                   </div>
@@ -279,7 +279,7 @@ export function MatchingModal({
                         match.confidence >= 0.8
                           ? "bg-green-600"
                           : match.confidence >= 0.6
-                          ? "bg-[#638C80]"
+                          ? "bg-[#49a034]"
                           : match.confidence >= 0.4
                           ? "bg-orange-500"
                           : "bg-gray-400"
@@ -305,7 +305,7 @@ export function MatchingModal({
           <Button
             onClick={() => selectedMatch && applyMatchMutation.mutate(selectedMatch)}
             disabled={!selectedMatch || applyMatchMutation.isPending}
-            className="bg-[#638C80] hover:bg-[#4f7068] text-white"
+            className="bg-[#49a034] hover:bg-[#4f7068] text-white"
           >
             {applyMatchMutation.isPending ? (
               <>

@@ -98,7 +98,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   const getTypeBadge = () => {
     if (contact.is_supplier && contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#638C80]/10 text-[#638C80]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#49a034]/10 text-[#49a034]">
           Both
         </span>
       );
@@ -238,7 +238,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                       <p className="text-xs text-gray-500">Email</p>
                       <a
                         href={`mailto:${contact.email_address}`}
-                        className="text-sm text-gray-900 hover:text-[#638C80] truncate block"
+                        className="text-sm text-gray-900 hover:text-[#49a034] truncate block"
                       >
                         {contact.email_address}
                       </a>
@@ -254,7 +254,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                       <p className="text-xs text-gray-500">Primary Phone</p>
                       <a
                         href={`tel:${contact.primary_phone}`}
-                        className="text-sm text-gray-900 hover:text-[#638C80]"
+                        className="text-sm text-gray-900 hover:text-[#49a034]"
                       >
                         {contact.primary_phone}
                       </a>
@@ -276,7 +276,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                             </span>
                             <a
                               href={`tel:${phone.phone_number}`}
-                              className="text-sm text-gray-900 hover:text-[#638C80]"
+                              className="text-sm text-gray-900 hover:text-[#49a034]"
                             >
                               {phone.phone_number}
                             </a>

@@ -244,11 +244,11 @@ export default function RecipientDetailsStep({
               onClick={() => handleRecipientTypeChange('mobile')}
               className={`p-4 rounded-lg border-2 transition-all ${
                 recipientType === 'mobile'
-                  ? 'border-[#638C80] bg-[#638C80]/5'
+                  ? 'border-[#49a034] bg-[#49a034]/5'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <Smartphone className={`w-6 h-6 mx-auto mb-2 ${recipientType === 'mobile' ? 'text-[#638C80]' : 'text-gray-400'}`} />
+              <Smartphone className={`w-6 h-6 mx-auto mb-2 ${recipientType === 'mobile' ? 'text-[#49a034]' : 'text-gray-400'}`} />
               <div className="font-semibold text-sm">Mobile Money</div>
               <div className="text-xs text-gray-500 mt-1">Send to phone</div>
             </button>
@@ -274,7 +274,7 @@ export default function RecipientDetailsStep({
                 {bill.vendor_phone && !recipient?.phone_number && (
                   <button
                     onClick={() => autoFillFromBill(bill)}
-                    className="text-xs text-[#638C80] hover:text-[#4f7068] font-medium"
+                    className="text-xs text-[#49a034] hover:text-[#4f7068] font-medium"
                   >
                     Use saved
                   </button>
@@ -314,7 +314,7 @@ export default function RecipientDetailsStep({
                         value={recipient?.phone_number || ''}
                         onChange={(e) => handleMobileNumberChange(bill.id, e.target.value)}
                         placeholder="e.g., 0700123456"
-                        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                       />
                     </div>
                     {recipient?.contact_name && (
@@ -328,7 +328,7 @@ export default function RecipientDetailsStep({
                   {/* Quick Contact Selection (placeholder for now) */}
                   <button
                     onClick={() => setSelectedBillId(bill.id)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-[#638C80] hover:text-[#638C80] transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-[#49a034] hover:text-[#49a034] transition-colors"
                   >
                     <Search className="w-4 h-4" />
                     Select from contacts
@@ -442,7 +442,7 @@ export default function RecipientDetailsStep({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search contacts..."
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
               />
             </div>
             <div className="text-center py-8 text-gray-500">

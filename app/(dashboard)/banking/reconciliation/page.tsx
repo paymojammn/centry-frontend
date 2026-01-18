@@ -301,7 +301,7 @@ export default function BankReconciliationPage() {
                 size="sm"
                 onClick={handleAutoReconcile}
                 disabled={isAutoReconciling || !!reconcileTaskId || !activeConnectionId}
-                className="h-9 bg-[#638C80] hover:bg-[#547568]"
+                className="h-9 bg-[#49a034] hover:bg-[#547568]"
               >
                 <Sparkles className={`h-4 w-4 mr-2 ${(isAutoReconciling || reconcileTaskId) ? 'animate-pulse' : ''}`} />
                 Auto Match

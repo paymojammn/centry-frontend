@@ -321,7 +321,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               Refresh
             </Button>
             {selectedFiles.size > 0 && (
-              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#638C80] hover:bg-[#547568]">
+              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#49a034] hover:bg-[#547568]">
                 <Download className="h-3 w-3 mr-1.5" />
                 Download ({selectedFiles.size})
               </Button>
@@ -330,7 +330,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               size="sm"
               onClick={handleDownloadAll}
               disabled={!selectedAccountId || files.length === 0 || isDownloading}
-              className="h-8 bg-[#638C80] hover:bg-[#547568]"
+              className="h-8 bg-[#49a034] hover:bg-[#547568]"
             >
               <Download className="h-3 w-3 mr-1.5" />
               Download All

@@ -29,20 +29,20 @@ export function SidebarMenu() {
     [pathname],
   );
 
-  // Global classNames for consistent styling - Modern clean theme with uniform left alignment
+  // Global classNames for consistent styling - Dark theme with green accents
   // Using ! (important) to override base accordion-menu styles
   const classNames: AccordionMenuClassNames = {
     root: 'space-y-0.5',
     group: 'space-y-0.5',
     label:
-      'uppercase text-[11px] font-bold text-gray-400 pt-5 pb-2 px-3 tracking-wider',
-    separator: 'border-gray-200',
-    item: 'h-10 bg-transparent! text-gray-700! hover:bg-[#638C80]/10! hover:text-[#638C80]! data-[selected=true]:bg-[#638C80]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+      'uppercase text-[11px] font-bold text-white/40 pt-5 pb-2 px-3 tracking-wider',
+    separator: 'border-white/10',
+    item: 'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-[#49a034]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
     sub: '',
     subTrigger:
-      'h-10 bg-transparent! text-gray-700! hover:bg-[#638C80]/10! hover:text-[#638C80]! data-[selected=true]:bg-[#638C80]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+      'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-[#49a034]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
     subContent: 'py-0.5 ps-6',
-    indicator: 'text-[#638C80]',
+    indicator: 'text-[#49a034]',
   };
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {

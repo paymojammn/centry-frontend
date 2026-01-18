@@ -111,8 +111,8 @@ export default function OrganizationDetailsPage() {
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-[#638C80]/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-[#638C80]" />
+            <div className="h-12 w-12 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-[#49a034]" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-black">{organization.name}</h1>
@@ -124,7 +124,7 @@ export default function OrganizationDetailsPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button 
-              className="h-10 w-10 border border-gray-200 rounded-lg flex items-center justify-center hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all shadow-sm hover:shadow"
+              className="h-10 w-10 border border-gray-200 rounded-lg flex items-center justify-center hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all shadow-sm hover:shadow"
               aria-label="More options"
             >
               <MoreVertical className="h-4 w-4 text-gray-600" />
@@ -133,11 +133,11 @@ export default function OrganizationDetailsPage() {
           <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
             <DropdownMenuLabel className="text-black font-semibold">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-gray-100" />
-            <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
               <Mail className="mr-2 h-4 w-4" />
               Invite Members
             </DropdownMenuItem>
@@ -384,7 +384,7 @@ function StatsCard({
     <div className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-gray-600">{title}</span>
-        <div className="text-[#638C80]">{icon}</div>
+        <div className="text-[#49a034]">{icon}</div>
       </div>
       <div className="text-2xl font-bold text-black">{value.toLocaleString()}</div>
     </div>
@@ -403,7 +403,7 @@ function InfoRow({
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
       <span className="text-sm text-gray-600 flex items-center gap-2">
-        {icon && <span className="text-[#638C80]">{icon}</span>}
+        {icon && <span className="text-[#49a034]">{icon}</span>}
         {label}
       </span>
       <span className="text-sm font-medium text-black">{value}</span>

@@ -100,8 +100,8 @@ export default function OrganizationDetailsPage() {
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-[#638C80]/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-[#638C80]" />
+            <div className="h-12 w-12 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-[#49a034]" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-black">{organization.name}</h1>
@@ -119,11 +119,11 @@ export default function OrganizationDetailsPage() {
           <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
             <DropdownMenuLabel className="text-black font-semibold">Actions</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-gray-100" />
-            <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
               <Mail className="mr-2 h-4 w-4" />
               Invite Members
             </DropdownMenuItem>
@@ -164,19 +164,19 @@ export default function OrganizationDetailsPage() {
         <TabsList className="bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
           <TabsTrigger 
             value="overview"
-            className="data-[state=active]:bg-[#638C80] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger 
             value="members"
-            className="data-[state=active]:bg-[#638C80] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Members
           </TabsTrigger>
           <TabsTrigger 
             value="settings"
-            className="data-[state=active]:bg-[#638C80] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Settings
           </TabsTrigger>
@@ -219,19 +219,19 @@ export default function OrganizationDetailsPage() {
               </div>
               <div className="p-6 space-y-2">
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Mail className="h-4 w-4 text-[#638C80]" />
+                  <Mail className="h-4 w-4 text-[#49a034]" />
                   Invite New Member
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Globe className="h-4 w-4 text-[#638C80]" />
+                  <Globe className="h-4 w-4 text-[#49a034]" />
                   Connect ERP System
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <TrendingUp className="h-4 w-4 text-[#638C80]" />
+                  <TrendingUp className="h-4 w-4 text-[#49a034]" />
                   Import Bank Statement
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Settings className="h-4 w-4 text-[#638C80]" />
+                  <Settings className="h-4 w-4 text-[#49a034]" />
                   Organization Settings
                 </Button>
               </div>
@@ -278,8 +278,8 @@ export default function OrganizationDetailsPage() {
                       <TableRow key={member.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-[#638C80]/10 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-[#638C80]">
+                            <div className="h-10 w-10 rounded-full bg-[#49a034]/10 flex items-center justify-center">
+                              <span className="text-sm font-semibold text-[#49a034]">
                                 {member.user_name
                                   .split(' ')
                                   .map((n) => n[0])
@@ -298,7 +298,7 @@ export default function OrganizationDetailsPage() {
                         <TableCell>
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
                             member.role === 'owner' ? 'bg-red-100 text-red-700' :
-                            member.role === 'admin' ? 'bg-[#638C80]/10 text-[#638C80]' :
+                            member.role === 'admin' ? 'bg-[#49a034]/10 text-[#49a034]' :
                             member.role === 'manager' ? 'bg-blue-100 text-blue-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
@@ -323,10 +323,10 @@ export default function OrganizationDetailsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
-                              <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+                              <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
                                 Edit Role
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-[#638C80]/10 hover:text-[#638C80]">
+                              <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
                                 View Permissions
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-gray-100" />
@@ -396,7 +396,7 @@ function StatsCard({
     <div className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-gray-600">{title}</span>
-        <div className="text-[#638C80]">{icon}</div>
+        <div className="text-[#49a034]">{icon}</div>
       </div>
       <div className="text-2xl font-bold text-black">{value.toLocaleString()}</div>
     </div>
@@ -415,7 +415,7 @@ function InfoRow({
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
       <span className="text-sm text-gray-600 flex items-center gap-2">
-        {icon && <span className="text-[#638C80]">{icon}</span>}
+        {icon && <span className="text-[#49a034]">{icon}</span>}
         {label}
       </span>
       <span className="text-sm font-medium text-black">{value}</span>

@@ -121,7 +121,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
               <tr
                 key={imp.id}
                 className={`cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedImportId === imp.id ? 'bg-[#638C80]/5' : ''
+                  selectedImportId === imp.id ? 'bg-[#49a034]/5' : ''
                 }`}
                 onClick={() => onSelectImport?.(imp.id)}
               >
@@ -138,7 +138,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
                 <td className="px-6 py-3 text-center">
                   <span className="text-sm font-medium text-gray-900">{imp.transactions_count}</span>
                   {imp.transactions_synced > 0 && (
-                    <span className="text-xs text-[#638C80] ml-1">
+                    <span className="text-xs text-[#49a034] ml-1">
                       ({imp.transactions_synced} synced)
                     </span>
                   )}

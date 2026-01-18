@@ -106,7 +106,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         <div className="space-y-2">
           <Label htmlFor="file" className="text-sm font-medium text-gray-700">Bank Statement File</Label>
           <div className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
-            file ? 'border-[#638C80] bg-[#638C80]/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            file ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
           }`}>
             <input
               id="file"
@@ -121,7 +121,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
             <div className="text-center">
               {file ? (
                 <div className="flex items-center justify-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-[#638C80]" />
+                  <CheckCircle2 className="h-5 w-5 text-[#49a034]" />
                   <div className="text-left">
                     <p className="text-sm font-medium text-gray-800">{file.name}</p>
                     <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
@@ -150,7 +150,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
               <p className="text-sm font-medium text-amber-700">No bank accounts synced</p>
               <p className="text-xs text-gray-600 mt-1">
                 Please sync bank accounts from Xero first in{" "}
-                <a href="/banking/accounts" className="text-[#638C80] font-medium hover:underline">
+                <a href="/banking/accounts" className="text-[#49a034] font-medium hover:underline">
                   Bank Accounts
                 </a>
               </p>
@@ -180,7 +180,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         {/* Connection Info */}
         {activeConnection && (
           <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-[#638C80]" />
+            <CheckCircle2 className="h-4 w-4 text-[#49a034]" />
             <p className="text-sm text-gray-600">
               <span className="font-medium">{activeConnection.organization?.name}</span>
               {" · "}{activeConnection.provider?.name}
@@ -199,7 +199,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         <Button
           onClick={handleUpload}
           disabled={!canUpload}
-          className="w-full h-10 bg-[#638C80] hover:bg-[#547568]"
+          className="w-full h-10 bg-[#49a034] hover:bg-[#547568]"
         >
           {uploadFile.isPending ? (
             <>

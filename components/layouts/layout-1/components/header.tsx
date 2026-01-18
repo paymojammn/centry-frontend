@@ -63,7 +63,7 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent
-                  className="p-0 gap-0 w-[275px]"
+                  className="p-0 gap-0 w-[275px] bg-[#1c252c] border-[#2d3a44]"
                   side="left"
                   close={false}
                 >
@@ -93,7 +93,7 @@ export function Header() {
                   variant="ghost"
                   mode="icon"
                   shape="circle"
-                  className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                  className="size-9 hover:bg-[#49a034]/10 hover:[&_svg]:text-[#49a034]"
                 >
                   <Search className="size-4.5!" />
                 </Button>
@@ -106,7 +106,7 @@ export function Header() {
                 variant="ghost"
                 mode="icon"
                 shape="circle"
-                className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                className="size-9 hover:bg-[#49a034]/10 hover:[&_svg]:text-[#49a034]"
               >
                 <Bell className="size-4.5!" />
               </Button>
@@ -118,7 +118,7 @@ export function Header() {
                 variant="ghost"
                 mode="icon"
                 shape="circle"
-                className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                className="size-9 hover:bg-[#49a034]/10 hover:[&_svg]:text-[#49a034]"
               >
                 <MessageCircleMore className="size-4.5!" />
               </Button>
@@ -130,7 +130,7 @@ export function Header() {
                 variant="ghost"
                 mode="icon"
                 shape="circle"
-                className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
+                className="size-9 hover:bg-[#49a034]/10 hover:[&_svg]:text-[#49a034]"
               >
                 <LayoutGrid className="size-4.5!" />
               </Button>
@@ -139,7 +139,7 @@ export function Header() {
           <UserDropdownMenu
             trigger={
               <img
-                className="size-9 rounded-full border-2 border-green-500 shrink-0 cursor-pointer"
+                className="size-9 rounded-full border-2 border-[#49a034] shrink-0 cursor-pointer"
                 src={toAbsoluteUrl('/media/avatars/300-2.png')}
                 alt="User Avatar"
               />

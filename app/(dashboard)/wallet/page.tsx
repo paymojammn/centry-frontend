@@ -46,7 +46,7 @@ export default function WalletPage() {
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="space-y-6">
           {/* Header with brand gradient background */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#638C80] via-[#547568] to-[#456050] p-8 shadow-xl">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#49a034] via-[#547568] to-[#456050] p-8 shadow-xl">
             <div className="absolute inset-0 bg-black opacity-5"></div>
             <div className="relative flex items-center justify-between">
               <div className="text-white">
@@ -62,7 +62,7 @@ export default function WalletPage() {
               </div>
               <Button
                 onClick={handleRefresh}
-                className="bg-white/95 backdrop-blur-sm text-[#638C80] hover:bg-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-white/95 backdrop-blur-sm text-[#49a034] hover:bg-white shadow-lg hover:shadow-xl transition-all"
                 size="lg"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -74,13 +74,13 @@ export default function WalletPage() {
           {/* Balance Card - More sophisticated design */}
           <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-lg">
             {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#638C80]/5 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#49a034]/5 via-transparent to-transparent"></div>
 
             <div className="relative p-8">
               <div className="flex items-start justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="p-4 bg-[#638C80]/10 rounded-2xl">
-                    <WalletIcon className="w-8 h-8 text-[#638C80]" />
+                  <div className="p-4 bg-[#49a034]/10 rounded-2xl">
+                    <WalletIcon className="w-8 h-8 text-[#49a034]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Available Balance</p>

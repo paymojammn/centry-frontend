@@ -409,12 +409,12 @@ export default function TwoFactorSettingsPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      enabled ? "bg-[#638C80]/10" : "bg-gray-100"
+                      enabled ? "bg-[#49a034]/10" : "bg-gray-100"
                     }`}
                   >
                     <Icon
                       className={`h-5 w-5 ${
-                        enabled ? "text-[#638C80]" : "text-gray-500"
+                        enabled ? "text-[#49a034]" : "text-gray-500"
                       }`}
                     />
                   </div>
@@ -572,7 +572,7 @@ export default function TwoFactorSettingsPage() {
             <Button
               onClick={handleVerifyEnable}
               disabled={otpValue.length !== 6 || isVerifying}
-              className="bg-[#638C80] hover:bg-[#547568]"
+              className="bg-[#49a034] hover:bg-[#547568]"
             >
               {isVerifying ? (
                 <>
@@ -857,7 +857,7 @@ export default function TwoFactorSettingsPage() {
             <Button
               onClick={handleVerifyTotp}
               disabled={otpValue.length !== 6 || isVerifying}
-              className="bg-[#638C80] hover:bg-[#547568]"
+              className="bg-[#49a034] hover:bg-[#547568]"
             >
               {isVerifying ? (
                 <>
@@ -962,7 +962,7 @@ export default function TwoFactorSettingsPage() {
                 <Button
                   onClick={handleConfirmGenerateBackupCodes}
                   disabled={!password || generateBackupCodesMutation.isPending}
-                  className="bg-[#638C80] hover:bg-[#547568]"
+                  className="bg-[#49a034] hover:bg-[#547568]"
                 >
                   {generateBackupCodesMutation.isPending ? (
                     <>
@@ -999,7 +999,7 @@ export default function TwoFactorSettingsPage() {
                     setBackupCodes([]);
                     setPassword("");
                   }}
-                  className="bg-[#638C80] hover:bg-[#547568]"
+                  className="bg-[#49a034] hover:bg-[#547568]"
                 >
                   Done
                 </Button>

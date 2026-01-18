@@ -98,27 +98,27 @@ export default function BillDetailPage() {
               <InfoRow 
                 label="Invoice Number" 
                 value={bill.invoice_number || 'N/A'} 
-                icon={<FileText className="h-4 w-4 text-[#638C80]" />}
+                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
               />
               <InfoRow 
                 label="Reference" 
                 value={bill.reference || 'No reference'} 
-                icon={<FileText className="h-4 w-4 text-[#638C80]" />}
+                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
               />
               <InfoRow 
                 label="Invoice Date" 
                 value={bill.date ? new Date(bill.date).toLocaleDateString() : 'N/A'} 
-                icon={<Calendar className="h-4 w-4 text-[#638C80]" />}
+                icon={<Calendar className="h-4 w-4 text-[#49a034]" />}
               />
               <InfoRow 
                 label="Due Date" 
                 value={bill.due_date ? new Date(bill.due_date).toLocaleDateString() : 'N/A'} 
-                icon={<Calendar className="h-4 w-4 text-[#638C80]" />}
+                icon={<Calendar className="h-4 w-4 text-[#49a034]" />}
               />
               <InfoRow 
                 label="Description" 
                 value={bill.description} 
-                icon={<FileText className="h-4 w-4 text-[#638C80]" />}
+                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
               />
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function BillDetailPage() {
                 <span className="text-gray-600 font-semibold">
                   {bill.status === 'PAID' ? 'Total Amount' : 'Amount Due'}
                 </span>
-                <span className="text-2xl font-bold text-[#638C80]">
+                <span className="text-2xl font-bold text-[#49a034]">
                   {bill.currency} {parseFloat(
                     bill.status === 'PAID' ? bill.total : bill.amount_due
                   ).toLocaleString()}
@@ -176,8 +176,8 @@ export default function BillDetailPage() {
             </div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-[#638C80]/10 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-[#638C80]" />
+                <div className="h-12 w-12 rounded-full bg-[#49a034]/10 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-[#49a034]" />
                 </div>
                 <div>
                   <div className="font-semibold text-black">{bill.vendor_name}</div>
@@ -196,12 +196,12 @@ export default function BillDetailPage() {
               <InfoRow 
                 label="Name" 
                 value={bill.organization_name} 
-                icon={<Building2 className="h-4 w-4 text-[#638C80]" />}
+                icon={<Building2 className="h-4 w-4 text-[#49a034]" />}
               />
               <InfoRow 
                 label="Connection" 
                 value={bill.connection_name} 
-                icon={<FileText className="h-4 w-4 text-[#638C80]" />}
+                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
               />
             </div>
           </div>

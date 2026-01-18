@@ -144,9 +144,9 @@ export default function SavePaymentMethodModal({
                   <button
                     type="button"
                     onClick={() => setMethodType('mobile_money')}
-                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                   >
-                    <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                    <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                     <h4 className="font-medium text-gray-900">Mobile Money</h4>
                     <p className="text-sm text-gray-500 mt-1">MTN, Airtel, etc.</p>
                   </button>
@@ -154,9 +154,9 @@ export default function SavePaymentMethodModal({
                   <button
                     type="button"
                     onClick={() => setMethodType('bank')}
-                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                   >
-                    <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                    <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                     <h4 className="font-medium text-gray-900">Bank Account</h4>
                     <p className="text-sm text-gray-500 mt-1">Stanbic, DFCU, etc.</p>
                   </button>
@@ -175,7 +175,7 @@ export default function SavePaymentMethodModal({
                     id="provider-select"
                     value={provider}
                     onChange={(e) => setProvider(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                     required
                   >
                     <option value="">Select provider</option>
@@ -202,7 +202,7 @@ export default function SavePaymentMethodModal({
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     placeholder="e.g., My MTN Number, Primary Account"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                     required
                   />
                 </div>
@@ -217,7 +217,7 @@ export default function SavePaymentMethodModal({
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="256700000000"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                       required
                     />
                   </div>
@@ -234,7 +234,7 @@ export default function SavePaymentMethodModal({
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
                         placeholder="1234567890"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         required
                       />
                     </div>
@@ -248,7 +248,7 @@ export default function SavePaymentMethodModal({
                         value={accountName}
                         onChange={(e) => setAccountName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         required
                       />
                     </div>
@@ -262,7 +262,7 @@ export default function SavePaymentMethodModal({
                         value={bankName}
                         onChange={(e) => setBankName(e.target.value)}
                         placeholder="Stanbic Bank Uganda"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         required
                       />
                     </div>
@@ -276,7 +276,7 @@ export default function SavePaymentMethodModal({
                         value={branchName}
                         onChange={(e) => setBranchName(e.target.value)}
                         placeholder="Kampala Branch"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                       />
                     </div>
                   </>
@@ -288,7 +288,7 @@ export default function SavePaymentMethodModal({
                     id="is_default"
                     checked={isDefault}
                     onChange={(e) => setIsDefault(e.target.checked)}
-                    className="w-4 h-4 text-[#638C80] border-gray-300 rounded focus:ring-[#638C80]"
+                    className="w-4 h-4 text-[#49a034] border-gray-300 rounded focus:ring-[#49a034]"
                   />
                   <label htmlFor="is_default" className="text-sm text-gray-700">
                     Set as default payment method
@@ -306,7 +306,7 @@ export default function SavePaymentMethodModal({
                   <button
                     type="submit"
                     disabled={saveMethodMutation.isPending}
-                    className="flex-1 px-4 py-2 bg-[#638C80] text-white rounded-lg hover:bg-[#4f7068] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-[#49a034] text-white rounded-lg hover:bg-[#4f7068] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {saveMethodMutation.isPending ? 'Saving...' : 'Save Payment Method'}
                   </button>

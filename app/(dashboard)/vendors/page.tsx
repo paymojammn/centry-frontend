@@ -124,7 +124,7 @@ export default function VendorsPage() {
 
   // Stats bar data
   const statsBarData = [
-    { label: 'Total', value: stats.total, color: '#638C80' },
+    { label: 'Total', value: stats.total, color: '#49a034' },
     { label: 'Suppliers', value: stats.suppliers, color: '#4E97D1' },
     { label: 'Customers', value: stats.customers, color: '#49a034' },
     { label: 'Active', value: stats.active, color: '#fed652' },
@@ -220,7 +220,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   const getTypeBadge = (contact: Contact) => {
     if (contact.is_supplier && contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#638C80]/10 text-[#638C80]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#49a034]/10 text-[#49a034]">
           Both
         </span>
       );

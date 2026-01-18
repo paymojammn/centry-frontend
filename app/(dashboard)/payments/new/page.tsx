@@ -168,11 +168,11 @@ export default function NewPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#638C80]/5">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#49a034]/5">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="space-y-6">
           {/* Header with brand gradient background */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#638C80] via-[#547568] to-[#456050] p-8 shadow-xl">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#49a034] via-[#547568] to-[#456050] p-8 shadow-xl">
             <div className="absolute inset-0 bg-black opacity-5"></div>
             <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-white/10"></div>
             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-40 w-40 rounded-full bg-white/10"></div>
@@ -197,21 +197,21 @@ export default function NewPaymentPage() {
               <TabsList className="bg-gray-50 p-1.5 rounded-xl w-full grid grid-cols-3 gap-1">
                 <TabsTrigger
                   value="single"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#638C80] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
                 >
                   <Smartphone className="h-4 w-4 mr-2" />
                   Single Payment
                 </TabsTrigger>
                 <TabsTrigger
                   value="bulk"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#638C80] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Bulk Payments
                 </TabsTrigger>
                 <TabsTrigger
                   value="lists"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#638C80] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
                 >
                   <List className="h-4 w-4 mr-2" />
                   Saved Lists ({sendingLists.length})
@@ -234,7 +234,7 @@ export default function NewPaymentPage() {
                       placeholder="Enter recipient name"
                       value={singlePayment.name}
                       onChange={(e) => setSinglePayment({ ...singlePayment, name: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#638C80] rounded-xl"
+                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
                     />
                   </div>
 
@@ -245,7 +245,7 @@ export default function NewPaymentPage() {
                       placeholder="+256 XXX XXX XXX"
                       value={singlePayment.phoneNumber}
                       onChange={(e) => setSinglePayment({ ...singlePayment, phoneNumber: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#638C80] rounded-xl"
+                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
                     />
                   </div>
 
@@ -257,7 +257,7 @@ export default function NewPaymentPage() {
                       placeholder="0.00"
                       value={singlePayment.amount}
                       onChange={(e) => setSinglePayment({ ...singlePayment, amount: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#638C80] rounded-xl text-lg font-semibold"
+                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl text-lg font-semibold"
                     />
                   </div>
 
@@ -268,7 +268,7 @@ export default function NewPaymentPage() {
                       placeholder="Payment description..."
                       value={singlePayment.description}
                       onChange={(e) => setSinglePayment({ ...singlePayment, description: e.target.value })}
-                      className="border-2 border-gray-200 focus:border-[#638C80] rounded-xl"
+                      className="border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
                       rows={3}
                     />
                   </div>
@@ -276,7 +276,7 @@ export default function NewPaymentPage() {
                   <Button
                     onClick={handleSendSinglePayment}
                     disabled={!singlePayment.phoneNumber || !singlePayment.amount}
-                    className="w-full h-12 bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md hover:shadow-lg transition-all text-lg font-semibold"
+                    className="w-full h-12 bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md hover:shadow-lg transition-all text-lg font-semibold"
                   >
                     <Send className="h-5 w-5 mr-2" />
                     Send Payment
@@ -291,7 +291,7 @@ export default function NewPaymentPage() {
               <div className="flex gap-4 flex-wrap">
                 <Dialog open={isAddRecipientOpen} onOpenChange={setIsAddRecipientOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md">
+                    <Button className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md">
                       <UserPlus className="h-4 w-4 mr-2" />
                       Add Recipient
                     </Button>
@@ -330,7 +330,7 @@ export default function NewPaymentPage() {
                           onChange={(e) => setNewRecipient({ ...newRecipient, amount: e.target.value })}
                         />
                       </div>
-                      <Button onClick={handleAddRecipient} className="w-full bg-[#638C80] hover:bg-[#547568]">
+                      <Button onClick={handleAddRecipient} className="w-full bg-[#49a034] hover:bg-[#547568]">
                         <Plus className="h-4 w-4 mr-2" />
                         Add to List
                       </Button>
@@ -374,7 +374,7 @@ export default function NewPaymentPage() {
                 {recipients.length > 0 && (
                   <Dialog open={isSaveListOpen} onOpenChange={setIsSaveListOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="border-[#638C80] text-[#638C80] hover:bg-[#638C80]/10">
+                      <Button variant="outline" className="border-[#49a034] text-[#49a034] hover:bg-[#49a034]/10">
                         <List className="h-4 w-4 mr-2" />
                         Save as List
                       </Button>
@@ -394,7 +394,7 @@ export default function NewPaymentPage() {
                             onChange={(e) => setListName(e.target.value)}
                           />
                         </div>
-                        <Button onClick={handleSaveAsList} className="w-full bg-[#638C80] hover:bg-[#547568]">
+                        <Button onClick={handleSaveAsList} className="w-full bg-[#49a034] hover:bg-[#547568]">
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           Save List
                         </Button>
@@ -434,7 +434,7 @@ export default function NewPaymentPage() {
                         {recipients.map((recipient) => (
                           <div
                             key={recipient.id}
-                            className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-xl hover:border-[#638C80]/30 hover:shadow-md transition-all"
+                            className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-xl hover:border-[#49a034]/30 hover:shadow-md transition-all"
                           >
                             <div className="flex-1">
                               <p className="font-semibold text-gray-900">{recipient.name}</p>
@@ -442,7 +442,7 @@ export default function NewPaymentPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <p className="font-bold text-[#638C80]">
+                                <p className="font-bold text-[#49a034]">
                                   UGX {recipient.amount?.toLocaleString() || "0"}
                                 </p>
                               </div>
@@ -462,7 +462,7 @@ export default function NewPaymentPage() {
                   </Card>
 
                   {/* Send Button */}
-                  <Card className="border-2 border-[#638C80] shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="border-2 border-[#49a034] shadow-lg rounded-2xl overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
@@ -475,7 +475,7 @@ export default function NewPaymentPage() {
                       </div>
                       <Button
                         onClick={handleSendPayments}
-                        className="w-full h-12 bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md hover:shadow-lg transition-all text-lg font-semibold"
+                        className="w-full h-12 bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md hover:shadow-lg transition-all text-lg font-semibold"
                       >
                         <Send className="h-5 w-5 mr-2" />
                         Send All Payments
@@ -494,7 +494,7 @@ export default function NewPaymentPage() {
                     <div className="flex gap-4 justify-center">
                       <Button
                         onClick={() => setIsAddRecipientOpen(true)}
-                        className="bg-[#638C80] hover:bg-[#547568]"
+                        className="bg-[#49a034] hover:bg-[#547568]"
                       >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Add Recipient
@@ -553,7 +553,7 @@ export default function NewPaymentPage() {
                                 {list.recipients.length} recipient{list.recipients.length !== 1 ? "s" : ""}
                               </span>
                             </div>
-                            <Badge className="bg-[#638C80]/20 text-[#638C80] border-[#638C80]/30">
+                            <Badge className="bg-[#49a034]/20 text-[#49a034] border-[#49a034]/30">
                               UGX {list.totalAmount.toLocaleString()}
                             </Badge>
                           </div>
@@ -562,7 +562,7 @@ export default function NewPaymentPage() {
                               handleLoadList(list.id);
                               setActiveTab("bulk");
                             }}
-                            className="w-full bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white"
+                            className="w-full bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white"
                           >
                             <Send className="h-4 w-4 mr-2" />
                             Use This List
@@ -580,7 +580,7 @@ export default function NewPaymentPage() {
                     <p className="text-gray-500 mb-6">
                       Create bulk payments and save them as lists for quick reuse
                     </p>
-                    <Button onClick={() => setActiveTab("bulk")} className="bg-[#638C80] hover:bg-[#547568]">
+                    <Button onClick={() => setActiveTab("bulk")} className="bg-[#49a034] hover:bg-[#547568]">
                       <Plus className="h-4 w-4 mr-2" />
                       Create Bulk Payment
                     </Button>

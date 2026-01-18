@@ -288,13 +288,13 @@ export default function PayBillsModal({
                   disabled={!walletBalanceData?.has_sufficient_balance}
                   className={`p-6 border-2 rounded-lg transition-all group ${
                     walletBalanceData?.has_sufficient_balance
-                      ? 'border-gray-200 hover:border-[#638C80] hover:bg-[#638C80]/5'
+                      ? 'border-gray-200 hover:border-[#49a034] hover:bg-[#49a034]/5'
                       : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
                   }`}
                 >
                   <Wallet className={`w-8 h-8 mb-3 ${
                     walletBalanceData?.has_sufficient_balance
-                      ? 'text-gray-400 group-hover:text-[#638C80]'
+                      ? 'text-gray-400 group-hover:text-[#49a034]'
                       : 'text-gray-300'
                   }`} />
                   <h4 className="font-medium text-gray-900">Pay from Wallet</h4>
@@ -305,9 +305,9 @@ export default function PayBillsModal({
 
                 <button
                   onClick={() => handleMethodSelect('mobile_money')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                 >
-                  <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                  <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                   <h4 className="font-medium text-gray-900">Mobile Money</h4>
                   <p className="text-sm text-gray-500 mt-1">
                     Pay via MTN, Airtel
@@ -316,9 +316,9 @@ export default function PayBillsModal({
 
                 <button
                   onClick={() => handleMethodSelect('bank')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all group"
+                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
                 >
-                  <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#638C80] mb-3" />
+                  <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
                   <h4 className="font-medium text-gray-900">Bank Transfer</h4>
                   <p className="text-sm text-gray-500 mt-1">
                     Pay via bank account
@@ -337,7 +337,7 @@ export default function PayBillsModal({
                 </h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#638C80] hover:text-[#4f7068]"
+                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
                 >
                   Back
                 </button>
@@ -345,7 +345,7 @@ export default function PayBillsModal({
 
               {providersLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#638C80]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
@@ -353,7 +353,7 @@ export default function PayBillsModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-left"
+                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
                     >
                       <div className="font-medium text-gray-900">{provider.name}</div>
                     </button>
@@ -363,7 +363,7 @@ export default function PayBillsModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#638C80] hover:bg-[#638C80]/5 transition-all text-left"
+                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
                     >
                       <div className="font-medium text-gray-900">{provider.name}</div>
                     </button>
@@ -380,7 +380,7 @@ export default function PayBillsModal({
                 <h3 className="text-lg font-medium text-gray-900">Payment Details</h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#638C80] hover:text-[#4f7068]"
+                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
                 >
                   Back
                 </button>
@@ -398,9 +398,9 @@ export default function PayBillsModal({
               )}
 
               {paymentMethod === 'wallet' && (
-                <div className="bg-[#638C80]/10 rounded-lg p-4 border-2 border-[#638C80]">
+                <div className="bg-[#49a034]/10 rounded-lg p-4 border-2 border-[#49a034]">
                   <div className="flex items-center gap-2 mb-3">
-                    <Wallet className="w-5 h-5 text-[#638C80]" />
+                    <Wallet className="w-5 h-5 text-[#49a034]" />
                     <div className="text-sm font-medium text-gray-700">Paying from Wallet</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -454,7 +454,7 @@ export default function PayBillsModal({
                               min="0"
                               max={bill.amount_due}
                               step="0.01"
-                              className="w-full pl-12 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                              className="w-full pl-12 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                             />
                           </div>
                           {isPartialPayment && (
@@ -492,8 +492,8 @@ export default function PayBillsModal({
                           onClick={() => setPaymentProvider(provider.code)}
                           className={`p-4 border-2 rounded-lg transition-all text-left ${
                             paymentProvider === provider.code
-                              ? 'border-[#638C80] bg-[#638C80]/5'
-                              : 'border-gray-200 hover:border-[#638C80]'
+                              ? 'border-[#49a034] bg-[#49a034]/5'
+                              : 'border-gray-200 hover:border-[#49a034]'
                           }`}
                         >
                           <div className="font-medium text-gray-900">{provider.name}</div>
@@ -505,8 +505,8 @@ export default function PayBillsModal({
                           onClick={() => setPaymentProvider(provider.code)}
                           className={`p-4 border-2 rounded-lg transition-all text-left ${
                             paymentProvider === provider.code
-                              ? 'border-[#638C80] bg-[#638C80]/5'
-                              : 'border-gray-200 hover:border-[#638C80]'
+                              ? 'border-[#49a034] bg-[#49a034]/5'
+                              : 'border-gray-200 hover:border-[#49a034]'
                           }`}
                         >
                           <div className="font-medium text-gray-900">{provider.name}</div>
@@ -526,7 +526,7 @@ export default function PayBillsModal({
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="e.g., 256700000000"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Money will be sent to vendor's mobile money account
@@ -545,7 +545,7 @@ export default function PayBillsModal({
                           value={accountNumber}
                           onChange={(e) => setAccountNumber(e.target.value)}
                           placeholder="e.g., 1234567890"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -557,7 +557,7 @@ export default function PayBillsModal({
                           value={bankName}
                           onChange={(e) => setBankName(e.target.value)}
                           placeholder="e.g., Stanbic Bank"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                         />
                       </div>
                     </>
@@ -575,7 +575,7 @@ export default function PayBillsModal({
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g., 256700000000"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                   />
                 </div>
               )}
@@ -591,7 +591,7 @@ export default function PayBillsModal({
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="e.g., 1234567890"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -603,7 +603,7 @@ export default function PayBillsModal({
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
                       placeholder="e.g., Stanbic Bank"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                     />
                   </div>
                 </>
@@ -619,7 +619,7 @@ export default function PayBillsModal({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a note for this payment..."
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
                 />
               </div>
 
@@ -634,7 +634,7 @@ export default function PayBillsModal({
                   (paymentMethod === 'mobile_money' && !phoneNumber) ||
                   (paymentMethod === 'bank' && (!accountNumber || !bankName))
                 }
-                className="w-full bg-[#638C80] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
               >
                 {paymentMethod === 'wallet' ? 'Pay from Wallet & Disburse' : 'Process Payment'}
               </button>
@@ -644,7 +644,7 @@ export default function PayBillsModal({
           {/* Step 4: Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <Loader2 className="w-16 h-16 animate-spin text-[#638C80] mx-auto mb-4" />
+              <Loader2 className="w-16 h-16 animate-spin text-[#49a034] mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Payment...</h3>
               <p className="text-sm text-gray-500">
                 Please wait while we process your payment
@@ -684,8 +684,8 @@ export default function PayBillsModal({
                       onClick={() => setExportFormat('csv')}
                       className={`p-4 border-2 rounded-lg transition-all text-left ${
                         exportFormat === 'csv'
-                          ? 'border-[#638C80] bg-[#638C80]/5'
-                          : 'border-gray-200 hover:border-[#638C80]'
+                          ? 'border-[#49a034] bg-[#49a034]/5'
+                          : 'border-gray-200 hover:border-[#49a034]'
                       }`}
                     >
                       <div className="font-medium text-gray-900">CSV Format</div>
@@ -697,8 +697,8 @@ export default function PayBillsModal({
                       onClick={() => setExportFormat('xml')}
                       className={`p-4 border-2 rounded-lg transition-all text-left ${
                         exportFormat === 'xml'
-                          ? 'border-[#638C80] bg-[#638C80]/5'
-                          : 'border-gray-200 hover:border-[#638C80]'
+                          ? 'border-[#49a034] bg-[#49a034]/5'
+                          : 'border-gray-200 hover:border-[#49a034]'
                       }`}
                     >
                       <div className="font-medium text-gray-900">XML Format</div>
@@ -741,7 +741,7 @@ export default function PayBillsModal({
                 <button
                   onClick={handleExportPayment}
                   disabled={isExporting}
-                  className="flex-1 bg-[#638C80] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isExporting ? (
                     <>
@@ -825,7 +825,7 @@ export default function PayBillsModal({
 
               <button
                 onClick={handleClose}
-                className="w-full bg-[#638C80] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
+                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
               >
                 Done
               </button>

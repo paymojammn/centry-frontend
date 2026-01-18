@@ -173,7 +173,7 @@ export default function ProfilePage() {
               <Button
                 size="sm"
                 onClick={handleEdit}
-                className="h-8 bg-[#638C80] hover:bg-[#547568]"
+                className="h-8 bg-[#49a034] hover:bg-[#547568]"
               >
                 Edit Profile
               </Button>
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                   size="sm"
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
-                  className="h-8 bg-[#638C80] hover:bg-[#547568]"
+                  className="h-8 bg-[#49a034] hover:bg-[#547568]"
                 >
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   {updateMutation.isPending ? "Saving..." : "Save"}
@@ -229,7 +229,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-500 text-sm">Organizations:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#49a034]/10 text-[#49a034]">
                 {profile.organizations_count}
               </span>
             </div>
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab(tab.value as any)}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.value
-                    ? 'border-[#638C80] text-[#638C80]'
+                    ? 'border-[#49a034] text-[#49a034]'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -382,10 +382,10 @@ export default function ProfilePage() {
             </div>
             <div className="divide-y divide-gray-50">
               {profile.primary_organization && (
-                <div className="px-6 py-4 bg-[#638C80]/5">
+                <div className="px-6 py-4 bg-[#49a034]/5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#638C80] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-[#49a034] flex items-center justify-center">
                         <Building2 className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                         </p>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#638C80]/10 text-[#638C80]">
+                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#49a034]/10 text-[#49a034]">
                       Primary
                     </span>
                   </div>

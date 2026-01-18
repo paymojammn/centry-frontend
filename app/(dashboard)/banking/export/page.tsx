@@ -91,7 +91,7 @@ export default function BankingExportPage() {
                   onClick={() => setActiveTab(tab.value)}
                   className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.value
-                      ? "border-[#638C80] text-[#638C80]"
+                      ? "border-[#49a034] text-[#49a034]"
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >

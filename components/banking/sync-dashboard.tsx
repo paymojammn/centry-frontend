@@ -156,8 +156,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
       <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-              <ArrowLeftRight className="h-5 w-5 text-[#638C80]" />
+            <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
+              <ArrowLeftRight className="h-5 w-5 text-[#49a034]" />
             </div>
             <div>
               <CardTitle className="text-xl font-semibold text-gray-900">ERP Connection</CardTitle>
@@ -170,7 +170,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
         <CardContent className="p-6">
           {connectionsLoading ? (
             <div className="flex items-center justify-center py-8 bg-gray-50 rounded-xl">
-              <Loader2 className="h-6 w-6 animate-spin text-[#638C80]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
             </div>
           ) : connections.length === 0 ? (
             <div className="text-center py-8">
@@ -178,7 +178,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 <AlertCircle className="h-8 w-8 text-amber-500" />
               </div>
               <p className="text-sm font-medium text-gray-500">No ERP connections found</p>
-              <Button variant="outline" size="sm" className="mt-3 rounded-lg border-gray-200 hover:border-[#638C80] hover:text-[#638C80]">
+              <Button variant="outline" size="sm" className="mt-3 rounded-lg border-gray-200 hover:border-[#49a034] hover:text-[#49a034]">
                 Connect Xero
               </Button>
             </div>
@@ -217,8 +217,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
       <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#638C80]/10 rounded-xl">
-              <ArrowUpRight className="h-5 w-5 text-[#638C80]" />
+            <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
+              <ArrowUpRight className="h-5 w-5 text-[#49a034]" />
             </div>
             <div>
               <CardTitle className="text-xl font-semibold text-gray-900">Sync Operations</CardTitle>
@@ -230,7 +230,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
         </CardHeader>
         <CardContent className="space-y-4 p-6">
           {/* Sync to Xero */}
-          <div className="border border-gray-100 rounded-xl p-4 transition-all hover:border-[#638C80]/30 bg-white">
+          <div className="border border-gray-100 rounded-xl p-4 transition-all hover:border-[#49a034]/30 bg-white">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 bg-blue-50 rounded-lg">
                 <ArrowUpRight className="h-4 w-4 text-blue-600" />
@@ -253,13 +253,13 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 placeholder="Account code"
                 value={bankAccountCode}
                 onChange={(e) => setBankAccountCode(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg transition-all focus:bg-white focus:border-[#638C80] focus:outline-none"
+                className="flex-1 px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg transition-all focus:bg-white focus:border-[#49a034] focus:outline-none"
               />
               <Button
                 size="sm"
                 onClick={handleSyncToXero}
                 disabled={!selectedImportId || syncToXero.isPending}
-                className="bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-lg px-4"
+                className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-lg px-4"
               >
                 {syncToXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -274,7 +274,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
               variant="ghost"
               onClick={handleExportForXero}
               disabled={!selectedImportId}
-              className="w-full mt-3 text-gray-500 hover:text-[#638C80] hover:bg-[#638C80]/5 rounded-lg"
+              className="w-full mt-3 text-gray-500 hover:text-[#49a034] hover:bg-[#49a034]/5 rounded-lg"
             >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -282,7 +282,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
           </div>
 
           {/* Sync from Xero */}
-          <div className="border border-gray-100 rounded-xl p-5 transition-all hover:border-[#638C80]/30 hover:shadow-md bg-gradient-to-r from-gray-50/50 to-white">
+          <div className="border border-gray-100 rounded-xl p-5 transition-all hover:border-[#49a034]/30 hover:shadow-md bg-gradient-to-r from-gray-50/50 to-white">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-green-50 rounded-lg">
@@ -311,7 +311,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 size="sm"
                 onClick={handleSyncFromXero}
                 disabled={!selectedConnection || syncFromXero.isPending}
-                className="bg-gradient-to-r from-[#638C80] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-xl px-5 shadow-sm"
+                className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-xl px-5 shadow-sm"
               >
                 {syncFromXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

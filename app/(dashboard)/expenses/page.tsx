@@ -168,7 +168,7 @@ export default function ExpensesPage() {
         <Button
           size="sm"
           onClick={() => setIsCreateModalOpen(true)}
-          className="h-8 bg-[#638C80] hover:bg-[#547568] text-white"
+          className="h-8 bg-[#49a034] hover:bg-[#547568] text-white"
         >
           <Plus className="h-3.5 w-3.5 mr-1.5" />
           New Expense
@@ -191,7 +191,7 @@ export default function ExpensesPage() {
                       onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
                       className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         filters.status === tab.value
-                          ? 'bg-[#638C80] text-white'
+                          ? 'bg-[#49a034] text-white'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -233,7 +233,7 @@ export default function ExpensesPage() {
                   <Button
                     onClick={() => setIsCreateModalOpen(true)}
                     size="sm"
-                    className="bg-[#638C80] text-white hover:bg-[#547568]"
+                    className="bg-[#49a034] text-white hover:bg-[#547568]"
                   >
                     <Plus className="w-4 h-4 mr-1.5" />
                     Create Expense
@@ -257,7 +257,7 @@ export default function ExpensesPage() {
         <div className="fixed bottom-6 right-6 z-50">
           <Button
             onClick={() => setIsPayModalOpen(true)}
-            className="bg-[#638C80] hover:bg-[#547568] text-white shadow-lg px-6 py-5 text-sm rounded-lg"
+            className="bg-[#49a034] hover:bg-[#547568] text-white shadow-lg px-6 py-5 text-sm rounded-lg"
           >
             <DollarSign className="h-4 w-4 mr-2" />
             Pay {selectedExpenses.length} Expense{selectedExpenses.length > 1 ? 's' : ''}
@@ -381,7 +381,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                   type="checkbox"
                   checked={selectedExpenses.length === payableExpenses.length && payableExpenses.length > 0}
                   onChange={toggleSelectAll}
-                  className="w-4 h-4 text-[#638C80] bg-gray-100 border-gray-300 rounded focus:ring-[#638C80] focus:ring-2 cursor-pointer"
+                  className="w-4 h-4 text-[#49a034] bg-gray-100 border-gray-300 rounded focus:ring-[#49a034] focus:ring-2 cursor-pointer"
                 />
               )}
             </th>
@@ -420,7 +420,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
               <tr
                 key={expense.id}
                 className={`hover:bg-gray-50 transition-colors ${
-                  isExpenseSelected(expense) ? 'bg-[#638C80]/5' : ''
+                  isExpenseSelected(expense) ? 'bg-[#49a034]/5' : ''
                 }`}
               >
                 <td className="px-4 py-3">
@@ -429,7 +429,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                       type="checkbox"
                       checked={isExpenseSelected(expense)}
                       onChange={() => toggleExpenseSelection(expense)}
-                      className="w-4 h-4 text-[#638C80] bg-gray-100 border-gray-300 rounded focus:ring-[#638C80] focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-[#49a034] bg-gray-100 border-gray-300 rounded focus:ring-[#49a034] focus:ring-2 cursor-pointer"
                     />
                   )}
                 </td>

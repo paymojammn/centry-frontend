@@ -15,30 +15,17 @@ export function SidebarHeader() {
   return (
     <div className="sidebar-header hidden lg:flex items-center relative justify-between px-3 lg:px-6 shrink-0">
       <Link href="/dashboard">
-        <div className="dark:hidden">
-          <img
-            src={toAbsoluteUrl('/media/app/centry-logo.svg')}
-            className="default-logo h-[28px] max-w-none"
-            alt="Centry"
-          />
-          <img
-            src={toAbsoluteUrl('/media/app/centry-mini-logo.svg')}
-            className="small-logo h-[28px] max-w-none"
-            alt="Centry"
-          />
-        </div>
-        <div className="hidden dark:block">
-          <img
-            src={toAbsoluteUrl('/media/app/centry-logo-dark.svg')}
-            className="default-logo h-[28px] max-w-none"
-            alt="Centry"
-          />
-          <img
-            src={toAbsoluteUrl('/media/app/centry-mini-logo.svg')}
-            className="small-logo h-[28px] max-w-none"
-            alt="Centry"
-          />
-        </div>
+        {/* Always show white/dark logo since sidebar is now dark */}
+        <img
+          src={toAbsoluteUrl('/media/app/centry-logo-dark.svg')}
+          className="default-logo h-[28px] max-w-none"
+          alt="Centry"
+        />
+        <img
+          src={toAbsoluteUrl('/media/app/centry-mini-logo.svg')}
+          className="small-logo h-[28px] max-w-none"
+          alt="Centry"
+        />
       </Link>
       <Button
         onClick={handleToggleClick}
@@ -46,7 +33,7 @@ export function SidebarHeader() {
         mode="icon"
         variant="outline"
         className={cn(
-          'size-7 absolute start-full top-2/4 rtl:translate-x-2/4 -translate-x-2/4 -translate-y-2/4',
+          'size-7 absolute start-full top-2/4 rtl:translate-x-2/4 -translate-x-2/4 -translate-y-2/4 border-[#2d3a44] bg-[#1c252c] text-white/70 hover:bg-[#2d3a44] hover:text-white',
           sidebarCollapse ? 'ltr:rotate-180' : 'rtl:rotate-180',
         )}
       >

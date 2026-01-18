@@ -188,9 +188,9 @@ export function ContactImportDialog() {
                 <span className="text-xs text-gray-400 mt-1">or drag and drop</span>
               </label>
             ) : (
-              <div className="flex items-center gap-3 p-3 bg-[#638C80]/5 border border-[#638C80]/20 rounded-lg">
-                <div className="w-10 h-10 rounded-lg bg-[#638C80]/10 flex items-center justify-center">
-                  <FileSpreadsheet className="h-5 w-5 text-[#638C80]" />
+              <div className="flex items-center gap-3 p-3 bg-[#49a034]/5 border border-[#49a034]/20 rounded-lg">
+                <div className="w-10 h-10 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
+                  <FileSpreadsheet className="h-5 w-5 text-[#49a034]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{selectedFile.name}</p>
@@ -294,7 +294,7 @@ export function ContactImportDialog() {
             size="sm"
             onClick={handleImport}
             disabled={!selectedFile || importMutation.isPending}
-            className="h-9 bg-[#638C80] hover:bg-[#547568]"
+            className="h-9 bg-[#49a034] hover:bg-[#547568]"
           >
             {importMutation.isPending ? (
               <>

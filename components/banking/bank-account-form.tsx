@@ -390,7 +390,7 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
             <Button 
               type="submit" 
               disabled={mutation.isPending}
-              className="bg-[#638C80] hover:bg-[#638C80]/90 text-white"
+              className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
             >
               {mutation.isPending ? "Saving..." : (isEdit ? "Update Account" : "Add Account")}
             </Button>

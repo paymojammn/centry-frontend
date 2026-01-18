@@ -68,8 +68,8 @@ export function ReconciliationStats() {
       label: "Posted",
       value: summary?.total_posted || 0,
       icon: TrendingUp,
-      color: "text-[#638C80]",
-      bgColor: "bg-[#638C80]/10",
+      color: "text-[#49a034]",
+      bgColor: "bg-[#49a034]/10",
       description: "Synced to ERP",
     },
     {

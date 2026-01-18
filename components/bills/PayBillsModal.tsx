@@ -221,13 +221,13 @@ export default function PayBillsModal({
         <div className="flex-shrink-0 px-6 pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#638C80] to-[#4a6b62] flex items-center justify-center shadow-lg shadow-[#638C80]/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#49a034] to-[#4a6b62] flex items-center justify-center shadow-lg shadow-[#49a034]/20">
                 <CreditCard className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Pay Bills</h2>
                 <p className="text-sm text-gray-500">
-                  {bills.length} bill{bills.length > 1 ? 's' : ''} • <span className="font-medium text-[#638C80]">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  {bills.length} bill{bills.length > 1 ? 's' : ''} • <span className="font-medium text-[#49a034]">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function PayBillsModal({
                     <div className={`
                       flex items-center gap-2 px-3 py-2 rounded-lg transition-all flex-1
                       ${isActive
-                        ? 'bg-[#638C80]/10'
+                        ? 'bg-[#49a034]/10'
                         : isComplete
                           ? 'bg-green-50'
                           : 'bg-gray-50'
@@ -262,7 +262,7 @@ export default function PayBillsModal({
                       <div className={`
                         w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all
                         ${isActive
-                          ? 'bg-[#638C80] text-white shadow-md shadow-[#638C80]/30'
+                          ? 'bg-[#49a034] text-white shadow-md shadow-[#49a034]/30'
                           : isComplete
                             ? 'bg-green-500 text-white'
                             : 'bg-gray-200 text-gray-500'
@@ -271,7 +271,7 @@ export default function PayBillsModal({
                         {isComplete ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
                       </div>
                       <span className={`text-sm font-medium hidden sm:inline ${
-                        isActive ? 'text-[#638C80]' : isComplete ? 'text-green-600' : 'text-gray-400'
+                        isActive ? 'text-[#49a034]' : isComplete ? 'text-green-600' : 'text-gray-400'
                       }`}>{s.label}</span>
                     </div>
                     {index < STEPS.length - 1 && (
@@ -303,8 +303,8 @@ export default function PayBillsModal({
 
               {sourcesLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-[#638C80]/10 flex items-center justify-center mb-3">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#638C80]" />
+                  <div className="w-12 h-12 rounded-full bg-[#49a034]/10 flex items-center justify-center mb-3">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#49a034]" />
                   </div>
                   <p className="text-sm text-gray-500">Loading payment sources...</p>
                 </div>
@@ -359,7 +359,7 @@ export default function PayBillsModal({
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex items-center gap-1.5 text-sm text-[#638C80] hover:text-[#4a6b62] font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-[#49a034] hover:text-[#4a6b62] font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -390,7 +390,7 @@ export default function PayBillsModal({
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex items-center gap-1.5 text-sm text-[#638C80] hover:text-[#4a6b62] font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-[#49a034] hover:text-[#4a6b62] font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -398,7 +398,7 @@ export default function PayBillsModal({
               </div>
 
               {/* Selected Payment Source Card */}
-              <div className="bg-gradient-to-br from-[#638C80] to-[#4a6b62] rounded-xl p-5 text-white shadow-lg shadow-[#638C80]/20">
+              <div className="bg-gradient-to-br from-[#49a034] to-[#4a6b62] rounded-xl p-5 text-white shadow-lg shadow-[#49a034]/20">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
                     {selectedSource.type === 'mobile_money' ? (
@@ -484,7 +484,7 @@ export default function PayBillsModal({
                               min="0"
                               max={bill.amount_due}
                               step="0.01"
-                              className="w-full pl-14 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#638C80] focus:border-transparent placeholder:text-gray-400 transition-all"
+                              className="w-full pl-14 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent placeholder:text-gray-400 transition-all"
                             />
                           </div>
                           {isPartial && (
@@ -521,7 +521,7 @@ export default function PayBillsModal({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a payment note..."
                   rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#638C80] focus:border-transparent resize-none transition-all"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#49a034] focus:border-transparent resize-none transition-all"
                 />
               </div>
             </div>
@@ -530,8 +530,8 @@ export default function PayBillsModal({
           {/* Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#638C80]/20 to-[#638C80]/10 rounded-full mb-4">
-                <Loader2 className="w-8 h-8 animate-spin text-[#638C80]" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#49a034]/20 to-[#49a034]/10 rounded-full mb-4">
+                <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
                 Processing Payment
@@ -636,7 +636,7 @@ export default function PayBillsModal({
               type="button"
               onClick={() => setStep('recipients')}
               disabled={!selectedSource || !hasSufficientBalance}
-              className="w-full bg-gradient-to-r from-[#638C80] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#638C80]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
             >
               Continue
             </button>
@@ -647,7 +647,7 @@ export default function PayBillsModal({
               type="button"
               onClick={() => setStep('confirm')}
               disabled={recipients.size !== bills.length}
-              className="w-full bg-gradient-to-r from-[#638C80] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#638C80]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
             >
               Continue to Review
             </button>
@@ -657,7 +657,7 @@ export default function PayBillsModal({
             <button
               type="button"
               onClick={handleConfirm}
-              className="w-full bg-gradient-to-r from-[#638C80] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#638C80]/20 transition-all font-semibold text-sm flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all font-semibold text-sm flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               Confirm Payment
@@ -668,7 +668,7 @@ export default function PayBillsModal({
             <button
               type="button"
               onClick={handleClose}
-              className="w-full bg-gradient-to-r from-[#638C80] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#638C80]/20 transition-all font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all font-semibold text-sm"
             >
               Done
             </button>
