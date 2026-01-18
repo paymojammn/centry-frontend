@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { getAuthToken } from '@/lib/api';
 import { getApiUrl } from '@/config/api';
 import { ScreenLoader } from '@/components/screen-loader';
+import { exchangeAuthCode } from '@/lib/billing-api';
 
 export default function DashboardLayout({children}: {children: ReactNode}) {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,7 +16,40 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Check if tokens are in URL (OAuth callback)
+      // Check for auth_code in URL (new secure OAuth callback)
+      const authCode = searchParams?.get('auth_code');
+      const subscriptionRequired = searchParams?.get('subscription_required');
+
+      // If auth code in URL, exchange it for tokens
+      if (authCode) {
+        try {
+          const tokenData = await exchangeAuthCode(authCode);
+
+          // Store tokens
+          localStorage.setItem('auth_token', tokenData.access_token);
+          localStorage.setItem('refresh_token', tokenData.refresh_token);
+
+          // Clean URL
+          const cleanUrl = pathname || '/dashboard';
+          window.history.replaceState({}, '', cleanUrl);
+
+          // Check if subscription is required
+          if (!tokenData.has_active_subscription) {
+            router.push('/billing/subscribe');
+            return;
+          }
+
+          setIsLoading(false);
+          return;
+        } catch (err) {
+          console.error('Failed to exchange auth code:', err);
+          // Auth code exchange failed, redirect to login
+          router.push('/auth/login?error=auth_failed');
+          return;
+        }
+      }
+
+      // Legacy: Check if tokens are in URL (OAuth callback - keeping for backward compatibility)
       const urlAccessToken = searchParams?.get('access_token');
       const urlRefreshToken = searchParams?.get('refresh_token');
 
@@ -52,6 +86,9 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
 
         if (response.ok) {
           setIsLoading(false);
+        } else if (response.status === 402) {
+          // Subscription required
+          router.push('/billing/subscribe');
         } else {
           // Token invalid, clear storage and redirect to login
           localStorage.removeItem('auth_token');

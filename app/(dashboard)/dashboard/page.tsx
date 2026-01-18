@@ -1,8 +1,10 @@
-'use client';
-
 /**
  * Financial Dashboard
+ *
+ * Uses the consistent Centry design system.
  */
+
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,7 +16,6 @@ import {
   Receipt,
   CheckCircle,
   AlertCircle,
-  Building2,
   ChevronRight,
   ArrowUpRight,
   CreditCard,
@@ -22,16 +23,15 @@ import {
   FileDown,
   Loader2,
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { Payable } from '@/types/purchases';
 import { setAuthToken } from '@/lib/api';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/layout/page-header';
+import { StatsBar } from '@/components/layout/stats-bar';
+import { PageContainer } from '@/components/layout/page-container';
+import { ContentCard } from '@/components/layout/content-card';
+import { LoadingState } from '@/components/layout/loading-state';
+import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 
 // Helper to safely format currency
 function formatCurrency(amount: string | number, currencyCode: string): string {
@@ -49,17 +49,6 @@ function formatCurrency(amount: string | number, currencyCode: string): string {
   } catch {
     return `${currencyCode || 'USD'} ${parseFloat(amount.toString()).toLocaleString()}`;
   }
-}
-
-// Format large numbers with K/M suffix
-function formatCompactNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toString();
 }
 
 export default function DashboardPage() {
@@ -109,11 +98,7 @@ export default function DashboardPage() {
   }, [searchParams, router]);
 
   if (loadingPayables || loadingStats || orgsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <LoadingState fullPage />;
   }
 
   const openBills = Array.isArray(payables)
@@ -158,87 +143,27 @@ export default function DashboardPage() {
     return dueDate >= today && dueDate <= weekFromNow;
   }).length;
 
+  const statsBarData = [
+    { label: 'Total Payable', value: `UGX ${formatCompactNumber(totalOpenAmount)}`, color: STATUS_COLORS.awaiting_payment.bg },
+    { label: 'Open Bills', value: stats?.total_open || 0, color: STATUS_COLORS.draft.bg },
+    { label: 'Overdue', value: stats?.overdue_count || 0, variant: (stats?.overdue_count || 0) > 0 ? 'danger' as const : 'default' as const },
+    { label: 'Due This Week', value: dueThisWeek, variant: 'warning' as const },
+    { label: 'Paid', value: stats?.total_paid || 0, color: STATUS_COLORS.paid.bg },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">{greeting}</h1>
-              <Select
-                value={selectedOrganizationId || undefined}
-                onValueChange={setSelectedOrganizationId}
-                disabled={orgsLoading || !organizations?.length}
-              >
-                <SelectTrigger className="w-[200px] h-9 bg-gray-50 border-gray-200">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations?.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-sm text-gray-500 hidden sm:block">
-              Here's what's happening with your finances today
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <PageHeader
+        title={greeting}
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      />
 
-      {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Total Payable:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
-                UGX {formatCompactNumber(totalOpenAmount)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Open Bills:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
-                {stats?.total_open || 0}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Overdue:</span>
-              <span className={`px-2 py-0.5 rounded text-sm font-medium ${
-                (stats?.overdue_count || 0) > 0 ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-600'
-              }`}>
-                {stats?.overdue_count || 0}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Due This Week:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-amber-50 text-amber-700">
-                {dueThisWeek}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Scheduled:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
-                {stats?.total_scheduled || 0}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Paid:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-green-50 text-green-700">
-                {stats?.total_paid || 0}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StatsBar stats={statsBarData} />
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <PageContainer>
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Bills to Pay */}
           <div className="lg:col-span-3 bg-white rounded-lg border border-gray-200">
@@ -354,7 +279,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

@@ -1,3 +1,9 @@
+/**
+ * Profile Page
+ *
+ * Uses the consistent Centry design system.
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -11,7 +17,6 @@ import {
   Mail,
   Phone,
   Building2,
-  Calendar,
   Shield,
   Save,
   X,
@@ -20,6 +25,9 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
+import { getInitials } from "@/lib/theme";
 
 interface UserProfile {
   id: string;
@@ -109,14 +117,6 @@ export default function ProfilePage() {
     updateMutation.mutate(formData);
   };
 
-  const getInitials = (name: string) => {
-    const parts = name.split(" ");
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
       employee: "bg-blue-50 text-blue-700",
@@ -133,26 +133,23 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <LoadingState fullPage />;
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fa]">
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-6 py-4">
             <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
           </div>
         </div>
         <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-            <User className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Profile not found</p>
-          </div>
+          <EmptyState
+            icon={User}
+            title="Profile not found"
+            description="Unable to load your profile information"
+          />
         </div>
       </div>
     );
@@ -165,7 +162,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
@@ -175,7 +172,7 @@ export default function ProfilePage() {
               <Button
                 size="sm"
                 onClick={handleEdit}
-                className="h-9 bg-[#638C80] hover:bg-[#547568]"
+                className="h-8 bg-[#638C80] hover:bg-[#547568]"
               >
                 Edit Profile
               </Button>
@@ -186,18 +183,18 @@ export default function ProfilePage() {
                   size="sm"
                   onClick={handleCancel}
                   disabled={updateMutation.isPending}
-                  className="h-9"
+                  className="h-8"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="h-3.5 w-3.5 mr-1.5" />
                   Cancel
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
-                  className="h-9 bg-[#638C80] hover:bg-[#547568]"
+                  className="h-8 bg-[#638C80] hover:bg-[#547568]"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
                   {updateMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </div>
@@ -423,11 +420,11 @@ export default function ProfilePage() {
                 ))}
 
               {profile.organizations.length === 0 && (
-                <div className="text-center py-12">
-                  <Building2 className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No organizations yet</p>
-                  <p className="text-xs text-gray-400 mt-1">You haven't joined any organizations</p>
-                </div>
+                <EmptyState
+                  icon={Building2}
+                  title="No organizations yet"
+                  description="You haven't joined any organizations"
+                />
               )}
             </div>
           </div>

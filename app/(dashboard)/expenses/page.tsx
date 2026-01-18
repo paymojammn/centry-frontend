@@ -1,7 +1,7 @@
 /**
  * Expenses Page - Petty Cash Management
  *
- * Track and manage employee expenses and petty cash requests
+ * Uses the consistent Centry design system.
  */
 
 'use client';
@@ -15,32 +15,37 @@ import {
   DollarSign,
   Clock,
   CheckCircle2,
-  XCircle,
   Search,
-  Filter,
-  Building2,
   RefreshCw,
   FileText,
-  TrendingUp,
-  AlertCircle,
-  Check,
   ThumbsUp,
   ThumbsDown,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ExpenseFilters, Expense, ExpenseCategory, ExpenseStatus } from '@/types/expense';
 import { EXPENSE_CATEGORIES } from '@/types/expense';
 import CreateExpenseModal from '@/components/expenses/CreateExpenseModal';
 import PayExpensesModal from '@/components/expenses/PayExpensesModal';
+import { PageHeader } from '@/components/layout/page-header';
+import { StatsBar } from '@/components/layout/stats-bar';
+import { PageContainer } from '@/components/layout/page-container';
+import { LoadingState } from '@/components/layout/loading-state';
+import { EmptyState } from '@/components/layout/empty-state';
+import { STATUS_COLORS } from '@/lib/theme';
+
+// Expense status colors matching the design system
+const EXPENSE_STATUS_COLORS = {
+  pending_manager_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
+  pending_finance_approval: { bg: '#9b59b6', text: '#ffffff', light: '#F3E8F7' },
+  manager_approved: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
+  approved: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5' },
+  rejected: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
+  draft: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
+  submitted: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
+  cancelled: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
+} as const;
 
 export default function ExpensesPage() {
   const [filters, setFilters] = useState<ExpenseFilters>({ status: 'all' });
@@ -89,289 +94,171 @@ export default function ExpensesPage() {
     );
   });
 
+  // Filter by status tab
+  const displayExpenses = filters.status === 'all'
+    ? filteredExpenses
+    : filteredExpenses?.filter((expense: Expense) => expense.status === filters.status);
+
   const handleRefresh = () => {
     refetch();
   };
 
+  if (orgsLoading) {
+    return <LoadingState fullPage />;
+  }
+
+  // Stats bar data
+  const statsBarData = [
+    {
+      label: 'Manager Review',
+      value: stats?.pending_manager_approval || 0,
+      color: EXPENSE_STATUS_COLORS.pending_manager_approval.bg,
+    },
+    {
+      label: 'Finance Review',
+      value: stats?.pending_finance_approval || 0,
+      color: EXPENSE_STATUS_COLORS.pending_finance_approval.bg,
+    },
+    {
+      label: 'Awaiting Receipts',
+      value: stats?.awaiting_receipts || 0,
+      color: EXPENSE_STATUS_COLORS.manager_approved.bg,
+    },
+    {
+      label: 'Approved',
+      value: stats?.approved || 0,
+      color: EXPENSE_STATUS_COLORS.approved.bg,
+    },
+    {
+      label: 'Paid',
+      value: stats?.paid || 0,
+      color: STATUS_COLORS.paid.bg,
+    },
+  ];
+
+  // Tab options for filtering
+  const tabOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'pending_manager_approval', label: 'Manager' },
+    { value: 'pending_finance_approval', label: 'Finance' },
+    { value: 'manager_approved', label: 'Receipts' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        <div className="space-y-6">
-          {/* Header with brand gradient background */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#638C80] via-[#547568] to-[#456050] p-8 shadow-xl">
-            <div className="absolute inset-0 bg-black opacity-5"></div>
-            <div className="relative flex items-center justify-between">
-              <div className="text-white">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                    <Receipt className="h-8 w-8" />
-                  </div>
-                  <h1 className="text-4xl font-bold tracking-tight">Expenses</h1>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <PageHeader
+        title="Expenses"
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="h-8 text-gray-600 hover:text-gray-900"
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          Refresh
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="h-8 bg-[#638C80] hover:bg-[#547568] text-white"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          New Expense
+        </Button>
+      </PageHeader>
+
+      <StatsBar stats={statsBarData} />
+
+      <PageContainer>
+        <div className="space-y-4">
+          {/* Tabs and Filters */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-4">
+                {/* Tabs */}
+                <div className="flex items-center gap-1">
+                  {tabOptions.map((tab) => (
+                    <button
+                      key={tab.value}
+                      onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        filters.status === tab.value
+                          ? 'bg-[#638C80] text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-                <p className="text-white/90 text-lg mt-3 ml-16">
-                  Track and manage employee expenses and petty cash
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {/* Organization Selector */}
-                <Select
-                  value={selectedOrganizationId || undefined}
-                  onValueChange={setSelectedOrganizationId}
-                  disabled={orgsLoading || !organizations?.length}
-                >
-                  <SelectTrigger className="w-[280px] bg-white/95 backdrop-blur-sm border-white/20 text-gray-900">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-[#638C80]" />
-                      <SelectValue placeholder="Select organization..." />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations?.map((org: any) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
 
-                <Button
-                  onClick={handleRefresh}
-                  className="bg-white/95 backdrop-blur-sm text-[#638C80] hover:bg-white shadow-lg hover:shadow-xl transition-all"
-                  size="lg"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-
-                <Button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="bg-white/95 backdrop-blur-sm text-[#638C80] hover:bg-white shadow-lg hover:shadow-xl transition-all"
-                  size="lg"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Expense
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Cards with brand-themed gradients */}
-          {stats && (
-            <div className="grid gap-6 md:grid-cols-5">
-              {/* Pending Manager Approval */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <Clock className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-white/80 text-sm font-medium mb-1">Manager Review</div>
-                  <div className="text-4xl font-bold text-white">{stats.pending_manager_approval}</div>
-                  {stats.pending_manager_amount && (
-                    <div className="text-sm text-white/90 mt-1 font-medium">
-                      UGX {parseFloat(stats.pending_manager_amount).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Pending Finance Approval */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <FileText className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-white/80 text-sm font-medium mb-1">Finance Review</div>
-                  <div className="text-4xl font-bold text-white">{stats.pending_finance_approval}</div>
-                  {stats.pending_finance_amount && (
-                    <div className="text-sm text-white/90 mt-1 font-medium">
-                      UGX {parseFloat(stats.pending_finance_amount).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Awaiting Receipts */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <Receipt className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-white/80 text-sm font-medium mb-1">Awaiting Receipts</div>
-                  <div className="text-4xl font-bold text-white">{stats.awaiting_receipts}</div>
-                  {stats.awaiting_receipts_amount && (
-                    <div className="text-sm text-white/90 mt-1 font-medium">
-                      UGX {parseFloat(stats.awaiting_receipts_amount).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Approved */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-400 to-green-500 p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <CheckCircle2 className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-white/80 text-sm font-medium mb-1">Approved</div>
-                  <div className="text-4xl font-bold text-white">{stats.approved}</div>
-                  {stats.approved_amount && (
-                    <div className="text-sm text-white/90 mt-1 font-medium">
-                      UGX {parseFloat(stats.approved_amount).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Paid */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#638C80] to-[#547568] p-6 shadow-lg hover:shadow-xl transition-all">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <DollarSign className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-white/80 text-sm font-medium mb-1">Paid</div>
-                  <div className="text-4xl font-bold text-white">{stats.paid}</div>
-                  {stats.paid_amount && (
-                    <div className="text-sm text-white/90 mt-1 font-medium">
-                      UGX {parseFloat(stats.paid_amount).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Filters with modern design */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#638C80]" />
-                <Input
-                  placeholder="Search by description, employee, or category..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 border-2 border-gray-200 focus:border-[#638C80] rounded-xl text-base"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Expenses Tabs */}
-          <Tabs
-            value={filters.status || 'all'}
-            onValueChange={(value) =>
-              setFilters((prev) => ({ ...prev, status: value as ExpenseStatus | 'all' }))
-            }
-          >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
-              <TabsList className="bg-gray-50 p-1.5 rounded-xl w-full grid grid-cols-6 gap-1">
-                <TabsTrigger
-                  value="all"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#638C80] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  value="pending_manager_approval"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-400 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  Manager
-                </TabsTrigger>
-                <TabsTrigger
-                  value="pending_finance_approval"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  Finance
-                </TabsTrigger>
-                <TabsTrigger
-                  value="manager_approved"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-400 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  Receipts
-                </TabsTrigger>
-                <TabsTrigger
-                  value="approved"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-400 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  Approved
-                </TabsTrigger>
-                <TabsTrigger
-                  value="rejected"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-400 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
-                >
-                  Rejected
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value={filters.status || 'all'} className="mt-6">
-              {isLoading ? (
-                <ExpensesLoadingSkeleton />
-              ) : error ? (
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
-                  <div className="p-4 bg-red-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <AlertCircle className="h-10 w-10 text-red-500" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Expenses</h3>
-                  <p className="text-gray-600">{(error as any).message}</p>
-                </div>
-              ) : !filteredExpenses || filteredExpenses.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
-                  <div className="p-4 bg-gray-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <Receipt className="h-10 w-10 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Expenses Found</h3>
-                  <p className="text-gray-600 mb-6">
-                    {searchQuery
-                      ? 'Try adjusting your search criteria'
-                      : 'There are no expenses to display'}
-                  </p>
-                  <Button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-[#638C80] text-white hover:bg-[#547568]"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Create Expense
-                  </Button>
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <ExpensesTable
-                    expenses={filteredExpenses}
-                    selectedExpenses={selectedExpenses}
-                    onSelectExpenses={setSelectedExpenses}
-                    onRefresh={handleRefresh}
+                {/* Search */}
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search expenses..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
                   />
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
+              </div>
+            </div>
+
+            {/* Expenses Table */}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : error ? (
+              <EmptyState
+                icon={Receipt}
+                title="Error Loading Expenses"
+                description={(error as any).message}
+              />
+            ) : !displayExpenses || displayExpenses.length === 0 ? (
+              <EmptyState
+                icon={Receipt}
+                title="No Expenses Found"
+                description={searchQuery ? 'Try adjusting your search criteria' : 'There are no expenses to display'}
+                action={
+                  <Button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    size="sm"
+                    className="bg-[#638C80] text-white hover:bg-[#547568]"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Create Expense
+                  </Button>
+                }
+              />
+            ) : (
+              <ExpensesTable
+                expenses={displayExpenses}
+                selectedExpenses={selectedExpenses}
+                onSelectExpenses={setSelectedExpenses}
+                onRefresh={handleRefresh}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </PageContainer>
 
       {/* Floating Pay Button */}
       {selectedExpenses.length > 0 && (
-        <div className="fixed bottom-8 right-8 z-50">
+        <div className="fixed bottom-6 right-6 z-50">
           <Button
             onClick={() => setIsPayModalOpen(true)}
-            className="bg-[#638C80] hover:bg-[#547568] text-white shadow-2xl hover:shadow-3xl transition-all px-8 py-6 text-lg rounded-2xl"
-            size="lg"
+            className="bg-[#638C80] hover:bg-[#547568] text-white shadow-lg px-6 py-5 text-sm rounded-lg"
           >
-            <DollarSign className="h-5 w-5 mr-2" />
+            <DollarSign className="h-4 w-4 mr-2" />
             Pay {selectedExpenses.length} Expense{selectedExpenses.length > 1 ? 's' : ''}
           </Button>
         </div>
@@ -464,17 +351,8 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
   };
 
   const getStatusBadge = (status: ExpenseStatus) => {
-    const configs: Record<ExpenseStatus, { bg: string; text: string; border: string }> = {
-      draft: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' },
-      submitted: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-      pending_manager_approval: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-      manager_approved: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-      pending_finance_approval: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-      approved: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-      rejected: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-      cancelled: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
-    };
-    return configs[status] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' };
+    const colors = EXPENSE_STATUS_COLORS[status] || { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' };
+    return colors;
   };
 
   const formatStatusLabel = (status: ExpenseStatus): string => {
@@ -494,9 +372,9 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-6 py-4 text-left">
+            <th className="px-4 py-3 text-left w-10">
               {payableExpenses.length > 0 && (
                 <input
                   type="checkbox"
@@ -506,36 +384,36 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                 />
               )}
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Date
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Employee
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Category
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Description
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Amount
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Payment
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-50">
           {expenses.map((expense) => {
             const categoryInfo = getCategoryInfo(expense.category);
-            const statusBadge = getStatusBadge(expense.status);
+            const statusColors = getStatusBadge(expense.status);
 
             return (
               <tr
@@ -544,7 +422,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                   isExpenseSelected(expense) ? 'bg-[#638C80]/5' : ''
                 }`}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-3">
                   {canSelectExpense(expense) && (
                     <input
                       type="checkbox"
@@ -554,80 +432,82 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                     />
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 font-medium">
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
                     {new Date(expense.date).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
-                      year: 'numeric',
                     })}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div>
                     <div className="text-sm font-medium text-gray-900">{expense.employee_name}</div>
-                    <div className="text-xs text-gray-500">{expense.employee_email}</div>
+                    <div className="text-xs text-gray-500 truncate max-w-[150px]">{expense.employee_email}</div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{categoryInfo.icon}</span>
-                    <span className="text-sm text-gray-700 font-medium">{categoryInfo.label}</span>
+                    <span className="text-sm">{categoryInfo.icon}</span>
+                    <span className="text-sm text-gray-700">{categoryInfo.label}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate">{expense.description}</div>
+                <td className="px-4 py-3">
+                  <div className="text-sm text-gray-900 max-w-[200px] truncate">{expense.description}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-bold text-gray-900">
+                <td className="px-4 py-3 whitespace-nowrap text-right">
+                  <div className="text-sm font-medium text-gray-900">
                     {expense.currency} {parseFloat(expense.amount).toLocaleString()}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text} border ${statusBadge.border}`}
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    style={{
+                      backgroundColor: statusColors.light,
+                      color: statusColors.bg === '#fed652' ? statusColors.text : statusColors.bg,
+                    }}
                   >
                     {formatStatusLabel(expense.status)}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   {expense.payment_status === 'paid' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
                       <CheckCircle2 className="w-3 h-3" />
                       Paid
                     </span>
                   ) : expense.payment_status === 'processing' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
                       <Clock className="w-3 h-3" />
                       Processing
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
                       Unpaid
                     </span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <div className="flex items-center justify-end gap-2">
+                <td className="px-4 py-3 whitespace-nowrap text-right">
+                  <div className="flex items-center justify-end gap-1">
                     {(expense.status === 'pending_manager_approval' || expense.status === 'pending_finance_approval') && (
                       <>
                         <Button
                           onClick={() => handleApprove(expense.id)}
                           disabled={isApproving}
                           size="sm"
-                          className="bg-green-500 hover:bg-green-600 text-white"
+                          className="h-7 px-2 bg-green-500 hover:bg-green-600 text-white"
                         >
-                          <ThumbsUp className="h-3 w-3 mr-1" />
-                          Approve
+                          <ThumbsUp className="h-3 w-3" />
                         </Button>
                         <Button
                           onClick={() => handleReject(expense.id)}
                           disabled={isApproving}
                           size="sm"
                           variant="destructive"
+                          className="h-7 px-2"
                         >
-                          <ThumbsDown className="h-3 w-3 mr-1" />
-                          Reject
+                          <ThumbsDown className="h-3 w-3" />
                         </Button>
                       </>
                     )}
@@ -638,24 +518,6 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-// Loading Skeleton
-function ExpensesLoadingSkeleton() {
-  return (
-    <div className="p-8 space-y-4">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex items-center gap-4">
-          <div className="h-10 w-10 bg-gray-100 animate-pulse rounded-lg" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-1/3" />
-            <div className="h-3 bg-gray-50 animate-pulse rounded w-1/4" />
-          </div>
-          <div className="h-5 bg-gray-100 animate-pulse rounded-full w-20" />
-        </div>
-      ))}
     </div>
   );
 }

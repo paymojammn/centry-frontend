@@ -1,5 +1,12 @@
 /**
  * Bills Page - Accounts Payable Invoices
+ *
+ * Color Scheme:
+ * - #4E97D1 Blue - Draft
+ * - #fed652 Mustard – Awaiting Approval
+ * - #f77f00 Orange – Awaiting Payment
+ * - #49a034 Green – Paid
+ * - #bec3c6 Grey - Repeating
  */
 
 'use client';
@@ -18,13 +25,13 @@ import {
   Send,
   CreditCard,
   AlertCircle,
-  MoreHorizontal,
   Clock,
   CheckCircle,
   AlertTriangle,
-  Calendar,
-  ArrowUpRight,
   Loader2,
+  Calendar,
+  Wallet,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +45,15 @@ import {
 import type { BillFilters, Bill } from '@/types/bill';
 import PayBillsModal from '@/components/bills/PayBillsModal';
 import ProcessingQueue from '@/components/bills/ProcessingQueue';
+
+// Status color constants (Xero-inspired)
+const STATUS_COLORS = {
+  draft: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA', border: '#4E97D1' },
+  awaiting_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5', border: '#fed652' },
+  awaiting_payment: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5', border: '#f77f00' },
+  paid: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5', border: '#49a034' },
+  repeating: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7', border: '#bec3c6' },
+} as const;
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -146,7 +162,6 @@ export default function BillsPage() {
   });
 
   // Use stats from backend API (currency-converted, matches Xero)
-  // Fallback to raw amounts if UGX fields not available (backwards compatibility)
   const totalPayableUgx = payableStats?.total_open_ugx
     ? parseFloat(payableStats.total_open_ugx)
     : (payableStats?.total_open_amount ? parseFloat(payableStats.total_open_amount) : 0);
@@ -156,7 +171,7 @@ export default function BillsPage() {
   const totalOpen = payableStats?.total_open || 0;
   const overdueCount = payableStats?.overdue_count || 0;
 
-  // Calculate due this week from current bills (local calculation for this specific metric)
+  // Calculate due this week from current bills
   const dueThisWeekAmount = bills.reduce((sum: number, bill: Bill) => {
     if (bill.status === 'AUTHORISED' && isDueSoon(bill.due_date || '')) {
       return sum + parseFloat(bill.amount_due || '0');
@@ -180,25 +195,20 @@ export default function BillsPage() {
     }
   };
 
-  const tabs = [
-    { value: 'bills', label: 'Bills', icon: Receipt },
-    { value: 'processing', label: 'Processing', icon: Send },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Bills & Payables</h1>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      {/* Header - Clean Xero-style */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <h1 className="text-xl font-semibold text-gray-900">Bills</h1>
+            <div className="flex items-center gap-3">
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
                 disabled={orgsLoading || !organizations?.length}
               >
-                <SelectTrigger className="w-[200px] h-9 bg-gray-50 border-gray-200">
+                <SelectTrigger className="w-[200px] h-9 bg-white border-gray-200 text-sm">
                   <Building2 className="h-4 w-4 text-gray-400 mr-2" />
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
@@ -210,144 +220,208 @@ export default function BillsPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncBills}
-              disabled={isSyncing || !activeConnectionId}
-              className="h-9"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync from Xero'}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Total Payable:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
-                UGX {formatCompactNumber(totalPayableUgx)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Open Bills:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
-                {totalOpen}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Overdue:</span>
-              <span className={`px-2 py-0.5 rounded text-sm font-medium ${
-                overdueCount > 0 ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-600'
-              }`}>
-                {overdueCount} ({formatCompactNumber(overdueUgx)})
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Due This Week:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-amber-50 text-amber-700">
-                UGX {formatCompactNumber(dueThisWeekAmount)}
-              </span>
-            </div>
-            {selectedBills.size > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">Selected:</span>
-                <span className="px-2 py-0.5 rounded text-sm font-medium bg-green-50 text-green-700">
-                  {selectedBills.size} bills
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value as 'bills' | 'processing')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.value
-                    ? 'border-[#638C80] text-[#638C80]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSyncBills}
+                disabled={isSyncing || !activeConnectionId}
+                className="h-9"
               >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
+                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {activeTab === 'bills' ? (
-          <div className="space-y-4">
-            {/* Filters */}
-            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search vendors, invoices..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9 bg-gray-50 border-gray-200"
-                  />
-                </div>
+      {/* Tabs - Xero-style horizontal nav */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <nav className="flex gap-8">
+            <button
+              onClick={() => setActiveTab('bills')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'bills'
+                  ? 'border-[#1c252c] text-[#1c252c]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Bills
+            </button>
+            <button
+              onClick={() => setActiveTab('processing')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'processing'
+                  ? 'border-[#1c252c] text-[#1c252c]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Processing Queue
+            </button>
+          </nav>
+        </div>
+      </div>
 
-                <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
-                  <SelectTrigger className="w-[160px] h-9 bg-gray-50 border-gray-200">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="awaiting_approval">Approval</SelectItem>
-                    <SelectItem value="awaiting_payment">Payment</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="repeating">Repeating</SelectItem>
-                  </SelectContent>
-                </Select>
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {activeTab === 'bills' && (
+          <>
+            {/* Summary Stats - Clean horizontal cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Payable</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      UGX {formatCompactNumber(totalPayableUgx)}
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: STATUS_COLORS.awaiting_payment.light }}>
+                    <Wallet className="h-5 w-5" style={{ color: STATUS_COLORS.awaiting_payment.bg }} />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">{totalOpen} open bills</p>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due This Week</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      UGX {formatCompactNumber(dueThisWeekAmount)}
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: STATUS_COLORS.awaiting_approval.light }}>
+                    <Calendar className="h-5 w-5" style={{ color: '#b08b00' }} />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Due within 7 days</p>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overdue</p>
+                    <p className={`text-2xl font-semibold mt-1 ${overdueCount > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      {overdueCount}
+                    </p>
+                  </div>
+                  <div className={`p-2 rounded-lg ${overdueCount > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                    <AlertTriangle className={`h-5 w-5 ${overdueCount > 0 ? 'text-red-500' : 'text-gray-400'}`} />
+                  </div>
+                </div>
+                <p className={`text-xs mt-2 ${overdueCount > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                  UGX {formatCompactNumber(overdueUgx)} overdue
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Selected</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">{selectedBills.size}</p>
+                  </div>
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: selectedBills.size > 0 ? STATUS_COLORS.paid.light : '#f5f5f5' }}>
+                    <CheckCircle className="h-5 w-5" style={{ color: selectedBills.size > 0 ? STATUS_COLORS.paid.bg : '#9ca3af' }} />
+                  </div>
+                </div>
+                {selectedBills.size > 0 ? (
+                  <Button
+                    onClick={() => setIsPayModalOpen(true)}
+                    size="sm"
+                    className="mt-2 w-full text-white"
+                    style={{ backgroundColor: STATUS_COLORS.paid.bg }}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pay Selected
+                  </Button>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-2">Select bills to pay</p>
+                )}
               </div>
             </div>
+          </>
+        )}
 
-            {/* Bills Table */}
-            {isLoading ? (
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="flex items-center justify-center py-12">
+        {/* Content Card */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          {activeTab === 'bills' ? (
+            <div>
+              {/* Filters - Clean toolbar */}
+              <div className="px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search vendors, invoices..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9 bg-white border-gray-200 text-sm"
+                    />
+                  </div>
+                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
+                    <SelectTrigger className="w-[140px] h-9 bg-white border-gray-200 text-sm">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="draft">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.draft.bg }} />
+                          Draft
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="awaiting_approval">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.awaiting_approval.bg }} />
+                          Awaiting Approval
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="awaiting_payment">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.awaiting_payment.bg }} />
+                          Awaiting Payment
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="paid">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.paid.bg }} />
+                          Paid
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="repeating">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.repeating.bg }} />
+                          Repeating
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Bills Table */}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
                   <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                 </div>
-              </div>
-            ) : error ? (
-              <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-                <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Error loading bills</p>
-                <p className="text-xs text-gray-400 mt-1">Please try refreshing the page</p>
-              </div>
-            ) : !filteredBills || filteredBills.length === 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-                <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
-                  {searchQuery ? 'No bills match your search' : 'No bills found'}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {searchQuery ? 'Try a different search term' : 'Sync with Xero to get started'}
-                </p>
-              </div>
-            ) : (
-              <>
+              ) : error ? (
+                <div className="text-center py-16">
+                  <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-900">Error loading bills</p>
+                  <p className="text-sm text-gray-500 mt-1">Please try refreshing the page</p>
+                </div>
+              ) : !filteredBills || filteredBills.length === 0 ? (
+                <div className="text-center py-16">
+                  <FileText className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-900">
+                    {searchQuery ? 'No bills match your search' : 'No bills found'}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {searchQuery ? 'Try a different search term' : 'Sync with Xero to get started'}
+                  </p>
+                </div>
+              ) : (
                 <BillsTable
                   bills={filteredBills}
                   selectedBills={selectedBills}
@@ -370,26 +444,12 @@ export default function BillsPage() {
                     }
                   }}
                 />
-
-                {selectedBills.size > 0 && (
-                  <div className="fixed bottom-6 right-6 z-40">
-                    <Button
-                      onClick={() => setIsPayModalOpen(true)}
-                      size="lg"
-                      className="shadow-lg bg-[#638C80] hover:bg-[#547568]"
-                    >
-                      <CreditCard className="h-5 w-5 mr-2" />
-                      Pay {selectedBills.size} Bill{selectedBills.size > 1 ? 's' : ''}
-                      <ArrowUpRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        ) : (
-          <ProcessingQueue organizationId={selectedOrganizationId} />
-        )}
+              )}
+            </div>
+          ) : (
+            <ProcessingQueue organizationId={selectedOrganizationId} />
+          )}
+        </div>
       </div>
 
       <PayBillsModal
@@ -429,42 +489,56 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
   const isPayable = (bill: Bill) => bill.status === 'AUTHORISED';
 
   const getStatusBadge = (status: string) => {
+    // Using the defined color scheme
     switch (status) {
       case 'PAID':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
-            <CheckCircle className="h-3 w-3" />
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+            style={{ backgroundColor: STATUS_COLORS.paid.light, color: STATUS_COLORS.paid.bg }}
+          >
             Paid
           </span>
         );
       case 'DRAFT':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+            style={{ backgroundColor: STATUS_COLORS.draft.light, color: STATUS_COLORS.draft.bg }}
+          >
             Draft
           </span>
         );
       case 'SUBMITTED':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
-            Submitted
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+            style={{ backgroundColor: STATUS_COLORS.awaiting_approval.light, color: STATUS_COLORS.awaiting_approval.text }}
+          >
+            Awaiting Approval
           </span>
         );
       case 'AUTHORISED':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-            <Clock className="h-3 w-3" />
-            Awaiting
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+            style={{ backgroundColor: STATUS_COLORS.awaiting_payment.light, color: STATUS_COLORS.awaiting_payment.bg }}
+          >
+            Awaiting Payment
           </span>
         );
       case 'REPEATING':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#638C80]/10 text-[#638C80]">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+            style={{ backgroundColor: STATUS_COLORS.repeating.light, color: STATUS_COLORS.repeating.text }}
+          >
             Repeating
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
             {status}
           </span>
         );
@@ -475,7 +549,8 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
     if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
@@ -485,7 +560,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
 
     if (isOverdue(bill.due_date)) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded ml-2">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 ml-2">
           <AlertTriangle className="h-3 w-3" />
           Overdue
         </span>
@@ -493,7 +568,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
     }
     if (isDueSoon(bill.due_date)) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded ml-2">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 ml-2">
           <Clock className="h-3 w-3" />
           Soon
         </span>
@@ -503,10 +578,10 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-100 bg-gray-50/50">
+          <tr className="border-b border-gray-200 bg-gray-50">
             <th className="py-3 px-4 w-10">
               <input
                 type="checkbox"
@@ -516,18 +591,17 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                 }}
                 onChange={handleSelectAll}
                 disabled={payableBills.length === 0}
-                className="w-4 h-4 rounded border-gray-300 text-[#638C80] focus:ring-[#638C80] disabled:opacity-50"
+                className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c] disabled:opacity-50"
               />
             </th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Vendor</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Invoice</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Due Date</th>
-            <th className="text-right text-xs font-medium text-gray-500 py-3 px-4">Amount</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Status</th>
-            <th className="w-10 py-3 px-3"></th>
+            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Vendor</th>
+            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Invoice</th>
+            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Due Date</th>
+            <th className="text-right text-xs font-medium text-gray-600 py-3 px-4">Amount</th>
+            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50">
+        <tbody className="divide-y divide-gray-100">
           {bills.map((bill) => {
             const canPay = isPayable(bill);
             const isSelected = selectedBills.has(bill.id);
@@ -535,8 +609,8 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
             return (
               <tr
                 key={bill.id}
-                className={`hover:bg-gray-50 transition-colors ${
-                  isSelected ? 'bg-[#638C80]/5' : ''
+                className={`transition-colors ${
+                  isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
                 } ${!canPay ? 'opacity-60' : 'cursor-pointer'}`}
                 onClick={() => canPay && onSelectBill(bill.id)}
               >
@@ -546,7 +620,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onSelectBill(bill.id)}
-                      className="w-4 h-4 rounded border-gray-300 text-[#638C80] focus:ring-[#638C80]"
+                      className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
                     />
                   ) : (
                     <div className="w-4 h-4 rounded border border-gray-200 bg-gray-50" />
@@ -554,7 +628,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                    <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
                       {getVendorInitials(bill.vendor_name || '')}
                     </div>
                     <div>
@@ -566,10 +640,10 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-sm text-gray-700">{bill.invoice_number || '-'}</span>
+                  <span className="text-sm text-gray-900">{bill.invoice_number || '-'}</span>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{formatDate(bill.due_date || '')}</span>
                     {getDueBadge(bill)}
                   </div>
@@ -586,11 +660,6 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                 </td>
                 <td className="py-3 px-4">
                   {getStatusBadge(bill.status)}
-                </td>
-                <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
                 </td>
               </tr>
             );

@@ -78,15 +78,31 @@ export async function apiRequest<T>(
       detail: 'An error occurred',
     }));
 
-    // Handle authentication/authorization errors - redirect to login
-    if (response.status === 401 || response.status === 403) {
+    // Handle authentication errors - redirect to login
+    if (response.status === 401) {
       // Clear auth token and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
         // Redirect to login page
         window.location.href = '/auth/login';
       }
-      throw new Error('Session expired or access denied. Please log in again.');
+      throw new Error('Session expired. Please log in again.');
+    }
+
+    // Handle authorization errors
+    if (response.status === 403) {
+      throw new Error(error.detail || error.error || error.message || 'Access denied.');
+    }
+
+    // Handle payment required - subscription needed
+    if (response.status === 402) {
+      // Redirect to billing page
+      if (typeof window !== 'undefined') {
+        const redirect = error.redirect || '/billing/subscribe';
+        window.location.href = redirect;
+      }
+      throw new Error(error.message || 'Subscription required to access this feature.');
     }
 
     // Special handling for currency conversion prompts (400 with requires_conversion)

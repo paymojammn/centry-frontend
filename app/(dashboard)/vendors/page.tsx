@@ -1,3 +1,9 @@
+/**
+ * Vendors/Contacts Page
+ *
+ * Uses the consistent Centry design system.
+ */
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -18,7 +24,6 @@ import {
   Search,
   Phone,
   Mail,
-  Building2,
   Users,
   RefreshCw,
   ChevronRight,
@@ -29,16 +34,12 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ContactImportDialog } from '@/components/contact-import-dialog';
-
-// Get contact initials for avatar
-function getContactInitials(name: string): string {
-  if (!name) return '?';
-  const words = name.split(' ').filter(Boolean);
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
-  return name.substring(0, 2).toUpperCase();
-}
+import { PageHeader } from '@/components/layout/page-header';
+import { StatsBar } from '@/components/layout/stats-bar';
+import { PageContainer } from '@/components/layout/page-container';
+import { LoadingState } from '@/components/layout/loading-state';
+import { EmptyState } from '@/components/layout/empty-state';
+import { getInitials } from '@/lib/theme';
 
 export default function VendorsPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
@@ -117,84 +118,43 @@ export default function VendorsPage() {
     }
   };
 
+  if (orgsLoading) {
+    return <LoadingState fullPage />;
+  }
+
+  // Stats bar data
+  const statsBarData = [
+    { label: 'Total', value: stats.total, color: '#638C80' },
+    { label: 'Suppliers', value: stats.suppliers, color: '#4E97D1' },
+    { label: 'Customers', value: stats.customers, color: '#49a034' },
+    { label: 'Active', value: stats.active, color: '#fed652' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Contacts</h1>
-              <Select
-                value={selectedOrganizationId || undefined}
-                onValueChange={setSelectedOrganizationId}
-                disabled={orgsLoading || !organizations?.length}
-              >
-                <SelectTrigger className="w-[200px] h-9 bg-gray-50 border-gray-200">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations?.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <PageHeader
+        title="Contacts"
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      >
+        <ContactImportDialog />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncContacts}
+          disabled={isSyncing || !activeConnectionId}
+          className="h-8 text-gray-600 hover:text-gray-900"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+          {isSyncing ? 'Syncing...' : 'Sync from Xero'}
+        </Button>
+      </PageHeader>
 
-            <div className="flex items-center gap-2">
-              <ContactImportDialog />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSyncContacts}
-                disabled={isSyncing || !activeConnectionId}
-                className="h-9"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync from Xero'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StatsBar stats={statsBarData} />
 
-      {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Total:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#638C80]/10 text-[#638C80]">
-                {stats.total}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Suppliers:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
-                {stats.suppliers}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Customers:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-green-50 text-green-700">
-                {stats.customers}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Active:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-amber-50 text-amber-700">
-                {stats.active}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <PageContainer>
         <div className="space-y-4">
           {/* Filters */}
           <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
@@ -205,12 +165,12 @@ export default function VendorsPage() {
                   placeholder="Search contacts..."
                   value={filters.search}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 h-9 bg-gray-50 border-gray-200"
+                  className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
                 />
               </div>
 
               <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
-                <SelectTrigger className="w-[160px] h-9 bg-gray-50 border-gray-200">
+                <SelectTrigger className="w-[140px] h-8 bg-gray-50 border-gray-200 text-sm">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -223,33 +183,29 @@ export default function VendorsPage() {
           </div>
 
           {/* Contacts Table */}
-          {isLoading ? (
-            <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200">
+            {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
-            </div>
-          ) : error ? (
-            <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-              <Users className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Error loading contacts</p>
-              <p className="text-xs text-gray-400 mt-1">Please try refreshing the page</p>
-            </div>
-          ) : !contactsData?.results || contactsData.results.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-              <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">
-                {filters.search ? 'No contacts match your search' : 'No contacts found'}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {filters.search ? 'Try a different search term' : 'Sync with Xero to get started'}
-              </p>
-            </div>
-          ) : (
-            <ContactsTable contacts={contactsData.results} />
-          )}
+            ) : error ? (
+              <EmptyState
+                icon={Users}
+                title="Error Loading Contacts"
+                description="Please try refreshing the page"
+              />
+            ) : !contactsData?.results || contactsData.results.length === 0 ? (
+              <EmptyState
+                icon={Users}
+                title={filters.search ? 'No contacts match your search' : 'No contacts found'}
+                description={filters.search ? 'Try a different search term' : 'Sync with Xero to get started'}
+              />
+            ) : (
+              <ContactsTable contacts={contactsData.results} />
+            )}
+          </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }
@@ -260,13 +216,6 @@ interface ContactsTableProps {
 
 function ContactsTable({ contacts }: ContactsTableProps) {
   const router = useRouter();
-
-  const getTypeLabel = (contact: Contact) => {
-    if (contact.is_supplier && contact.is_customer) return 'Both';
-    if (contact.is_supplier) return 'Supplier';
-    if (contact.is_customer) return 'Customer';
-    return '-';
-  };
 
   const getTypeBadge = (contact: Contact) => {
     if (contact.is_supplier && contact.is_customer) {
@@ -312,69 +261,67 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-100 bg-gray-50/50">
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-6">Contact</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-6">Details</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-6">Type</th>
-            <th className="text-left text-xs font-medium text-gray-500 py-3 px-6">Status</th>
-            <th className="w-10 py-3 px-3"></th>
+    <table className="w-full">
+      <thead>
+        <tr className="border-b border-gray-100 bg-gray-50">
+          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Contact</th>
+          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Details</th>
+          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Type</th>
+          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Status</th>
+          <th className="w-10 py-3 px-3"></th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-50">
+        {contacts.map((contact) => (
+          <tr
+            key={contact.id}
+            className="hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={() => router.push(`/vendors/${contact.id}`)}
+          >
+            <td className="py-3 px-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                  {getInitials(contact.name)}
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+                  {contact.organization_name && (
+                    <div className="text-xs text-gray-500">{contact.organization_name}</div>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-3 px-4">
+              <div className="space-y-1">
+                {contact.primary_phone && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone className="h-3 w-3 text-gray-400" />
+                    {contact.primary_phone}
+                  </div>
+                )}
+                {contact.email_address && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Mail className="h-3 w-3 text-gray-400" />
+                    <span className="truncate max-w-[200px]">{contact.email_address}</span>
+                  </div>
+                )}
+                {!contact.primary_phone && !contact.email_address && (
+                  <span className="text-xs text-gray-400">No contact info</span>
+                )}
+              </div>
+            </td>
+            <td className="py-3 px-4">
+              {getTypeBadge(contact)}
+            </td>
+            <td className="py-3 px-4">
+              {getStatusBadge(contact.contact_status)}
+            </td>
+            <td className="py-3 px-3">
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </td>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {contacts.map((contact) => (
-            <tr
-              key={contact.id}
-              className="hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => router.push(`/vendors/${contact.id}`)}
-            >
-              <td className="py-3 px-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
-                    {getContactInitials(contact.name)}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{contact.name}</div>
-                    {contact.organization_name && (
-                      <div className="text-xs text-gray-500">{contact.organization_name}</div>
-                    )}
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6">
-                <div className="space-y-1">
-                  {contact.primary_phone && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="h-3 w-3 text-gray-400" />
-                      {contact.primary_phone}
-                    </div>
-                  )}
-                  {contact.email_address && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Mail className="h-3 w-3 text-gray-400" />
-                      <span className="truncate max-w-[200px]">{contact.email_address}</span>
-                    </div>
-                  )}
-                  {!contact.primary_phone && !contact.email_address && (
-                    <span className="text-xs text-gray-400">No contact info</span>
-                  )}
-                </div>
-              </td>
-              <td className="py-3 px-6">
-                {getTypeBadge(contact)}
-              </td>
-              <td className="py-3 px-6">
-                {getStatusBadge(contact.contact_status)}
-              </td>
-              <td className="py-3 px-3">
-                <ChevronRight className="h-4 w-4 text-gray-400" />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }

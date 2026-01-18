@@ -6,6 +6,13 @@
  * - PROCESSING: Approved, ready for file generation
  * - PENDING: File generated, sent to bank
  * - SENT_PAYMENT/SUCCESS_PAYMENT/FAILED_PAYMENT: Final states
+ *
+ * Color Scheme:
+ * - #4E97D1 Blue - Draft
+ * - #fed652 Mustard – Awaiting Approval
+ * - #f77f00 Orange – Awaiting Payment
+ * - #49a034 Green – Paid
+ * - #bec3c6 Grey - Repeating
  */
 
 'use client';
@@ -32,8 +39,8 @@ import {
   Phone,
   CreditCard,
   Banknote,
-  ThumbsUp,
-  ThumbsDown,
+  Check,
+  X,
   FileDown,
   AlertTriangle,
   ShieldCheck,
@@ -57,6 +64,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+
+// Status color constants (matching bills page)
+const STATUS_COLORS = {
+  pending_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
+  processing: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
+  pending: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
+  sent: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5' },
+  success: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5' },
+  failed: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
+} as const;
 
 interface ProcessingQueueProps {
   organizationId: string | null;
@@ -211,34 +228,25 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   };
 
   const getStatusBadge = (status: PaymentEventStatus) => {
-    const styles: Record<string, string> = {
-      PENDING_APPROVAL: 'bg-amber-100 text-amber-700 border-amber-200',
-      PROCESSING: 'bg-blue-100 text-blue-700 border-blue-200',
-      PENDING: 'bg-gray-100 text-gray-700 border-gray-200',
-      SENT_PAYMENT: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      SUCCESS_PAYMENT: 'bg-green-100 text-green-700 border-green-200',
-      FAILED_PAYMENT: 'bg-red-100 text-red-700 border-red-200',
-      ERROR_PAYMENT: 'bg-red-100 text-red-700 border-red-200',
-      REJECTED: 'bg-red-100 text-red-700 border-red-200',
+    const statusMap: Record<string, { bg: string; text: string; label: string }> = {
+      PENDING_APPROVAL: { ...STATUS_COLORS.pending_approval, label: 'Pending Approval' },
+      PROCESSING: { ...STATUS_COLORS.processing, label: 'Ready for File' },
+      PENDING: { ...STATUS_COLORS.pending, label: 'File Generated' },
+      SENT_PAYMENT: { ...STATUS_COLORS.sent, label: 'Processing' },
+      SUCCESS_PAYMENT: { ...STATUS_COLORS.success, label: 'Successful' },
+      FAILED_PAYMENT: { ...STATUS_COLORS.failed, label: 'Failed' },
+      ERROR_PAYMENT: { ...STATUS_COLORS.failed, label: 'Error' },
+      REJECTED: { ...STATUS_COLORS.failed, label: 'Rejected' },
     };
 
-    const labels: Record<string, string> = {
-      PENDING_APPROVAL: 'Pending Approval',
-      PROCESSING: 'Ready for File',
-      PENDING: 'File Generated',
-      SENT_PAYMENT: 'Processing',
-      SUCCESS_PAYMENT: 'Successful',
-      FAILED_PAYMENT: 'Failed',
-      ERROR_PAYMENT: 'Error',
-      REJECTED: 'Rejected',
-    };
+    const config = statusMap[status] || { ...STATUS_COLORS.pending, label: status };
 
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${styles[status] || styles.PENDING}`}
+        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
+        style={{ backgroundColor: config.light, color: config.bg !== '#bec3c6' ? config.bg : config.text }}
       >
-        {getStatusIcon(status)}
-        {labels[status] || status}
+        {config.label}
       </span>
     );
   };
@@ -263,8 +271,6 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
@@ -278,19 +284,6 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       .slice(0, 2);
   };
 
-  const getGradientColor = (name: string | null) => {
-    const colors = [
-      'from-[#638C80] to-[#547568]',
-      'from-[#7BA895] to-[#638C80]',
-      'from-[#456050] to-[#3A5043]',
-      'from-[#8BA89E] to-[#6D9686]',
-      'from-[#5A7C72] to-[#4A6B61]',
-      'from-[#729284] to-[#5E7D71]',
-    ];
-    if (!name) return colors[0];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
 
   if (isLoading) {
     return <ProcessingQueueSkeleton />;
@@ -298,13 +291,13 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
   if (error) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
-        <div className="p-4 bg-red-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-          <XCircle className="h-10 w-10 text-red-500" />
+      <div className="text-center py-16">
+        <div className="p-4 bg-red-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <XCircle className="h-8 w-8 text-red-500" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Queue</h3>
-        <p className="text-gray-600">{error.message}</p>
-        <Button onClick={() => refetch()} className="mt-4" variant="outline">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Queue</h3>
+        <p className="text-gray-600 text-sm mb-4">{error.message}</p>
+        <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           Retry
         </Button>
@@ -313,370 +306,373 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
+    <div>
+      {/* Stats Row - Compact inline pills */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-6">
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-6 flex-wrap">
           <button
             onClick={() => { setStatusFilter('PENDING_APPROVAL'); selectAllByStatus('PENDING_APPROVAL'); }}
-            className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <ShieldCheck className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-amber-900">{stats.pending_approval}</div>
-                <div className="text-sm text-amber-600">Pending Approval</div>
-              </div>
-            </div>
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }}
+            />
+            <span className="text-sm text-gray-600">Pending Approval</span>
+            <span className="text-sm font-semibold text-gray-900">{stats.pending_approval}</span>
           </button>
 
           <button
             onClick={() => { setStatusFilter('PROCESSING'); selectAllByStatus('PROCESSING'); }}
-            className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-900">{stats.processing}</div>
-                <div className="text-sm text-blue-600">Ready for File</div>
-              </div>
-            </div>
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
+            />
+            <span className="text-sm text-gray-600">Ready for File</span>
+            <span className="text-sm font-semibold text-gray-900">{stats.processing}</span>
           </button>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{stats.pending}</div>
-                <div className="text-sm text-gray-500">File Sent</div>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.pending.bg }}
+            />
+            <span className="text-sm text-gray-600">File Sent</span>
+            <span className="text-sm font-semibold text-gray-900">{stats.pending}</span>
           </div>
 
-          <div className="bg-white rounded-xl border border-indigo-200 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Loader2 className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-indigo-900">{stats.sent}</div>
-                <div className="text-sm text-indigo-600">Processing</div>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.sent.bg }}
+            />
+            <span className="text-sm text-gray-600">Processing</span>
+            <span className="text-sm font-semibold text-gray-900">{stats.sent}</span>
           </div>
 
-          <div className="bg-white rounded-xl border border-green-200 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-900">{stats.success}</div>
-                <div className="text-sm text-green-600">Successful</div>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+            />
+            <span className="text-sm text-gray-600">Successful</span>
+            <span className="text-sm font-semibold text-gray-900">{stats.success}</span>
           </div>
 
-          <div className="bg-white rounded-xl border border-red-200 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <XCircle className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-red-900">{(stats.failed || 0) + (stats.rejected || 0)}</div>
-                <div className="text-sm text-red-600">Failed/Rejected</div>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
+            />
+            <span className="text-sm text-gray-600">Failed</span>
+            <span className="text-sm font-semibold text-gray-900">{(stats.failed || 0) + (stats.rejected || 0)}</span>
           </div>
         </div>
       )}
 
-      {/* Action Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* Toolbar - Clean horizontal layout */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        {/* Left: Filter and Refresh */}
         <div className="flex items-center gap-3">
           <Select
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val as PaymentEventStatus | 'all')}
           >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-[160px] h-9 bg-white border-gray-200 text-sm">
+              <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="PENDING_APPROVAL">Pending Approval</SelectItem>
-              <SelectItem value="PROCESSING">Ready for File</SelectItem>
-              <SelectItem value="PENDING">File Sent</SelectItem>
-              <SelectItem value="SENT_PAYMENT">Processing</SelectItem>
-              <SelectItem value="SUCCESS_PAYMENT">Successful</SelectItem>
-              <SelectItem value="FAILED_PAYMENT">Failed</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
+              <SelectItem value="PENDING_APPROVAL">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }} />
+                  Pending Approval
+                </span>
+              </SelectItem>
+              <SelectItem value="PROCESSING">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.processing.bg }} />
+                  Ready for File
+                </span>
+              </SelectItem>
+              <SelectItem value="PENDING">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending.bg }} />
+                  File Sent
+                </span>
+              </SelectItem>
+              <SelectItem value="SENT_PAYMENT">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.sent.bg }} />
+                  Processing
+                </span>
+              </SelectItem>
+              <SelectItem value="SUCCESS_PAYMENT">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.success.bg }} />
+                  Successful
+                </span>
+              </SelectItem>
+              <SelectItem value="FAILED_PAYMENT">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.failed.bg }} />
+                  Failed
+                </span>
+              </SelectItem>
+              <SelectItem value="REJECTED">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.failed.bg }} />
+                  Rejected
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
 
-          <Button onClick={() => refetch()} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={() => refetch()} variant="ghost" size="sm" className="h-9 px-2">
+            <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Action Buttons */}
-        {selectedPayments.size > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
-              {selectedPayments.size} selected
-            </span>
+        {/* Right: Action Buttons - Grouped together */}
+        <div className="flex items-center gap-2">
+          {selectedPayments.size > 0 && (
+            <span className="text-sm text-gray-500 mr-2">{selectedPayments.size} selected</span>
+          )}
 
-            {canApprove && (
-              <>
-                <Button
-                  onClick={handleApprove}
-                  disabled={approvePayments.isPending}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {approvePayments.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <ThumbsUp className="h-4 w-4 mr-2" />
-                  )}
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => setIsRejectDialogOpen(true)}
-                  variant="destructive"
-                >
-                  <ThumbsDown className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-              </>
-            )}
-
-            {canGenerateFile && (
+          {canApprove && (
+            <>
               <Button
-                onClick={() => setIsGenerateDialogOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700"
+                onClick={handleApprove}
+                disabled={approvePayments.isPending}
+                size="sm"
+                className="h-8 text-white"
+                style={{ backgroundColor: STATUS_COLORS.success.bg }}
               >
-                <FileDown className="h-4 w-4 mr-2" />
-                Generate File
+                {approvePayments.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-1.5" />
+                )}
+                Approve
               </Button>
-            )}
-
-            {canDeny && (
               <Button
-                onClick={() => setIsDenyDialogOpen(true)}
-                variant="outline"
-                className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                onClick={() => setIsRejectDialogOpen(true)}
+                size="sm"
+                className="h-8 text-white"
+                style={{ backgroundColor: STATUS_COLORS.failed.bg }}
               >
-                <Ban className="h-4 w-4 mr-2" />
-                Deny
+                <X className="h-4 w-4 mr-1.5" />
+                Reject
               </Button>
-            )}
+            </>
+          )}
 
+          {canGenerateFile && (
+            <Button
+              onClick={() => setIsGenerateDialogOpen(true)}
+              size="sm"
+              className="h-8 text-white"
+              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
+            >
+              <FileDown className="h-4 w-4 mr-1.5" />
+              Generate File
+            </Button>
+          )}
+
+          {canDeny && !canApprove && !canGenerateFile && (
+            <Button
+              onClick={() => setIsDenyDialogOpen(true)}
+              variant="outline"
+              size="sm"
+              className="h-8"
+              style={{ borderColor: STATUS_COLORS.sent.bg, color: STATUS_COLORS.sent.bg }}
+            >
+              <Ban className="h-4 w-4 mr-1.5" />
+              Deny
+            </Button>
+          )}
+
+          {selectedPayments.size > 0 && (
             <Button
               onClick={() => setSelectedPayments(new Set())}
               variant="ghost"
               size="sm"
+              className="h-8 text-gray-500"
             >
               Clear
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Payments List */}
       {!payments || payments.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
-          <div className="p-4 bg-gray-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-            <Send className="h-10 w-10 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No Payments in Queue</h3>
-          <p className="text-gray-600">
+        <div className="py-16 text-center">
+          <Send className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-900">No Payments in Queue</p>
+          <p className="text-sm text-gray-500 mt-1">
             {statusFilter !== 'all'
               ? 'No payments with this status. Try a different filter.'
               : 'Payments you initiate will appear here for tracking.'}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                <tr>
-                  <th className="px-4 py-4 w-12">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={payments.length > 0 && selectedPayments.size === payments.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedPayments(new Set(payments.map((p: PaymentEvent) => p.id)));
+                      } else {
+                        setSelectedPayments(new Set());
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
+                  />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Vendor</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Bill</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-600">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Method</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Created</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {payments.map((payment: PaymentEvent) => (
+                <tr
+                  key={payment.id}
+                  className={`transition-colors cursor-pointer ${
+                    selectedPayments.has(payment.id) ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => togglePaymentSelection(payment.id)}
+                >
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
-                      checked={payments.length > 0 && selectedPayments.size === payments.length}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedPayments(new Set(payments.map((p: PaymentEvent) => p.id)));
-                        } else {
-                          setSelectedPayments(new Set());
-                        }
-                      }}
-                      className="w-4 h-4 rounded border-gray-300 text-[#638C80] focus:ring-[#638C80]"
+                      checked={selectedPayments.has(payment.id)}
+                      onChange={() => togglePaymentSelection(payment.id)}
+                      className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
                     />
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Vendor
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Bill
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Method
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Created
-                  </th>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                        {getInitials(payment.vendor_name)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {payment.vendor_name || 'Unknown Vendor'}
+                        </div>
+                        {payment.account_name && (
+                          <div className="text-xs text-gray-500">{payment.account_name}</div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{payment.bill_number || '-'}</div>
+                    {payment.bill_reference && (
+                      <div className="text-xs text-gray-500">{payment.bill_reference}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-right">
+                    <div className="text-sm font-medium text-gray-900">
+                      {payment.currency}{' '}
+                      {parseFloat(payment.amount).toLocaleString(undefined, {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 bg-gray-100 rounded">
+                        {getMethodIcon(payment.method)}
+                      </span>
+                      <div>
+                        <div className="text-sm text-gray-900">{payment.method_display}</div>
+                        {payment.phone_number && (
+                          <div className="text-xs text-gray-500">{payment.phone_number}</div>
+                        )}
+                        {payment.account_number && (
+                          <div className="text-xs text-gray-500">
+                            {payment.bank_name_display ? `${payment.bank_name_display} - ` : ''}
+                            {payment.account_number}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {getStatusBadge(payment.provider_status)}
+                    {payment.rejection_reason && (
+                      <div className="text-xs text-red-500 mt-1 max-w-[120px] truncate" title={payment.rejection_reason}>
+                        {payment.rejection_reason}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-600">{formatDate(payment.created_at)}</div>
+                    {payment.created_by_name && (
+                      <div className="text-xs text-gray-500">by {payment.created_by_name}</div>
+                    )}
+                    {payment.approved_by_name && (
+                      <div className="text-xs" style={{ color: STATUS_COLORS.success.bg }}>
+                        Approved by {payment.approved_by_name}
+                      </div>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {payments.map((payment: PaymentEvent) => (
-                  <tr
-                    key={payment.id}
-                    className={`group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-transparent transition-all duration-200 cursor-pointer ${
-                      selectedPayments.has(payment.id) ? 'bg-[#638C80]/5' : ''
-                    }`}
-                    onClick={() => togglePaymentSelection(payment.id)}
-                  >
-                    <td className="px-4 py-5" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedPayments.has(payment.id)}
-                        onChange={() => togglePaymentSelection(payment.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-[#638C80] focus:ring-[#638C80]"
-                      />
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`h-10 w-10 rounded-lg bg-gradient-to-br ${getGradientColor(payment.vendor_name)} flex items-center justify-center text-white font-bold text-xs shadow-sm`}
-                        >
-                          {getInitials(payment.vendor_name)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {payment.vendor_name || 'Unknown Vendor'}
-                          </div>
-                          {payment.account_name && (
-                            <div className="text-xs text-gray-500">{payment.account_name}</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {payment.bill_number || '-'}
-                      </div>
-                      {payment.bill_reference && (
-                        <div className="text-xs text-gray-500">{payment.bill_reference}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-base font-bold text-gray-900">
-                        {payment.currency}{' '}
-                        {parseFloat(payment.amount).toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="p-1.5 bg-gray-100 rounded-md">
-                          {getMethodIcon(payment.method)}
-                        </span>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {payment.method_display}
-                          </div>
-                          {payment.phone_number && (
-                            <div className="text-xs text-gray-500">{payment.phone_number}</div>
-                          )}
-                          {payment.account_number && (
-                            <div className="text-xs text-gray-500">
-                              {payment.bank_name_display ? `${payment.bank_name_display} - ` : ''}
-                              {payment.account_number}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      {getStatusBadge(payment.provider_status)}
-                      {payment.rejection_reason && (
-                        <div className="text-xs text-red-500 mt-1 max-w-[150px] truncate" title={payment.rejection_reason}>
-                          {payment.rejection_reason}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{formatDate(payment.created_at)}</div>
-                      {payment.created_by_name && (
-                        <div className="text-xs text-gray-500">by {payment.created_by_name}</div>
-                      )}
-                      {payment.approved_by_name && (
-                        <div className="text-xs text-green-600">
-                          Approved by {payment.approved_by_name}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
       {/* Reject Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              Reject Payments
-            </DialogTitle>
+            <DialogTitle>Reject Payments</DialogTitle>
             <DialogDescription>
               Are you sure you want to reject {selectedPayments.size} payment(s)?
-              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reason for rejection (optional)
+              Reason (optional)
             </label>
             <Textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Enter reason for rejection..."
               rows={3}
+              className="text-sm"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setIsRejectDialogOpen(false)}>
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              size="sm"
               onClick={handleReject}
               disabled={rejectPayments.isPending}
+              className="text-white"
+              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
             >
               {rejectPayments.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               ) : (
-                <ThumbsDown className="h-4 w-4 mr-2" />
+                <X className="h-4 w-4 mr-1.5" />
               )}
               Reject
             </Button>
@@ -686,12 +682,9 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
       {/* Generate File Dialog */}
       <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileDown className="h-5 w-5 text-blue-500" />
-              Generate Payment File
-            </DialogTitle>
+            <DialogTitle>Generate Payment File</DialogTitle>
             <DialogDescription>
               Generate a payment file for {selectedPayments.size} approved payment(s).
             </DialogDescription>
@@ -699,13 +692,13 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           <div className="py-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Source Bank Account *
+                Source Bank Account
               </label>
               <Select
                 value={selectedBankAccountId?.toString() || ''}
                 onValueChange={(val) => setSelectedBankAccountId(parseInt(val))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Select bank account" />
                 </SelectTrigger>
                 <SelectContent>
@@ -726,49 +719,47 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <button
                   type="button"
                   onClick={() => setSelectedFileFormat('xml')}
-                  className={`p-3 border rounded-xl transition-all text-left ${
+                  className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'xml'
-                      ? 'border-[#638C80] bg-[#638C80]/5 ring-2 ring-[#638C80]/20'
+                      ? 'border-[#1c252c] bg-gray-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="font-medium text-gray-900 text-sm">XML</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
-                    ISO 20022 (pain.001)
-                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">ISO 20022</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedFileFormat('csv')}
-                  className={`p-3 border rounded-xl transition-all text-left ${
+                  className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'csv'
-                      ? 'border-[#638C80] bg-[#638C80]/5 ring-2 ring-[#638C80]/20'
+                      ? 'border-[#1c252c] bg-gray-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="font-medium text-gray-900 text-sm">CSV</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
-                    Stanbic & most banks
-                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">Standard</div>
                 </button>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setIsGenerateDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={handleGenerateFile}
               disabled={!selectedBankAccountId || generateFile.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="text-white"
+              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
             >
               {generateFile.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               ) : (
-                <FileDown className="h-4 w-4 mr-2" />
+                <FileDown className="h-4 w-4 mr-1.5" />
               )}
-              Generate File
+              Generate
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -776,43 +767,42 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
       {/* Deny Dialog */}
       <Dialog open={isDenyDialogOpen} onOpenChange={setIsDenyDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Ban className="h-5 w-5 text-orange-500" />
-              Deny Payments
-            </DialogTitle>
+            <DialogTitle>Deny Payments</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deny {selectedPayments.size} payment(s)?
-              This will cancel the payment and restore the bill(s) to payable status.
+              Deny {selectedPayments.size} payment(s) and restore the bill(s) to payable status.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reason for denial (optional)
+              Reason (optional)
             </label>
             <Textarea
               value={denyReason}
               onChange={(e) => setDenyReason(e.target.value)}
               placeholder="Enter reason for denial..."
               rows={3}
+              className="text-sm"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDenyDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setIsDenyDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={handleDeny}
               disabled={denyPayments.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="text-white"
+              style={{ backgroundColor: STATUS_COLORS.sent.bg }}
             >
               {denyPayments.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               ) : (
-                <Ban className="h-4 w-4 mr-2" />
+                <Ban className="h-4 w-4 mr-1.5" />
               )}
-              Deny & Restore Bill
+              Deny
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -823,34 +813,36 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
 function ProcessingQueueSkeleton() {
   return (
-    <div className="space-y-6">
+    <div>
       {/* Stats skeleton */}
-      <div className="grid gap-4 md:grid-cols-6">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-lg" />
-              <div className="space-y-2">
-                <div className="h-6 w-12 bg-gray-200 animate-pulse rounded" />
-                <div className="h-4 w-16 bg-gray-100 animate-pulse rounded" />
-              </div>
-            </div>
+          <div key={i} className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-gray-200 animate-pulse rounded-full" />
+            <div className="h-4 w-20 bg-gray-100 animate-pulse rounded" />
+            <div className="h-4 w-6 bg-gray-200 animate-pulse rounded" />
           </div>
         ))}
       </div>
 
+      {/* Toolbar skeleton */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="h-9 w-40 bg-gray-100 animate-pulse rounded" />
+        <div className="h-8 w-24 bg-gray-100 animate-pulse rounded" />
+      </div>
+
       {/* Table skeleton */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-        <div className="space-y-6">
+      <div className="p-4">
+        <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
               <div className="h-4 w-4 bg-gray-200 animate-pulse rounded" />
-              <div className="h-10 w-10 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse rounded-lg" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 animate-pulse rounded w-1/3" />
-                <div className="h-3 bg-gray-100 animate-pulse rounded w-1/4" />
+              <div className="h-8 w-8 bg-gray-200 animate-pulse rounded" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-4 bg-gray-200 animate-pulse rounded w-1/4" />
+                <div className="h-3 bg-gray-100 animate-pulse rounded w-1/6" />
               </div>
-              <div className="h-6 bg-gray-200 animate-pulse rounded-full w-24" />
+              <div className="h-5 bg-gray-200 animate-pulse rounded w-20" />
             </div>
           ))}
         </div>
