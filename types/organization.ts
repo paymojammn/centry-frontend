@@ -2,6 +2,13 @@
  * Organization and Membership types matching Django backend
  */
 
+export interface OrganizationSettings {
+  theme?: string;
+  locale?: string;
+  notifications?: boolean;
+  [key: string]: unknown;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -12,7 +19,7 @@ export interface Organization {
   industry?: string;
   company_size?: string;
   timezone: string;
-  settings: Record<string, any>;
+  settings: OrganizationSettings;
   created_at: string;
   updated_at: string;
   members_count?: number;
@@ -47,7 +54,7 @@ export interface OrganizationMember {
   organization_name: string;
   role: 'owner' | 'admin' | 'manager' | 'member' | 'viewer';
   is_active: boolean;
-  permissions: Record<string, any>;
+  permissions: Record<string, boolean | string>;
   invited_by?: string;
   joined_at: string;
   created_at: string;
@@ -68,7 +75,7 @@ export interface OrganizationInvitation {
   organization_name: string;
   email: string;
   role: 'owner' | 'admin' | 'manager' | 'member' | 'viewer';
-  permissions: Record<string, any>;
+  permissions: Record<string, boolean | string>;
   invited_by: string;
   invited_by_name: string;
   invited_at: string;
@@ -95,7 +102,7 @@ export interface OrganizationCreate {
   industry?: string;
   company_size?: string;
   timezone?: string;
-  settings?: Record<string, any>;
+  settings?: OrganizationSettings;
 }
 
 export interface OrganizationUpdate extends Partial<OrganizationCreate> {}
@@ -104,5 +111,5 @@ export interface InviteUserPayload {
   email: string;
   organization: string;
   role: 'owner' | 'admin' | 'manager' | 'member' | 'viewer';
-  permissions?: Record<string, any>;
+  permissions?: Record<string, boolean | string>;
 }

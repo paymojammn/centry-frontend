@@ -84,23 +84,20 @@ export default function RecipientDetailsStep({
   // Fetch vendor payment details when switching to bank payment
   const fetchVendorPaymentDetails = async (bill: Bill) => {
     if (!bill.contact_id) {
-      console.log('No contact_id on bill:', bill);
       return;
     }
-    
+
     try {
-      console.log('Fetching payment details for contact:', bill.contact_id);
       const paymentDetails = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
-      console.log('Payment details received:', paymentDetails);
-      
+
       // Auto-populate bank details if available
       if (paymentDetails.bank_account_details || paymentDetails.bank_account_number) {
         // Match bank_account_name to a bank in the system
         let matchedBankId: number | undefined;
         let matchedBankName: string | undefined;
-        
+
         if (paymentDetails.bank_account_name && banksData?.banks) {
-          const matchedBank = banksData.banks.find(bank => 
+          const matchedBank = banksData.banks.find(bank =>
             bank.name.toLowerCase().includes(paymentDetails.bank_account_name.toLowerCase()) ||
             paymentDetails.bank_account_name.toLowerCase().includes(bank.name.toLowerCase()) ||
             (bank.short_name && (
@@ -108,16 +105,13 @@ export default function RecipientDetailsStep({
               paymentDetails.bank_account_name.toLowerCase().includes(bank.short_name.toLowerCase())
             ))
           );
-          
+
           if (matchedBank) {
             matchedBankId = matchedBank.id;
             matchedBankName = matchedBank.short_name || matchedBank.name;
-            console.log('Matched bank:', matchedBank);
-          } else {
-            console.log('No matching bank found for:', paymentDetails.bank_account_name);
           }
         }
-        
+
         const updateData = {
           recipient_type: 'bank' as const,
           account_number: paymentDetails.bank_account_number || '',
@@ -125,14 +119,11 @@ export default function RecipientDetailsStep({
           bank_name: matchedBankName || paymentDetails.bank_account_name || '',
           recipient_bank_id: matchedBankId
         };
-        console.log('Updating recipient with:', updateData);
         handleRecipientUpdate(bill.id, updateData);
       } else {
-        console.log('No bank details found in payment details');
         alert('No bank account details found for this vendor in ERP');
       }
-    } catch (error) {
-      console.error('Error fetching vendor payment details:', error);
+    } catch {
       alert('Failed to load bank details from ERP. Please enter manually.');
     }
   };
@@ -140,42 +131,39 @@ export default function RecipientDetailsStep({
   // Fetch vendor mobile money details from ERP
   const fetchVendorMobileMoneyDetails = async (bill: Bill) => {
     if (!bill.contact_id) {
-      console.log('No contact_id on bill:', bill);
       return;
     }
-    
+
     try {
-      console.log('Fetching payment details for contact:', bill.contact_id);
       const paymentDetails = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
-      console.log('Payment details received:', paymentDetails);
-      
+
       // Auto-populate mobile money details if available
       if (paymentDetails.phone_numbers && paymentDetails.phone_numbers.length > 0) {
         // Priority: MOBILE type first, then DEFAULT, then any
-        const mobilePhone = paymentDetails.phone_numbers.find((p: any) => p.type === 'MOBILE');
-        const defaultPhone = paymentDetails.phone_numbers.find((p: any) => p.type === 'DEFAULT');
+        interface PhoneNumber {
+          type: string;
+          number: string;
+        }
+        const mobilePhone = paymentDetails.phone_numbers.find((p: PhoneNumber) => p.type === 'MOBILE');
+        const defaultPhone = paymentDetails.phone_numbers.find((p: PhoneNumber) => p.type === 'DEFAULT');
         const anyPhone = paymentDetails.phone_numbers[0];
-        
+
         const selectedPhone = mobilePhone || defaultPhone || anyPhone;
-        
+
         if (selectedPhone && selectedPhone.number) {
           const updateData = {
             recipient_type: 'mobile' as const,
             phone_number: selectedPhone.number,
             contact_name: paymentDetails.name
           };
-          console.log('Updating recipient with mobile money details:', updateData);
           handleRecipientUpdate(bill.id, updateData);
         } else {
-          console.log('No valid phone number found in payment details');
           alert('No phone number found for this vendor in ERP');
         }
       } else {
-        console.log('No phone numbers found in payment details');
         alert('No phone number found for this vendor in ERP');
       }
-    } catch (error) {
-      console.error('Error fetching vendor mobile money details:', error);
+    } catch {
       alert('Failed to load phone number from ERP. Please enter manually.');
     }
   };

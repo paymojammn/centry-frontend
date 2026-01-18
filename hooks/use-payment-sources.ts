@@ -12,19 +12,9 @@ import { paymentSourcesApi } from '@/lib/payment-sources-api';
 export function usePaymentSources(organizationId?: string) {
   return useQuery({
     queryKey: ['payment-sources', organizationId],
-    queryFn: async () => {
-      try {
-        console.log('🔄 Fetching payment sources for organization:', organizationId);
-        const data = await paymentSourcesApi.getPaymentSources(organizationId);
-        console.log('✅ Payment sources received:', data);
-        return data;
-      } catch (error) {
-        console.error('❌ Error fetching payment sources:', error);
-        throw error;
-      }
-    },
+    queryFn: () => paymentSourcesApi.getPaymentSources(organizationId),
     retry: 1,
-    staleTime: 30000, // 30 seconds
-    enabled: !!organizationId, // Only fetch if organization is provided
+    staleTime: 30000,
+    enabled: !!organizationId,
   });
 }

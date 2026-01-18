@@ -38,10 +38,8 @@ export async function getPayable(id: number): Promise<Payable> {
 }
 
 export async function getPayableStats(organizationId?: string): Promise<PayableStats> {
-  // Fetch stats from Xero bills API
   const queryParams = organizationId ? `?organization=${organizationId}` : '';
   const url = `${XERO_BASE}/bills/stats/${queryParams}`;
-  console.log('Fetching stats from:', url);
   return apiRequest<PayableStats>(url);
 }
 

@@ -261,12 +261,6 @@ export function useUploadBankFile() {
       }
       formData.append('erp_connection', data.erp_connection);
 
-      // Debug: Log FormData contents
-      console.log('FormData contents:');
-      for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value);
-      }
-
       return post('/api/v1/banking/imports/', formData, {
         headers: {
           // Let browser set Content-Type for multipart/form-data
@@ -734,5 +728,203 @@ export function useExportPayments(exportId?: number) {
     queryKey: ['export-payments', exportId],
     queryFn: () => get(`/api/v1/banking/exports/${exportId}/payments/`),
     enabled: !!exportId,
+  });
+}
+
+// ===========================================
+// Pain.002 Bank Response Types & Hooks
+// ===========================================
+
+export interface PaymentTransactionStatus {
+  id: number;
+  original_end_to_end_id: string;
+  original_instruction_id: string;
+  payment_event_id: number | null;
+  payment_event_amount: string | null;
+  payment_event_status: string | null;
+  creditor_name: string | null;
+  invoice_number: string | null;
+  status: 'ACSP' | 'PDNG' | 'RJCT' | 'ACWC';
+  status_display: string;
+  status_code: string;
+  status_description: string;
+  additional_info: string[];
+  original_amount: string | null;
+  original_currency: string;
+  created_at: string;
+}
+
+export interface PaymentExportStatus {
+  id: number;
+  payment_export: number;
+  payment_export_filename: string;
+  report_type: 'ACK' | 'NACK' | 'INTERIM' | 'FINAL' | 'VET' | 'UNPAID';
+  report_type_display: string;
+  message_id: string;
+  original_message_id: string;
+  group_status: 'RCVD' | 'ACSP' | 'PART' | 'PDNG' | 'RJCT' | null;
+  group_status_display: string;
+  total_transactions: number;
+  successful_count: number;
+  rejected_count: number;
+  pending_count: number;
+  source_file: string;
+  bank_creation_datetime: string | null;
+  received_at: string;
+  transaction_statuses?: PaymentTransactionStatus[];
+}
+
+export interface Pain002RemoteFile {
+  name: string;
+  size: number;
+  mtime: string;
+  is_dir: boolean;
+}
+
+export interface Pain002PullResult {
+  success: boolean;
+  message: string;
+  task_id?: string;
+  files_found?: number;
+  files_processed?: number;
+  errors?: string[];
+}
+
+export interface BankStatusCode {
+  id: number;
+  code: string;
+  category: 'INTERIM_FINAL' | 'UNPAID' | 'STATEMENT_SWIFT' | 'STATEMENT_NON_SWIFT';
+  description: string;
+  is_success: boolean;
+  is_error: boolean;
+}
+
+/**
+ * Get payment export statuses for an export
+ */
+export function usePaymentExportStatuses(exportId?: number) {
+  return useQuery<{ results: PaymentExportStatus[]; count: number }>({
+    queryKey: ['payment-export-statuses', exportId],
+    queryFn: () => get(`/api/v1/banking/export-statuses/?payment_export=${exportId}`),
+    enabled: !!exportId,
+  });
+}
+
+/**
+ * Get all payment export statuses with filters
+ */
+export function useAllPaymentExportStatuses(filters?: {
+  bankAccountId?: number;
+  reportType?: string;
+  groupStatus?: string;
+  organizationId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.bankAccountId) params.append('payment_export__bank_account', filters.bankAccountId.toString());
+  if (filters?.reportType) params.append('report_type', filters.reportType);
+  if (filters?.groupStatus) params.append('group_status', filters.groupStatus);
+  if (filters?.organizationId) params.append('organization', filters.organizationId);
+
+  const queryString = params.toString();
+
+  return useQuery<{ results: PaymentExportStatus[]; count: number }>({
+    queryKey: ['all-payment-export-statuses', queryString],
+    queryFn: () => get(`/api/v1/banking/export-statuses/${queryString ? `?${queryString}` : ''}`),
+  });
+}
+
+/**
+ * Get a single payment export status with transaction details
+ */
+export function usePaymentExportStatusDetail(statusId?: number) {
+  return useQuery<PaymentExportStatus>({
+    queryKey: ['payment-export-status-detail', statusId],
+    queryFn: () => get(`/api/v1/banking/export-statuses/${statusId}/`),
+    enabled: !!statusId,
+  });
+}
+
+/**
+ * Get bank status codes
+ */
+export function useBankStatusCodes(filters?: {
+  category?: string;
+  search?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.category) params.append('category', filters.category);
+  if (filters?.search) params.append('search', filters.search);
+
+  const queryString = params.toString();
+
+  return useQuery<{ results: BankStatusCode[]; count: number }>({
+    queryKey: ['bank-status-codes', queryString],
+    queryFn: () => get(`/api/v1/banking/status-codes/${queryString ? `?${queryString}` : ''}`),
+  });
+}
+
+/**
+ * List remote pain.002 files on SFTP server
+ */
+export function usePain002RemoteFiles(bankAccountId?: number) {
+  return useQuery<{ success: boolean; files: Pain002RemoteFile[]; download_path: string }>({
+    queryKey: ['pain002-remote-files', bankAccountId],
+    queryFn: () => get(`/api/v1/banking/pain002/files/${bankAccountId}/`),
+    enabled: !!bankAccountId,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Pull and process pain.002 files from SFTP
+ */
+export function usePain002Pull() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    Pain002PullResult,
+    Error,
+    {
+      sftp_credential_id: number;
+      file_patterns?: string[];
+      auto_process?: boolean;
+    }
+  >({
+    mutationFn: async (data) => {
+      return post('/api/v1/banking/pain002/pull/', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pain002-remote-files'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['all-payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-payment-exports'] });
+    },
+  });
+}
+
+/**
+ * Process a pain.002 file that's already downloaded
+ */
+export function usePain002Process() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { success: boolean; status_id: number; message: string },
+    Error,
+    {
+      file_path?: string;
+      xml_content?: string;
+      source_filename?: string;
+      payment_export_id?: number;
+    }
+  >({
+    mutationFn: async (data) => {
+      return post('/api/v1/banking/pain002/process/', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['all-payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-payment-exports'] });
+    },
   });
 }

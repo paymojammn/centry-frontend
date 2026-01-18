@@ -125,8 +125,6 @@ export const billsApi = {
       source_account_id: sourceAccountId,
     };
 
-    console.log('📤 Sending export request:', payload);
-
     const response = await api.post<BillPaymentExportResponse>(BANK_EXPORT_BASE_URL, payload);
 
     return response;

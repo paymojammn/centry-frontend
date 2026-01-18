@@ -5,8 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatsOverview } from "@/components/banking/stats-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
 import { ExportTransactionList } from "@/components/banking/export-transaction-list";
+import { Pain002Status } from "@/components/banking/pain002-status";
 import { useOrganizations } from "@/hooks/use-organization";
-import { Building2, BarChart3, Upload, FileText } from "lucide-react";
+import { Building2, BarChart3, Upload, FileText, FileCheck } from "lucide-react";
 
 export default function BankingExportPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -37,6 +38,7 @@ export default function BankingExportPage() {
   const tabs = [
     { value: "overview", label: "Overview", icon: BarChart3 },
     { value: "sftp-export", label: "SFTP Export", icon: Upload },
+    { value: "bank-status", label: "Bank Status", icon: FileCheck },
     { value: "transactions", label: "Payments", icon: FileText },
   ];
 
@@ -114,6 +116,13 @@ export default function BankingExportPage() {
           <SFTPExport
             organizationId={selectedOrganizationId || undefined}
             onExportComplete={handleExportComplete}
+            onSelectExport={handleSelectExport}
+            selectedExportId={selectedExportId}
+          />
+        )}
+        {activeTab === "bank-status" && (
+          <Pain002Status
+            organizationId={selectedOrganizationId || undefined}
             onSelectExport={handleSelectExport}
             selectedExportId={selectedExportId}
           />

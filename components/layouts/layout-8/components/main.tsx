@@ -3,13 +3,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Footer } from './footer';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
-import { usePathname } from 'next/navigation';
 
 export function Main({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
-  const pathname = usePathname();
-
-  console.log(pathname);
 
   // Using the custom hook to set classes on the body
   useBodyClass(`

@@ -77,15 +77,6 @@ export default function PayBillsModal({
     ];
   }, [sourcesData]);
 
-  useEffect(() => {
-    if (sourcesData) {
-      console.log('📊 Payment sources data:', sourcesData);
-      console.log('📋 All sources merged:', allSources);
-    }
-    if (sourcesError) {
-      console.error('❌ Payment sources error:', sourcesError);
-    }
-  }, [sourcesData, allSources, sourcesError]);
 
   const [step, setStep] = useState<PaymentStep>('source');
   const [selectedSource, setSelectedSource] = useState<PaymentSource | null>(null);
@@ -141,7 +132,6 @@ export default function PayBillsModal({
       }
 
       if (recipients.size > 0) {
-        console.log('📦 Recipients before mapping:', Array.from(recipients.entries()));
         paymentData.recipients = Array.from(recipients.values()).map(recipient => ({
           bill_id: recipient.bill_id,
           recipient_type: recipient.recipient_type,
@@ -152,14 +142,12 @@ export default function PayBillsModal({
           account_number: recipient.account_number,
           account_name: recipient.account_name,
         }));
-        console.log('📤 Recipients after mapping:', paymentData.recipients);
       }
 
       const response = await billsApi.payBills(paymentData);
       return response;
     },
     onSuccess: (data) => {
-      console.log('💰 Payment response:', data);
       setResults(data.results || []);
       const eventIds = data.results
         ?.filter((r: PaymentResult) => r.success && r.payment_event_id)
@@ -172,8 +160,7 @@ export default function PayBillsModal({
       queryClient.invalidateQueries({ queryKey: ['bills'] });
       queryClient.invalidateQueries({ queryKey: ['payment-events'] });
     },
-    onError: (error: any) => {
-      console.error('Payment error:', error);
+    onError: (error: Error) => {
       setResults([{
         success: false,
         bill_id: 'all',

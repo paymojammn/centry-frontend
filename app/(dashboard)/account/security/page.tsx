@@ -98,7 +98,6 @@ export default function SecurityPage() {
       if (filters.search) params.append("search", filters.search);
 
       const response = await api.get<{ results: AuditLog[] }>(`/api/v1/security/audit-logs/?${params.toString()}`);
-      console.log('Audit logs response:', response);
       return response;
     },
     retry: 2,
@@ -106,8 +105,6 @@ export default function SecurityPage() {
   });
 
   const logs = logsData?.results || [];
-  console.log('Logs data:', logsData);
-  console.log('Logs array:', logs);
 
   const handleExport = async () => {
     try {

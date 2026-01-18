@@ -160,14 +160,10 @@ export default function NewPaymentPage() {
   };
 
   const handleSendPayments = () => {
-    // Implementation for sending payments
-    console.log("Sending payments:", recipients);
     alert(`Sending payments to ${recipients.length} recipients. Total: UGX ${calculateTotal().toLocaleString()}`);
   };
 
   const handleSendSinglePayment = () => {
-    // Implementation for single payment
-    console.log("Sending single payment:", singlePayment);
     alert(`Sending UGX ${parseFloat(singlePayment.amount).toLocaleString()} to ${singlePayment.phoneNumber}`);
   };
 
