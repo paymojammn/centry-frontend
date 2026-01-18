@@ -34,6 +34,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { LoadingState } from '@/components/layout/loading-state';
 import { EmptyState } from '@/components/layout/empty-state';
 import { STATUS_COLORS } from '@/lib/theme';
+import { StatusBadge } from '@/components/ui/status-badge';
 
 // Expense status colors matching the design system
 const EXPENSE_STATUS_COLORS = {
@@ -461,32 +462,13 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <span
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    style={{
-                      backgroundColor: statusColors.light,
-                      color: statusColors.bg === '#fed652' ? statusColors.text : statusColors.bg,
-                    }}
-                  >
-                    {formatStatusLabel(expense.status)}
-                  </span>
+                  <StatusBadge status={expense.status} />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {expense.payment_status === 'paid' ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Paid
-                    </span>
-                  ) : expense.payment_status === 'processing' ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                      <Clock className="w-3 h-3" />
-                      Processing
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                      Unpaid
-                    </span>
-                  )}
+                  <StatusBadge
+                    status={expense.payment_status === 'paid' ? 'paid' : expense.payment_status === 'processing' ? 'processing' : 'pending'}
+                    label={expense.payment_status === 'paid' ? 'Paid' : expense.payment_status === 'processing' ? 'Processing' : 'Unpaid'}
+                  />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-right">
                   <div className="flex items-center justify-end gap-1">

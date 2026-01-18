@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   RiArrowRightLine,
   RiLockLine,
@@ -77,16 +78,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left - Branding Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#1c252c] relative">
+    <div className="fixed inset-0 flex">
+      {/* Left - Branding Panel (60%) */}
+      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
         <div className="absolute inset-0 overflow-hidden">
-          {/* Subtle gradient accent */}
           <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16">
+        <div className="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16 2xl:p-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
@@ -96,13 +96,13 @@ export default function LoginPage() {
           </div>
 
           {/* Main message */}
-          <div className="max-w-md">
-            <h1 className="text-4xl xl:text-5xl font-semibold text-white leading-tight mb-6">
+          <div className="max-w-lg">
+            <h1 className="text-4xl xl:text-5xl 2xl:text-6xl font-semibold text-white leading-tight mb-6">
               Business payments,
               <br />
               simplified.
             </h1>
-            <p className="text-lg text-white/60 leading-relaxed">
+            <p className="text-lg xl:text-xl text-white/60 leading-relaxed">
               Automate your accounts payable, sync with your accounting software, and gain real-time visibility into your cash flow.
             </p>
           </div>
@@ -118,10 +118,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right - Login Form */}
-      <div className="flex-1 flex flex-col min-h-screen lg:min-h-0">
+      {/* Right - Login Form (40%) */}
+      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100">
+        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
@@ -130,11 +130,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Form container */}
-        <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
-          <div className="w-full max-w-sm">
+        {/* Form container - fills available space */}
+        <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 xl:px-16 2xl:px-20">
+          <div className="w-full">
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">
                 Sign in
               </h2>
               <p className="text-gray-500">
@@ -150,7 +150,7 @@ export default function LoginPage() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleCredentialsLogin} className="space-y-4">
+            <form onSubmit={handleCredentialsLogin} className="space-y-5">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email
@@ -165,7 +165,7 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="username"
-                    className="w-full h-11 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
                     placeholder="you@company.com"
                   />
                 </div>
@@ -176,9 +176,9 @@ export default function LoginPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Password
                   </label>
-                  <a href="#" className="text-sm text-[#1c252c] hover:underline">
+                  <Link href="/auth/forgot-password" className="text-sm text-[#1c252c] hover:underline">
                     Forgot?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -190,7 +190,7 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="current-password"
-                    className="w-full h-11 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
                     placeholder="Enter password"
                   />
                   <button
@@ -206,7 +206,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading || !username || !password}
-                className="w-full h-11 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -234,7 +234,7 @@ export default function LoginPage() {
               onClick={handleXeroLogin}
               disabled={isLoading}
               type="button"
-              className="w-full h-11 flex items-center justify-center gap-2.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+              className="w-full h-12 flex items-center justify-center gap-2.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" fill="#13B5EA" />
@@ -246,15 +246,15 @@ export default function LoginPage() {
             {/* Footer */}
             <p className="mt-8 text-center text-sm text-gray-400">
               Don't have an account?{' '}
-              <a href="#" className="text-[#1c252c] font-medium hover:underline">
-                Contact sales
-              </a>
+              <Link href="/auth/signup" className="text-[#1c252c] font-medium hover:underline">
+                Sign up
+              </Link>
             </p>
           </div>
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center">
+        <div className="p-6 border-t border-gray-100 text-center shrink-0">
           <p className="text-xs text-gray-400">
             Protected by 256-bit SSL encryption
           </p>

@@ -45,6 +45,7 @@ import {
 import type { BillFilters, Bill } from '@/types/bill';
 import PayBillsModal from '@/components/bills/PayBillsModal';
 import ProcessingQueue from '@/components/bills/ProcessingQueue';
+import { StatusBadge, StatusDot } from '@/components/ui/status-badge';
 
 // Status color constants (Xero-inspired)
 const STATUS_COLORS = {
@@ -367,31 +368,31 @@ export default function BillsPage() {
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="draft">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.draft.bg }} />
+                          <StatusDot status="draft" />
                           Draft
                         </span>
                       </SelectItem>
                       <SelectItem value="awaiting_approval">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.awaiting_approval.bg }} />
+                          <StatusDot status="awaiting_approval" />
                           Awaiting Approval
                         </span>
                       </SelectItem>
                       <SelectItem value="awaiting_payment">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.awaiting_payment.bg }} />
+                          <StatusDot status="awaiting_payment" />
                           Awaiting Payment
                         </span>
                       </SelectItem>
                       <SelectItem value="paid">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.paid.bg }} />
+                          <StatusDot status="paid" />
                           Paid
                         </span>
                       </SelectItem>
                       <SelectItem value="repeating">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.repeating.bg }} />
+                          <StatusDot status="repeating" />
                           Repeating
                         </span>
                       </SelectItem>
@@ -489,60 +490,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
   const isPayable = (bill: Bill) => bill.status === 'AUTHORISED';
 
   const getStatusBadge = (status: string) => {
-    // Using the defined color scheme
-    switch (status) {
-      case 'PAID':
-        return (
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: STATUS_COLORS.paid.light, color: STATUS_COLORS.paid.bg }}
-          >
-            Paid
-          </span>
-        );
-      case 'DRAFT':
-        return (
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: STATUS_COLORS.draft.light, color: STATUS_COLORS.draft.bg }}
-          >
-            Draft
-          </span>
-        );
-      case 'SUBMITTED':
-        return (
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: STATUS_COLORS.awaiting_approval.light, color: STATUS_COLORS.awaiting_approval.text }}
-          >
-            Awaiting Approval
-          </span>
-        );
-      case 'AUTHORISED':
-        return (
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: STATUS_COLORS.awaiting_payment.light, color: STATUS_COLORS.awaiting_payment.bg }}
-          >
-            Awaiting Payment
-          </span>
-        );
-      case 'REPEATING':
-        return (
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: STATUS_COLORS.repeating.light, color: STATUS_COLORS.repeating.text }}
-          >
-            Repeating
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-            {status}
-          </span>
-        );
-    }
+    return <StatusBadge status={status} />;
   };
 
   const formatDate = (dateStr: string) => {

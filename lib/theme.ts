@@ -128,9 +128,27 @@ export const COMPONENTS = {
   checkbox: 'w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]',
 } as const;
 
+// Expense-specific status colors
+export const EXPENSE_STATUS_COLORS = {
+  pending_manager_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5', border: '#fed652' },
+  pending_finance_approval: { bg: '#9b59b6', text: '#ffffff', light: '#F3E8F7', border: '#9b59b6' },
+  manager_approved: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA', border: '#4E97D1' },
+} as const;
+
 // Helper function to get status color
 export function getStatusColor(status: string) {
   const statusLower = status.toLowerCase().replace(/ /g, '_');
+
+  // Check expense-specific statuses first
+  if (statusLower === 'pending_manager_approval') {
+    return EXPENSE_STATUS_COLORS.pending_manager_approval;
+  }
+  if (statusLower === 'pending_finance_approval') {
+    return EXPENSE_STATUS_COLORS.pending_finance_approval;
+  }
+  if (statusLower === 'manager_approved') {
+    return EXPENSE_STATUS_COLORS.manager_approved;
+  }
 
   switch (statusLower) {
     case 'draft':
@@ -138,8 +156,6 @@ export function getStatusColor(status: string) {
     case 'submitted':
     case 'awaiting_approval':
     case 'pending_approval':
-    case 'pending_manager_approval':
-    case 'pending_finance_approval':
       return STATUS_COLORS.awaiting_approval;
     case 'authorised':
     case 'awaiting_payment':
@@ -155,6 +171,7 @@ export function getStatusColor(status: string) {
       return STATUS_COLORS.repeating;
     case 'failed':
     case 'rejected':
+    case 'cancelled':
     case 'failed_payment':
     case 'error_payment':
       return STATUS_COLORS.failed;
