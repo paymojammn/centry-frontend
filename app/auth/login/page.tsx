@@ -113,7 +113,7 @@ export default function LoginPage() {
       <TwoFAChallenge
         sessionToken={sessionToken}
         enabledMethods={enabledMethods}
-        preferredMethod={preferredMethod}
+        preferredMethod={preferredMethod || enabledMethods[0] || 'email'}
         onSuccess={handle2FASuccess}
         onCancel={handle2FACancel}
       />

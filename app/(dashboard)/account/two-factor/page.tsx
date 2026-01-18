@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,7 @@ import {
   AlertTriangle,
   Eye,
   EyeOff,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/layout/loading-state";
@@ -58,7 +61,7 @@ type TwoFAMethod = "email" | "sms" | "whatsapp" | "totp";
 export default function TwoFactorSettingsPage() {
   const queryClient = useQueryClient();
   const [activeDialog, setActiveDialog] = useState<
-    "enable" | "disable" | "totp-setup" | "backup-codes" | null
+    "enable" | "disable" | "totp-setup" | "totp-disable" | "backup-codes" | null
   >(null);
   const [selectedMethod, setSelectedMethod] = useState<TwoFAMethod | null>(null);
   const [otpValue, setOtpValue] = useState("");
@@ -68,6 +71,8 @@ export default function TwoFactorSettingsPage() {
   const [showTotpSecret, setShowTotpSecret] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [copiedCodes, setCopiedCodes] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const apiUrl = getApiUrl();
 
@@ -130,41 +135,58 @@ export default function TwoFactorSettingsPage() {
     },
   });
 
-  // Disable 2FA method mutation
+  // Disable 2FA method mutation (non-TOTP)
   const disableMutation = useMutation({
-    mutationFn: async (method: TwoFAMethod) => {
-      if (method === "totp") {
-        await api.post("/api/auth/2fa/totp/disable/");
-      } else {
-        await api.post("/api/auth/2fa/disable/", { method });
-      }
+    mutationFn: async ({ method, password }: { method: TwoFAMethod; password: string }) => {
+      await api.post("/api/auth/2fa/disable/", { method, password });
     },
-    onSuccess: (_, method) => {
+    onSuccess: (_, { method }) => {
       queryClient.invalidateQueries({ queryKey: ["2fa-settings"] });
       toast.success(`${getMethodLabel(method)} disabled`);
       setActiveDialog(null);
       setSelectedMethod(null);
+      setPassword("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to disable method");
+      toast.error(error.message || "Failed to disable method");
+    },
+  });
+
+  // Disable TOTP mutation (requires password and current TOTP code)
+  const disableTotpMutation = useMutation({
+    mutationFn: async ({ password, code }: { password: string; code: string }) => {
+      await api.post("/api/auth/2fa/totp/disable/", { password, code });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["2fa-settings"] });
+      toast.success("Authenticator App disabled");
+      setActiveDialog(null);
+      setSelectedMethod(null);
+      setPassword("");
+      setOtpValue("");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to disable authenticator");
     },
   });
 
   // Generate backup codes mutation
   const generateBackupCodesMutation = useMutation({
-    mutationFn: async () => {
-      const response = await api.post<{ backup_codes: string[] }>(
-        "/api/auth/2fa/backup-codes/generate/"
+    mutationFn: async (password: string) => {
+      const response = await api.post<{ codes: string[] }>(
+        "/api/auth/2fa/backup-codes/generate/",
+        { password }
       );
-      return response.backup_codes;
+      return response.codes;
     },
     onSuccess: (codes) => {
       setBackupCodes(codes);
       queryClient.invalidateQueries({ queryKey: ["2fa-settings"] });
       toast.success("New backup codes generated");
+      setPassword("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to generate backup codes");
+      toast.error(error.message || "Failed to generate backup codes");
     },
   });
 
@@ -218,7 +240,12 @@ export default function TwoFactorSettingsPage() {
         enableMutation.mutate(method);
       }
     } else {
-      setActiveDialog("disable");
+      // Different dialog for TOTP (requires code) vs other methods
+      if (method === "totp") {
+        setActiveDialog("totp-disable");
+      } else {
+        setActiveDialog("disable");
+      }
     }
   };
 
@@ -245,8 +272,13 @@ export default function TwoFactorSettingsPage() {
   };
 
   const handleConfirmDisable = () => {
-    if (!selectedMethod) return;
-    disableMutation.mutate(selectedMethod);
+    if (!selectedMethod || !password) return;
+    disableMutation.mutate({ method: selectedMethod, password });
+  };
+
+  const handleConfirmDisableTotp = () => {
+    if (!password || otpValue.length !== 6) return;
+    disableTotpMutation.mutate({ password, code: otpValue });
   };
 
   const handleCopyBackupCodes = () => {
@@ -259,7 +291,12 @@ export default function TwoFactorSettingsPage() {
 
   const handleGenerateBackupCodes = () => {
     setActiveDialog("backup-codes");
-    generateBackupCodesMutation.mutate();
+    // Don't mutate yet - need password first
+  };
+
+  const handleConfirmGenerateBackupCodes = () => {
+    if (!password) return;
+    generateBackupCodesMutation.mutate(password);
   };
 
   if (isLoading) {
@@ -419,6 +456,7 @@ export default function TwoFactorSettingsPage() {
                   disabled={
                     enableMutation.isPending ||
                     disableMutation.isPending ||
+                    disableTotpMutation.isPending ||
                     ((method === "sms" || method === "whatsapp") &&
                       !settings?.phone_number)
                   }
@@ -552,7 +590,12 @@ export default function TwoFactorSettingsPage() {
       {/* Disable Method Dialog */}
       <Dialog
         open={activeDialog === "disable"}
-        onOpenChange={(open) => !open && setActiveDialog(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveDialog(null);
+            setPassword("");
+          }
+        }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -560,14 +603,44 @@ export default function TwoFactorSettingsPage() {
               Disable {selectedMethod && getMethodLabel(selectedMethod)}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to disable this authentication method? Your
-              account may be less secure.
+              Enter your password to confirm disabling this authentication method.
+              Your account may be less secure.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="disable-password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="disable-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="pl-9 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setActiveDialog(null)}
+              onClick={() => {
+                setActiveDialog(null);
+                setPassword("");
+              }}
               disabled={disableMutation.isPending}
             >
               Cancel
@@ -575,7 +648,7 @@ export default function TwoFactorSettingsPage() {
             <Button
               variant="destructive"
               onClick={handleConfirmDisable}
-              disabled={disableMutation.isPending}
+              disabled={disableMutation.isPending || !password}
             >
               {disableMutation.isPending ? (
                 <>
@@ -584,6 +657,100 @@ export default function TwoFactorSettingsPage() {
                 </>
               ) : (
                 "Disable"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Disable TOTP Dialog (requires password + current TOTP code) */}
+      <Dialog
+        open={activeDialog === "totp-disable"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveDialog(null);
+            setPassword("");
+            setOtpValue("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Disable Authenticator App</DialogTitle>
+            <DialogDescription>
+              Enter your password and a code from your authenticator app to disable it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="totp-disable-password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="totp-disable-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="pl-9 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Authenticator Code</Label>
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otpValue}
+                  onChange={(value) => setOtpValue(value)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActiveDialog(null);
+                setPassword("");
+                setOtpValue("");
+              }}
+              disabled={disableTotpMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDisableTotp}
+              disabled={disableTotpMutation.isPending || !password || otpValue.length !== 6}
+            >
+              {disableTotpMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Disabling...
+                </>
+              ) : (
+                "Disable Authenticator"
               )}
             </Button>
           </DialogFooter>
@@ -708,17 +875,59 @@ export default function TwoFactorSettingsPage() {
       {/* Backup Codes Dialog */}
       <Dialog
         open={activeDialog === "backup-codes"}
-        onOpenChange={(open) => !open && setActiveDialog(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveDialog(null);
+            setPassword("");
+            // Only clear codes if user clicks Done
+          }
+        }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Backup Codes</DialogTitle>
             <DialogDescription>
-              Save these codes in a safe place. Each code can only be used once.
+              {backupCodes.length > 0
+                ? "Save these codes in a safe place. Each code can only be used once."
+                : "Enter your password to generate new backup codes."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {generateBackupCodesMutation.isPending ? (
+            {backupCodes.length === 0 && !generateBackupCodesMutation.isPending ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="backup-password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="backup-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="pl-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-sm text-amber-700">
+                    Generating new codes will invalidate any existing backup codes.
+                  </p>
+                </div>
+              </div>
+            ) : generateBackupCodesMutation.isPending ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
@@ -738,33 +947,64 @@ export default function TwoFactorSettingsPage() {
             ) : null}
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleCopyBackupCodes}
-              disabled={backupCodes.length === 0}
-              className="flex-1"
-            >
-              {copiedCodes ? (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy All Codes
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={() => {
-                setActiveDialog(null);
-                setBackupCodes([]);
-              }}
-              className="bg-[#638C80] hover:bg-[#547568]"
-            >
-              Done
-            </Button>
+            {backupCodes.length === 0 ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setActiveDialog(null);
+                    setPassword("");
+                  }}
+                  disabled={generateBackupCodesMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmGenerateBackupCodes}
+                  disabled={!password || generateBackupCodesMutation.isPending}
+                  className="bg-[#638C80] hover:bg-[#547568]"
+                >
+                  {generateBackupCodesMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Codes"
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCopyBackupCodes}
+                  className="flex-1"
+                >
+                  {copiedCodes ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy All Codes
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setActiveDialog(null);
+                    setBackupCodes([]);
+                    setPassword("");
+                  }}
+                  className="bg-[#638C80] hover:bg-[#547568]"
+                >
+                  Done
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
