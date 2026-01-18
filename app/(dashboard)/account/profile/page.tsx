@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -455,20 +456,23 @@ export default function ProfilePage() {
                   </Button>
                 </div>
 
-                <div className="px-6 py-4 flex items-center justify-between">
+                <Link
+                  href="/account/two-factor"
+                  className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                       <CheckCircle className="h-5 w-5 text-gray-600" />
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h3>
-                      <p className="text-xs text-gray-500">Not enabled</p>
+                      <p className="text-xs text-gray-500">Manage your 2FA settings</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" className="h-8">
-                    Enable 2FA
+                    Configure
                   </Button>
-                </div>
+                </Link>
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import {
 import { setAuthToken } from '@/lib/api';
 import { toast } from 'sonner';
 import { getApiUrl } from '@/config/api';
+import { TwoFAChallenge } from '@/components/auth/two-fa-challenge';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+  // 2FA state
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [sessionToken, setSessionToken] = useState('');
+  const [enabledMethods, setEnabledMethods] = useState<string[]>([]);
+  const [preferredMethod, setPreferredMethod] = useState<string | null>(null);
 
   const redirectTo = searchParams?.get('redirect') || '/dashboard';
 
@@ -47,6 +54,15 @@ export default function LoginPage() {
 
       if (!response.ok) {
         throw new Error(data.detail || data.error || 'Login failed');
+      }
+
+      // Check if 2FA is required
+      if (data.requires_2fa) {
+        setSessionToken(data.session_token);
+        setEnabledMethods(data.enabled_methods || []);
+        setPreferredMethod(data.preferred_method || null);
+        setRequires2FA(true);
+        return;
       }
 
       if (data.access) {
@@ -76,6 +92,33 @@ export default function LoginPage() {
 
     window.location.href = xeroAuthUrl;
   };
+
+  const handle2FASuccess = (tokens: { access: string; refresh: string }) => {
+    setAuthToken(tokens.access);
+    toast.success('Welcome back!');
+    router.push(redirectTo);
+  };
+
+  const handle2FACancel = () => {
+    setRequires2FA(false);
+    setSessionToken('');
+    setEnabledMethods([]);
+    setPreferredMethod(null);
+    setPassword('');
+  };
+
+  // Show 2FA challenge if required
+  if (requires2FA) {
+    return (
+      <TwoFAChallenge
+        sessionToken={sessionToken}
+        enabledMethods={enabledMethods}
+        preferredMethod={preferredMethod}
+        onSuccess={handle2FASuccess}
+        onCancel={handle2FACancel}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex">
