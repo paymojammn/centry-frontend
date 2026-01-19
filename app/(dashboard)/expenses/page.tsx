@@ -34,7 +34,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { LoadingState } from '@/components/layout/loading-state';
 import { EmptyState } from '@/components/layout/empty-state';
 import { STATUS_COLORS } from '@/lib/theme';
-import { StatusBadge } from '@/components/ui/status-badge';
+import { StatusBadge } from '@/components/layout/status-badge';
 
 // Expense status colors matching the design system
 const EXPENSE_STATUS_COLORS = {
@@ -151,6 +151,7 @@ export default function ExpensesPage() {
     <div className="min-h-screen bg-[#f8f9fa]">
       <PageHeader
         title="Expenses"
+        subtitle="Manage petty cash and employee reimbursements"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
@@ -160,7 +161,7 @@ export default function ExpensesPage() {
           variant="outline"
           size="sm"
           onClick={handleRefresh}
-          className="h-8 text-gray-600 hover:text-gray-900"
+          className="h-8 text-gray-600 hover:text-gray-900 btn-press"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
           Refresh
@@ -168,7 +169,7 @@ export default function ExpensesPage() {
         <Button
           size="sm"
           onClick={() => setIsCreateModalOpen(true)}
-          className="h-8 bg-[#49a034] hover:bg-[#547568] text-white"
+          className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
         >
           <Plus className="h-3.5 w-3.5 mr-1.5" />
           New Expense
@@ -178,9 +179,9 @@ export default function ExpensesPage() {
       <StatsBar stats={statsBarData} />
 
       <PageContainer>
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up">
           {/* Tabs and Filters */}
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-100">
               <div className="flex items-center justify-between gap-4">
                 {/* Tabs */}
@@ -189,7 +190,7 @@ export default function ExpensesPage() {
                     <button
                       key={tab.value}
                       onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors btn-press ${
                         filters.status === tab.value
                           ? 'bg-[#49a034] text-white'
                           : 'text-gray-600 hover:bg-gray-100'
@@ -216,7 +217,7 @@ export default function ExpensesPage() {
             {/* Expenses Table */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
               </div>
             ) : error ? (
               <EmptyState
@@ -233,7 +234,7 @@ export default function ExpensesPage() {
                   <Button
                     onClick={() => setIsCreateModalOpen(true)}
                     size="sm"
-                    className="bg-[#49a034] text-white hover:bg-[#547568]"
+                    className="bg-[#49a034] text-white hover:bg-[#3d8a2b] btn-press"
                   >
                     <Plus className="w-4 h-4 mr-1.5" />
                     Create Expense
@@ -372,8 +373,8 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50 border-b border-gray-100">
+      <table className="table-professional w-full">
+        <thead>
           <tr>
             <th className="px-4 py-3 text-left w-10">
               {payableExpenses.length > 0 && (
@@ -411,7 +412,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50">
+        <tbody className="animate-stagger">
           {expenses.map((expense) => {
             const categoryInfo = getCategoryInfo(expense.category);
             const statusColors = getStatusBadge(expense.status);
@@ -419,7 +420,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
             return (
               <tr
                 key={expense.id}
-                className={`hover:bg-gray-50 transition-colors ${
+                className={`row-interactive ${
                   isExpenseSelected(expense) ? 'bg-[#49a034]/5' : ''
                 }`}
               >

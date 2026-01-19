@@ -92,10 +92,10 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
   const canUpload = file && selectedBankAccount && activeConnection && !uploadFile.isPending;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <Upload className="h-4 w-4 text-gray-400" />
+          <Upload className="h-4 w-4 text-[#49a034]" />
           <h3 className="text-sm font-medium text-gray-900">Upload Bank File</h3>
         </div>
         <p className="text-xs text-gray-500 mt-1">Import bank statement for reconciliation</p>
@@ -143,7 +143,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
           <Label htmlFor="bank-account" className="text-sm font-medium text-gray-700">Bank Account</Label>
           {isLoading ? (
             <div className="flex items-center justify-center py-6 bg-gray-50 rounded-lg">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-[#49a034]" />
             </div>
           ) : bankAccounts.length === 0 ? (
             <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
@@ -199,7 +199,7 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         <Button
           onClick={handleUpload}
           disabled={!canUpload}
-          className="w-full h-10 bg-[#49a034] hover:bg-[#547568]"
+          className="w-full h-10 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
         >
           {uploadFile.isPending ? (
             <>

@@ -62,7 +62,7 @@ export default function WalletPage() {
               </div>
               <Button
                 onClick={handleRefresh}
-                className="bg-white/95 backdrop-blur-sm text-[#49a034] hover:bg-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-white/95 backdrop-blur-sm text-[#49a034] hover:bg-white shadow-lg hover:shadow-xl transition-all btn-press"
                 size="lg"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -121,9 +121,9 @@ export default function WalletPage() {
           </div>
 
           {/* Quick Stats - More refined design */}
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3 animate-fade-in-up">
             {/* Total Deposits */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden card-lift">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-emerald-50 rounded-xl">
@@ -144,7 +144,7 @@ export default function WalletPage() {
             </div>
 
             {/* Total Payments */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden card-lift">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-blue-50 rounded-xl">
@@ -165,7 +165,7 @@ export default function WalletPage() {
             </div>
 
             {/* Pending */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden card-lift">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-amber-50 rounded-xl">
@@ -307,35 +307,23 @@ function TransactionsTable({ transactions }: TransactionsTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50 border-b border-gray-200">
+      <table className="table-professional w-full">
+        <thead>
           <tr>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Type
-            </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Amount
-            </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Provider
-            </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Date
-            </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Reference
-            </th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Provider</th>
+            <th>Date</th>
+            <th>Reference</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="animate-stagger">
           {transactions.map((tx) => {
             const config = getTypeConfig(tx.type);
 
             return (
-              <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={tx.id} className="row-interactive">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 ${config.bg} rounded-lg`}>

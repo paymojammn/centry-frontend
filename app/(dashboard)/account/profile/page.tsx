@@ -165,15 +165,18 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+              <p className="text-sm text-gray-500 mt-0.5">Manage your account details</p>
+            </div>
             {!isEditing ? (
               <Button
                 size="sm"
                 onClick={handleEdit}
-                className="h-8 bg-[#49a034] hover:bg-[#547568]"
+                className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
               >
                 Edit Profile
               </Button>
@@ -184,7 +187,7 @@ export default function ProfilePage() {
                   size="sm"
                   onClick={handleCancel}
                   disabled={updateMutation.isPending}
-                  className="h-8"
+                  className="h-8 btn-press"
                 >
                   <X className="h-3.5 w-3.5 mr-1.5" />
                   Cancel
@@ -193,7 +196,7 @@ export default function ProfilePage() {
                   size="sm"
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
-                  className="h-8 bg-[#49a034] hover:bg-[#547568]"
+                  className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
                 >
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   {updateMutation.isPending ? "Saving..." : "Save"}
@@ -251,7 +254,7 @@ export default function ProfilePage() {
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value as any)}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors btn-press ${
                   activeTab === tab.value
                     ? 'border-[#49a034] text-[#49a034]'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -265,9 +268,9 @@ export default function ProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-6">
+      <div className="max-w-4xl mx-auto px-6 py-6 animate-fade-in-up">
         {activeTab === 'personal' && (
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-100">
               <h2 className="text-sm font-medium text-gray-900">Personal Information</h2>
               <p className="text-xs text-gray-500 mt-1">
@@ -373,7 +376,7 @@ export default function ProfilePage() {
         )}
 
         {activeTab === 'organizations' && (
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-100">
               <h2 className="text-sm font-medium text-gray-900">Organizations</h2>
               <p className="text-xs text-gray-500 mt-1">
@@ -407,7 +410,7 @@ export default function ProfilePage() {
               {profile.organizations
                 .filter((org) => org.id !== profile.primary_organization?.id)
                 .map((org) => (
-                  <div key={org.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                  <div key={org.id} className="px-6 py-4 row-interactive">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                         <Building2 className="h-5 w-5 text-gray-600" />
@@ -433,7 +436,7 @@ export default function ProfilePage() {
 
         {activeTab === 'security' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-sm font-medium text-gray-900">Security Settings</h2>
                 <p className="text-xs text-gray-500 mt-1">
@@ -441,7 +444,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               <div className="divide-y divide-gray-50">
-                <div className="px-6 py-4 flex items-center justify-between">
+                <div className="px-6 py-4 flex items-center justify-between row-interactive">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                       <Shield className="h-5 w-5 text-gray-600" />
@@ -451,14 +454,14 @@ export default function ProfilePage() {
                       <p className="text-xs text-gray-500">Last changed 3 months ago</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8">
+                  <Button variant="outline" size="sm" className="h-8 btn-press">
                     Change Password
                   </Button>
                 </div>
 
                 <Link
                   href="/account/two-factor"
-                  className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="px-6 py-4 flex items-center justify-between row-interactive"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -469,14 +472,14 @@ export default function ProfilePage() {
                       <p className="text-xs text-gray-500">Manage your 2FA settings</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8">
+                  <Button variant="outline" size="sm" className="h-8 btn-press">
                     Configure
                   </Button>
                 </Link>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-sm font-medium text-gray-900">Account Information</h2>
               </div>

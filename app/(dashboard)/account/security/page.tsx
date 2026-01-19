@@ -267,34 +267,40 @@ export default function SecurityPage() {
   const otherSessions = sessions.filter(s => !s.is_current);
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
+    <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-black flex items-center gap-3">
-            <div className="p-2 bg-[#49a034]/10 rounded-lg">
-              <Shield className="h-7 w-7 text-[#49a034]" />
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#49a034]/10 rounded-lg">
+                <Shield className="h-6 w-6 text-[#49a034]" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Security</h1>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Manage your account security and monitor activity
+                </p>
+              </div>
             </div>
-            Security
-          </h1>
-          <p className="text-gray-600 mt-2 ml-[52px]">
-            Manage your account security and monitor activity
-          </p>
+          </div>
         </div>
       </div>
 
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6 animate-fade-in-up">
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="sessions" className="flex items-center gap-2">
+        <TabsList className="grid w-full max-w-md grid-cols-3 bg-white rounded-xl border border-gray-200/80 shadow-sm p-1">
+          <TabsTrigger value="sessions" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
             <Monitor className="h-4 w-4" />
             Sessions
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
+          <TabsTrigger value="history" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
             <History className="h-4 w-4" />
             Login History
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-2">
+          <TabsTrigger value="audit" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
             <FileText className="h-4 w-4" />
             Audit Log
           </TabsTrigger>
@@ -304,7 +310,7 @@ export default function SecurityPage() {
         <TabsContent value="sessions" className="space-y-6 mt-6">
           {/* Current Session */}
           {sessions.filter(s => s.is_current).map(session => (
-            <Card key={session.id} className="p-6 border-[#49a034]/20 bg-[#49a034]/5">
+            <Card key={session.id} className="p-6 border-[#49a034]/20 bg-[#49a034]/5 rounded-xl shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
                   {getDeviceIcon(session.device_type)}
@@ -329,7 +335,7 @@ export default function SecurityPage() {
           ))}
 
           {/* Other Sessions */}
-          <Card className="border-gray-100 shadow-sm">
+          <Card className="border-gray-200/80 rounded-xl shadow-sm">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Other Active Sessions</h2>
@@ -340,7 +346,7 @@ export default function SecurityPage() {
               {otherSessions.length > 0 && (
                 <Button
                   variant="outline"
-                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  className="text-red-600 border-red-200 hover:bg-red-50 btn-press"
                   onClick={() => setShowRevokeAllDialog(true)}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -360,9 +366,9 @@ export default function SecurityPage() {
                 <p className="text-gray-500 mt-2">No other active sessions</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 animate-stagger">
                 {otherSessions.map(session => (
-                  <div key={session.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div key={session.id} className="p-4 flex items-center justify-between row-interactive">
                     <div className="flex items-center gap-4">
                       {getDeviceIcon(session.device_type)}
                       <div>
@@ -392,7 +398,7 @@ export default function SecurityPage() {
 
         {/* Login History Tab */}
         <TabsContent value="history" className="space-y-6 mt-6">
-          <Card className="border-gray-100 shadow-sm">
+          <Card className="border-gray-200/80 rounded-xl shadow-sm">
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5 text-[#49a034]" />
@@ -435,7 +441,7 @@ export default function SecurityPage() {
                     loginHistory.map((item) => {
                       const authBadge = getAuthMethodBadge(item.auth_method);
                       return (
-                        <TableRow key={item.id} className="hover:bg-gray-50">
+                        <TableRow key={item.id} className="row-interactive">
                           <TableCell>
                             <div>
                               <p className="font-medium text-gray-900">
@@ -490,7 +496,7 @@ export default function SecurityPage() {
         <TabsContent value="audit" className="space-y-6 mt-6">
           {/* Stats Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-6 border-gray-100 shadow-sm">
+            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Events</p>
@@ -504,7 +510,7 @@ export default function SecurityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-100 shadow-sm">
+            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Last 24h</p>
@@ -518,7 +524,7 @@ export default function SecurityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-100 shadow-sm">
+            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Errors</p>
@@ -532,7 +538,7 @@ export default function SecurityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-100 shadow-sm">
+            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Critical</p>
@@ -548,7 +554,7 @@ export default function SecurityPage() {
           </div>
 
           {/* Filters */}
-          <Card className="p-6 border-gray-100 shadow-sm">
+          <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-5 w-5 text-[#49a034]" />
@@ -557,7 +563,7 @@ export default function SecurityPage() {
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="border-[#49a034] text-[#49a034] hover:bg-[#49a034]/10"
+                className="border-[#49a034] text-[#49a034] hover:bg-[#49a034]/10 btn-press"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export Logs
@@ -676,7 +682,7 @@ export default function SecurityPage() {
           )}
 
           {/* Audit Logs Table */}
-          <Card className="border-gray-100 shadow-sm">
+          <Card className="border-gray-200/80 rounded-xl shadow-sm">
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-[#49a034]" />
@@ -721,7 +727,7 @@ export default function SecurityPage() {
                     </TableRow>
                   ) : (
                     logs.map((log) => (
-                      <TableRow key={log.id} className="hover:bg-gray-50">
+                      <TableRow key={log.id} className="row-interactive">
                         <TableCell className="font-mono text-sm">
                           {format(new Date(log.timestamp), "MMM dd, HH:mm:ss")}
                         </TableCell>
@@ -776,6 +782,7 @@ export default function SecurityPage() {
         </TabsContent>
       </Tabs>
 
+      </div>
       {/* Revoke Session Dialog */}
       <Dialog open={!!sessionToRevoke} onOpenChange={() => setSessionToRevoke(null)}>
         <DialogContent>
@@ -787,13 +794,14 @@ export default function SecurityPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSessionToRevoke(null)}>
+            <Button variant="outline" onClick={() => setSessionToRevoke(null)} className="btn-press">
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={() => sessionToRevoke && revokeSessionMutation.mutate(sessionToRevoke.id)}
               disabled={revokeSessionMutation.isPending}
+              className="btn-press"
             >
               {revokeSessionMutation.isPending ? "Signing out..." : "Sign out"}
             </Button>
@@ -812,13 +820,14 @@ export default function SecurityPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRevokeAllDialog(false)}>
+            <Button variant="outline" onClick={() => setShowRevokeAllDialog(false)} className="btn-press">
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={() => revokeAllMutation.mutate()}
               disabled={revokeAllMutation.isPending}
+              className="btn-press"
             >
               {revokeAllMutation.isPending ? "Signing out..." : "Sign out all"}
             </Button>

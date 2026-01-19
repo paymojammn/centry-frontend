@@ -189,27 +189,27 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
             {isEdit ? "Edit Bank Account" : "Add Bank Account"}
           </DialogTitle>
-          <DialogDescription>
-            {isEdit 
+          <DialogDescription className="text-sm text-gray-500">
+            {isEdit
               ? "Update the bank account details below"
               : "Fill in the details to add a new bank account"}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Bank Provider Selection */}
           <div className="space-y-2">
-            <Label htmlFor="bank_provider_id">Bank Provider *</Label>
-            <Select 
-              value={watch("bank_provider_id")} 
+            <Label htmlFor="bank_provider_id" className="text-sm font-medium text-gray-700">Bank Provider *</Label>
+            <Select
+              value={watch("bank_provider_id")}
               onValueChange={(value) => setValue("bank_provider_id", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
                 <SelectValue placeholder="Select a bank provider" />
               </SelectTrigger>
               <SelectContent>
@@ -227,11 +227,12 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
 
           {/* Account Name */}
           <div className="space-y-2">
-            <Label htmlFor="account_name">Account Name *</Label>
+            <Label htmlFor="account_name" className="text-sm font-medium text-gray-700">Account Name *</Label>
             <Input
               id="account_name"
               {...register("account_name", { required: "Account name is required" })}
               placeholder="e.g., Main Operating Account"
+              className="h-10 bg-gray-50 border-gray-200"
             />
             <input type="hidden" {...register("bank_provider_id", { required: "Bank provider is required" })} />
             {errors.account_name && (
@@ -241,11 +242,12 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
 
           {/* Account Number */}
           <div className="space-y-2">
-            <Label htmlFor="account_number">Account Number *</Label>
+            <Label htmlFor="account_number" className="text-sm font-medium text-gray-700">Account Number *</Label>
             <Input
               id="account_number"
               {...register("account_number", { required: "Account number is required" })}
               placeholder="e.g., 1234567890"
+              className="h-10 bg-gray-50 border-gray-200"
             />
             {errors.account_number && (
               <p className="text-sm text-red-600">{errors.account_number.message}</p>
@@ -255,12 +257,12 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
           {/* Account Type & Currency - Side by side */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="account_type">Account Type *</Label>
-              <Select 
-                value={accountType} 
+              <Label htmlFor="account_type" className="text-sm font-medium text-gray-700">Account Type *</Label>
+              <Select
+                value={accountType}
                 onValueChange={(value) => setValue("account_type", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -273,12 +275,12 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency *</Label>
-              <Select 
-                value={watch("currency")} 
+              <Label htmlFor="currency" className="text-sm font-medium text-gray-700">Currency *</Label>
+              <Select
+                value={watch("currency")}
                 onValueChange={(value) => setValue("currency", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,16 +296,17 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
 
           {/* Balance */}
           <div className="space-y-2">
-            <Label htmlFor="balance">Current Balance *</Label>
+            <Label htmlFor="balance" className="text-sm font-medium text-gray-700">Current Balance *</Label>
             <Input
               id="balance"
               type="number"
               step="0.01"
-              {...register("balance", { 
+              {...register("balance", {
                 required: "Balance is required",
-                valueAsNumber: true 
+                valueAsNumber: true
               })}
               placeholder="0.00"
+              className="h-10 bg-gray-50 border-gray-200"
             />
             {errors.balance && (
               <p className="text-sm text-red-600">{errors.balance.message}</p>
@@ -313,40 +316,43 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
           {/* Branch Details - Side by side */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="branch_name">Branch Name</Label>
+              <Label htmlFor="branch_name" className="text-sm font-medium text-gray-700">Branch Name</Label>
               <Input
                 id="branch_name"
                 {...register("branch_name")}
                 placeholder="e.g., Main Branch"
+                className="h-10 bg-gray-50 border-gray-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="branch_code">Branch Code</Label>
+              <Label htmlFor="branch_code" className="text-sm font-medium text-gray-700">Branch Code</Label>
               <Input
                 id="branch_code"
                 {...register("branch_code")}
                 placeholder="e.g., 001"
+                className="h-10 bg-gray-50 border-gray-200"
               />
             </div>
           </div>
 
           {/* SWIFT Code */}
           <div className="space-y-2">
-            <Label htmlFor="swift_code">SWIFT Code</Label>
+            <Label htmlFor="swift_code" className="text-sm font-medium text-gray-700">SWIFT Code</Label>
             <Input
               id="swift_code"
               {...register("swift_code")}
               placeholder="e.g., ABCDKENA"
+              className="h-10 bg-gray-50 border-gray-200"
             />
           </div>
 
           {/* Status Toggles */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4 p-4 bg-gray-50/80 rounded-xl border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="is_active" className="font-medium">Active Status</Label>
-                <p className="text-sm text-gray-500">
+                <Label htmlFor="is_active" className="text-sm font-medium text-gray-900">Active Status</Label>
+                <p className="text-xs text-gray-500 mt-0.5">
                   {isActive ? "Account is active and can be used" : "Account is inactive"}
                 </p>
               </div>
@@ -354,13 +360,14 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
                 id="is_active"
                 checked={isActive}
                 onCheckedChange={(checked) => setValue("is_active", checked)}
+                className="data-[state=checked]:bg-[#49a034]"
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="is_default" className="font-medium">Default Account</Label>
-                <p className="text-sm text-gray-500">
+                <Label htmlFor="is_default" className="text-sm font-medium text-gray-900">Default Account</Label>
+                <p className="text-xs text-gray-500 mt-0.5">
                   {isDefault ? "This is the default account" : "Set as default account"}
                 </p>
               </div>
@@ -368,29 +375,31 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
                 id="is_default"
                 checked={isDefault}
                 onCheckedChange={(checked) => setValue("is_default", checked)}
+                className="data-[state=checked]:bg-[#49a034]"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-sm font-medium text-gray-700">Notes</Label>
             <Textarea
               id="notes"
               {...register("notes")}
               placeholder="Add any additional notes about this account..."
               rows={3}
+              className="bg-gray-50 border-gray-200 resize-none"
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+          <DialogFooter className="pt-4 border-t border-gray-100">
+            <Button type="button" variant="outline" onClick={handleClose} className="btn-press">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={mutation.isPending}
-              className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+              className="bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
             >
               {mutation.isPending ? "Saving..." : (isEdit ? "Update Account" : "Add Account")}
             </Button>

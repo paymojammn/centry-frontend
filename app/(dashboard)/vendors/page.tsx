@@ -134,6 +134,7 @@ export default function VendorsPage() {
     <div className="min-h-screen bg-[#f8f9fa]">
       <PageHeader
         title="Contacts"
+        subtitle="Manage vendors, suppliers, and customers"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
@@ -145,7 +146,7 @@ export default function VendorsPage() {
           size="sm"
           onClick={handleSyncContacts}
           disabled={isSyncing || !activeConnectionId}
-          className="h-8 text-gray-600 hover:text-gray-900"
+          className="h-8 text-gray-600 hover:text-gray-900 btn-press"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
           {isSyncing ? 'Syncing...' : 'Sync from Xero'}
@@ -155,9 +156,9 @@ export default function VendorsPage() {
       <StatsBar stats={statsBarData} />
 
       <PageContainer>
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up">
           {/* Filters */}
-          <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm px-4 py-3">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -183,10 +184,10 @@ export default function VendorsPage() {
           </div>
 
           {/* Contacts Table */}
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
               </div>
             ) : error ? (
               <EmptyState
@@ -261,21 +262,21 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   };
 
   return (
-    <table className="w-full">
+    <table className="table-professional w-full">
       <thead>
-        <tr className="border-b border-gray-100 bg-gray-50">
-          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Contact</th>
-          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Details</th>
-          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Type</th>
-          <th className="text-left text-xs font-medium text-gray-500 py-3 px-4">Status</th>
-          <th className="w-10 py-3 px-3"></th>
+        <tr>
+          <th>Contact</th>
+          <th>Details</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th className="w-10"></th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-50">
+      <tbody className="animate-stagger">
         {contacts.map((contact) => (
           <tr
             key={contact.id}
-            className="hover:bg-gray-50 transition-colors cursor-pointer"
+            className="row-interactive cursor-pointer"
             onClick={() => router.push(`/vendors/${contact.id}`)}
           >
             <td className="py-3 px-4">

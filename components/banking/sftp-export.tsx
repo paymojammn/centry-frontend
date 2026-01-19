@@ -165,10 +165,10 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   return (
     <div className="space-y-6">
       {/* Config Section */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-gray-400" />
+            <Server className="h-4 w-4 text-[#49a034]" />
             <h3 className="text-sm font-medium text-gray-900">SFTP Export</h3>
           </div>
           <p className="text-xs text-gray-500 mt-1">Upload payment files to bank SFTP server</p>
@@ -282,16 +282,16 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
       )}
 
       {/* Pending Exports */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-gray-400" />
+              <Upload className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Ready for Upload</h3>
             </div>
             <p className="text-xs text-gray-500 mt-1">{pendingExports.length} files pending</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => refetchExports()} disabled={exportsLoading} className="h-8">
+          <Button variant="outline" size="sm" onClick={() => refetchExports()} disabled={exportsLoading} className="h-8 btn-press">
             <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -299,7 +299,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
         {exportsLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
           </div>
         ) : pendingExports.length === 0 ? (
           <div className="text-center py-12">
@@ -308,7 +308,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             <p className="text-xs text-gray-400 mt-1">Generate payment files from the Payments page</p>
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
@@ -319,11 +319,11 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                 <th className="w-32"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 animate-stagger">
               {pendingExports.map((exportFile: BankPaymentExport) => (
                 <tr
                   key={exportFile.id}
-                  className={`hover:bg-gray-50 cursor-pointer ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}
+                  className={`row-interactive cursor-pointer ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}
                   onClick={() => onSelectExport?.(exportFile.id)}
                 >
                   <td className="px-6 py-3">
@@ -347,7 +347,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                   </td>
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onSelectExport?.(exportFile.id); }} className="h-8">
+                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onSelectExport?.(exportFile.id); }} className="h-8 btn-press">
                         <Eye className="h-3 w-3 mr-1" />
                         View
                       </Button>
@@ -355,7 +355,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                         size="sm"
                         onClick={(e) => { e.stopPropagation(); handleUploadFile(exportFile); }}
                         disabled={isUploading || uploadingFileId === exportFile.id}
-                        className="h-8 bg-[#49a034] hover:bg-[#547568]"
+                        className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
                       >
                         {uploadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                       </Button>
@@ -370,18 +370,18 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
       {/* Local Export Files */}
       {selectedAccountId && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-gray-400" />
+                <Server className="h-4 w-4 text-[#49a034]" />
                 <h3 className="text-sm font-medium text-gray-900">Local Export Files</h3>
               </div>
               {localFilesData?.export_path && (
                 <p className="text-xs text-gray-500 mt-1 font-mono">{localFilesData.export_path}</p>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={() => refetchLocalFiles()} disabled={localFilesLoading} className="h-8">
+            <Button variant="outline" size="sm" onClick={() => refetchLocalFiles()} disabled={localFilesLoading} className="h-8 btn-press">
               <RefreshCw className={`h-3 w-3 mr-1.5 ${localFilesLoading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
@@ -389,7 +389,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
           {localFilesLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
             </div>
           ) : localFiles.length === 0 ? (
             <div className="text-center py-12">
@@ -397,7 +397,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
               <p className="text-sm text-gray-500">No local export files</p>
             </div>
           ) : (
-            <table className="w-full">
+            <table className="w-full table-professional">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
@@ -407,9 +407,9 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                   <th className="w-24"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 animate-stagger">
                 {localFiles.map((file: LocalExportFile) => (
-                  <tr key={file.absolute_path} className="hover:bg-gray-50">
+                  <tr key={file.absolute_path} className="row-interactive">
                     <td className="px-6 py-3">
                       <p className="text-sm font-medium text-gray-900">{file.filename}</p>
                     </td>
@@ -436,7 +436,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                           size="sm"
                           onClick={() => handleUploadLocalFile(file)}
                           disabled={isUploading || uploadingLocalFile === file.absolute_path}
-                          className="h-8 bg-[#49a034] hover:bg-[#547568]"
+                          className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
                         >
                           {uploadingLocalFile === file.absolute_path ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         </Button>
@@ -452,7 +452,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
       {/* No account selected */}
       {!selectedAccountId && (
-        <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm text-center py-12">
           <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
           <p className="text-sm text-gray-500">Select a bank account to view local export files</p>
         </div>
@@ -460,15 +460,15 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
       {/* Uploaded Files */}
       {uploadedExports.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Uploaded Files</h3>
             </div>
             <p className="text-xs text-gray-500 mt-1">{uploadedExports.length} files completed</p>
           </div>
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
@@ -479,9 +479,9 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                 <th className="w-20"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 animate-stagger">
               {uploadedExports.map((exportFile: BankPaymentExport) => (
-                <tr key={exportFile.id} className={`hover:bg-gray-50 ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}>
+                <tr key={exportFile.id} className={`row-interactive ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}>
                   <td className="px-6 py-3">
                     <p className="text-sm font-medium text-gray-900">{exportFile.file_name}</p>
                     <p className="text-xs text-gray-500">{formatFileSize(exportFile.file_size)}</p>
@@ -500,7 +500,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                     {exportFile.sftp_uploaded_at ? formatDate(exportFile.sftp_uploaded_at) : "-"}
                   </td>
                   <td className="px-6 py-3">
-                    <Button variant="outline" size="sm" onClick={() => onSelectExport?.(exportFile.id)} className="h-8">
+                    <Button variant="outline" size="sm" onClick={() => onSelectExport?.(exportFile.id)} className="h-8 btn-press">
                       <Eye className="h-3 w-3" />
                     </Button>
                   </td>
@@ -513,14 +513,14 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
       {/* Recent Uploads */}
       {transferLogs.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-400" />
+              <Clock className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Recent Uploads</h3>
             </div>
           </div>
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
@@ -530,9 +530,9 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 animate-stagger">
               {transferLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
+                <tr key={log.id} className="row-interactive">
                   <td className="px-6 py-3 text-sm text-gray-900">{log.local_file_path.split("/").pop()}</td>
                   <td className="px-6 py-3 text-sm text-gray-600">{log.bank_account_name}</td>
                   <td className="px-6 py-3 text-sm text-gray-500">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>

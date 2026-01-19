@@ -494,10 +494,10 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
   return (
     <div className="space-y-6">
       {/* Config Section */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-gray-400" />
+            <Server className="h-4 w-4 text-[#49a034]" />
             <h3 className="text-sm font-medium text-gray-900">Bank Response (pain.002)</h3>
           </div>
           <p className="text-xs text-gray-500 mt-1">
@@ -565,7 +565,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               <Button
                 onClick={handlePullFiles}
                 disabled={!selectedSFTPCredentialId || isPulling}
-                className="h-10 bg-[#49a034] hover:bg-[#547568]"
+                className="h-10 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
               >
                 {isPulling ? (
                   <>
@@ -606,11 +606,11 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
       {/* Remote Files Available */}
       {selectedAccountId && pain002Files.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-gray-400" />
+                <FileText className="h-4 w-4 text-[#49a034]" />
                 <h3 className="text-sm font-medium text-gray-900">Available on SFTP</h3>
               </div>
               <p className="text-xs text-gray-500 mt-1">{pain002Files.length} pain.002 files found</p>
@@ -620,7 +620,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               size="sm"
               onClick={() => refetchRemoteFiles()}
               disabled={remoteFilesLoading}
-              className="h-8"
+              className="h-8 btn-press"
             >
               <RefreshCw className={`h-3 w-3 mr-1.5 ${remoteFilesLoading ? "animate-spin" : ""}`} />
               Refresh
@@ -644,11 +644,11 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
       )}
 
       {/* Export Status List */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-gray-400" />
+              <FileCheck className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Payment Export Status</h3>
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -660,7 +660,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
             size="sm"
             onClick={() => refetchExports()}
             disabled={exportsLoading}
-            className="h-8"
+            className="h-8 btn-press"
           >
             <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -669,7 +669,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
         {exportsLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
           </div>
         ) : uploadedExports.length === 0 ? (
           <div className="text-center py-12">
@@ -695,7 +695,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
       {/* No account selected */}
       {!selectedAccountId && (
-        <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm text-center py-12">
           <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
           <p className="text-sm text-gray-500">Select a bank account to view payment status</p>
         </div>

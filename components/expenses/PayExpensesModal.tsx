@@ -313,7 +313,7 @@ export default function PayExpensesModal({
             <Button
               type="submit"
               disabled={isPending || (paymentMethod === 'wallet' && !hasSufficientBalance)}
-              className="flex-1 bg-[#49a034] hover:bg-[#547568] text-white"
+              className="flex-1 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
             >
               {isPending
                 ? 'Processing...'

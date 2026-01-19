@@ -153,8 +153,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
       {/* Connection Selector */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
+      <Card className="border border-gray-200/80 shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
               <ArrowLeftRight className="h-5 w-5 text-[#49a034]" />
@@ -214,8 +214,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
       </Card>
 
       {/* Sync Controls */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 pb-4">
+      <Card className="border border-gray-200/80 shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
               <ArrowUpRight className="h-5 w-5 text-[#49a034]" />
@@ -259,7 +259,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 size="sm"
                 onClick={handleSyncToXero}
                 disabled={!selectedImportId || syncToXero.isPending}
-                className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-lg px-4"
+                className="bg-[#49a034] hover:bg-[#3d8a2b] rounded-lg px-4 btn-press"
               >
                 {syncToXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -311,7 +311,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 size="sm"
                 onClick={handleSyncFromXero}
                 disabled={!selectedConnection || syncFromXero.isPending}
-                className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] rounded-xl px-5 shadow-sm"
+                className="bg-[#49a034] hover:bg-[#3d8a2b] rounded-xl px-5 shadow-sm btn-press"
               >
                 {syncFromXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

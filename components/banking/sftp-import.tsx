@@ -177,10 +177,10 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
   return (
     <div className="space-y-6">
       {/* Config Section */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-gray-400" />
+            <Server className="h-4 w-4 text-[#49a034]" />
             <h3 className="text-sm font-medium text-gray-900">SFTP Import</h3>
           </div>
           <p className="text-xs text-gray-500 mt-1">Download bank statement files from SFTP server</p>
@@ -300,11 +300,11 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       )}
 
       {/* Remote Files */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4 text-gray-400" />
+              <FolderOpen className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Remote Files</h3>
             </div>
             {downloadPath && <p className="text-xs text-gray-500 mt-1 font-mono">{downloadPath}</p>}
@@ -315,13 +315,13 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               size="sm"
               onClick={() => refetchFiles()}
               disabled={!selectedAccountId || filesLoading}
-              className="h-8"
+              className="h-8 btn-press"
             >
               <RefreshCw className={`h-3 w-3 mr-1.5 ${filesLoading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
             {selectedFiles.size > 0 && (
-              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#49a034] hover:bg-[#547568]">
+              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
                 <Download className="h-3 w-3 mr-1.5" />
                 Download ({selectedFiles.size})
               </Button>
@@ -330,7 +330,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               size="sm"
               onClick={handleDownloadAll}
               disabled={!selectedAccountId || files.length === 0 || isDownloading}
-              className="h-8 bg-[#49a034] hover:bg-[#547568]"
+              className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
             >
               <Download className="h-3 w-3 mr-1.5" />
               Download All
@@ -345,7 +345,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
           </div>
         ) : filesLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
           </div>
         ) : filesError ? (
           <div className="text-center py-12">
@@ -358,7 +358,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
             <p className="text-sm text-gray-500">No files found</p>
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="w-10 px-4 py-3">
@@ -373,9 +373,9 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                 <th className="w-10"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 animate-stagger">
               {files.map((file: SFTPRemoteFile) => (
-                <tr key={file.name} className="hover:bg-gray-50">
+                <tr key={file.name} className="row-interactive">
                   <td className="px-4 py-3">
                     {!file.is_dir && (
                       <Checkbox
@@ -412,14 +412,14 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
       {/* Recent Downloads */}
       {selectedAccountId && transferLogs.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-400" />
+              <Clock className="h-4 w-4 text-[#49a034]" />
               <h3 className="text-sm font-medium text-gray-900">Recent Downloads</h3>
             </div>
           </div>
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
@@ -428,9 +428,9 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                 <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 animate-stagger">
               {transferLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
+                <tr key={log.id} className="row-interactive">
                   <td className="px-6 py-3 text-sm text-gray-900">{log.remote_file_path.split("/").pop()}</td>
                   <td className="px-6 py-3 text-sm text-gray-500">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
                   <td className="px-6 py-3">

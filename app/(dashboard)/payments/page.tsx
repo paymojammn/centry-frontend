@@ -1,19 +1,28 @@
-"use client";
+/**
+ * Mobile Money Reconciliation Page
+ *
+ * Uses the consistent Centry design system with enhanced UI components.
+ */
 
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { PaymentReconciliationItem } from "@/components/payments/payment-reconciliation-item";
-import { 
-  Receipt, 
+'use client';
+
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PaymentReconciliationItem } from '@/components/payments/payment-reconciliation-item';
+import {
+  Receipt,
   AlertCircle,
-  CheckCircle2, 
+  CheckCircle2,
   Clock,
-  Wallet
-} from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+  Loader2,
+} from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { PageHeader } from '@/components/layout/page-header';
+import { StatsBar } from '@/components/layout/stats-bar';
+import { PageContainer } from '@/components/layout/page-container';
+import { ContentCard } from '@/components/layout/content-card';
 
 interface Transaction {
   id: string;
@@ -22,7 +31,7 @@ interface Transaction {
   reference: string;
   amount: number;
   balance: number;
-  transaction_type: "DEBIT" | "CREDIT";
+  transaction_type: 'DEBIT' | 'CREDIT';
   currency: string;
   match_status: string;
   source_type: string;
@@ -41,41 +50,41 @@ interface ReconciliationStats {
 }
 
 export default function PaymentsPage() {
-  const [activeTab, setActiveTab] = useState("reconcile");
+  const [activeTab, setActiveTab] = useState('reconcile');
   const queryClient = useQueryClient();
 
   // Fetch reconciliation summary stats
   const { data: stats } = useQuery<ReconciliationStats>({
-    queryKey: ["reconciliation-stats"],
-    queryFn: () => api.get("/api/v1/banking/transactions/reconciliation-summary/"),
+    queryKey: ['reconciliation-stats'],
+    queryFn: () => api.get('/api/v1/banking/transactions/reconciliation-summary/'),
   });
 
   // Fetch unmatched transactions (all sources)
   const { data: unmatchedData, isLoading: unmatchedLoading } = useQuery<{ results: Transaction[] }>({
-    queryKey: ["transactions-unmatched"],
+    queryKey: ['transactions-unmatched'],
     queryFn: () => {
       const params = new URLSearchParams();
-      params.append("match_status", "unmatched");
+      params.append('match_status', 'unmatched');
       return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
     },
   });
 
   // Fetch matched transactions
   const { data: matchedData, isLoading: matchedLoading } = useQuery<{ results: Transaction[] }>({
-    queryKey: ["transactions-matched"],
+    queryKey: ['transactions-matched'],
     queryFn: () => {
       const params = new URLSearchParams();
-      params.append("match_status", "matched");
+      params.append('match_status', 'matched');
       return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
     },
   });
 
   // Fetch posted transactions
   const { data: postedData, isLoading: postedLoading } = useQuery<{ results: Transaction[] }>({
-    queryKey: ["transactions-posted"],
+    queryKey: ['transactions-posted'],
     queryFn: () => {
       const params = new URLSearchParams();
-      params.append("match_status", "posted");
+      params.append('match_status', 'posted');
       return api.get(`/api/v1/banking/transactions/?${params.toString()}`);
     },
   });
@@ -85,186 +94,169 @@ export default function PaymentsPage() {
   const postedTransactions = postedData?.results || [];
 
   const handleTransactionUpdate = () => {
-    queryClient.invalidateQueries({ queryKey: ["transactions-unmatched"] });
-    queryClient.invalidateQueries({ queryKey: ["transactions-matched"] });
-    queryClient.invalidateQueries({ queryKey: ["transactions-posted"] });
-    queryClient.invalidateQueries({ queryKey: ["reconciliation-stats"] });
+    queryClient.invalidateQueries({ queryKey: ['transactions-unmatched'] });
+    queryClient.invalidateQueries({ queryKey: ['transactions-matched'] });
+    queryClient.invalidateQueries({ queryKey: ['transactions-posted'] });
+    queryClient.invalidateQueries({ queryKey: ['reconciliation-stats'] });
   };
 
+  // Stats bar data
+  const statsBarData = [
+    {
+      label: 'To Reconcile',
+      value: stats?.unmatched_count || 0,
+      color: '#f59e0b',
+      variant: (stats?.unmatched_count || 0) > 0 ? 'warning' as const : 'default' as const,
+    },
+    {
+      label: 'Unmatched Amount',
+      value: formatCurrency(stats?.total_unmatched_amount || 0, 'KES'),
+      color: '#f59e0b',
+    },
+    {
+      label: 'Matched',
+      value: stats?.matched_count || 0,
+      color: '#49a034',
+    },
+    {
+      label: 'Reconciled',
+      value: stats?.posted_count || 0,
+      color: '#49a034',
+    },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-black flex items-center gap-3">
-            <div className="p-2 bg-[#49a034]/10 rounded-lg">
-              <Wallet className="h-7 w-7 text-[#49a034]" />
-            </div>
-            Mobile Money
-          </h1>
-          <p className="text-gray-600 mt-2 ml-[52px]">
-            Match mobile money transactions with invoices and bills
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <PageHeader
+        title="Mobile Money"
+        subtitle="Match mobile money transactions with invoices and bills"
+      />
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">To Reconcile</p>
-              <p className="text-2xl font-bold text-orange-600 mt-2">
-                {stats?.unmatched_count || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {formatCurrency(stats?.total_unmatched_amount || 0, "KES")}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <AlertCircle className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
-        </Card>
+      <StatsBar stats={statsBarData} />
 
-        <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Matched</p>
-              <p className="text-2xl font-bold text-green-600 mt-2">
-                {stats?.matched_count || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Awaiting reconciliation</p>
-            </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <Clock className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
+      <PageContainer>
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-fade-in-up">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-gray-50 p-1">
+            <TabsTrigger
+              value="reconcile"
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <span>To Reconcile ({unmatchedTransactions.length})</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="matched"
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+            >
+              <Clock className="h-4 w-4" />
+              <span>Matched ({matchedTransactions.length})</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Reconciled ({postedTransactions.length})</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <Card className="p-6 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Reconciled</p>
-              <p className="text-2xl font-bold text-[#49a034] mt-2">
-                {stats?.posted_count || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Posted to ERP</p>
-            </div>
-            <div className="p-3 bg-[#49a034]/10 rounded-lg">
-              <CheckCircle2 className="h-6 w-6 text-[#49a034]" />
-            </div>
-          </div>
-        </Card>
-      </div>
+          {/* To Reconcile Tab */}
+          <TabsContent value="reconcile" className="space-y-4">
+            {unmatchedLoading ? (
+              <ContentCard>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                </div>
+              </ContentCard>
+            ) : unmatchedTransactions.length === 0 ? (
+              <ContentCard>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">All caught up!</p>
+                  <p className="text-xs text-gray-500 mt-1">No transactions to reconcile</p>
+                </div>
+              </ContentCard>
+            ) : (
+              <div className="space-y-4 animate-stagger">
+                {unmatchedTransactions.map((transaction) => (
+                  <PaymentReconciliationItem
+                    key={transaction.id}
+                    transaction={transaction}
+                    onUpdate={handleTransactionUpdate}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-gray-50 p-1">
-          <TabsTrigger 
-            value="reconcile" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
-          >
-            <AlertCircle className="h-4 w-4" />
-            <span>To Reconcile ({unmatchedTransactions.length})</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="matched" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
-          >
-            <Clock className="h-4 w-4" />
-            <span>Matched ({matchedTransactions.length})</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="history" 
-            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034]"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            <span>Reconciled ({postedTransactions.length})</span>
-          </TabsTrigger>
-        </TabsList>
+          {/* Matched Tab */}
+          <TabsContent value="matched" className="space-y-4">
+            {matchedLoading ? (
+              <ContentCard>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                </div>
+              </ContentCard>
+            ) : matchedTransactions.length === 0 ? (
+              <ContentCard>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">No matched transactions</p>
+                  <p className="text-xs text-gray-500 mt-1">Transactions you match will appear here</p>
+                </div>
+              </ContentCard>
+            ) : (
+              <div className="space-y-4 animate-stagger">
+                {matchedTransactions.map((transaction) => (
+                  <PaymentReconciliationItem
+                    key={transaction.id}
+                    transaction={transaction}
+                    onUpdate={handleTransactionUpdate}
+                    isMatched={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* To Reconcile Tab */}
-        <TabsContent value="reconcile" className="space-y-4">
-          {unmatchedLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
-              Loading transactions...
-            </div>
-          ) : unmatchedTransactions.length === 0 ? (
-            <Card className="p-12 text-center border-gray-100">
-              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
-              <p className="text-gray-500">No transactions to reconcile</p>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {unmatchedTransactions.map((transaction) => (
-                <PaymentReconciliationItem
-                  key={transaction.id}
-                  transaction={transaction}
-                  onUpdate={handleTransactionUpdate}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Matched Tab */}
-        <TabsContent value="matched" className="space-y-4">
-          {matchedLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
-              Loading transactions...
-            </div>
-          ) : matchedTransactions.length === 0 ? (
-            <Card className="p-12 text-center border-gray-100">
-              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No matched transactions</h3>
-              <p className="text-gray-500">Transactions you match will appear here</p>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {matchedTransactions.map((transaction) => (
-                <PaymentReconciliationItem
-                  key={transaction.id}
-                  transaction={transaction}
-                  onUpdate={handleTransactionUpdate}
-                  isMatched={true}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Reconciled Tab */}
-        <TabsContent value="history" className="space-y-4">
-          {postedLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-[#49a034] border-t-transparent rounded-full mx-auto mb-4"></div>
-              Loading transactions...
-            </div>
-          ) : postedTransactions.length === 0 ? (
-            <Card className="p-12 text-center border-gray-100">
-              <Receipt className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No reconciled transactions</h3>
-              <p className="text-gray-500">Reconciled transactions will appear here</p>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {postedTransactions.map((transaction) => (
-                <PaymentReconciliationItem
-                  key={transaction.id}
-                  transaction={transaction}
-                  onUpdate={handleTransactionUpdate}
-                  isReconciled={true}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          {/* Reconciled Tab */}
+          <TabsContent value="history" className="space-y-4">
+            {postedLoading ? (
+              <ContentCard>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                </div>
+              </ContentCard>
+            ) : postedTransactions.length === 0 ? (
+              <ContentCard>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <Receipt className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">No reconciled transactions</p>
+                  <p className="text-xs text-gray-500 mt-1">Reconciled transactions will appear here</p>
+                </div>
+              </ContentCard>
+            ) : (
+              <div className="space-y-4 animate-stagger">
+                {postedTransactions.map((transaction) => (
+                  <PaymentReconciliationItem
+                    key={transaction.id}
+                    transaction={transaction}
+                    onUpdate={handleTransactionUpdate}
+                    isReconciled={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </PageContainer>
     </div>
   );
 }
-

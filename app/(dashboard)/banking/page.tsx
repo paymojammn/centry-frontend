@@ -1,26 +1,26 @@
 /**
  * Banking Import Page
  *
- * Uses the consistent Centry design system.
+ * Uses the consistent Centry design system with enhanced UI components.
  */
 
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { FileUpload } from "@/components/banking/file-upload";
-import { ImportHistory } from "@/components/banking/import-history";
-import { StatsOverview } from "@/components/banking/stats-overview";
-import { TransactionList } from "@/components/banking/transaction-list";
-import { SFTPImport } from "@/components/banking/sftp-import";
-import { useOrganizations } from "@/hooks/use-organization";
-import { BarChart3, Upload, Server, FileText, List } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { PageContainer } from "@/components/layout/page-container";
-import { LoadingState } from "@/components/layout/loading-state";
+import { useState, useEffect } from 'react';
+import { FileUpload } from '@/components/banking/file-upload';
+import { ImportHistory } from '@/components/banking/import-history';
+import { StatsOverview } from '@/components/banking/stats-overview';
+import { TransactionList } from '@/components/banking/transaction-list';
+import { SFTPImport } from '@/components/banking/sftp-import';
+import { useOrganizations } from '@/hooks/use-organization';
+import { BarChart3, Upload, Server, FileText, List } from 'lucide-react';
+import { PageHeader } from '@/components/layout/page-header';
+import { PageContainer } from '@/components/layout/page-container';
+import { LoadingState } from '@/components/layout/loading-state';
 
 export default function BankingPage() {
   const [selectedImportId, setSelectedImportId] = useState<number | undefined>();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
@@ -36,12 +36,12 @@ export default function BankingPage() {
   }, [organizations, selectedOrganizationId]);
 
   const handleUploadComplete = () => {
-    setActiveTab("imports");
+    setActiveTab('imports');
   };
 
   const handleSelectImport = (importId: number) => {
     setSelectedImportId(importId);
-    setActiveTab("transactions");
+    setActiveTab('transactions');
   };
 
   if (orgsLoading) {
@@ -49,17 +49,18 @@ export default function BankingPage() {
   }
 
   const tabs = [
-    { value: "overview", label: "Overview", icon: BarChart3 },
-    { value: "upload", label: "Upload", icon: Upload },
-    { value: "sftp-import", label: "SFTP", icon: Server },
-    { value: "imports", label: "Imports", icon: FileText },
-    { value: "transactions", label: "Transactions", icon: List },
+    { value: 'overview', label: 'Overview', icon: BarChart3 },
+    { value: 'upload', label: 'Upload', icon: Upload },
+    { value: 'sftp-import', label: 'SFTP', icon: Server },
+    { value: 'imports', label: 'Imports', icon: FileText },
+    { value: 'transactions', label: 'Transactions', icon: List },
   ];
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
       <PageHeader
         title="Import"
+        subtitle="Import and manage bank statements"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
@@ -76,10 +77,10 @@ export default function BankingPage() {
                 <button
                   key={tab.value}
                   onClick={() => setActiveTab(tab.value)}
-                  className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors btn-press ${
                     activeTab === tab.value
-                      ? "border-[#49a034] text-[#49a034]"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? 'border-[#49a034] text-[#49a034]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -92,34 +93,36 @@ export default function BankingPage() {
       </div>
 
       <PageContainer>
-        {activeTab === "overview" && (
-          <StatsOverview organizationId={selectedOrganizationId || undefined} />
-        )}
-        {activeTab === "upload" && (
-          <FileUpload
-            onUploadComplete={handleUploadComplete}
-            organizationId={selectedOrganizationId || undefined}
-          />
-        )}
-        {activeTab === "sftp-import" && (
-          <SFTPImport
-            organizationId={selectedOrganizationId || undefined}
-            onImportComplete={handleUploadComplete}
-          />
-        )}
-        {activeTab === "imports" && (
-          <ImportHistory
-            onSelectImport={handleSelectImport}
-            selectedImportId={selectedImportId}
-            organizationId={selectedOrganizationId || undefined}
-          />
-        )}
-        {activeTab === "transactions" && (
-          <TransactionList
-            fileImportId={selectedImportId}
-            organizationId={selectedOrganizationId || undefined}
-          />
-        )}
+        <div className="animate-fade-in-up">
+          {activeTab === 'overview' && (
+            <StatsOverview organizationId={selectedOrganizationId || undefined} />
+          )}
+          {activeTab === 'upload' && (
+            <FileUpload
+              onUploadComplete={handleUploadComplete}
+              organizationId={selectedOrganizationId || undefined}
+            />
+          )}
+          {activeTab === 'sftp-import' && (
+            <SFTPImport
+              organizationId={selectedOrganizationId || undefined}
+              onImportComplete={handleUploadComplete}
+            />
+          )}
+          {activeTab === 'imports' && (
+            <ImportHistory
+              onSelectImport={handleSelectImport}
+              selectedImportId={selectedImportId}
+              organizationId={selectedOrganizationId || undefined}
+            />
+          )}
+          {activeTab === 'transactions' && (
+            <TransactionList
+              fileImportId={selectedImportId}
+              organizationId={selectedOrganizationId || undefined}
+            />
+          )}
+        </div>
       </PageContainer>
     </div>
   );

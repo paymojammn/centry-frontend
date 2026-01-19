@@ -231,7 +231,7 @@ export function BankReconciliationItem({
   const amountDifference = Math.abs(transaction.amount - selectedTotal);
 
   return (
-    <Card className="border-gray-200 overflow-hidden">
+    <Card className="border-gray-200/80 overflow-hidden shadow-sm rounded-xl">
       {/* Transaction Header */}
       <div className="bg-gray-50 p-4 flex items-center justify-between border-b">
         <div className="flex items-center gap-4 flex-1">
@@ -393,8 +393,8 @@ export function BankReconciliationItem({
                   </div>
 
                   {/* Matches Table */}
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full">
+                  <div className="border border-gray-200/80 rounded-xl overflow-hidden">
+                    <table className="w-full table-professional">
                       <thead className="bg-gray-50 border-b">
                         <tr>
                           <th className="text-left p-3 text-sm font-medium text-gray-700">Date</th>
@@ -404,7 +404,7 @@ export function BankReconciliationItem({
                           <th className="text-right p-3 text-sm font-medium text-gray-700">Received</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="animate-stagger">
                         {matchesLoading ? (
                           <tr>
                             <td colSpan={5} className="text-center py-8 text-gray-500">
@@ -421,7 +421,7 @@ export function BankReconciliationItem({
                           filteredMatches.map((match) => (
                             <tr
                               key={match.id}
-                              className={`border-b hover:bg-gray-50 cursor-pointer ${
+                              className={`border-b row-interactive cursor-pointer ${
                                 selectedMatches.includes(match.id) ? "bg-green-50" : ""
                               }`}
                               onClick={() => handleMatchSelect(match.id)}

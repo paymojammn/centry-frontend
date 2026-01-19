@@ -62,13 +62,16 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Organizations</h1>
-            <Button size="sm" className="h-9 bg-[#49a034] hover:bg-[#547568]">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Organizations</h1>
+              <p className="text-sm text-gray-500 mt-0.5">Manage your organizations and teams</p>
+            </div>
+            <Button size="sm" className="h-9 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
               <Plus className="h-4 w-4 mr-2" />
               Create Organization
             </Button>
@@ -104,9 +107,9 @@ export default function OrganizationsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up">
           {/* Search */}
-          <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm px-4 py-3">
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -120,21 +123,23 @@ export default function OrganizationsPage() {
 
           {/* Organizations Grid */}
           {isLoading ? (
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
               </div>
             </div>
           ) : filteredOrganizations.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-stagger">
               {filteredOrganizations.map((org) => (
                 <OrganizationCard key={org.id} organization={org} />
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-              <Building2 className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm text-center py-12">
+              <div className="p-3 bg-gray-100 rounded-xl w-14 h-14 mx-auto mb-3 flex items-center justify-center">
+                <Building2 className="h-7 w-7 text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-700">
                 {searchQuery ? 'No Organizations Found' : 'No Organizations Yet'}
               </p>
               <p className="text-xs text-gray-400 mt-1">
@@ -143,7 +148,7 @@ export default function OrganizationsPage() {
                   : 'Create one or ask to be invited'}
               </p>
               {!searchQuery && (
-                <Button size="sm" className="mt-4 bg-[#49a034] hover:bg-[#547568]">
+                <Button size="sm" className="mt-4 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Organization
                 </Button>
@@ -171,7 +176,7 @@ interface OrganizationCardProps {
 
 function OrganizationCard({ organization }: OrganizationCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+    <div className="bg-white border border-gray-200/80 rounded-xl shadow-sm card-lift">
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
@@ -220,7 +225,7 @@ function OrganizationCard({ organization }: OrganizationCardProps) {
         </div>
 
         {/* Action */}
-        <Button variant="outline" size="sm" className="w-full h-8" asChild>
+        <Button variant="outline" size="sm" className="w-full h-8 btn-press" asChild>
           <Link href={`/organizations/${organization.id}`}>
             View Details
             <ArrowRight className="h-3.5 w-3.5 ml-2" />
