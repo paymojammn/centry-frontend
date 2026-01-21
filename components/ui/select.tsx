@@ -36,8 +36,8 @@ function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.G
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
-function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
+function SelectValue({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  return <SelectPrimitive.Value data-slot="select-value" className={cn('text-gray-900', className)} {...props} />;
 }
 
 // Define size variants for SelectTrigger
@@ -45,7 +45,7 @@ const selectTriggerVariants = cva(
   `
     flex bg-white w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-shadow
     text-gray-900 data-placeholder:text-gray-400 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]
-    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1
+    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-gray-900
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10
   `,
@@ -148,7 +148,7 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn('py-1.5 ps-8 pe-2 text-xs text-muted-foreground font-medium', className)}
+      className={cn('py-1.5 ps-8 pe-2 text-xs text-gray-500 font-medium', className)}
       {...props}
     />
   );
@@ -213,7 +213,7 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn('-mx-1.5 my-1.5 h-px bg-border', className)}
+      className={cn('-mx-1.5 my-1.5 h-px bg-gray-200', className)}
       {...props}
     />
   );
