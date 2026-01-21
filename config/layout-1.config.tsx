@@ -18,38 +18,35 @@ export const MENU_SIDEBAR: MenuConfig = [
     path: "/dashboard",
   },
   { heading: "Financial Management" },
-  // Wallet - Commented out for later use
-  // {
-  //   title: "Wallet",
-  //   icon: Wallet,
-  //   path: "/wallet",
-  // },
+  {
+    title: "Wallet",
+    icon: Wallet,
+    path: "/wallet",
+  },
   {
     title: "Bills",
     icon: FileText,
     path: "/bills",
   },
-  // Expenses - Commented out for later use
-  // {
-  //   title: "Expenses",
-  //   icon: TrendingUp,
-  //   path: "/expenses",
-  // },
+  {
+    title: "Expenses",
+    icon: TrendingUp,
+    path: "/expenses",
+  },
   {
     title: "Contacts",
     icon: Users,
     path: "/vendors",
   },
-  // Mobile Money - Commented out for later use
-  // {
-  //   title: "Mobile Money",
-  //   icon: TrendingUp,
-  //   children: [
-  //     { title: "Reconciliation", path: "/payments" },
-  //     { title: "Make Payment", path: "/payments/new" },
-  //     { title: "Scheduled", path: "/payments/scheduled" },
-  //   ],
-  // },
+  {
+    title: "Mobile Money",
+    icon: TrendingUp,
+    children: [
+      { title: "Reconciliation", path: "/payments" },
+      { title: "Make Payment", path: "/payments/new" },
+      { title: "Scheduled", path: "/payments/scheduled" },
+    ],
+  },
   {
     title: "Banking",
     icon: Building,
@@ -67,12 +64,11 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: Briefcase,
     path: "/organizations",
   },
-  // Integrations - Commented out for later use
-  // {
-  //   title: "Integrations",
-  //   icon: Plug,
-  //   path: "/integrations/xero",
-  // },
+  {
+    title: "Integrations",
+    icon: Plug,
+    path: "/integrations/xero",
+  },
   { heading: "Settings" },
   {
     title: "Account",
