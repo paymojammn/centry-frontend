@@ -36,7 +36,7 @@ export function ContentCard({
       className={cn(
         variants[variant],
         'transition-all duration-200',
-        hover && 'hover:shadow-md hover:border-gray-300/80 hover:-translate-y-0.5',
+        hover && 'hover:shadow-md hover:border-gray-300/80 dark:hover:border-zinc-700 hover:-translate-y-0.5',
         noPadding ? '' : 'p-5',
         className
       )}

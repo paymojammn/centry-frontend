@@ -322,11 +322,11 @@ export default function BillsPage() {
                       placeholder="Search vendors, invoices..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 bg-white border-gray-200 text-sm"
+                      className="pl-9 h-9 bg-white border-gray-200 text-sm text-gray-900"
                     />
                   </div>
                   <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[140px] h-9 bg-white border-gray-200 text-sm">
+                    <SelectTrigger className="w-[140px] h-9 bg-white border-gray-200 text-sm text-gray-900">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>

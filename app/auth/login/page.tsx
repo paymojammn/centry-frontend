@@ -208,7 +208,7 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="username"
-                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
                     placeholder="you@company.com"
                   />
                 </div>
@@ -233,7 +233,7 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="current-password"
-                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
                     placeholder="Enter password"
                   />
                   <button
@@ -268,7 +268,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 bg-white text-sm text-gray-400">or</span>
+                <span className="px-3 bg-white text-sm text-gray-500">or</span>
               </div>
             </div>
 
@@ -287,7 +287,7 @@ export default function LoginPage() {
             </button>
 
             {/* Footer */}
-            <p className="mt-8 text-center text-sm text-gray-400">
+            <p className="mt-8 text-center text-sm text-gray-500">
               Don't have an account?{' '}
               <Link href="/auth/signup" className="text-[#1c252c] font-medium hover:underline">
                 Sign up
@@ -298,7 +298,7 @@ export default function LoginPage() {
 
         {/* Security footer */}
         <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             Protected by 256-bit SSL encryption
           </p>
         </div>
