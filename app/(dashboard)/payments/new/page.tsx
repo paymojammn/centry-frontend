@@ -168,50 +168,43 @@ export default function NewPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#49a034]/5">
+    <div className="min-h-screen bg-[#f8f9fa]">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="space-y-6">
-          {/* Header with brand gradient background */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#49a034] via-[#547568] to-[#456050] p-8 shadow-xl">
-            <div className="absolute inset-0 bg-black opacity-5"></div>
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-white/10"></div>
-            <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-40 w-40 rounded-full bg-white/10"></div>
-            <div className="relative">
-              <div className="text-white">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                    <Smartphone className="h-8 w-8" />
-                  </div>
-                  <h1 className="text-4xl font-bold tracking-tight">Send Mobile Money</h1>
-                </div>
-                <p className="text-white/90 text-lg mt-3 ml-16">
-                  Send payments to individuals or multiple recipients at once
-                </p>
+          {/* Header */}
+          <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 bg-[#49a034]/10 rounded-lg">
+                <Smartphone className="h-6 w-6 text-[#49a034]" />
               </div>
+              <h1 className="text-3xl font-semibold text-gray-900">Send Mobile Money</h1>
             </div>
+            <p className="text-gray-600 ml-12">
+              Send payments to individuals or multiple recipients at once
+            </p>
           </div>
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
-              <TabsList className="bg-gray-50 p-1.5 rounded-xl w-full grid grid-cols-3 gap-1">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
+              <TabsList className="bg-gray-50 p-1 rounded-lg w-full grid grid-cols-3 gap-1">
                 <TabsTrigger
                   value="single"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
                 >
                   <Smartphone className="h-4 w-4 mr-2" />
                   Single Payment
                 </TabsTrigger>
                 <TabsTrigger
                   value="bulk"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Bulk Payments
                 </TabsTrigger>
                 <TabsTrigger
                   value="lists"
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#49a034] data-[state=active]:to-[#547568] data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 transition-all font-medium"
+                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
                 >
                   <List className="h-4 w-4 mr-2" />
                   Saved Lists ({sendingLists.length})
@@ -221,54 +214,54 @@ export default function NewPaymentPage() {
 
             {/* Single Payment Tab */}
             <TabsContent value="single" className="space-y-6">
-              <Card className="border border-gray-100 shadow-lg rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                  <CardTitle className="text-xl font-semibold text-gray-900">Single Payment</CardTitle>
+              <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <div className="p-5 border-b border-gray-100">
+                  <CardTitle className="text-lg font-semibold text-gray-900">Single Payment</CardTitle>
                   <p className="text-sm text-gray-600 mt-1">Send money to one mobile number</p>
                 </div>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-6 space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="recipient-name">Recipient Name</Label>
+                    <Label htmlFor="recipient-name" className="text-gray-900">Recipient Name</Label>
                     <Input
                       id="recipient-name"
                       placeholder="Enter recipient name"
                       value={singlePayment.name}
                       onChange={(e) => setSinglePayment({ ...singlePayment, name: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
+                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone-number">Mobile Number</Label>
+                    <Label htmlFor="phone-number" className="text-gray-900">Mobile Number</Label>
                     <Input
                       id="phone-number"
                       placeholder="+256 XXX XXX XXX"
                       value={singlePayment.phoneNumber}
                       onChange={(e) => setSinglePayment({ ...singlePayment, phoneNumber: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
+                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (UGX)</Label>
+                    <Label htmlFor="amount" className="text-gray-900">Amount (UGX)</Label>
                     <Input
                       id="amount"
                       type="number"
                       placeholder="0.00"
                       value={singlePayment.amount}
                       onChange={(e) => setSinglePayment({ ...singlePayment, amount: e.target.value })}
-                      className="h-12 border-2 border-gray-200 focus:border-[#49a034] rounded-xl text-lg font-semibold"
+                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900 font-semibold"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Label htmlFor="description" className="text-gray-900">Description (Optional)</Label>
                     <Textarea
                       id="description"
                       placeholder="Payment description..."
                       value={singlePayment.description}
                       onChange={(e) => setSinglePayment({ ...singlePayment, description: e.target.value })}
-                      className="border-2 border-gray-200 focus:border-[#49a034] rounded-xl"
+                      className="border-gray-200 rounded-lg bg-white text-gray-900"
                       rows={3}
                     />
                   </div>
@@ -276,9 +269,9 @@ export default function NewPaymentPage() {
                   <Button
                     onClick={handleSendSinglePayment}
                     disabled={!singlePayment.phoneNumber || !singlePayment.amount}
-                    className="w-full h-12 bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md hover:shadow-lg transition-all text-lg font-semibold"
+                    className="w-full h-11 bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm transition-all font-medium"
                   >
-                    <Send className="h-5 w-5 mr-2" />
+                    <Send className="h-4 w-4 mr-2" />
                     Send Payment
                   </Button>
                 </CardContent>
@@ -288,49 +281,52 @@ export default function NewPaymentPage() {
             {/* Bulk Payments Tab */}
             <TabsContent value="bulk" className="space-y-6">
               {/* Action Buttons */}
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-3 flex-wrap">
                 <Dialog open={isAddRecipientOpen} onOpenChange={setIsAddRecipientOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-gradient-to-r from-[#49a034] to-[#547568] hover:from-[#547568] hover:to-[#456050] text-white shadow-md">
+                    <Button className="bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm">
                       <UserPlus className="h-4 w-4 mr-2" />
                       Add Recipient
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-white">
                     <DialogHeader>
-                      <DialogTitle>Add Recipient</DialogTitle>
-                      <DialogDescription>Add a new recipient to your payment list</DialogDescription>
+                      <DialogTitle className="text-gray-900">Add Recipient</DialogTitle>
+                      <DialogDescription className="text-gray-600">Add a new recipient to your payment list</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="new-name">Name</Label>
+                        <Label htmlFor="new-name" className="text-gray-900">Name</Label>
                         <Input
                           id="new-name"
                           placeholder="Recipient name"
                           value={newRecipient.name}
                           onChange={(e) => setNewRecipient({ ...newRecipient, name: e.target.value })}
+                          className="bg-white text-gray-900"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-phone">Mobile Number</Label>
+                        <Label htmlFor="new-phone" className="text-gray-900">Mobile Number</Label>
                         <Input
                           id="new-phone"
                           placeholder="+256 XXX XXX XXX"
                           value={newRecipient.phoneNumber}
                           onChange={(e) => setNewRecipient({ ...newRecipient, phoneNumber: e.target.value })}
+                          className="bg-white text-gray-900"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-amount">Amount (UGX)</Label>
+                        <Label htmlFor="new-amount" className="text-gray-900">Amount (UGX)</Label>
                         <Input
                           id="new-amount"
                           type="number"
                           placeholder="0.00"
                           value={newRecipient.amount}
                           onChange={(e) => setNewRecipient({ ...newRecipient, amount: e.target.value })}
+                          className="bg-white text-gray-900"
                         />
                       </div>
-                      <Button onClick={handleAddRecipient} className="w-full bg-[#49a034] hover:bg-[#547568]">
+                      <Button onClick={handleAddRecipient} className="w-full bg-[#49a034] hover:bg-[#3d8029]">
                         <Plus className="h-4 w-4 mr-2" />
                         Add to List
                       </Button>
