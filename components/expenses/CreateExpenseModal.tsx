@@ -138,13 +138,13 @@ export default function CreateExpenseModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Receipt className="h-6 w-6 text-[#49a034]" />
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
+            <Receipt className="h-5 w-5 text-[#49a034]" />
             {advanceRequestId ? 'Submit Accountability' : 'Submit Expense'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600">
             {advanceRequestId
               ? 'Submit receipts for your advance request'
               : 'Request advance payment or submit reimbursement claim'
@@ -156,22 +156,22 @@ export default function CreateExpenseModal({
           {/* Request Type - Only show if not accountability */}
           {!advanceRequestId && (
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Request Type</Label>
+              <Label className="text-sm font-medium text-gray-900">Request Type</Label>
               <RadioGroup value={type} onValueChange={(value) => setType(value as ExpenseType)}>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <label
                     htmlFor="advance"
-                    className={`flex items-center space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                    className={`flex items-center space-x-3 rounded-lg p-4 cursor-pointer transition-all ${
                       type === 'advance_request'
-                        ? 'border-[#49a034] bg-[#49a034]/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'bg-[#49a034]/10'
+                        : 'bg-gray-50 hover:bg-gray-100'
                     }`}
                   >
                     <RadioGroupItem value="advance_request" id="advance" />
                     <div className="flex items-center gap-2">
                       <Wallet className="h-5 w-5 text-[#49a034]" />
                       <div>
-                        <p className="font-medium text-sm">Advance Request</p>
+                        <p className="font-medium text-sm text-gray-900">Advance Request</p>
                         <p className="text-xs text-gray-500">Get money upfront</p>
                       </div>
                     </div>
@@ -179,17 +179,17 @@ export default function CreateExpenseModal({
 
                   <label
                     htmlFor="reimbursement"
-                    className={`flex items-center space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                    className={`flex items-center space-x-3 rounded-lg p-4 cursor-pointer transition-all ${
                       type === 'reimbursement'
-                        ? 'border-[#49a034] bg-[#49a034]/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'bg-[#49a034]/10'
+                        : 'bg-gray-50 hover:bg-gray-100'
                     }`}
                   >
                     <RadioGroupItem value="reimbursement" id="reimbursement" />
                     <div className="flex items-center gap-2">
                       <Receipt className="h-5 w-5 text-[#49a034]" />
                       <div>
-                        <p className="font-medium text-sm">Reimbursement</p>
+                        <p className="font-medium text-sm text-gray-900">Reimbursement</p>
                         <p className="text-xs text-gray-500">Already spent</p>
                       </div>
                     </div>
@@ -201,11 +201,11 @@ export default function CreateExpenseModal({
 
           {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-medium">
+            <Label htmlFor="category" className="text-sm font-medium text-gray-900">
               Category
             </Label>
             <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-white text-gray-900 border-0 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -223,7 +223,7 @@ export default function CreateExpenseModal({
 
           {/* Amount */}
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-sm font-medium">
+            <Label htmlFor="amount" className="text-sm font-medium text-gray-900">
               Amount ({currency})
             </Label>
             <Input
@@ -234,20 +234,21 @@ export default function CreateExpenseModal({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="text-lg font-semibold"
+              className="text-lg font-semibold bg-white text-gray-900 border-0 shadow-sm"
               required
             />
           </div>
 
           {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm font-medium">
+            <Label htmlFor="date" className="text-sm font-medium text-gray-900">
               Date
             </Label>
             <Input
               id="date"
               type="date"
               value={date}
+              className="bg-white text-gray-900 border-0 shadow-sm"
               onChange={(e) => setDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
               required
@@ -256,7 +257,7 @@ export default function CreateExpenseModal({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
+            <Label htmlFor="description" className="text-sm font-medium text-gray-900">
               Description
             </Label>
             <Textarea
@@ -265,7 +266,7 @@ export default function CreateExpenseModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="resize-none"
+              className="resize-none bg-white text-gray-900 border-0 shadow-sm"
               required
             />
           </div>
@@ -275,32 +276,32 @@ export default function CreateExpenseModal({
             <>
               {/* Payment Method */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Payment Method</Label>
+                <Label className="text-sm font-medium text-gray-900">Payment Method</Label>
                 <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'mobile_money' | 'wallet')}>
                   <div className="grid grid-cols-2 gap-3">
                     <label
                       htmlFor="mobile_money"
-                      className={`flex items-center space-x-3 border-2 rounded-lg p-3 cursor-pointer ${
-                        paymentMethod === 'mobile_money' ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200'
+                      className={`flex items-center space-x-3 rounded-lg p-3 cursor-pointer transition-all ${
+                        paymentMethod === 'mobile_money' ? 'bg-[#49a034]/10' : 'bg-gray-50 hover:bg-gray-100'
                       }`}
                     >
                       <RadioGroupItem value="mobile_money" id="mobile_money" />
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
-                        <span className="text-sm">Mobile Money</span>
+                        <CreditCard className="h-4 w-4 text-gray-700" />
+                        <span className="text-sm text-gray-900">Mobile Money</span>
                       </div>
                     </label>
 
                     <label
                       htmlFor="wallet"
-                      className={`flex items-center space-x-3 border-2 rounded-lg p-3 cursor-pointer ${
-                        paymentMethod === 'wallet' ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200'
+                      className={`flex items-center space-x-3 rounded-lg p-3 cursor-pointer transition-all ${
+                        paymentMethod === 'wallet' ? 'bg-[#49a034]/10' : 'bg-gray-50 hover:bg-gray-100'
                       }`}
                     >
                       <RadioGroupItem value="wallet" id="wallet" />
                       <div className="flex items-center gap-2">
-                        <Wallet className="h-4 w-4" />
-                        <span className="text-sm">Wallet</span>
+                        <Wallet className="h-4 w-4 text-gray-700" />
+                        <span className="text-sm text-gray-900">Wallet</span>
                       </div>
                     </label>
                   </div>
@@ -310,7 +311,7 @@ export default function CreateExpenseModal({
               {/* Phone Number (only for mobile money) */}
               {paymentMethod === 'mobile_money' && (
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-900">
                     Mobile Money Number
                   </Label>
                   <Input
@@ -319,6 +320,7 @@ export default function CreateExpenseModal({
                     placeholder="256700000000"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="bg-white text-gray-900 border-0 shadow-sm"
                     required
                   />
                   <p className="text-xs text-gray-500">Enter your MTN or Airtel number</p>
@@ -329,10 +331,10 @@ export default function CreateExpenseModal({
 
           {/* Receipt Upload */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">
+            <Label className="text-sm font-medium text-gray-900">
               Receipts {type === 'reimbursement' || advanceRequestId ? '(Required)' : '(Optional)'}
             </Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#49a034] transition-colors">
+            <div className="rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors">
               <input
                 type="file"
                 id="receipt-upload"
@@ -345,11 +347,11 @@ export default function CreateExpenseModal({
                 htmlFor="receipt-upload"
                 className="cursor-pointer flex flex-col items-center gap-2 text-center"
               >
-                <div className="p-3 bg-gray-50 rounded-full">
-                  <Upload className="h-6 w-6 text-gray-600" />
+                <div className="p-3 bg-white rounded-full shadow-sm">
+                  <Upload className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-900">
                     Click to upload receipts
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -362,11 +364,11 @@ export default function CreateExpenseModal({
             {/* Uploaded Files */}
             {receiptFiles.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-gray-700">Uploaded Files:</p>
+                <p className="text-sm font-medium text-gray-900">Uploaded Files:</p>
                 {receiptFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <FileText className="h-5 w-5 text-gray-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -391,20 +393,20 @@ export default function CreateExpenseModal({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 pt-4 border-t">
+          <div className="flex items-center gap-3 pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={isPending}
-              className="flex-1"
+              className="flex-1 border-0 bg-gray-50 text-gray-700 hover:bg-gray-100"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isPending}
-              className="flex-1 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
+              className="flex-1 bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm"
             >
               {isPending ? 'Submitting...' : 'Submit Expense'}
             </Button>

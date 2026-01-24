@@ -91,6 +91,9 @@ export default function BankReconciliationPage() {
     ? organizationsResponse
     : (organizationsResponse as any)?.results || [];
 
+  const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
+  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
+
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse
     : (erpConnectionsResponse as any)?.results || [];
@@ -325,7 +328,7 @@ export default function BankReconciliationPage() {
             <StatPill label="Matched" value={stats?.matched_count || 0} color="blue" />
             <StatPill label="Posted" value={stats?.posted_count || 0} color="green" />
             <div className="ml-auto text-sm text-gray-500">
-              {formatCurrency(stats?.total_unmatched_amount || 0, "UGX")} unreconciled
+              {formatCurrency(stats?.total_unmatched_amount || 0, organizationCurrency)} unreconciled
             </div>
           </div>
         </div>

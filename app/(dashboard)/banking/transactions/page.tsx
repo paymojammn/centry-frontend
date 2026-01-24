@@ -127,6 +127,9 @@ export default function BankTransactionsPage() {
     ? organizationsResponse
     : (organizationsResponse as any)?.results || [];
 
+  const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
+  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
+
   useEffect(() => {
     if (!selectedOrganizationId && organizations?.length > 0) {
       setSelectedOrganizationId(organizations[0].id);
@@ -332,8 +335,8 @@ export default function BankTransactionsPage() {
           {activeTab === "imports" ? (
             <div className="flex items-center gap-6 text-sm">
               <StatPill label="Total" value={importStats.total} color="blue" />
-              <StatPill label="Debits" value={`-${formatCurrency(importStats.debits, "UGX")}`} color="orange" />
-              <StatPill label="Credits" value={`+${formatCurrency(importStats.credits, "UGX")}`} color="green" />
+              <StatPill label="Debits" value={`-${formatCurrency(importStats.debits, organizationCurrency)}`} color="orange" />
+              <StatPill label="Credits" value={`+${formatCurrency(importStats.credits, organizationCurrency)}`} color="green" />
               <StatPill label="Posted" value={importStats.posted} color="teal" />
               {selectedTransactions.length > 0 && (
                 <div className="ml-auto flex items-center gap-2">
@@ -347,7 +350,7 @@ export default function BankTransactionsPage() {
             <div className="flex items-center gap-6 text-sm">
               <StatPill label="Files" value={exportStats.files} color="blue" />
               <StatPill label="Payments" value={exportStats.payments} color="amber" />
-              <StatPill label="Total" value={formatCurrency(exportStats.amount, "UGX")} color="orange" />
+              <StatPill label="Total" value={formatCurrency(exportStats.amount, organizationCurrency)} color="orange" />
               <StatPill label="Uploaded" value={exportStats.uploaded} color="green" />
             </div>
           )}

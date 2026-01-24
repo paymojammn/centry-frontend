@@ -23,6 +23,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { StatsBar } from '@/components/layout/stats-bar';
 import { PageContainer } from '@/components/layout/page-container';
 import { ContentCard } from '@/components/layout/content-card';
+import { useOrganizations } from '@/hooks/use-organization';
 
 interface Transaction {
   id: string;
@@ -52,6 +53,14 @@ interface ReconciliationStats {
 export default function PaymentsPage() {
   const [activeTab, setActiveTab] = useState('reconcile');
   const queryClient = useQueryClient();
+
+  // Get organization for currency
+  const { data: organizationsResponse } = useOrganizations();
+  const organizations = Array.isArray(organizationsResponse)
+    ? organizationsResponse
+    : (organizationsResponse as any)?.results || [];
+  const currentOrganization = organizations?.[0];
+  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
 
   // Fetch reconciliation summary stats
   const { data: stats } = useQuery<ReconciliationStats>({
@@ -110,7 +119,7 @@ export default function PaymentsPage() {
     },
     {
       label: 'Unmatched Amount',
-      value: formatCurrency(stats?.total_unmatched_amount || 0, 'KES'),
+      value: formatCurrency(stats?.total_unmatched_amount || 0, organizationCurrency),
       color: '#f59e0b',
     },
     {

@@ -273,7 +273,7 @@ export default function ExpensesPage() {
             isOpen={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
             organizationId={selectedOrganizationId}
-            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
           />
 
           <PayExpensesModal
@@ -284,6 +284,7 @@ export default function ExpensesPage() {
             }}
             expenses={selectedExpenses}
             organizationId={selectedOrganizationId}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
           />
         </>
       )}

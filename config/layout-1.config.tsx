@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   Briefcase,
   Building,
   FileText,
@@ -58,16 +59,21 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Accounts", path: "/banking/accounts" },
     ],
   },
+  {
+    title: "Reports",
+    icon: BarChart3,
+    children: [
+      { title: "Dashboard", path: "/reports" },
+      { title: "Financial Overview", path: "/reports/financial" },
+      { title: "Expense Analytics", path: "/reports/expenses" },
+      { title: "Transactions", path: "/reports/transactions" },
+    ],
+  },
   { heading: "Organization" },
   {
     title: "Organizations",
     icon: Briefcase,
     path: "/organizations",
-  },
-  {
-    title: "Integrations",
-    icon: Plug,
-    path: "/integrations/xero",
   },
   { heading: "Settings" },
   {
