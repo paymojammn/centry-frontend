@@ -14,9 +14,14 @@ import type {
   ApproveExpenseRequest,
   PayExpenseRequest,
   PayExpenseResponse,
+  ExpensePaymentRequest,
+  CreatePaymentRequestPayload,
+  PaymentRequestStats,
+  PaymentRequestStatus,
 } from '@/types/expense';
 
 const EXPENSES_BASE_URL = '/api/v1/expenses';
+const PAYMENT_REQUESTS_URL = '/api/v1/expenses/payment-requests';
 
 export const expensesApi = {
   /**
@@ -145,5 +150,105 @@ export const expensesApi = {
   async getPaymentProviders(): Promise<any> {
     const response = await api.get(`${EXPENSES_BASE_URL}/payment_providers/`);
     return response;
+  },
+
+  /**
+   * Upload receipts for an expense (for manager_approved expenses needing accountability)
+   */
+  async uploadReceipts(expenseId: string, files: File[]): Promise<Expense> {
+    const formData = new FormData();
+    files.forEach((file, index) => {
+      formData.append(`receipt_${index}`, file);
+    });
+
+    const response = await api.post<Expense>(
+      `${EXPENSES_BASE_URL}/${expenseId}/upload_receipts/`,
+      formData
+    );
+    return response;
+  },
+};
+
+// Payment Request API
+export const paymentRequestsApi = {
+  /**
+   * Get all payment requests with filters
+   */
+  async getPaymentRequests(
+    filters?: {
+      status?: PaymentRequestStatus | 'all';
+      organization_id?: string;
+      payment_method?: string;
+    }
+  ): Promise<{ results: ExpensePaymentRequest[]; count: number }> {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters?.organization_id) params.append('organization_id', filters.organization_id);
+    if (filters?.payment_method) params.append('payment_method', filters.payment_method);
+
+    const queryString = params.toString();
+    const url = queryString ? `${PAYMENT_REQUESTS_URL}/?${queryString}` : `${PAYMENT_REQUESTS_URL}/`;
+
+    return api.get(url);
+  },
+
+  /**
+   * Get pending payment requests (for approval queue)
+   */
+  async getPendingPaymentRequests(
+    organizationId?: string
+  ): Promise<{ results: ExpensePaymentRequest[]; count: number; total_amount: string }> {
+    const params = organizationId ? `?organization_id=${organizationId}` : '';
+    return api.get(`${PAYMENT_REQUESTS_URL}/pending/${params}`);
+  },
+
+  /**
+   * Get payment request statistics
+   */
+  async getPaymentRequestStats(organizationId?: string): Promise<PaymentRequestStats> {
+    const params = organizationId ? `?organization_id=${organizationId}` : '';
+    return api.get(`${PAYMENT_REQUESTS_URL}/stats/${params}`);
+  },
+
+  /**
+   * Get a single payment request
+   */
+  async getPaymentRequest(requestId: string): Promise<ExpensePaymentRequest> {
+    return api.get(`${PAYMENT_REQUESTS_URL}/${requestId}/`);
+  },
+
+  /**
+   * Create a new payment request
+   */
+  async createPaymentRequest(payload: CreatePaymentRequestPayload): Promise<ExpensePaymentRequest> {
+    return api.post(`${PAYMENT_REQUESTS_URL}/`, payload);
+  },
+
+  /**
+   * Approve a payment request
+   */
+  async approvePaymentRequest(requestId: string, notes?: string): Promise<ExpensePaymentRequest> {
+    return api.post(`${PAYMENT_REQUESTS_URL}/${requestId}/approve/`, { notes });
+  },
+
+  /**
+   * Reject a payment request
+   */
+  async rejectPaymentRequest(requestId: string, reason: string): Promise<ExpensePaymentRequest> {
+    return api.post(`${PAYMENT_REQUESTS_URL}/${requestId}/reject/`, { reason });
+  },
+
+  /**
+   * Process an approved payment request
+   */
+  async processPaymentRequest(requestId: string): Promise<ExpensePaymentRequest> {
+    return api.post(`${PAYMENT_REQUESTS_URL}/${requestId}/process/`, {});
+  },
+
+  /**
+   * Cancel a payment request
+   */
+  async cancelPaymentRequest(requestId: string): Promise<ExpensePaymentRequest> {
+    return api.post(`${PAYMENT_REQUESTS_URL}/${requestId}/cancel/`, {});
   },
 };

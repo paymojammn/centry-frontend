@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useExpenses, useExpenseStats, useApproveExpense } from '@/hooks/use-expenses';
+import { useExpenses, useExpenseStats, useApproveExpense, usePaymentRequestStats } from '@/hooks/use-expenses';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
   Receipt,
@@ -21,6 +21,10 @@ import {
   ThumbsUp,
   ThumbsDown,
   Loader2,
+  CreditCard,
+  Pencil,
+  Upload,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +32,9 @@ import type { ExpenseFilters, Expense, ExpenseCategory, ExpenseStatus } from '@/
 import { EXPENSE_CATEGORIES } from '@/types/expense';
 import CreateExpenseModal from '@/components/expenses/CreateExpenseModal';
 import PayExpensesModal from '@/components/expenses/PayExpensesModal';
+import PaymentApprovalQueue from '@/components/expenses/PaymentApprovalQueue';
+import EditExpenseModal from '@/components/expenses/EditExpenseModal';
+import ExpenseDetailModal from '@/components/expenses/ExpenseDetailModal';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatsBar } from '@/components/layout/stats-bar';
 import { PageContainer } from '@/components/layout/page-container';
@@ -54,7 +61,12 @@ export default function ExpensesPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedExpenses, setSelectedExpenses] = useState<Expense[]>([]);
+  const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
+  const [expenseToView, setExpenseToView] = useState<Expense | null>(null);
+  const [activeView, setActiveView] = useState<'expenses' | 'payment-queue'>('expenses');
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
 
@@ -66,6 +78,7 @@ export default function ExpensesPage() {
 
   const { data: expensesResponse, isLoading, error, refetch } = useExpenses(expenseFilters);
   const { data: stats } = useExpenseStats(selectedOrganizationId || undefined);
+  const { data: paymentRequestStats } = usePaymentRequestStats(selectedOrganizationId || undefined);
 
   // Handle both array format and paginated format { results: [] }
   const expenses = Array.isArray(expensesResponse)
@@ -157,6 +170,37 @@ export default function ExpensesPage() {
         onOrganizationChange={setSelectedOrganizationId}
         isLoadingOrgs={orgsLoading}
       >
+        {/* View Toggle */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setActiveView('expenses')}
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              activeView === 'expenses'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Receipt className="h-3.5 w-3.5 inline mr-1.5" />
+            Expenses
+          </button>
+          <button
+            onClick={() => setActiveView('payment-queue')}
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors relative ${
+              activeView === 'payment-queue'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <CreditCard className="h-3.5 w-3.5 inline mr-1.5" />
+            Payment Queue
+            {paymentRequestStats?.pending?.count && paymentRequestStats.pending.count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {paymentRequestStats.pending.count}
+              </span>
+            )}
+          </button>
+        </div>
+
         <Button
           variant="outline"
           size="sm"
@@ -166,95 +210,112 @@ export default function ExpensesPage() {
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
           Refresh
         </Button>
-        <Button
-          size="sm"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
-        >
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
-          New Expense
-        </Button>
+        {activeView === 'expenses' && (
+          <Button
+            size="sm"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            New Expense
+          </Button>
+        )}
       </PageHeader>
 
       <StatsBar stats={statsBarData} />
 
       <PageContainer>
-        <div className="space-y-4 animate-fade-in-up">
-          {/* Tabs and Filters */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center justify-between gap-4">
-                {/* Tabs */}
-                <div className="flex items-center gap-1">
-                  {tabOptions.map((tab) => (
-                    <button
-                      key={tab.value}
-                      onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors btn-press ${
-                        filters.status === tab.value
-                          ? 'bg-[#49a034] text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
+        {activeView === 'expenses' ? (
+          <div className="space-y-4 animate-fade-in-up">
+            {/* Tabs and Filters */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between gap-4">
+                  {/* Tabs */}
+                  <div className="flex items-center gap-1">
+                    {tabOptions.map((tab) => (
+                      <button
+                        key={tab.value}
+                        onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition-colors btn-press ${
+                          filters.status === tab.value
+                            ? 'bg-[#49a034] text-white'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search expenses..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Expenses Table */}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                </div>
+              ) : error ? (
+                <EmptyState
+                  icon={Receipt}
+                  title="Error Loading Expenses"
+                  description={(error as any).message}
+                />
+              ) : !displayExpenses || displayExpenses.length === 0 ? (
+                <EmptyState
+                  icon={Receipt}
+                  title="No Expenses Found"
+                  description={searchQuery ? 'Try adjusting your search criteria' : 'There are no expenses to display'}
+                  action={
+                    <Button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      size="sm"
+                      className="bg-[#49a034] text-white hover:bg-[#3d8a2b] btn-press"
                     >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Search */}
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search expenses..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
-                  />
-                </div>
-              </div>
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Create Expense
+                    </Button>
+                  }
+                />
+              ) : (
+                <ExpensesTable
+                  expenses={displayExpenses}
+                  selectedExpenses={selectedExpenses}
+                  onSelectExpenses={setSelectedExpenses}
+                  onRefresh={handleRefresh}
+                  onViewExpense={(expense) => {
+                    setExpenseToView(expense);
+                    setIsViewModalOpen(true);
+                  }}
+                  onEditExpense={(expense) => {
+                    setExpenseToEdit(expense);
+                    setIsEditModalOpen(true);
+                  }}
+                />
+              )}
             </div>
-
-            {/* Expenses Table */}
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
-              </div>
-            ) : error ? (
-              <EmptyState
-                icon={Receipt}
-                title="Error Loading Expenses"
-                description={(error as any).message}
-              />
-            ) : !displayExpenses || displayExpenses.length === 0 ? (
-              <EmptyState
-                icon={Receipt}
-                title="No Expenses Found"
-                description={searchQuery ? 'Try adjusting your search criteria' : 'There are no expenses to display'}
-                action={
-                  <Button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    size="sm"
-                    className="bg-[#49a034] text-white hover:bg-[#3d8a2b] btn-press"
-                  >
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Create Expense
-                  </Button>
-                }
-              />
-            ) : (
-              <ExpensesTable
-                expenses={displayExpenses}
-                selectedExpenses={selectedExpenses}
-                onSelectExpenses={setSelectedExpenses}
-                onRefresh={handleRefresh}
-              />
-            )}
           </div>
-        </div>
+        ) : (
+          <PaymentApprovalQueue
+            organizationId={selectedOrganizationId || undefined}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
+          />
+        )}
       </PageContainer>
 
       {/* Floating Pay Button */}
-      {selectedExpenses.length > 0 && (
+      {activeView === 'expenses' && selectedExpenses.length > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
           <Button
             onClick={() => setIsPayModalOpen(true)}
@@ -286,6 +347,31 @@ export default function ExpensesPage() {
             organizationId={selectedOrganizationId}
             currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
           />
+
+          <EditExpenseModal
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setExpenseToEdit(null);
+              handleRefresh();
+            }}
+            expense={expenseToEdit}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
+          />
+
+          <ExpenseDetailModal
+            isOpen={isViewModalOpen}
+            onClose={() => {
+              setIsViewModalOpen(false);
+              setExpenseToView(null);
+            }}
+            expense={expenseToView}
+            onEdit={() => {
+              setExpenseToEdit(expenseToView);
+              setIsEditModalOpen(true);
+            }}
+            currency={organizations?.find((org: any) => org.id === selectedOrganizationId)?.primary_currency || organizations?.find((org: any) => org.id === selectedOrganizationId)?.currency || 'UGX'}
+          />
         </>
       )}
     </div>
@@ -298,9 +384,11 @@ interface ExpensesTableProps {
   selectedExpenses: Expense[];
   onSelectExpenses: (expenses: Expense[]) => void;
   onRefresh: () => void;
+  onViewExpense: (expense: Expense) => void;
+  onEditExpense: (expense: Expense) => void;
 }
 
-function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh }: ExpensesTableProps) {
+function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh, onViewExpense, onEditExpense }: ExpensesTableProps) {
   const { mutate: approveExpense, isPending: isApproving } = useApproveExpense();
 
   // Handle approve/reject actions
@@ -318,9 +406,11 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
     );
   };
 
-  // Only approved and unpaid expenses can be selected for payment
+  // Approved, manager_approved (pay before receipts), and partially paid expenses can be selected
   const payableExpenses = expenses.filter(
-    (expense) => expense.status === 'approved' && expense.payment_status === 'unpaid'
+    (expense) =>
+      (expense.status === 'approved' || expense.status === 'manager_approved') &&
+      (expense.payment_status === 'unpaid' || expense.payment_status === 'partial')
   );
 
   const isExpenseSelected = (expense: Expense) => {
@@ -328,7 +418,10 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
   };
 
   const canSelectExpense = (expense: Expense) => {
-    return expense.status === 'approved' && expense.payment_status === 'unpaid';
+    return (
+      (expense.status === 'approved' || expense.status === 'manager_approved') &&
+      (expense.payment_status === 'unpaid' || expense.payment_status === 'partial')
+    );
   };
 
   const toggleExpenseSelection = (expense: Expense) => {
@@ -351,6 +444,15 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
 
   const getCategoryInfo = (category: ExpenseCategory) => {
     return EXPENSE_CATEGORIES.find((c) => c.value === category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
+  };
+
+  // Check if expense can be edited/have receipts uploaded
+  const canEditExpense = (expense: Expense) => {
+    return (
+      expense.status === 'draft' ||
+      expense.status === 'rejected' ||
+      expense.status === 'manager_approved'
+    );
   };
 
   const getStatusBadge = (status: ExpenseStatus) => {
@@ -462,18 +564,60 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                   <div className="text-sm font-medium text-gray-900">
                     {expense.currency} {parseFloat(expense.amount).toLocaleString()}
                   </div>
+                  {expense.payment_status === 'partial' && expense.remaining_amount && (
+                    <div className="text-xs text-amber-600">
+                      Remaining: {expense.currency} {parseFloat(expense.remaining_amount).toLocaleString()}
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <StatusBadge status={expense.status} />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <StatusBadge
-                    status={expense.payment_status === 'paid' ? 'paid' : expense.payment_status === 'processing' ? 'processing' : 'pending'}
-                    label={expense.payment_status === 'paid' ? 'Paid' : expense.payment_status === 'processing' ? 'Processing' : 'Unpaid'}
+                    status={
+                      expense.payment_status === 'paid' ? 'paid' :
+                      expense.payment_status === 'partial' ? 'warning' :
+                      expense.payment_status === 'processing' ? 'processing' : 'pending'
+                    }
+                    label={
+                      expense.payment_status === 'paid' ? 'Paid' :
+                      expense.payment_status === 'partial' ? 'Partial' :
+                      expense.payment_status === 'processing' ? 'Processing' : 'Unpaid'
+                    }
                   />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {/* View button */}
+                    <Button
+                      onClick={() => onViewExpense(expense)}
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-gray-600 hover:text-gray-900 border-gray-200"
+                      title="View Details"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+
+                    {/* Edit/Upload Receipts button */}
+                    {canEditExpense(expense) && (
+                      <Button
+                        onClick={() => onEditExpense(expense)}
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-gray-600 hover:text-gray-900 border-gray-200"
+                        title={expense.status === 'manager_approved' ? 'Upload Receipts' : 'Edit'}
+                      >
+                        {expense.status === 'manager_approved' ? (
+                          <Upload className="h-3 w-3" />
+                        ) : (
+                          <Pencil className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+
+                    {/* Approve/Reject buttons */}
                     {(expense.status === 'pending_manager_approval' || expense.status === 'pending_finance_approval') && (
                       <>
                         <Button

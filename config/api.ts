@@ -155,3 +155,15 @@ export function buildApiUrl(endpoint: string): string {
   const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${normalizedBase}${normalizedPath}`;
 }
+
+// Helper to build full media URL (for receipts, attachments, etc.)
+export function buildMediaUrl(path: string | null | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('http')) {
+    return path;
+  }
+  const base = getApiUrl();
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+}

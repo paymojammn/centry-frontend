@@ -205,7 +205,7 @@ export default function CreateExpenseModal({
               Category
             </Label>
             <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory)}>
-              <SelectTrigger className="w-full bg-white text-gray-900 border-0 shadow-sm">
+              <SelectTrigger className="w-full bg-white text-gray-900 border border-gray-200 focus:border-[#49a034]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -234,7 +234,7 @@ export default function CreateExpenseModal({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="text-lg font-semibold bg-white text-gray-900 border-0 shadow-sm"
+              className="text-lg font-semibold bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
               required
             />
           </div>
@@ -248,7 +248,7 @@ export default function CreateExpenseModal({
               id="date"
               type="date"
               value={date}
-              className="bg-white text-gray-900 border-0 shadow-sm"
+              className="bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
               onChange={(e) => setDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
               required
@@ -266,7 +266,7 @@ export default function CreateExpenseModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="resize-none bg-white text-gray-900 border-0 shadow-sm"
+              className="resize-none bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
               required
             />
           </div>
@@ -320,7 +320,7 @@ export default function CreateExpenseModal({
                     placeholder="256700000000"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="bg-white text-gray-900 border-0 shadow-sm"
+                    className="bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
                     required
                   />
                   <p className="text-xs text-gray-500">Enter your MTN or Airtel number</p>

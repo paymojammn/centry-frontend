@@ -1,36 +1,32 @@
 /**
  * Pay Expenses Modal
  *
- * Modal for paying approved expenses using wallet, mobile money, or bank transfer
+ * Compact modal for creating payment requests for approved expenses.
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePayExpenses } from '@/hooks/use-expenses';
-import { useWalletBalance } from '@/hooks/use-wallet';
+import { useCreatePaymentRequest } from '@/hooks/use-expenses';
+import { useDepartmentWallets } from '@/hooks/use-wallet';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Wallet,
   Smartphone,
   Building2,
-  CreditCard,
   AlertCircle,
-  CheckCircle2,
-  DollarSign,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
-import type { Expense } from '@/types/expense';
+import type { Expense, PaymentRequestMethod } from '@/types/expense';
 import { toast } from 'sonner';
 
 interface PayExpensesModalProps {
@@ -48,395 +44,370 @@ export default function PayExpensesModal({
   organizationId,
   currency = 'UGX',
 }: PayExpensesModalProps) {
-  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'mobile_money' | 'bank'>('wallet');
-  const [walletType, setWalletType] = useState<'personal' | 'organizational'>('personal');
-  const [departmentWallet, setDepartmentWallet] = useState<string>('');
-  const [paymentProvider, setPaymentProvider] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [bankName, setBankName] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentRequestMethod>('wallet');
+  const [selectedWalletId, setSelectedWalletId] = useState<string>('');
+  const [destinationPhone, setDestinationPhone] = useState('');
+  const [destinationBankName, setDestinationBankName] = useState('');
+  const [destinationAccountName, setDestinationAccountName] = useState('');
+  const [destinationAccountNumber, setDestinationAccountNumber] = useState('');
+  const [notes, setNotes] = useState('');
+  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
+  const [showAmountEditor, setShowAmountEditor] = useState(false);
 
-  const { data: walletBalance } = useWalletBalance(currency);
-  const { mutate: payExpenses, isPending } = usePayExpenses();
+  const { data: walletsData, isLoading: walletsLoading } = useDepartmentWallets(organizationId);
+  const departmentWallets = walletsData?.results || [];
+  const { mutate: createPaymentRequest, isPending } = useCreatePaymentRequest();
 
-  // Available department wallets (this should come from an API in real implementation)
-  const departmentWallets = [
-    { id: 'finance', name: 'Finance Department', balance: '500000.00' },
-    { id: 'operations', name: 'Operations Department', balance: '750000.00' },
-    { id: 'sales', name: 'Sales Department', balance: '300000.00' },
-  ];
+  const selectedWallet = departmentWallets.find((w: any) => w.id === selectedWalletId);
 
-  // Get selected wallet balance
-  const getWalletBalance = () => {
-    if (walletType === 'personal') {
-      return parseFloat(walletBalance?.balance || '0');
-    } else {
-      const dept = departmentWallets.find(d => d.id === departmentWallet);
-      return dept ? parseFloat(dept.balance) : 0;
+  const getPayableAmount = (expense: Expense): number => {
+    if (expense.payment_status === 'partial' && expense.remaining_amount) {
+      return parseFloat(expense.remaining_amount);
     }
+    return parseFloat(expense.amount);
   };
 
-  const currentWalletBalance = getWalletBalance();
+  const getPaymentAmount = (expense: Expense): number => {
+    const customAmount = customAmounts[expense.id];
+    if (customAmount && !isNaN(parseFloat(customAmount))) {
+      return parseFloat(customAmount);
+    }
+    return getPayableAmount(expense);
+  };
 
-  // Calculate total amount
-  const totalAmount = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+  const totalAmount = expenses.reduce((sum, expense) => sum + getPaymentAmount(expense), 0);
+  const hasPartialPayments = expenses.some((e) => e.payment_status === 'partial');
+  const hasCustomAmounts = Object.values(customAmounts).some((v) => v && v.trim() !== '');
 
-  // Check if wallet has sufficient balance
-  const hasSufficientBalance = currentWalletBalance >= totalAmount;
+  const hasSufficientBalance = selectedWallet
+    ? parseFloat(selectedWallet.balance) >= totalAmount
+    : false;
 
-  // Reset phone/account fields when payment method changes
+  // Reset on method change
   useEffect(() => {
-    setPhoneNumber('');
-    setAccountNumber('');
-    setBankName('');
-    setPaymentProvider('');
-    setWalletType('personal');
-    setDepartmentWallet('');
+    setDestinationPhone('');
+    setDestinationBankName('');
+    setDestinationAccountName('');
+    setDestinationAccountNumber('');
+    if (paymentMethod !== 'wallet') setSelectedWalletId('');
   }, [paymentMethod]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Reset custom amounts on expense change
+  useEffect(() => {
+    setCustomAmounts({});
+    setShowAmountEditor(false);
+  }, [expenses]);
+
+  // Set default phone
+  useEffect(() => {
+    if (expenses.length > 0 && expenses[0].phone_number) {
+      setDestinationPhone(expenses[0].phone_number);
+    }
+  }, [expenses]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate based on payment method
-    if (paymentMethod === 'mobile_money' && !phoneNumber) {
+    if (paymentMethod === 'wallet' && !selectedWalletId) {
+      toast.error('Please select a wallet');
+      return;
+    }
+    if (paymentMethod === 'wallet' && !hasSufficientBalance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+    if (paymentMethod === 'mobile_money' && !destinationPhone) {
       toast.error('Please enter a phone number');
       return;
     }
-
-    if (paymentMethod === 'bank' && (!accountNumber || !bankName)) {
-      toast.error('Please enter account details');
+    if (paymentMethod === 'bank' && (!destinationBankName || !destinationAccountName || !destinationAccountNumber)) {
+      toast.error('Please enter all bank details');
       return;
     }
 
-    if (paymentMethod === 'wallet' && walletType === 'organizational' && !departmentWallet) {
-      toast.error('Please select a department wallet');
-      return;
-    }
+    let successCount = 0;
+    let failCount = 0;
 
-    if (paymentMethod === 'wallet' && !hasSufficientBalance) {
-      toast.error('Insufficient wallet balance');
-      return;
-    }
+    for (const expense of expenses) {
+      const paymentAmount = getPaymentAmount(expense);
+      const payableAmount = getPayableAmount(expense);
+      const customAmount = paymentAmount !== payableAmount ? paymentAmount.toString() : undefined;
 
-    payExpenses(
-      {
-        expense_ids: expenses.map((e) => e.id),
-        payment_method: paymentMethod,
-        wallet_type: paymentMethod === 'wallet' ? walletType : undefined,
-        department_wallet_id: walletType === 'organizational' ? departmentWallet : undefined,
-        payment_provider: paymentProvider || undefined,
-        phone_number: phoneNumber || undefined,
-        account_number: accountNumber || undefined,
-        bank_name: bankName || undefined,
-        use_wallet: paymentMethod === 'wallet',
-      },
-      {
-        onSuccess: () => {
-          onClose();
-          // Reset form
-          setPaymentMethod('wallet');
-          setWalletType('personal');
-          setDepartmentWallet('');
-          setPaymentProvider('');
-          setPhoneNumber('');
-          setAccountNumber('');
-          setBankName('');
-        },
+      try {
+        await new Promise<void>((resolve, reject) => {
+          createPaymentRequest(
+            {
+              expense_id: expense.id,
+              payment_method: paymentMethod,
+              amount: customAmount,
+              source_wallet_id: paymentMethod === 'wallet' ? selectedWalletId : undefined,
+              destination_phone: paymentMethod === 'mobile_money' || paymentMethod === 'wallet'
+                ? destinationPhone || expense.phone_number
+                : undefined,
+              destination_bank_name: paymentMethod === 'bank' ? destinationBankName : undefined,
+              destination_bank_account_name: paymentMethod === 'bank' ? destinationAccountName : undefined,
+              destination_bank_account_number: paymentMethod === 'bank' ? destinationAccountNumber : undefined,
+              notes: notes || undefined,
+            },
+            {
+              onSuccess: () => { successCount++; resolve(); },
+              onError: () => { failCount++; reject(); },
+            }
+          );
+        });
+      } catch {
+        // counted
       }
-    );
+    }
+
+    if (successCount > 0) {
+      toast.success(`${successCount} payment request${successCount > 1 ? 's' : ''} submitted`);
+      onClose();
+      setPaymentMethod('wallet');
+      setSelectedWalletId('');
+      setDestinationPhone('');
+      setDestinationBankName('');
+      setDestinationAccountName('');
+      setDestinationAccountNumber('');
+      setNotes('');
+      setCustomAmounts({});
+    }
+    if (failCount > 0) {
+      toast.error(`Failed: ${failCount} request${failCount > 1 ? 's' : ''}`);
+    }
   };
+
+  const methodOptions = [
+    { value: 'wallet', label: 'Wallet', icon: Wallet },
+    { value: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
+    { value: 'bank', label: 'Bank', icon: Building2 },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <CreditCard className="h-6 w-6 text-[#49a034]" />
-            Pay Expenses
+          <DialogTitle className="text-lg font-semibold text-gray-900">
+            Request Payment
           </DialogTitle>
-          <DialogDescription>
-            Process payment for {expenses.length} approved expense{expenses.length > 1 ? 's' : ''}
-          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          {/* Payment Summary */}
-          <div className="bg-gradient-to-r from-[#49a034]/10 to-transparent rounded-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-gray-600 font-medium">Total Amount</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
-                  {currency} {totalAmount.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </p>
-              </div>
-              <div className="p-3 bg-[#49a034]/10 rounded-xl">
-                <DollarSign className="h-8 w-8 text-[#49a034]" />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Summary Bar */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-600">
+              {expenses.length} expense{expenses.length > 1 ? 's' : ''}
+              {hasPartialPayments && <span className="text-amber-600 ml-1">(partial)</span>}
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>Paying {expenses.length} expense{expenses.length > 1 ? 's' : ''}</span>
+            <div className="text-lg font-bold text-gray-900">
+              {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
           </div>
 
-          {/* Payment Method Tabs */}
-          <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as any)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="wallet" className="gap-2">
-                <Wallet className="h-4 w-4" />
-                Wallet
-              </TabsTrigger>
-              <TabsTrigger value="mobile_money" className="gap-2">
-                <Smartphone className="h-4 w-4" />
-                Mobile Money
-              </TabsTrigger>
-              <TabsTrigger value="bank" className="gap-2">
-                <Building2 className="h-4 w-4" />
-                Bank
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Wallet Payment */}
-            <TabsContent value="wallet" className="space-y-4">
-              {/* Wallet Type Selection */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-900">Select Wallet</Label>
-                <RadioGroup value={walletType} onValueChange={(value) => setWalletType(value as 'personal' | 'organizational')}>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label
-                      htmlFor="personal-wallet"
-                      className={`flex items-center space-x-3 rounded-lg p-4 cursor-pointer transition-all ${
-                        walletType === 'personal'
-                          ? 'bg-[#49a034]/10'
-                          : 'bg-gray-50 hover:bg-gray-100'
-                      }`}
-                    >
-                      <RadioGroupItem value="personal" id="personal-wallet" />
-                      <div className="flex items-center gap-2">
-                        <Wallet className="h-5 w-5 text-[#49a034]" />
-                        <div>
-                          <p className="font-medium text-sm text-gray-900">Personal Wallet</p>
-                          <p className="text-xs text-gray-500">Your individual wallet</p>
-                        </div>
-                      </div>
-                    </label>
-
-                    <label
-                      htmlFor="org-wallet"
-                      className={`flex items-center space-x-3 rounded-lg p-4 cursor-pointer transition-all ${
-                        walletType === 'organizational'
-                          ? 'bg-[#49a034]/10'
-                          : 'bg-gray-50 hover:bg-gray-100'
-                      }`}
-                    >
-                      <RadioGroupItem value="organizational" id="org-wallet" />
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5 text-[#49a034]" />
-                        <div>
-                          <p className="font-medium text-sm text-gray-900">Department Wallet</p>
-                          <p className="text-xs text-gray-500">Organization funds</p>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {/* Department Wallet Selection */}
-              {walletType === 'organizational' && (
-                <div className="space-y-2">
-                  <Label htmlFor="dept-wallet" className="text-sm font-medium text-gray-900">
-                    Select Department
-                  </Label>
-                  <select
-                    id="dept-wallet"
-                    value={departmentWallet}
-                    onChange={(e) => setDepartmentWallet(e.target.value)}
-                    className="w-full h-10 px-3 rounded-lg bg-white text-gray-900 border-0 shadow-sm"
-                  >
-                    <option value="">Choose department...</option>
-                    {departmentWallets.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name} - {currency} {parseFloat(dept.balance).toLocaleString()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#49a034]/10 rounded-lg">
-                      {walletType === 'personal' ? (
-                        <Wallet className="h-5 w-5 text-[#49a034]" />
-                      ) : (
-                        <Building2 className="h-5 w-5 text-[#49a034]" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {walletType === 'personal' ? 'Personal Wallet' : 'Department Wallet'} Balance
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {walletType === 'organizational' && departmentWallet
-                          ? departmentWallets.find(d => d.id === departmentWallet)?.name
-                          : 'Current available balance'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xl font-bold text-gray-900">
-                    {currency} {currentWalletBalance.toLocaleString()}
-                  </p>
-                </div>
-
-                {!hasSufficientBalance && (walletType === 'personal' || (walletType === 'organizational' && departmentWallet)) && (
-                  <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-900">Insufficient Balance</p>
-                      <p className="text-xs text-red-700 mt-1">
-                        You need {currency}{' '}
-                        {(totalAmount - currentWalletBalance).toLocaleString()}{' '}
-                        more to complete this payment. Please load your wallet first.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {walletType === 'organizational' && !departmentWallet && (
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-amber-900">Select Department</p>
-                      <p className="text-xs text-amber-700 mt-1">
-                        Please select a department wallet to proceed with payment.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Mobile Money Payment */}
-            <TabsContent value="mobile_money" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="provider">Mobile Money Provider</Label>
-                  <RadioGroup value={paymentProvider} onValueChange={setPaymentProvider}>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#49a034] transition-colors cursor-pointer">
-                        <RadioGroupItem value="mtn" id="mtn" />
-                        <Label htmlFor="mtn" className="cursor-pointer flex-1">
-                          MTN Mobile Money
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:border-[#49a034] transition-colors cursor-pointer">
-                        <RadioGroupItem value="airtel" id="airtel" />
-                        <Label htmlFor="airtel" className="cursor-pointer flex-1">
-                          Airtel Money
-                        </Label>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Recipient Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="e.g., 0700000000"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required={paymentMethod === 'mobile_money'}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Payments will be sent to each employee's registered phone number
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Bank Payment */}
-            <TabsContent value="bank" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bank-name">Bank Name</Label>
-                  <Input
-                    id="bank-name"
-                    type="text"
-                    placeholder="e.g., Stanbic Bank Uganda"
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    required={paymentMethod === 'bank'}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="account">Account Number</Label>
-                  <Input
-                    id="account"
-                    type="text"
-                    placeholder="e.g., 1234567890"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    required={paymentMethod === 'bank'}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Payments will be sent to each employee's registered bank account
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Expenses List */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-            <p className="text-sm font-medium text-gray-700 mb-3">Expenses to be paid:</p>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {expenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+          {/* Payment Method Selector */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {methodOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPaymentMethod(opt.value as PaymentRequestMethod)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    paymentMethod === opt.value
+                      ? 'bg-[#49a034] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {expense.employee_name}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">{expense.description}</p>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900 ml-4">
-                    {currency} {parseFloat(expense.amount).toLocaleString()}
-                  </p>
-                </div>
+                  <opt.icon className="h-4 w-4" />
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-4 border-t">
-            <Button
+          {/* Wallet Selection */}
+          {paymentMethod === 'wallet' && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Select Wallet</Label>
+              {walletsLoading ? (
+                <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+              ) : departmentWallets.length === 0 ? (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
+                  <AlertCircle className="h-4 w-4" />
+                  No wallets available
+                </div>
+              ) : (
+                <>
+                  <select
+                    value={selectedWalletId}
+                    onChange={(e) => setSelectedWalletId(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-white text-gray-900 text-sm border border-gray-200 focus:border-[#49a034] focus:ring-1 focus:ring-[#49a034]"
+                  >
+                    <option value="">Choose wallet...</option>
+                    {departmentWallets.map((wallet: any) => (
+                      <option key={wallet.id} value={wallet.id}>
+                        {wallet.name} - {currency} {parseFloat(wallet.balance).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedWallet && !hasSufficientBalance && (
+                    <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg text-xs text-red-700">
+                      <AlertCircle className="h-3.5 w-3.5" />
+                      Insufficient balance (need {currency} {(totalAmount - parseFloat(selectedWallet.balance)).toLocaleString()} more)
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Mobile Money Fields */}
+          {paymentMethod === 'mobile_money' && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
+              <Input
+                type="tel"
+                placeholder="e.g., 0700000000"
+                value={destinationPhone}
+                onChange={(e) => setDestinationPhone(e.target.value)}
+                className="h-9 border-gray-200 focus:border-[#49a034]"
+              />
+            </div>
+          )}
+
+          {/* Bank Fields */}
+          {paymentMethod === 'bank' && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-700">Bank Name</Label>
+                <Input
+                  placeholder="e.g., Stanbic Bank"
+                  value={destinationBankName}
+                  onChange={(e) => setDestinationBankName(e.target.value)}
+                  className="h-9 border-gray-200 focus:border-[#49a034]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-gray-700">Account Name</Label>
+                  <Input
+                    placeholder="John Doe"
+                    value={destinationAccountName}
+                    onChange={(e) => setDestinationAccountName(e.target.value)}
+                    className="h-9 border-gray-200 focus:border-[#49a034]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-gray-700">Account Number</Label>
+                  <Input
+                    placeholder="1234567890"
+                    value={destinationAccountNumber}
+                    onChange={(e) => setDestinationAccountNumber(e.target.value)}
+                    className="h-9 border-gray-200 focus:border-[#49a034]"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Optional Phone for Wallet Disbursement */}
+          {paymentMethod === 'wallet' && selectedWalletId && (
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Recipient Phone (optional)</Label>
+              <Input
+                type="tel"
+                placeholder="For mobile money disbursement"
+                value={destinationPhone}
+                onChange={(e) => setDestinationPhone(e.target.value)}
+                className="h-9 border-gray-200 focus:border-[#49a034]"
+              />
+            </div>
+          )}
+
+          {/* Expenses List (Collapsible) */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <button
               type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isPending}
-              className="flex-1"
+              onClick={() => setShowAmountEditor(!showAmountEditor)}
+              className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 text-sm text-gray-700 hover:bg-gray-100"
             >
+              <span>
+                {expenses.length} expense{expenses.length > 1 ? 's' : ''}
+                {hasCustomAmounts && <span className="text-amber-600 ml-1">(custom amounts)</span>}
+              </span>
+              {showAmountEditor ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
+            {showAmountEditor && (
+              <div className="max-h-48 overflow-y-auto divide-y divide-gray-100">
+                {expenses.map((expense) => {
+                  const payableAmount = getPayableAmount(expense);
+                  const isPartial = expense.payment_status === 'partial';
+                  const customAmount = customAmounts[expense.id] || '';
+
+                  return (
+                    <div key={expense.id} className="px-3 py-2 bg-white">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{expense.employee_name}</p>
+                          <p className="text-xs text-gray-500 truncate">{expense.description}</p>
+                        </div>
+                        <div className="ml-3 text-right">
+                          <p className="text-sm font-semibold text-gray-900">
+                            {currency} {payableAmount.toLocaleString()}
+                          </p>
+                          {isPartial && <span className="text-xs text-amber-600">remaining</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Pay:</span>
+                        <div className="relative flex-1">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{currency}</span>
+                          <Input
+                            type="number"
+                            placeholder={payableAmount.toString()}
+                            value={customAmount}
+                            onChange={(e) => setCustomAmounts((prev) => ({ ...prev, [expense.id]: e.target.value }))}
+                            max={payableAmount}
+                            min={0}
+                            step="0.01"
+                            className="h-7 pl-10 text-xs border-gray-200 focus:border-[#49a034]"
+                          />
+                        </div>
+                        {customAmount && parseFloat(customAmount) < payableAmount && (
+                          <span className="text-xs text-amber-600">Partial</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium text-gray-700">Notes (optional)</Label>
+            <Input
+              placeholder="Add a note for the approver..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="h-9 border-gray-200 focus:border-[#49a034]"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isPending} className="flex-1 h-9">
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isPending || (paymentMethod === 'wallet' && !hasSufficientBalance)}
-              className="flex-1 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
+              disabled={isPending || (paymentMethod === 'wallet' && (!selectedWalletId || !hasSufficientBalance))}
+              className="flex-1 h-9 bg-[#49a034] hover:bg-[#3d8a2b] text-white"
             >
-              {isPending
-                ? 'Processing...'
-                : `Pay ${currency} ${totalAmount.toLocaleString()}`}
+              {isPending ? 'Submitting...' : `Pay ${currency} ${totalAmount.toLocaleString()}`}
             </Button>
           </div>
         </form>

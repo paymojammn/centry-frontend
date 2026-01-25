@@ -19,6 +19,8 @@ export interface Expense {
   type: ExpenseType;
   status: ExpenseStatus;
   payment_status: ExpensePaymentStatus;
+  paid_amount?: string;
+  remaining_amount?: string;
   receipt_url?: string;
   receipt_urls?: string[];
   payment_method?: 'mobile_money' | 'bank' | 'wallet' | 'cash';
@@ -60,6 +62,7 @@ export type ExpenseStatus =
 export type ExpensePaymentStatus =
   | 'unpaid'
   | 'processing'
+  | 'partial'
   | 'paid'
   | 'failed';
 
@@ -197,3 +200,106 @@ export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string; icon: 
   { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
   { value: 'other', label: 'Other', icon: '📝' },
 ];
+
+// Payment Request Types
+export type PaymentRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+export type PaymentRequestMethod = 'wallet' | 'mobile_money' | 'bank';
+
+export interface ExpensePaymentRequest {
+  id: string;
+  organization_id: string;
+  organization_name: string;
+  expense: {
+    id: string;
+    category: ExpenseCategory;
+    description: string;
+    date: string;
+    employee_id: string;
+    employee_name: string;
+    employee_email: string;
+  };
+  payment_method: PaymentRequestMethod;
+  amount: string;
+  currency: string;
+  status: PaymentRequestStatus;
+  // Source accounts
+  source_wallet?: {
+    id: string;
+    name: string;
+    balance: string;
+  };
+  source_mobile_money_account?: {
+    id: string;
+    account_name: string;
+    phone_number: string;
+  };
+  source_bank_account?: {
+    id: string;
+    account_name: string;
+    account_number: string;
+  };
+  // Destination
+  destination_phone?: string;
+  destination_bank_account_name?: string;
+  destination_bank_account_number?: string;
+  destination_bank_name?: string;
+  // Tracking
+  requested_by?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  requested_at?: string;
+  approved_by?: {
+    id: string;
+    name: string;
+  };
+  approved_at?: string;
+  rejection_reason?: string;
+  processed_by?: {
+    id: string;
+    name: string;
+  };
+  processed_at?: string;
+  payment_reference?: string;
+  provider_reference?: string;
+  failure_reason?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePaymentRequestPayload {
+  expense_id: string;
+  payment_method: PaymentRequestMethod;
+  // Optional partial payment amount
+  amount?: string;
+  // For wallet payments
+  source_wallet_id?: string;
+  // For mobile money payments
+  source_mobile_money_account_id?: string;
+  destination_phone?: string;
+  // For bank payments
+  source_bank_account_id?: string;
+  destination_bank_account_name?: string;
+  destination_bank_account_number?: string;
+  destination_bank_name?: string;
+  notes?: string;
+}
+
+export interface PaymentRequestStats {
+  pending: { count: number; amount: string };
+  approved: { count: number; amount: string };
+  processing: { count: number; amount: string };
+  completed: { count: number; amount: string };
+  failed: { count: number; amount: string };
+  rejected: { count: number; amount: string };
+}
