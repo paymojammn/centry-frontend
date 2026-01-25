@@ -148,8 +148,12 @@ export default function DashboardPage() {
     return dueDate >= today && dueDate <= weekFromNow;
   }).length;
 
+  // Get organization currency
+  const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
+  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
+
   const statsBarData = [
-    { label: 'Total Payable', value: `UGX ${formatCompactNumber(totalOpenAmount)}`, color: STATUS_COLORS.awaiting_payment.bg },
+    { label: 'Total Payable', value: `${organizationCurrency} ${formatCompactNumber(totalOpenAmount)}`, color: STATUS_COLORS.awaiting_payment.bg },
     { label: 'Open Bills', value: stats?.total_open || 0, color: STATUS_COLORS.draft.bg },
     { label: 'Overdue', value: stats?.overdue_count || 0, variant: (stats?.overdue_count || 0) > 0 ? 'danger' as const : 'default' as const },
     { label: 'Due This Week', value: dueThisWeek, variant: 'warning' as const },

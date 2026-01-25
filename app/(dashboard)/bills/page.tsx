@@ -183,6 +183,10 @@ export default function BillsPage() {
     return sum;
   }, 0);
 
+  // Get organization currency
+  const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
+  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
+
   const handleStatusChange = (status: string) => {
     const validStatuses = ['all', 'draft', 'awaiting_approval', 'awaiting_payment', 'paid', 'repeating'];
     if (validStatuses.includes(status)) {
@@ -257,7 +261,7 @@ export default function BillsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
               <StatCard
                 label="Total Payable"
-                value={`UGX ${formatCompactNumber(totalPayableUgx)}`}
+                value={`${organizationCurrency} ${formatCompactNumber(totalPayableUgx)}`}
                 subtext={`${totalOpen} open bills`}
                 icon={Wallet}
                 iconColor={STATUS_COLORS.awaiting_payment.bg}
@@ -267,7 +271,7 @@ export default function BillsPage() {
 
               <StatCard
                 label="Due This Week"
-                value={`UGX ${formatCompactNumber(dueThisWeekAmount)}`}
+                value={`${organizationCurrency} ${formatCompactNumber(dueThisWeekAmount)}`}
                 subtext="Due within 7 days"
                 icon={Calendar}
                 iconColor="#b08b00"
@@ -278,7 +282,7 @@ export default function BillsPage() {
               <StatCard
                 label="Overdue"
                 value={overdueCount}
-                subtext={`UGX ${formatCompactNumber(overdueUgx)} overdue`}
+                subtext={`${organizationCurrency} ${formatCompactNumber(overdueUgx)} overdue`}
                 icon={AlertTriangle}
                 variant={overdueCount > 0 ? 'danger' : 'default'}
               />
