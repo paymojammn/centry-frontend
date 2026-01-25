@@ -39,15 +39,15 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: Users,
     path: "/vendors",
   },
-  {
-    title: "Mobile Money",
-    icon: TrendingUp,
-    children: [
-      { title: "Reconciliation", path: "/payments" },
-      { title: "Make Payment", path: "/payments/new" },
-      { title: "Scheduled", path: "/payments/scheduled" },
-    ],
-  },
+  // {
+  //   title: "Mobile Money",
+  //   icon: TrendingUp,
+  //   children: [
+  //     { title: "Reconciliation", path: "/payments" },
+  //     { title: "Make Payment", path: "/payments/new" },
+  //     { title: "Scheduled", path: "/payments/scheduled" },
+  //   ],
+  // },
   {
     title: "Banking",
     icon: Building,
