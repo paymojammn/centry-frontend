@@ -12,6 +12,13 @@ import {
   useOrganizationMembers,
   useOrganizationStats,
 } from '@/hooks/use-organization';
+import {
+  useDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from '@/hooks/use-departments';
+import type { Department, CreateDepartmentPayload, UpdateDepartmentPayload } from '@/types/department';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -24,6 +31,10 @@ import {
   CreditCard,
   Mail,
   MoreVertical,
+  FolderTree,
+  Plus,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -42,6 +53,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -51,8 +73,97 @@ export default function OrganizationDetailsPage() {
   const { data: organization, isLoading: orgLoading } = useOrganization(organizationId);
   const { data: members, isLoading: membersLoading } = useOrganizationMembers(organizationId);
   const { data: stats, isLoading: statsLoading } = useOrganizationStats(organizationId);
+  const { data: departments, isLoading: departmentsLoading } = useDepartments({ organization_id: organizationId });
+
+  const { mutate: createDepartment, isPending: isCreating } = useCreateDepartment();
+  const { mutate: updateDepartment, isPending: isUpdating } = useUpdateDepartment();
+  const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDepartmentModalOpen, setIsDepartmentModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [departmentForm, setDepartmentForm] = useState({
+    name: '',
+    code: '',
+    description: '',
+    monthly_budget: '',
+    currency: 'UGX',
+  });
+
+  const resetDepartmentForm = () => {
+    setDepartmentForm({
+      name: '',
+      code: '',
+      description: '',
+      monthly_budget: '',
+      currency: 'UGX',
+    });
+    setEditingDepartment(null);
+  };
+
+  const openAddDepartment = () => {
+    resetDepartmentForm();
+    setIsDepartmentModalOpen(true);
+  };
+
+  const openEditDepartment = (dept: Department) => {
+    setEditingDepartment(dept);
+    setDepartmentForm({
+      name: dept.name,
+      code: dept.code || '',
+      description: dept.description || '',
+      monthly_budget: dept.monthly_budget?.toString() || '',
+      currency: dept.currency || 'UGX',
+    });
+    setIsDepartmentModalOpen(true);
+  };
+
+  const handleSaveDepartment = () => {
+    if (!departmentForm.name.trim()) {
+      toast.error('Department name is required');
+      return;
+    }
+
+    if (editingDepartment) {
+      const payload: UpdateDepartmentPayload = {
+        name: departmentForm.name,
+        code: departmentForm.code || undefined,
+        description: departmentForm.description || undefined,
+        monthly_budget: departmentForm.monthly_budget ? parseFloat(departmentForm.monthly_budget) : null,
+        currency: departmentForm.currency,
+      };
+      updateDepartment(
+        { departmentId: editingDepartment.id, payload },
+        {
+          onSuccess: () => {
+            setIsDepartmentModalOpen(false);
+            resetDepartmentForm();
+          },
+        }
+      );
+    } else {
+      const payload: CreateDepartmentPayload = {
+        organization_id: organizationId,
+        name: departmentForm.name,
+        code: departmentForm.code || undefined,
+        description: departmentForm.description || undefined,
+        monthly_budget: departmentForm.monthly_budget ? parseFloat(departmentForm.monthly_budget) : null,
+        currency: departmentForm.currency,
+      };
+      createDepartment(payload, {
+        onSuccess: () => {
+          setIsDepartmentModalOpen(false);
+          resetDepartmentForm();
+        },
+      });
+    }
+  };
+
+  const handleDeleteDepartment = (deptId: string) => {
+    if (confirm('Are you sure you want to delete this department?')) {
+      deleteDepartment(deptId);
+    }
+  };
 
   // Handle OAuth callback notifications
   useEffect(() => {
@@ -168,13 +279,19 @@ export default function OrganizationDetailsPage() {
           >
             Overview
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="members"
             className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Members
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
+            value="departments"
+            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+          >
+            Departments
+          </TabsTrigger>
+          <TabsTrigger
             value="settings"
             className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
@@ -351,6 +468,132 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
 
+        {/* Departments Tab */}
+        <TabsContent value="departments" className="mt-6">
+          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-black">Departments</h3>
+                <p className="text-sm text-gray-600">
+                  Manage your organization's departments and teams
+                </p>
+              </div>
+              <Button type="button" onClick={openAddDepartment}>
+                <Plus className="h-4 w-4" />
+                Add Department
+              </Button>
+            </div>
+            <div className="p-6">
+              {departmentsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-16 w-full bg-gray-100 animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : departments && departments.length > 0 ? (
+                <div className="table-professional">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="text-gray-600 font-semibold">Department</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Code</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Manager</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Budget</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Status</TableHead>
+                        <TableHead className="text-right text-gray-600 font-semibold">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {departments.map((dept) => (
+                        <TableRow key={dept.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
+                                <FolderTree className="h-5 w-5 text-[#49a034]" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-black">{dept.name}</div>
+                                {dept.description && (
+                                  <div className="text-sm text-gray-600 truncate max-w-[200px]">
+                                    {dept.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="px-2.5 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">
+                              {dept.code || '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {dept.manager_name ? (
+                              <div>
+                                <div className="text-sm font-medium text-black">{dept.manager_name}</div>
+                                <div className="text-xs text-gray-600">{dept.manager_email}</div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">Not assigned</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {dept.monthly_budget ? (
+                              <span className="font-medium text-black">
+                                {dept.currency} {parseFloat(dept.monthly_budget).toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
+                              dept.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              {dept.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditDepartment(dept)}
+                                aria-label="Edit department"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteDepartment(dept.id)}
+                                disabled={isDeleting}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                aria-label="Delete department"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <FolderTree className="h-12 w-12 text-gray-300 mb-4" />
+                  <h3 className="text-lg font-semibold text-black mb-2">No Departments</h3>
+                  <p className="text-gray-600 mb-4">Create your first department to organize your team</p>
+                  <Button type="button" onClick={openAddDepartment}>
+                    <Plus className="h-4 w-4" />
+                    Add Department
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
         {/* Settings Tab */}
         <TabsContent value="settings" className="mt-6">
           <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
@@ -364,6 +607,90 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add/Edit Department Modal */}
+      <Dialog open={isDepartmentModalOpen} onOpenChange={setIsDepartmentModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingDepartment ? 'Edit Department' : 'Add Department'}</DialogTitle>
+            <DialogDescription>
+              {editingDepartment
+                ? 'Update the department details below.'
+                : 'Fill in the details to create a new department.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="dept-name">Name *</Label>
+              <Input
+                id="dept-name"
+                placeholder="e.g., Engineering, Finance, HR"
+                value={departmentForm.name}
+                onChange={(e) => setDepartmentForm({ ...departmentForm, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dept-code">Code</Label>
+              <Input
+                id="dept-code"
+                placeholder="e.g., ENG, FIN, HR"
+                value={departmentForm.code}
+                onChange={(e) => setDepartmentForm({ ...departmentForm, code: e.target.value.toUpperCase() })}
+                maxLength={10}
+              />
+              <p className="text-xs text-gray-500">Short code for the department (auto-generated if empty)</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dept-description">Description</Label>
+              <Textarea
+                id="dept-description"
+                placeholder="Brief description of the department's function"
+                value={departmentForm.description}
+                onChange={(e) => setDepartmentForm({ ...departmentForm, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dept-budget">Monthly Budget</Label>
+                <Input
+                  id="dept-budget"
+                  type="number"
+                  placeholder="0.00"
+                  value={departmentForm.monthly_budget}
+                  onChange={(e) => setDepartmentForm({ ...departmentForm, monthly_budget: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dept-currency">Currency</Label>
+                <Input
+                  id="dept-currency"
+                  value={departmentForm.currency}
+                  onChange={(e) => setDepartmentForm({ ...departmentForm, currency: e.target.value.toUpperCase() })}
+                  maxLength={3}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDepartmentModalOpen(false);
+                resetDepartmentForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveDepartment}
+              disabled={isCreating || isUpdating}
+            >
+              {isCreating || isUpdating ? 'Saving...' : editingDepartment ? 'Update' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

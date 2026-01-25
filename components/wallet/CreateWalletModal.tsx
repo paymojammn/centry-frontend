@@ -12,7 +12,8 @@ import {
   Wallet,
   Building,
 } from 'lucide-react';
-import { useCreateDepartmentWallet, useOrganizationAccounts, useDepartmentNames } from '@/hooks/use-wallet';
+import { useCreateDepartmentWallet, useOrganizationAccounts } from '@/hooks/use-wallet';
+import { useDepartments } from '@/hooks/use-departments';
 
 interface CreateWalletModalProps {
   isOpen: boolean;
@@ -73,8 +74,8 @@ export default function CreateWalletModal({
   // Fetch available accounts
   const { data: accountsData, isLoading: accountsLoading } = useOrganizationAccounts(organizationId);
 
-  // Fetch existing department names
-  const { data: departmentNamesData, isLoading: departmentNamesLoading } = useDepartmentNames(organizationId);
+  // Fetch existing departments from erp app
+  const { data: departments, isLoading: departmentsLoading } = useDepartments({ organization_id: organizationId });
 
   // Create wallet mutation
   const createWalletMutation = useCreateDepartmentWallet();
@@ -82,7 +83,7 @@ export default function CreateWalletModal({
   // Computed values
   const mobileMoneyAccounts = accountsData?.mobile_money_accounts || [];
   const bankAccounts = accountsData?.bank_accounts || [];
-  const departmentNames = departmentNamesData?.department_names || [];
+  const departmentList = departments || [];
 
   // Generate wallet name based on selections
   const generatedWalletName = useMemo(() => {
@@ -564,21 +565,21 @@ export default function CreateWalletModal({
               </div>
 
               {/* Department selection */}
-              {departmentNamesLoading ? (
+              {departmentsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-[#49a034]" />
                 </div>
-              ) : departmentNames.length > 0 ? (
+              ) : departmentList.length > 0 ? (
                 <div className="space-y-2">
-                  {departmentNames.map((name) => (
+                  {departmentList.map((dept) => (
                     <button
-                      key={name}
+                      key={dept.id}
                       onClick={() => {
                         setDepartmentOption('existing');
-                        setSelectedDepartmentName(name);
+                        setSelectedDepartmentName(dept.name);
                       }}
                       className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
-                        departmentOption === 'existing' && selectedDepartmentName === name
+                        departmentOption === 'existing' && selectedDepartmentName === dept.name
                           ? 'border-[#49a034] bg-[#49a034]/5'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
@@ -588,10 +589,12 @@ export default function CreateWalletModal({
                           <Building className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-900">{name}</h4>
-                          <p className="text-sm text-gray-500">Department wallet</p>
+                          <h4 className="font-medium text-gray-900">{dept.name}</h4>
+                          <p className="text-sm text-gray-500">
+                            {dept.code ? `${dept.code} - ` : ''}Department wallet
+                          </p>
                         </div>
-                        {departmentOption === 'existing' && selectedDepartmentName === name && (
+                        {departmentOption === 'existing' && selectedDepartmentName === dept.name && (
                           <CheckCircle2 className="w-5 h-5 text-[#49a034] ml-auto" />
                         )}
                       </div>
@@ -601,7 +604,7 @@ export default function CreateWalletModal({
               ) : (
                 <div className="text-center py-4 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-500">
-                    No existing departments. Create a General wallet to get started.
+                    No departments found. Go to Organization settings to create departments first.
                   </p>
                 </div>
               )}
