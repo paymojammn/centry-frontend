@@ -1,255 +1,110 @@
-/**
- * Reports React Query Hooks
- */
+// Reports Hooks
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportsApi } from '@/lib/reports-api';
-import type {
-  ReportFilters,
-  NLQueryRequest,
-  ExportRequest,
-  SaveReportRequest,
-} from '@/types/reports';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { reportsApi } from "@/lib/reports-api";
+import type { ReportFilters, ExportParams } from "@/types/reports";
 
-/**
- * Hook to fetch dashboard overview
- */
-export function useReportsDashboard(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+// Dashboard
+export function useReportsDashboard(organizationId: string | undefined) {
   return useQuery({
-    queryKey: ['reports-dashboard', organizationId, filters],
-    queryFn: () => reportsApi.getDashboard(organizationId!, filters),
+    queryKey: ["reports", "dashboard", organizationId],
+    queryFn: () => reportsApi.getDashboard(organizationId!),
     enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
-/**
- * Hook to fetch financial overview
- */
-export function useFinancialOverview(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+// Financial Reports
+export function useFinancialOverview(filters: ReportFilters | undefined) {
   return useQuery({
-    queryKey: ['reports-financial', organizationId, filters],
-    queryFn: () => reportsApi.getFinancialOverview(organizationId!, filters),
-    enabled: !!organizationId,
+    queryKey: ["reports", "financial", filters],
+    queryFn: () => reportsApi.getFinancialOverview(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch financial trends
- */
 export function useFinancialTrends(
   organizationId: string | undefined,
-  filters?: ReportFilters
+  months: number = 6
 ) {
   return useQuery({
-    queryKey: ['reports-financial-trends', organizationId, filters],
-    queryFn: () => reportsApi.getFinancialTrends(organizationId!, filters),
+    queryKey: ["reports", "financial", "trends", organizationId, months],
+    queryFn: () => reportsApi.getFinancialTrends(organizationId!, months),
     enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch expense analytics
- */
-export function useExpenseAnalytics(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+// Expense Reports
+export function useExpenseReport(filters: ReportFilters | undefined) {
   return useQuery({
-    queryKey: ['reports-expenses', organizationId, filters],
-    queryFn: () => reportsApi.getExpenseAnalytics(organizationId!, filters),
-    enabled: !!organizationId,
+    queryKey: ["reports", "expenses", filters],
+    queryFn: () => reportsApi.getExpenseReport(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch expenses by category
- */
-export function useExpensesByCategory(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+export function useExpenseTrend(filters: ReportFilters | undefined) {
   return useQuery({
-    queryKey: ['reports-expenses-category', organizationId, filters],
-    queryFn: () => reportsApi.getExpensesByCategory(organizationId!, filters),
-    enabled: !!organizationId,
+    queryKey: ["reports", "expenses", "trend", filters],
+    queryFn: () => reportsApi.getExpenseTrend(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch expenses by department
- */
-export function useExpensesByDepartment(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+// Transaction Reports
+export function useTransactionReport(filters: ReportFilters | undefined) {
   return useQuery({
-    queryKey: ['reports-expenses-department', organizationId, filters],
-    queryFn: () => reportsApi.getExpensesByDepartment(organizationId!, filters),
-    enabled: !!organizationId,
+    queryKey: ["reports", "transactions", filters],
+    queryFn: () => reportsApi.getTransactionReport(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch transaction report
- */
-export function useTransactionReport(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+export function useCashFlow(filters: ReportFilters | undefined) {
   return useQuery({
-    queryKey: ['reports-transactions', organizationId, filters],
-    queryFn: () => reportsApi.getTransactionReport(organizationId!, filters),
-    enabled: !!organizationId,
+    queryKey: ["reports", "transactions", "cashflow", filters],
+    queryFn: () => reportsApi.getCashFlow(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch cash flow data
- */
-export function useCashFlow(
-  organizationId: string | undefined,
-  filters?: ReportFilters
-) {
+// Account Balances
+export function useAccountBalances(organizationId: string | undefined) {
   return useQuery({
-    queryKey: ['reports-cash-flow', organizationId, filters],
-    queryFn: () => reportsApi.getCashFlow(organizationId!, filters),
+    queryKey: ["reports", "accounts", organizationId],
+    queryFn: () => reportsApi.getAccountBalances(organizationId!),
     enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Hook to fetch AI insights
- */
-export function useAIInsights(organizationId: string | undefined) {
-  return useQuery({
-    queryKey: ['reports-ai-insights', organizationId],
-    queryFn: () => reportsApi.getAIInsights(organizationId!),
-    enabled: !!organizationId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-/**
- * Hook for natural language query
- */
-export function useNaturalLanguageQuery() {
-  return useMutation({
-    mutationFn: (request: NLQueryRequest) => reportsApi.processNLQuery(request),
-  });
-}
-
-/**
- * Hook to fetch predictions
- */
-export function usePredictions(organizationId: string | undefined) {
-  return useQuery({
-    queryKey: ['reports-predictions', organizationId],
-    queryFn: () => reportsApi.getPredictions(organizationId!),
-    enabled: !!organizationId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-}
-
-/**
- * Hook to dismiss an AI insight
- */
-export function useDismissInsight() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      organizationId,
-      insightId,
-    }: {
-      organizationId: string;
-      insightId: string;
-    }) => reportsApi.dismissInsight(organizationId, insightId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['reports-ai-insights', variables.organizationId],
-      });
-    },
-  });
-}
-
-/**
- * Hook to export a report
- */
+// Export
 export function useExportReport() {
   return useMutation({
-    mutationFn: async (request: ExportRequest) => {
-      const blob = await reportsApi.exportReport(request);
-      return { blob, format: request.format, reportType: request.report_type };
-    },
-    onSuccess: ({ blob, format, reportType }) => {
+    mutationFn: async (params: ExportParams) => {
+      const blob = await reportsApi.exportReport(params);
+      
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-
-      const extension = format === 'excel' ? 'xlsx' : format;
-      const timestamp = new Date().toISOString().slice(0, 10);
-      a.download = `${reportType}_report_${timestamp}.${extension}`;
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement("a");
+      link.href = url;
+      
+      // Determine filename based on type and format
+      const extension = params.format === "excel" ? "xlsx" : params.format;
+      link.download = `${params.report_type}_report.${extension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    },
-  });
-}
-
-/**
- * Hook to fetch saved reports
- */
-export function useSavedReports(organizationId: string | undefined) {
-  return useQuery({
-    queryKey: ['saved-reports', organizationId],
-    queryFn: () => reportsApi.getSavedReports(organizationId!),
-    enabled: !!organizationId,
-  });
-}
-
-/**
- * Hook to save a report configuration
- */
-export function useSaveReport() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (request: SaveReportRequest) => reportsApi.saveReport(request),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['saved-reports', variables.organization_id],
-      });
-    },
-  });
-}
-
-/**
- * Hook to delete a saved report
- */
-export function useDeleteSavedReport() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      reportId,
-      organizationId,
-    }: {
-      reportId: string;
-      organizationId: string;
-    }) => reportsApi.deleteSavedReport(reportId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['saved-reports', variables.organizationId],
-      });
+      
+      return blob;
     },
   });
 }

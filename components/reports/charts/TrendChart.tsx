@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -13,23 +13,23 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, parseISO } from "date-fns";
 
-interface CashFlowChartProps {
+interface TrendChartProps {
   data: Array<{
-    period: string;
-    credits: number;
-    debits: number;
+    month: string;
+    income: number;
+    expenses: number;
     net: number;
   }>;
   title?: string;
 }
 
-export function CashFlowChart({
+export function TrendChart({
   data,
-  title = "Cash Flow",
-}: CashFlowChartProps) {
+  title = "Financial Trends",
+}: TrendChartProps) {
   const chartData = data.map((item) => ({
     ...item,
-    month: format(parseISO(item.period), "MMM yyyy"),
+    label: format(parseISO(item.month), "MMM yyyy"),
   }));
 
   const formatCurrency = (value: number) => {
@@ -59,20 +59,10 @@ export function CashFlowChart({
       <CardContent>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={350}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorCredits" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorDebits" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
-                dataKey="month"
+                dataKey="label"
                 className="text-xs"
                 tick={{ fill: "currentColor" }}
               />
@@ -84,7 +74,7 @@ export function CashFlowChart({
               <Tooltip
                 formatter={(value: number, name: string) => [
                   formatTooltipValue(value),
-                  name === "credits" ? "Inflows" : name === "debits" ? "Outflows" : "Net",
+                  name.charAt(0).toUpperCase() + name.slice(1),
                 ]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
@@ -93,23 +83,32 @@ export function CashFlowChart({
                 }}
               />
               <Legend />
-              <Area
+              <Line
                 type="monotone"
-                dataKey="credits"
-                name="Inflows"
+                dataKey="income"
+                name="Income"
                 stroke="#10b981"
-                fillOpacity={1}
-                fill="url(#colorCredits)"
+                strokeWidth={2}
+                dot={{ fill: "#10b981" }}
               />
-              <Area
+              <Line
                 type="monotone"
-                dataKey="debits"
-                name="Outflows"
+                dataKey="expenses"
+                name="Expenses"
                 stroke="#ef4444"
-                fillOpacity={1}
-                fill="url(#colorDebits)"
+                strokeWidth={2}
+                dot={{ fill: "#ef4444" }}
               />
-            </AreaChart>
+              <Line
+                type="monotone"
+                dataKey="net"
+                name="Net"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={{ fill: "#8b5cf6" }}
+                strokeDasharray="5 5"
+              />
+            </LineChart>
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-[350px] text-muted-foreground">
