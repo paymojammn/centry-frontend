@@ -297,10 +297,14 @@ export default function LoginPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-500">
-            Protected by 256-bit SSL encryption
-          </p>
+        <div className="p-6 border-t border-gray-100 shrink-0">
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+            <span>Protected by 256-bit SSL encryption</span>
+            <span className="w-1 h-1 rounded-full bg-gray-300" />
+            <Link href="/docs/checkout" className="hover:text-gray-700 hover:underline">
+              API Docs
+            </Link>
+          </div>
         </div>
       </div>
     </div>
