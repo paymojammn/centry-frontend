@@ -74,6 +74,16 @@ export interface InitiatePaymentRequest {
   customer_name?: string;
 }
 
+export interface ValrInlineData {
+  payment_type: 'valr_pay';
+  qr_code_url: string;
+  payment_link: string;
+  web_link?: string;
+  expires_at: string;
+  receive_currency: string;
+  valr_payment_id: string;
+}
+
 export interface InitiatePaymentResponse {
   payment_id: string;
   status: string;
@@ -81,6 +91,7 @@ export interface InitiatePaymentResponse {
   requires_redirect: boolean;
   requires_otp: boolean;
   message: string | null;
+  inline_data?: ValrInlineData;
 }
 
 export interface PaymentStatusResponse {

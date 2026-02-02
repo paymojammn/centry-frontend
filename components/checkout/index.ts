@@ -10,4 +10,5 @@ export { CountrySelector } from './country-selector';
 export { PaymentMethodList } from './payment-method-list';
 export { CustomerForm, type CustomerFormData } from './customer-form';
 export { PaymentStatus } from './payment-status';
+export { ValrPayment } from './valr-payment';
 export { CheckoutWidget, CheckoutModal } from './checkout-widget';

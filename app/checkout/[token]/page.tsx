@@ -13,14 +13,16 @@ import {
   PaymentMethodList,
   CustomerForm,
   PaymentStatus,
+  ValrPayment,
   CustomerFormData,
 } from '@/components/checkout';
+import { ValrInlineData } from '@/lib/checkout-api';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, ArrowLeft, Clock } from 'lucide-react';
 
-type CheckoutStep = 'loading' | 'select' | 'details' | 'processing' | 'success' | 'failed' | 'expired';
+type CheckoutStep = 'loading' | 'select' | 'details' | 'processing' | 'valr_qr' | 'success' | 'failed' | 'expired';
 
 // PostMessage helper for widget communication
 function postToParent(type: string, data?: Record<string, unknown>) {
@@ -42,6 +44,7 @@ export default function CheckoutPage() {
   const [selectedProvider, setSelectedProvider] = React.useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = React.useState<string | null>(null);
   const [paymentError, setPaymentError] = React.useState<string | null>(null);
+  const [valrInlineData, setValrInlineData] = React.useState<ValrInlineData | null>(null);
 
   // API Hooks
   const { data: checkoutInfo, isLoading: sessionLoading, error: sessionError } = useCheckoutSession(token);
@@ -49,7 +52,7 @@ export default function CheckoutPage() {
   const initiatePayment = useInitiatePayment(token);
   const { data: statusData } = usePaymentStatus(
     token,
-    step === 'processing'
+    step === 'processing' || step === 'valr_qr'
   );
 
   // Initialize state from session
@@ -86,23 +89,32 @@ export default function CheckoutPage() {
   React.useEffect(() => {
     if (statusData) {
       if (statusData.session_status === 'completed' || statusData.payment_status === 'success') {
-        setStep('success');
+        // For VALR, first show completed state in QR component, then transition to success
+        if (step === 'valr_qr') {
+          setTimeout(() => {
+            setStep('success');
+            setValrInlineData(null);
+          }, 2000); // Show completed state for 2 seconds
+        } else {
+          setStep('success');
+        }
         // Notify parent if embedded
         postToParent('centry:checkout:success', { status: 'success' });
         // Redirect to success URL after a short delay (unless embedded)
         if (checkoutInfo?.session.success_url && !isEmbedded) {
           setTimeout(() => {
             window.location.href = checkoutInfo.session.success_url;
-          }, 2000);
+          }, step === 'valr_qr' ? 4000 : 2000);
         }
       } else if (statusData.payment_status === 'failed') {
         setStep('failed');
+        setValrInlineData(null);
         setPaymentError(statusData.message || 'Payment failed');
         // Notify parent if embedded
         postToParent('centry:checkout:error', { message: statusData.message || 'Payment failed' });
       }
     }
-  }, [statusData, checkoutInfo, isEmbedded]);
+  }, [statusData, checkoutInfo, isEmbedded, step]);
 
   // Get selected provider details
   const selectedProviderDetails = React.useMemo(() => {
@@ -149,6 +161,13 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Check if this is a VALR QR payment
+      if (result.inline_data?.payment_type === 'valr_pay') {
+        setValrInlineData(result.inline_data);
+        setStep('valr_qr');
+        return;
+      }
+
       // Otherwise, continue polling for status (for mobile money STK push)
     } catch (error) {
       setStep('failed');
@@ -162,7 +181,15 @@ export default function CheckoutPage() {
   // Handle retry
   const handleRetry = () => {
     setPaymentError(null);
+    setValrInlineData(null);
     setStep('select');
+  };
+
+  // Handle VALR QR expiry
+  const handleValrExpired = () => {
+    setValrInlineData(null);
+    setPaymentError('Payment QR code expired. Please try again.');
+    setStep('failed');
   };
 
   // Handle cancel
@@ -266,6 +293,29 @@ export default function CheckoutPage() {
 
         {/* Payment Selection / Details / Status */}
         <CheckoutCard>
+          {/* VALR QR Code Payment */}
+          {step === 'valr_qr' && valrInlineData && (
+            <CheckoutCardContent>
+              <ValrPayment
+                qrCodeUrl={valrInlineData.qr_code_url}
+                paymentLink={valrInlineData.payment_link}
+                webLink={valrInlineData.web_link}
+                expiresAt={valrInlineData.expires_at}
+                amount={session.amount}
+                currency={session.currency}
+                receiveCurrency={valrInlineData.receive_currency}
+                onExpired={handleValrExpired}
+                status={
+                  statusData?.payment_status === 'success'
+                    ? 'completed'
+                    : statusData?.payment_status === 'processing'
+                    ? 'processing'
+                    : 'pending'
+                }
+              />
+            </CheckoutCardContent>
+          )}
+
           {/* Processing / Success / Failed States */}
           {(step === 'processing' || step === 'success' || step === 'failed') && (
             <CheckoutCardContent>
