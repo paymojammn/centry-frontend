@@ -325,10 +325,21 @@ export default function SignupPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-400">
-            Protected by 256-bit SSL encryption
-          </p>
+        <div className="p-6 border-t border-gray-100 shrink-0">
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs text-gray-500">
+              Protected by 256-bit SSL encryption
+            </p>
+            <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
+              <Link href="/refund-policy" className="hover:text-gray-600 hover:underline">
+                Refund Policy
+              </Link>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <Link href="/cancellation-policy" className="hover:text-gray-600 hover:underline">
+                Cancellation Policy
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
