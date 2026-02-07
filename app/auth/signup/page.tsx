@@ -331,6 +331,10 @@ export default function SignupPage() {
               Protected by 256-bit SSL encryption
             </p>
             <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
+              <Link href="/pricing" className="hover:text-gray-600 hover:underline">
+                Pricing
+              </Link>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
               <Link href="/refund-policy" className="hover:text-gray-600 hover:underline">
                 Refund Policy
               </Link>

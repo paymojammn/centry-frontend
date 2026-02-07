@@ -152,8 +152,13 @@ export default function RefundPolicyPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Centry. All rights reserved.</p>
+        <div className="text-center mt-8 space-y-3">
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+            <Link href="/pricing" className="hover:text-gray-700 hover:underline">Pricing</Link>
+            <span className="w-1 h-1 rounded-full bg-gray-300" />
+            <Link href="/cancellation-policy" className="hover:text-gray-700 hover:underline">Cancellation Policy</Link>
+          </div>
+          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Centry. All rights reserved.</p>
         </div>
       </main>
     </div>
