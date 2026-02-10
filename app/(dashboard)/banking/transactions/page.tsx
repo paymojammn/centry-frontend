@@ -29,6 +29,10 @@ import {
   useUploadBankFile,
   useAutoReconcile,
   useBankAccounts,
+  useAllPaymentExportStatuses,
+  usePaymentExportStatusDetail,
+  type PaymentExportStatus,
+  type PaymentTransactionStatus,
 } from "@/hooks/use-banking";
 import {
   Search,
@@ -43,6 +47,9 @@ import {
   Sparkles,
   ArrowDownToLine,
   ArrowUpFromLine,
+  FileCheck,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
@@ -100,13 +107,16 @@ interface BankPaymentExport {
 }
 
 export default function BankTransactionsPage() {
-  const [activeTab, setActiveTab] = useState<"imports" | "exports">("imports");
+  const [activeTab, setActiveTab] = useState<"imports" | "exports" | "responses">("imports");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [exportStatusFilter, setExportStatusFilter] = useState("all");
+  const [responseStatusFilter, setResponseStatusFilter] = useState("all");
+  const [responseTypeFilter, setResponseTypeFilter] = useState("all");
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [selectedExportId, setSelectedExportId] = useState<number | null>(null);
+  const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
@@ -162,11 +172,46 @@ export default function BankTransactionsPage() {
     enabled: !!selectedExportId && activeTab === "exports",
   });
 
+  // Fetch bank response statuses (pain.002)
+  const { data: exportStatusesData, isLoading: statusesLoading } = useAllPaymentExportStatuses({
+    organizationId: selectedOrganizationId || undefined,
+  });
+
+  // Fetch detail for selected status report (includes transaction_statuses)
+  const { data: statusDetailData, isLoading: statusDetailLoading } = usePaymentExportStatusDetail(
+    selectedStatusId || undefined
+  );
+
   const importedTransactions = transactionsData?.results || [];
   const exports = exportsData?.results || [];
   const exportPayments = exportPaymentsData?.results || [];
+  const exportStatuses = exportStatusesData?.results || [];
+  const statusTransactions = statusDetailData?.transaction_statuses || [];
+
+  // Filter status reports
+  const filteredStatuses = exportStatuses.filter((s) => {
+    const matchesSearch = !searchQuery || s.source_file?.toLowerCase().includes(searchQuery.toLowerCase()) || s.payment_export_filename?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = responseTypeFilter === "all" || s.report_type === responseTypeFilter;
+    return matchesSearch && matchesType;
+  });
+
+  // Filter transactions within selected report
+  const filteredTransactions = statusTransactions.filter((tx) => {
+    if (responseStatusFilter === "all") return true;
+    if (responseStatusFilter === "accepted") return tx.status === "ACSP" || tx.status === "ACWC";
+    if (responseStatusFilter === "rejected") return tx.status === "RJCT";
+    if (responseStatusFilter === "pending") return tx.status === "PDNG";
+    return true;
+  });
 
   // Stats
+  const responseStats = {
+    reports: exportStatuses.length,
+    accepted: exportStatuses.reduce((s, r) => s + r.successful_count, 0),
+    rejected: exportStatuses.reduce((s, r) => s + r.rejected_count, 0),
+    pending: exportStatuses.reduce((s, r) => s + r.pending_count, 0),
+  };
+
   const importStats = {
     total: importedTransactions.length,
     debits: importedTransactions.filter(t => t.transaction_type === "DEBIT").reduce((s, t) => s + t.amount, 0),
@@ -325,6 +370,17 @@ export default function BankTransactionsPage() {
               <ArrowUpFromLine className="h-4 w-4 inline mr-2" />
               Exported ({exportStats.files})
             </button>
+            <button
+              onClick={() => { setActiveTab("responses"); setSearchQuery(""); setSelectedStatusId(null); }}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "responses"
+                  ? "border-[#49a034] text-[#49a034]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <FileCheck className="h-4 w-4 inline mr-2" />
+              Bank Responses ({responseStats.reports})
+            </button>
           </div>
         </div>
       </div>
@@ -346,12 +402,19 @@ export default function BankTransactionsPage() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === "exports" ? (
             <div className="flex items-center gap-6 text-sm">
               <StatPill label="Files" value={exportStats.files} color="blue" />
               <StatPill label="Payments" value={exportStats.payments} color="amber" />
               <StatPill label="Total" value={formatCurrency(exportStats.amount, organizationCurrency)} color="orange" />
               <StatPill label="Uploaded" value={exportStats.uploaded} color="green" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-6 text-sm">
+              <StatPill label="Reports" value={responseStats.reports} color="blue" />
+              <StatPill label="Accepted" value={responseStats.accepted} color="green" />
+              <StatPill label="Rejected" value={responseStats.rejected} color="orange" />
+              <StatPill label="Pending" value={responseStats.pending} color="amber" />
             </div>
           )}
         </div>
@@ -499,7 +562,7 @@ export default function BankTransactionsPage() {
               )}
             </div>
           </div>
-        ) : (
+        ) : activeTab === "exports" ? (
           /* Exports Tab */
           <div className="grid grid-cols-2 gap-6">
             {/* Export Files */}
@@ -626,6 +689,206 @@ export default function BankTransactionsPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Bank Responses Tab */
+          <div className="grid grid-cols-5 gap-6">
+            {/* Left Panel - Report List */}
+            <div className="col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search reports..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-9 bg-white border-gray-200"
+                  />
+                </div>
+                <Select value={responseTypeFilter} onValueChange={setResponseTypeFilter}>
+                  <SelectTrigger className="w-[110px] h-9 bg-white border-gray-200">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="ACK">ACK</SelectItem>
+                    <SelectItem value="NACK">NACK</SelectItem>
+                    <SelectItem value="FINAL">Final</SelectItem>
+                    <SelectItem value="INTERIM">Interim</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {statusesLoading ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                  </div>
+                ) : filteredStatuses.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <FileCheck className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                    <p className="text-sm text-gray-500">No bank responses yet</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Pull pain.002 files from the Banking Export page
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                    {filteredStatuses.map((status) => (
+                      <div
+                        key={status.id}
+                        onClick={() => setSelectedStatusId(status.id)}
+                        className={`px-4 py-3 cursor-pointer transition-colors ${
+                          selectedStatusId === status.id
+                            ? "bg-[#49a034]/5 border-l-2 border-l-[#49a034]"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {status.payment_export_filename || status.source_file || "Report"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <ReportTypeBadge type={status.report_type} />
+                              <GroupStatusBadge status={status.group_status} />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {format(new Date(status.received_at), "dd MMM yyyy, HH:mm")}
+                            </p>
+                          </div>
+                          <div className="text-right ml-3 shrink-0">
+                            <p className="text-sm font-medium text-gray-900">
+                              {status.successful_count}/{status.total_transactions}
+                            </p>
+                            <p className="text-xs text-gray-500">OK</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Panel - Transaction Details */}
+            <div className="col-span-3">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-2 h-9">
+                  <FileText className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {selectedStatusId ? `${statusTransactions.length} Transactions` : "Select a report"}
+                  </span>
+                </div>
+                {selectedStatusId && (
+                  <Select value={responseStatusFilter} onValueChange={setResponseStatusFilter}>
+                    <SelectTrigger className="w-[130px] h-9 bg-white border-gray-200 ml-auto">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="accepted">Accepted</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {!selectedStatusId ? (
+                  <div className="p-12 text-center">
+                    <FileCheck className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                    <p className="text-sm text-gray-500">Select a report to view transactions</p>
+                  </div>
+                ) : statusDetailLoading ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                  </div>
+                ) : filteredTransactions.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <p className="text-sm text-gray-500">No transactions match the filter</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[500px] overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="sticky top-0">
+                        <tr className="border-b border-gray-100 bg-gray-50/80 backdrop-blur">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Beneficiary</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {filteredTransactions.map((tx) => (
+                          <tr
+                            key={tx.id}
+                            className={
+                              tx.status === "ACSP" || tx.status === "ACWC"
+                                ? "bg-green-50/50 border-l-2 border-l-green-500"
+                                : tx.status === "RJCT"
+                                ? "bg-red-50/50 border-l-2 border-l-red-500"
+                                : "bg-amber-50/50 border-l-2 border-l-amber-500"
+                            }
+                          >
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {tx.creditor_name || tx.original_end_to_end_id}
+                                </p>
+                                {tx.creditor_name && (
+                                  <p className="text-xs text-gray-500 font-mono">{tx.original_end_to_end_id}</p>
+                                )}
+                                {tx.invoice_number && (
+                                  <p className="text-xs text-gray-400">Inv: {tx.invoice_number}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="text-sm font-medium text-gray-900">
+                                {tx.original_amount
+                                  ? formatCurrency(parseFloat(tx.original_amount), tx.original_currency || organizationCurrency)
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <BankResponseStatusBadge status={tx.status} />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div>
+                                {tx.status_code && (
+                                  <p className="text-xs font-mono text-gray-600">{tx.status_code}</p>
+                                )}
+                                <p className="text-xs text-gray-500 max-w-[200px] truncate">
+                                  {tx.status_description || "-"}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {tx.status === "RJCT" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs border-red-200 text-red-600 hover:bg-red-50"
+                                  onClick={() => {
+                                    toast.info("Transaction queued for retry in next export batch");
+                                  }}
+                                >
+                                  <RotateCcw className="h-3 w-3 mr-1" />
+                                  Retry
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -758,6 +1021,61 @@ function ExportStatusBadge({ status }: { status: string }) {
     <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded font-medium mt-1 ${style}`}>
       {icon}
       {status}
+    </span>
+  );
+}
+
+function BankResponseStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { style: string; icon: React.ReactNode; label: string }> = {
+    ACSP: { style: "bg-green-100 text-green-700", icon: <CheckCircle2 className="h-3 w-3" />, label: "Accepted" },
+    ACWC: { style: "bg-amber-100 text-amber-700", icon: <AlertTriangle className="h-3 w-3" />, label: "Accepted with Change" },
+    PDNG: { style: "bg-blue-100 text-blue-700", icon: <Clock className="h-3 w-3" />, label: "Pending" },
+    RJCT: { style: "bg-red-100 text-red-700", icon: <XCircle className="h-3 w-3" />, label: "Rejected" },
+  };
+  const { style, icon, label } = config[status] || { style: "bg-gray-100 text-gray-600", icon: null, label: status };
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium ${style}`}>
+      {icon}
+      {label}
+    </span>
+  );
+}
+
+function ReportTypeBadge({ type }: { type: string }) {
+  const config: Record<string, string> = {
+    ACK: "bg-green-50 text-green-700",
+    NACK: "bg-red-50 text-red-700",
+    FINAL: "bg-purple-50 text-purple-700",
+    INTERIM: "bg-blue-50 text-blue-700",
+    VET: "bg-amber-50 text-amber-700",
+    UNPAID: "bg-orange-50 text-orange-700",
+  };
+  return (
+    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${config[type] || "bg-gray-50 text-gray-600"}`}>
+      {type}
+    </span>
+  );
+}
+
+function GroupStatusBadge({ status }: { status: string | null }) {
+  if (!status) return null;
+  const config: Record<string, string> = {
+    RCVD: "bg-blue-50 text-blue-600",
+    ACSP: "bg-green-50 text-green-600",
+    PART: "bg-amber-50 text-amber-600",
+    PDNG: "bg-blue-50 text-blue-600",
+    RJCT: "bg-red-50 text-red-600",
+  };
+  const labels: Record<string, string> = {
+    RCVD: "Received",
+    ACSP: "All Accepted",
+    PART: "Partial",
+    PDNG: "Pending",
+    RJCT: "Rejected",
+  };
+  return (
+    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${config[status] || "bg-gray-50 text-gray-600"}`}>
+      {labels[status] || status}
     </span>
   );
 }

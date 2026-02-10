@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ import {
   useBankPaymentExports,
   usePain002RemoteFiles,
   usePain002Pull,
+  useTaskStatus,
   usePaymentExportStatuses,
   usePaymentExportStatusDetail,
   useSFTPCredentials,
@@ -428,6 +430,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [isPulling, setIsPulling] = useState(false);
+  const [pullTaskId, setPullTaskId] = useState<string | undefined>();
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
@@ -452,6 +455,33 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
   const pullPain002 = usePain002Pull();
 
+  // Poll task status after pull is initiated
+  const { data: taskStatus } = useTaskStatus(pullTaskId);
+
+  useEffect(() => {
+    if (!taskStatus || !pullTaskId) return;
+
+    if (taskStatus.status === "SUCCESS") {
+      setPullTaskId(undefined);
+      setIsPulling(false);
+      refetchExports();
+      refetchRemoteFiles();
+      const result = taskStatus.result;
+      if (result?.total_downloaded > 0) {
+        toast.success(
+          `Pulled ${result.total_downloaded} file(s), processed ${result.total_processed || 0}`
+        );
+      } else {
+        toast.info("No new pain.002 files found on SFTP");
+      }
+    } else if (taskStatus.status === "FAILURE") {
+      setPullTaskId(undefined);
+      setIsPulling(false);
+      const errorMsg = taskStatus.result?.error || "Task failed";
+      toast.error(`Pull failed: ${errorMsg}`);
+    }
+  }, [taskStatus, pullTaskId]);
+
   useEffect(() => {
     if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
       const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
@@ -473,15 +503,17 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
     if (!selectedSFTPCredentialId) return;
     try {
       setIsPulling(true);
-      await pullPain002.mutateAsync({
+      const result = await pullPain002.mutateAsync({
         sftp_credential_id: selectedSFTPCredentialId,
         auto_process: true,
       });
-      refetchExports();
-      refetchRemoteFiles();
+      if (result.task_id) {
+        setPullTaskId(result.task_id);
+        toast.info("Pulling bank responses...");
+      }
     } catch (error) {
-      console.error("Failed to pull pain.002 files:", error);
-    } finally {
+      const message = error instanceof Error ? error.message : "Failed to pull pain.002 files";
+      toast.error(message);
       setIsPulling(false);
     }
   };
@@ -570,7 +602,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
                 {isPulling ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Pulling...
+                    {pullTaskId ? "Processing..." : "Pulling..."}
                   </>
                 ) : (
                   <>

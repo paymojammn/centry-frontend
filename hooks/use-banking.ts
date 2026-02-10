@@ -830,6 +830,7 @@ export function useAllPaymentExportStatuses(filters?: {
   return useQuery<{ results: PaymentExportStatus[]; count: number }>({
     queryKey: ['all-payment-export-statuses', queryString],
     queryFn: () => get(`/api/v1/banking/export-statuses/${queryString ? `?${queryString}` : ''}`),
+    enabled: !!filters?.organizationId,
   });
 }
 
@@ -872,6 +873,24 @@ export function usePain002RemoteFiles(bankAccountId?: number) {
     queryFn: () => get(`/api/v1/banking/pain002/files/${bankAccountId}/`),
     enabled: !!bankAccountId,
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Poll async task status (Celery task)
+ */
+export function useTaskStatus(taskId?: string) {
+  return useQuery<{ task_id: string; status: string; result?: any }>({
+    queryKey: ['task-status', taskId],
+    queryFn: () => get(`/api/v1/banking/sftp/task/${taskId}/`),
+    enabled: !!taskId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status === 'SUCCESS' || status === 'FAILURE' || status === 'REVOKED') {
+        return false;
+      }
+      return 2000;
+    },
   });
 }
 
