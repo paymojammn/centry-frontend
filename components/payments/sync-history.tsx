@@ -48,13 +48,13 @@ export function SyncHistory() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black">Sync History</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">Sync History</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             View all transactions that have been posted to your ERP
           </p>
         </div>
         {syncedTransactions.length > 0 && (
-          <Badge className="bg-green-50 text-green-700 border-green-200">
+          <Badge className="bg-primary/5 text-primary border-primary/20">
             <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
             {syncedTransactions.length} synced
           </Badge>
@@ -65,19 +65,19 @@ export function SyncHistory() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="p-6 border border-gray-100 rounded-lg animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div key={i} className="p-6 border border-border rounded-lg animate-pulse">
+              <div className="h-4 bg-muted rounded w-3/4 mb-3"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </div>
           ))}
         </div>
       ) : syncedTransactions.length === 0 ? (
-        <div className="text-center py-12 border border-gray-100 rounded-lg bg-gray-50">
-          <HistoryIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="text-center py-12 border border-border rounded-lg bg-muted">
+          <HistoryIcon className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No sync history yet
           </h3>
-          <p className="text-gray-500 max-w-sm mx-auto">
+          <p className="text-muted-foreground max-w-sm mx-auto">
             Transactions synced to your ERP will appear here with their posting details.
           </p>
         </div>
@@ -90,20 +90,20 @@ export function SyncHistory() {
             return (
               <div
                 key={transaction.id}
-                className="p-6 border border-gray-100 rounded-lg hover:shadow-md transition-shadow duration-200 bg-white"
+                className="p-6 border border-border rounded-lg hover:shadow-md transition-shadow duration-200 bg-card"
               >
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: Transaction Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 bg-green-50 rounded-lg">
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div className="p-2 bg-primary/5 rounded-lg">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-black truncate">
+                        <h3 className="font-semibold text-foreground truncate">
                           {transaction.description}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
                         </div>
@@ -112,9 +112,9 @@ export function SyncHistory() {
 
                     {/* Match Details */}
                     <div className="flex flex-wrap items-center gap-3 text-sm">
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                         <FileText className="h-4 w-4 text-[#49a034]" />
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-foreground">
                           {transaction.matched_to_reference}
                         </span>
                         <Badge variant="outline" className="text-xs capitalize ml-1">
@@ -131,7 +131,7 @@ export function SyncHistory() {
                         </button>
                       )}
 
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         Synced {format(new Date(transaction.posted_to_erp_at), "MMM dd 'at' h:mm a")}
                       </span>
                     </div>
@@ -141,13 +141,13 @@ export function SyncHistory() {
                   <div className="text-right flex-shrink-0">
                     <div
                       className={`text-lg font-bold ${
-                        isCredit ? "text-green-600" : "text-red-600"
+                        isCredit ? "text-primary" : "text-destructive"
                       }`}
                     >
                       {isCredit ? "+" : "-"}
                       {formatCurrency(amount, transaction.currency)}
                     </div>
-                    <Badge className="mt-2 bg-green-50 text-green-700 border-green-200 text-xs">
+                    <Badge className="mt-2 bg-primary/5 text-primary border-primary/20 text-xs">
                       Posted
                     </Badge>
                   </div>

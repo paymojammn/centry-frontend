@@ -244,18 +244,18 @@ export default function NewPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="space-y-6">
           {/* Header */}
-          <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 bg-[#49a034]/10 rounded-lg">
-                <Smartphone className="h-6 w-6 text-[#49a034]" />
+              <div className="p-2.5 bg-primary/10 rounded-lg">
+                <Smartphone className="h-6 w-6 text-primary" />
               </div>
-              <h1 className="text-3xl font-semibold text-gray-900">Send Mobile Money</h1>
+              <h1 className="text-3xl font-semibold text-foreground">Send Mobile Money</h1>
             </div>
-            <p className="text-gray-600 ml-12">
+            <p className="text-muted-foreground ml-12">
               Send payments to individuals or multiple recipients at once
             </p>
           </div>
@@ -263,54 +263,54 @@ export default function NewPaymentPage() {
           {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="border-gray-200">
+              <Card className="border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-100 rounded-lg">
                       <Clock className="h-4 w-4 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-                      <p className="text-xs text-gray-500">Pending Approval</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
+                      <p className="text-xs text-muted-foreground">Pending Approval</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-gray-200">
+              <Card className="border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <CheckCircle className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.approved}</p>
-                      <p className="text-xs text-gray-500">Approved</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.approved}</p>
+                      <p className="text-xs text-muted-foreground">Approved</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-gray-200">
+              <Card className="border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                    <div className="p-2 bg-[#6B8FB8]/10 rounded-lg">
+                      <CheckCircle2 className="h-4 w-4 text-[#6B8FB8]" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-                      <p className="text-xs text-gray-500">Completed</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.completed}</p>
+                      <p className="text-xs text-muted-foreground">Completed</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-gray-200">
+              <Card className="border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <List className="h-4 w-4 text-gray-600" />
+                    <div className="p-2 bg-muted rounded-lg">
+                      <List className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                      <p className="text-xs text-gray-500">Total Requests</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                      <p className="text-xs text-muted-foreground">Total Requests</p>
                     </div>
                   </div>
                 </CardContent>
@@ -320,25 +320,25 @@ export default function NewPaymentPage() {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
-              <TabsList className="bg-gray-50 p-1 rounded-lg w-full grid grid-cols-4 gap-1">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-1.5">
+              <TabsList className="bg-muted p-1 rounded-lg w-full grid grid-cols-4 gap-1">
                 <TabsTrigger
                   value="single"
-                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-muted-foreground"
                 >
                   <Smartphone className="h-4 w-4 mr-2" />
                   Single
                 </TabsTrigger>
                 <TabsTrigger
                   value="bulk"
-                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-muted-foreground"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Bulk
                 </TabsTrigger>
                 <TabsTrigger
                   value="approvals"
-                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-muted-foreground"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Approvals
@@ -350,7 +350,7 @@ export default function NewPaymentPage() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="history"
-                  className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-gray-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all font-medium text-muted-foreground"
                 >
                   <List className="h-4 w-4 mr-2" />
                   My Requests
@@ -360,54 +360,54 @@ export default function NewPaymentPage() {
 
             {/* Single Payment Tab */}
             <TabsContent value="single" className="space-y-6">
-              <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <div className="p-5 border-b border-gray-100">
-                  <CardTitle className="text-lg font-semibold text-gray-900">Single Payment</CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">Send money to one mobile number</p>
+              <Card className="border border-border shadow-sm rounded-xl overflow-hidden">
+                <div className="p-5 border-b border-border">
+                  <CardTitle className="text-lg font-semibold text-foreground">Single Payment</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">Send money to one mobile number</p>
                 </div>
                 <CardContent className="p-6 space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="recipient-name" className="text-gray-900">Recipient Name</Label>
+                    <Label htmlFor="recipient-name" className="text-foreground">Recipient Name</Label>
                     <Input
                       id="recipient-name"
                       placeholder="Enter recipient name"
                       value={singlePayment.name}
                       onChange={(e) => setSinglePayment({ ...singlePayment, name: e.target.value })}
-                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900"
+                      className="h-11 border-border rounded-lg bg-card text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone-number" className="text-gray-900">Mobile Number</Label>
+                    <Label htmlFor="phone-number" className="text-foreground">Mobile Number</Label>
                     <Input
                       id="phone-number"
                       placeholder="+256 XXX XXX XXX"
                       value={singlePayment.phoneNumber}
                       onChange={(e) => setSinglePayment({ ...singlePayment, phoneNumber: e.target.value })}
-                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900"
+                      className="h-11 border-border rounded-lg bg-card text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount" className="text-gray-900">Amount (UGX)</Label>
+                    <Label htmlFor="amount" className="text-foreground">Amount (UGX)</Label>
                     <Input
                       id="amount"
                       type="number"
                       placeholder="0.00"
                       value={singlePayment.amount}
                       onChange={(e) => setSinglePayment({ ...singlePayment, amount: e.target.value })}
-                      className="h-11 border-gray-200 rounded-lg bg-white text-gray-900 font-semibold"
+                      className="h-11 border-border rounded-lg bg-card text-foreground font-semibold"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-gray-900">Description (Optional)</Label>
+                    <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
                     <Textarea
                       id="description"
                       placeholder="Payment description..."
                       value={singlePayment.description}
                       onChange={(e) => setSinglePayment({ ...singlePayment, description: e.target.value })}
-                      className="border-gray-200 rounded-lg bg-white text-gray-900"
+                      className="border-border rounded-lg bg-card text-foreground"
                       rows={3}
                     />
                   </div>
@@ -415,7 +415,7 @@ export default function NewPaymentPage() {
                   <Button
                     onClick={handleSubmitSinglePayment}
                     disabled={!singlePayment.phoneNumber || !singlePayment.amount || isCreating || isSubmitting}
-                    className="w-full h-11 bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm transition-all font-medium"
+                    className="w-full h-11 bg-primary hover:bg-primary/90 text-white shadow-sm transition-all font-medium"
                   >
                     <Send className="h-4 w-4 mr-2" />
                     {isCreating || isSubmitting ? "Submitting..." : "Submit for Approval"}
@@ -430,49 +430,49 @@ export default function NewPaymentPage() {
               <div className="flex gap-3 flex-wrap">
                 <Dialog open={isAddRecipientOpen} onOpenChange={setIsAddRecipientOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm">
+                    <Button className="bg-primary hover:bg-primary/90 text-white shadow-sm">
                       <UserPlus className="h-4 w-4 mr-2" />
                       Add Recipient
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-white">
+                  <DialogContent className="bg-card">
                     <DialogHeader>
-                      <DialogTitle className="text-gray-900">Add Recipient</DialogTitle>
-                      <DialogDescription className="text-gray-600">Add a new recipient to your payment list</DialogDescription>
+                      <DialogTitle className="text-foreground">Add Recipient</DialogTitle>
+                      <DialogDescription className="text-muted-foreground">Add a new recipient to your payment list</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="new-name" className="text-gray-900">Name</Label>
+                        <Label htmlFor="new-name" className="text-foreground">Name</Label>
                         <Input
                           id="new-name"
                           placeholder="Recipient name"
                           value={newRecipient.name}
                           onChange={(e) => setNewRecipient({ ...newRecipient, name: e.target.value })}
-                          className="bg-white text-gray-900 border-gray-200"
+                          className="bg-card text-foreground border-border"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-phone" className="text-gray-900">Mobile Number</Label>
+                        <Label htmlFor="new-phone" className="text-foreground">Mobile Number</Label>
                         <Input
                           id="new-phone"
                           placeholder="+256 XXX XXX XXX"
                           value={newRecipient.phoneNumber}
                           onChange={(e) => setNewRecipient({ ...newRecipient, phoneNumber: e.target.value })}
-                          className="bg-white text-gray-900 border-gray-200"
+                          className="bg-card text-foreground border-border"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-amount" className="text-gray-900">Amount (UGX)</Label>
+                        <Label htmlFor="new-amount" className="text-foreground">Amount (UGX)</Label>
                         <Input
                           id="new-amount"
                           type="number"
                           placeholder="0.00"
                           value={newRecipient.amount}
                           onChange={(e) => setNewRecipient({ ...newRecipient, amount: e.target.value })}
-                          className="bg-white text-gray-900 border-gray-200"
+                          className="bg-card text-foreground border-border"
                         />
                       </div>
-                      <Button onClick={handleAddRecipient} className="w-full bg-[#49a034] hover:bg-[#3d8029]">
+                      <Button onClick={handleAddRecipient} className="w-full bg-primary hover:bg-primary/90">
                         <Plus className="h-4 w-4 mr-2" />
                         Add to List
                       </Button>
@@ -481,7 +481,7 @@ export default function NewPaymentPage() {
                 </Dialog>
 
                 <label htmlFor="csv-upload">
-                  <Button variant="outline" className="cursor-pointer border-[#49a034] text-[#49a034] hover:bg-[#49a034]/5" asChild>
+                  <Button variant="outline" className="cursor-pointer border-primary text-primary hover:bg-primary/5" asChild>
                     <span>
                       <Upload className="h-4 w-4 mr-2" />
                       Import CSV
@@ -507,7 +507,7 @@ export default function NewPaymentPage() {
                     a.download = "template.csv";
                     a.click();
                   }}
-                  className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                  className="border-border text-foreground hover:bg-muted"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Template
@@ -517,14 +517,14 @@ export default function NewPaymentPage() {
               {/* Recipients List */}
               {recipients.length > 0 ? (
                 <>
-                  <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 bg-white">
+                  <Card className="border border-border shadow-sm rounded-xl overflow-hidden">
+                    <div className="p-5 border-b border-border bg-card">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-lg font-semibold text-gray-900">
+                          <CardTitle className="text-lg font-semibold text-foreground">
                             Recipients ({recipients.length})
                           </CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             Total: UGX {calculateTotal().toLocaleString()}
                           </p>
                         </div>
@@ -532,7 +532,7 @@ export default function NewPaymentPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setRecipients([])}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
+                          className="text-destructive border-destructive/20 hover:bg-destructive/5"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Clear All
@@ -544,15 +544,15 @@ export default function NewPaymentPage() {
                         {recipients.map((recipient) => (
                           <div
                             key={recipient.id}
-                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-[#49a034]/30 hover:shadow-sm transition-all"
+                            className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/30 hover:shadow-sm transition-all"
                           >
                             <div className="flex-1">
-                              <p className="font-semibold text-gray-900">{recipient.name}</p>
-                              <p className="text-sm text-gray-500">{recipient.phoneNumber}</p>
+                              <p className="font-semibold text-foreground">{recipient.name}</p>
+                              <p className="text-sm text-muted-foreground">{recipient.phoneNumber}</p>
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <p className="font-bold text-[#49a034]">
+                                <p className="font-bold text-primary">
                                   UGX {recipient.amount?.toLocaleString() || "0"}
                                 </p>
                               </div>
@@ -560,7 +560,7 @@ export default function NewPaymentPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveRecipient(recipient.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-destructive hover:text-red-700 hover:bg-destructive/5"
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -572,12 +572,12 @@ export default function NewPaymentPage() {
                   </Card>
 
                   {/* Submit Button */}
-                  <Card className="border border-[#49a034] shadow-sm rounded-xl overflow-hidden">
+                  <Card className="border border-primary shadow-sm rounded-xl overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Ready to Submit</h3>
-                          <p className="text-sm text-gray-600">
+                          <h3 className="text-lg font-semibold text-foreground">Ready to Submit</h3>
+                          <p className="text-sm text-muted-foreground">
                             {recipients.length} payment{recipients.length !== 1 ? "s" : ""} totaling UGX {calculateTotal().toLocaleString()}
                           </p>
                         </div>
@@ -585,7 +585,7 @@ export default function NewPaymentPage() {
                       <Button
                         onClick={handleSubmitBulkPayment}
                         disabled={isCreating || isSubmitting}
-                        className="w-full h-12 bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm transition-all text-lg font-semibold"
+                        className="w-full h-12 bg-primary hover:bg-primary/90 text-white shadow-sm transition-all text-lg font-semibold"
                       >
                         <Send className="h-5 w-5 mr-2" />
                         {isCreating || isSubmitting ? "Submitting..." : "Submit for Approval"}
@@ -594,15 +594,15 @@ export default function NewPaymentPage() {
                   </Card>
                 </>
               ) : (
-                <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <Card className="border border-border shadow-sm rounded-xl overflow-hidden">
                   <CardContent className="p-12 text-center">
-                    <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Recipients Yet</h3>
-                    <p className="text-gray-500 mb-6">
+                    <Users className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Recipients Yet</h3>
+                    <p className="text-muted-foreground mb-6">
                       Add recipients individually or import from a CSV file to get started
                     </p>
                     <div className="flex gap-4 justify-center">
-                      <Button onClick={() => setIsAddRecipientOpen(true)} className="bg-[#49a034] hover:bg-[#3d8029]">
+                      <Button onClick={() => setIsAddRecipientOpen(true)} className="bg-primary hover:bg-primary/90">
                         <UserPlus className="h-4 w-4 mr-2" />
                         Add Recipient
                       </Button>
@@ -615,15 +615,15 @@ export default function NewPaymentPage() {
             {/* Approvals Tab */}
             <TabsContent value="approvals" className="space-y-6">
               {loadingPending ? (
-                <Card className="border border-gray-200 shadow-sm rounded-xl">
+                <Card className="border border-border shadow-sm rounded-xl">
                   <CardContent className="p-12 text-center">
-                    <p className="text-gray-500">Loading...</p>
+                    <p className="text-muted-foreground">Loading...</p>
                   </CardContent>
                 </Card>
               ) : (pendingRequests?.results || []).length > 0 ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-lg font-semibold text-foreground">
                       Pending Approvals ({pendingRequests?.count})
                     </h2>
                     <Badge className="bg-amber-100 text-amber-700 border-amber-200">
@@ -632,39 +632,39 @@ export default function NewPaymentPage() {
                   </div>
                   <div className="space-y-4">
                     {pendingRequests?.results.map((request) => (
-                      <Card key={request.id} className="border border-gray-200 shadow-sm rounded-xl">
+                      <Card key={request.id} className="border border-border shadow-sm rounded-xl">
                         <CardContent className="p-5">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 {getStatusBadge(request.status)}
-                                <Badge variant="outline" className="border-gray-200">
+                                <Badge variant="outline" className="border-border">
                                   {request.payment_type_display}
                                 </Badge>
                               </div>
-                              <h3 className="font-semibold text-gray-900">
+                              <h3 className="font-semibold text-foreground">
                                 {request.payment_type === "bulk"
                                   ? `Bulk Payment - ${request.total_recipients} recipients`
                                   : `Payment to ${request.recipient_name}`}
                               </h3>
-                              <p className="text-sm text-gray-500 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {request.payment_type === "single" && request.recipient_phone}
                                 {request.description && ` • ${request.description}`}
                               </p>
-                              <p className="text-xs text-gray-400 mt-2">
+                              <p className="text-xs text-muted-foreground/60 mt-2">
                                 Requested by {request.created_by_name} on{" "}
                                 {new Date(request.created_at).toLocaleDateString()}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-xl font-bold text-gray-900">
+                              <p className="text-xl font-bold text-foreground">
                                 {request.currency} {parseFloat(request.amount).toLocaleString()}
                               </p>
                               <div className="flex gap-2 mt-3">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-red-200 text-red-600 hover:bg-red-50"
+                                  className="border-destructive/20 text-destructive hover:bg-destructive/5"
                                   onClick={() => {
                                     setSelectedRequest(request);
                                     setIsRejectModalOpen(true);
@@ -675,7 +675,7 @@ export default function NewPaymentPage() {
                                 </Button>
                                 <Button
                                   size="sm"
-                                  className="bg-[#49a034] hover:bg-[#3d8029] text-white"
+                                  className="bg-primary hover:bg-primary/90 text-white"
                                   onClick={() => {
                                     setSelectedRequest(request);
                                     setIsApproveModalOpen(true);
@@ -693,11 +693,11 @@ export default function NewPaymentPage() {
                   </div>
                 </>
               ) : (
-                <Card className="border border-gray-200 shadow-sm rounded-xl">
+                <Card className="border border-border shadow-sm rounded-xl">
                   <CardContent className="p-12 text-center">
-                    <CheckCircle2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pending Approvals</h3>
-                    <p className="text-gray-500">All payment requests have been reviewed</p>
+                    <CheckCircle2 className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Pending Approvals</h3>
+                    <p className="text-muted-foreground">All payment requests have been reviewed</p>
                   </CardContent>
                 </Card>
               )}
@@ -706,49 +706,49 @@ export default function NewPaymentPage() {
             {/* My Requests Tab */}
             <TabsContent value="history" className="space-y-6">
               {loadingMyRequests ? (
-                <Card className="border border-gray-200 shadow-sm rounded-xl">
+                <Card className="border border-border shadow-sm rounded-xl">
                   <CardContent className="p-12 text-center">
-                    <p className="text-gray-500">Loading...</p>
+                    <p className="text-muted-foreground">Loading...</p>
                   </CardContent>
                 </Card>
               ) : (myRequests?.results || []).length > 0 ? (
                 <div className="space-y-4">
                   {myRequests?.results.map((request) => (
-                    <Card key={request.id} className="border border-gray-200 shadow-sm rounded-xl">
+                    <Card key={request.id} className="border border-border shadow-sm rounded-xl">
                       <CardContent className="p-5">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               {getStatusBadge(request.status)}
-                              <Badge variant="outline" className="border-gray-200">
+                              <Badge variant="outline" className="border-border">
                                 {request.payment_type_display}
                               </Badge>
                             </div>
-                            <h3 className="font-semibold text-gray-900">
+                            <h3 className="font-semibold text-foreground">
                               {request.payment_type === "bulk"
                                 ? `Bulk Payment - ${request.total_recipients} recipients`
                                 : `Payment to ${request.recipient_name}`}
                             </h3>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               {request.payment_type === "single" && request.recipient_phone}
                               {request.description && ` • ${request.description}`}
                             </p>
                             {request.rejection_reason && (
-                              <p className="text-sm text-red-600 mt-2">
+                              <p className="text-sm text-destructive mt-2">
                                 Rejected: {request.rejection_reason}
                               </p>
                             )}
                             {request.payment_reference && (
-                              <p className="text-sm text-green-600 mt-2">
+                              <p className="text-sm text-primary mt-2">
                                 Reference: {request.payment_reference}
                               </p>
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-gray-900">
+                            <p className="text-xl font-bold text-foreground">
                               {request.currency} {parseFloat(request.amount).toLocaleString()}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-muted-foreground/60 mt-1">
                               {new Date(request.created_at).toLocaleDateString()}
                             </p>
                           </div>
@@ -758,14 +758,14 @@ export default function NewPaymentPage() {
                   ))}
                 </div>
               ) : (
-                <Card className="border border-gray-200 shadow-sm rounded-xl">
+                <Card className="border border-border shadow-sm rounded-xl">
                   <CardContent className="p-12 text-center">
-                    <List className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Payment Requests</h3>
-                    <p className="text-gray-500 mb-6">
+                    <List className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Payment Requests</h3>
+                    <p className="text-muted-foreground mb-6">
                       You haven't submitted any payment requests yet
                     </p>
-                    <Button onClick={() => setActiveTab("single")} className="bg-[#49a034] hover:bg-[#3d8029]">
+                    <Button onClick={() => setActiveTab("single")} className="bg-primary hover:bg-primary/90">
                       <Plus className="h-4 w-4 mr-2" />
                       Create Payment
                     </Button>
@@ -779,32 +779,32 @@ export default function NewPaymentPage() {
 
       {/* Approve Modal */}
       <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-card">
           <DialogHeader>
-            <DialogTitle className="text-gray-900">Approve Payment</DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogTitle className="text-foreground">Approve Payment</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Confirm approval for this payment request
             </DialogDescription>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-semibold text-gray-900">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="font-semibold text-foreground">
                   {selectedRequest.payment_type === "bulk"
                     ? `Bulk Payment - ${selectedRequest.total_recipients} recipients`
                     : `Payment to ${selectedRequest.recipient_name}`}
                 </p>
-                <p className="text-xl font-bold text-[#49a034] mt-1">
+                <p className="text-xl font-bold text-primary mt-1">
                   {selectedRequest.currency} {parseFloat(selectedRequest.amount).toLocaleString()}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label className="text-gray-900">Notes (Optional)</Label>
+                <Label className="text-foreground">Notes (Optional)</Label>
                 <Textarea
                   placeholder="Add approval notes..."
                   value={approvalNotes}
                   onChange={(e) => setApprovalNotes(e.target.value)}
-                  className="bg-white text-gray-900 border-gray-200"
+                  className="bg-card text-foreground border-border"
                 />
               </div>
               <div className="flex gap-3">
@@ -816,7 +816,7 @@ export default function NewPaymentPage() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-[#49a034] hover:bg-[#3d8029]"
+                  className="flex-1 bg-primary hover:bg-primary/90"
                   onClick={handleApprove}
                   disabled={isApproving}
                 >
@@ -830,32 +830,32 @@ export default function NewPaymentPage() {
 
       {/* Reject Modal */}
       <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-card">
           <DialogHeader>
-            <DialogTitle className="text-gray-900">Reject Payment</DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogTitle className="text-foreground">Reject Payment</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Provide a reason for rejecting this payment request
             </DialogDescription>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-semibold text-gray-900">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="font-semibold text-foreground">
                   {selectedRequest.payment_type === "bulk"
                     ? `Bulk Payment - ${selectedRequest.total_recipients} recipients`
                     : `Payment to ${selectedRequest.recipient_name}`}
                 </p>
-                <p className="text-xl font-bold text-gray-900 mt-1">
+                <p className="text-xl font-bold text-foreground mt-1">
                   {selectedRequest.currency} {parseFloat(selectedRequest.amount).toLocaleString()}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label className="text-gray-900">Rejection Reason *</Label>
+                <Label className="text-foreground">Rejection Reason *</Label>
                 <Textarea
                   placeholder="Enter reason for rejection..."
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  className="bg-white text-gray-900 border-gray-200"
+                  className="bg-card text-foreground border-border"
                   required
                 />
               </div>

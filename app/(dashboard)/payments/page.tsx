@@ -125,17 +125,17 @@ export default function PaymentsPage() {
     {
       label: 'Matched',
       value: stats?.matched_count || 0,
-      color: '#49a034',
+      color: 'rgb(var(--brand-primary))',
     },
     {
       label: 'Reconciled',
       value: stats?.posted_count || 0,
-      color: '#49a034',
+      color: 'rgb(var(--brand-primary))',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Mobile Money"
         subtitle="Match mobile money transactions with invoices and bills"
@@ -146,24 +146,24 @@ export default function PaymentsPage() {
       <PageContainer>
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-fade-in-up">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-gray-50 p-1">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-muted p-1">
             <TabsTrigger
               value="reconcile"
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <AlertCircle className="h-4 w-4" />
               <span>To Reconcile ({unmatchedTransactions.length})</span>
             </TabsTrigger>
             <TabsTrigger
               value="matched"
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <Clock className="h-4 w-4" />
               <span>Matched ({matchedTransactions.length})</span>
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-[#49a034] data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <CheckCircle2 className="h-4 w-4" />
               <span>Reconciled ({postedTransactions.length})</span>
@@ -175,17 +175,17 @@ export default function PaymentsPage() {
             {unmatchedLoading ? (
               <ContentCard>
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               </ContentCard>
             ) : unmatchedTransactions.length === 0 ? (
               <ContentCard>
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-sm font-medium text-gray-900">All caught up!</p>
-                  <p className="text-xs text-gray-500 mt-1">No transactions to reconcile</p>
+                  <p className="text-sm font-medium text-foreground">All caught up!</p>
+                  <p className="text-xs text-muted-foreground mt-1">No transactions to reconcile</p>
                 </div>
               </ContentCard>
             ) : (
@@ -206,17 +206,17 @@ export default function PaymentsPage() {
             {matchedLoading ? (
               <ContentCard>
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               </ContentCard>
             ) : matchedTransactions.length === 0 ? (
               <ContentCard>
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <Clock className="h-6 w-6 text-gray-400" />
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-6 w-6 text-muted-foreground/60" />
                   </div>
-                  <p className="text-sm font-medium text-gray-900">No matched transactions</p>
-                  <p className="text-xs text-gray-500 mt-1">Transactions you match will appear here</p>
+                  <p className="text-sm font-medium text-foreground">No matched transactions</p>
+                  <p className="text-xs text-muted-foreground mt-1">Transactions you match will appear here</p>
                 </div>
               </ContentCard>
             ) : (
@@ -238,17 +238,17 @@ export default function PaymentsPage() {
             {postedLoading ? (
               <ContentCard>
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               </ContentCard>
             ) : postedTransactions.length === 0 ? (
               <ContentCard>
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <Receipt className="h-6 w-6 text-gray-400" />
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Receipt className="h-6 w-6 text-muted-foreground/60" />
                   </div>
-                  <p className="text-sm font-medium text-gray-900">No reconciled transactions</p>
-                  <p className="text-xs text-gray-500 mt-1">Reconciled transactions will appear here</p>
+                  <p className="text-sm font-medium text-foreground">No reconciled transactions</p>
+                  <p className="text-xs text-muted-foreground mt-1">Reconciled transactions will appear here</p>
                 </div>
               </ContentCard>
             ) : (

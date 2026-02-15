@@ -265,20 +265,20 @@ export default function BankReconciliationPage() {
   const totalToReconcile = (stats?.unmatched_count || 0) + (stats?.suggested_count || 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Bank Reconciliation</h1>
+              <h1 className="text-xl font-semibold text-foreground">Bank Reconciliation</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
                 disabled={orgsLoading}
               >
-                <SelectTrigger className="w-[200px] h-9 text-sm bg-gray-50 border-gray-200">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                <SelectTrigger className="w-[200px] h-9 text-sm bg-muted border-border">
+                  <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
                   <SelectValue placeholder="Select org" />
                 </SelectTrigger>
                 <SelectContent>
@@ -304,7 +304,7 @@ export default function BankReconciliationPage() {
                 size="sm"
                 onClick={handleAutoReconcile}
                 disabled={isAutoReconciling || !!reconcileTaskId || !activeConnectionId}
-                className="h-9 bg-[#49a034] hover:bg-[#547568]"
+                className="h-9 bg-primary hover:bg-primary/90"
               >
                 <Sparkles className={`h-4 w-4 mr-2 ${(isAutoReconciling || reconcileTaskId) ? 'animate-pulse' : ''}`} />
                 Auto Match
@@ -315,7 +315,7 @@ export default function BankReconciliationPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-6">
             <StatPill
@@ -327,7 +327,7 @@ export default function BankReconciliationPage() {
             <StatPill label="Suggested" value={stats?.suggested_count || 0} color="amber" />
             <StatPill label="Matched" value={stats?.matched_count || 0} color="blue" />
             <StatPill label="Posted" value={stats?.posted_count || 0} color="green" />
-            <div className="ml-auto text-sm text-gray-500">
+            <div className="ml-auto text-sm text-muted-foreground">
               {formatCurrency(stats?.total_unmatched_amount || 0, organizationCurrency)} unreconciled
             </div>
           </div>
@@ -341,38 +341,38 @@ export default function BankReconciliationPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="h-4 w-4 text-amber-500" />
-              <h2 className="text-sm font-medium text-gray-700">
+              <h2 className="text-sm font-medium text-foreground">
                 Suggested Matches ({suggestedTransactions.length})
               </h2>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+            <div className="bg-card rounded-lg border border-border divide-y divide-border">
               {suggestedTransactions.map((txn) => {
                 const amount = txn.debit_amount || txn.credit_amount || 0;
                 const confidence = Math.round((txn.match_confidence || 0) * 100);
                 const isExpanded = expandedTransaction === txn.id;
 
                 return (
-                  <div key={txn.id} className="hover:bg-gray-50 transition-colors">
+                  <div key={txn.id} className="hover:bg-muted transition-colors">
                     <div className="px-4 py-3">
                       <div className="flex items-center gap-4">
                         {/* Transaction */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-muted-foreground">
                               {format(new Date(txn.transaction_date), "dd MMM")}
                             </span>
-                            <span className="text-sm font-medium text-gray-900 truncate">
+                            <span className="text-sm font-medium text-foreground truncate">
                               {txn.description}
                             </span>
                           </div>
                           {txn.counterparty_name && (
-                            <p className="text-xs text-gray-500 mt-0.5">{txn.counterparty_name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{txn.counterparty_name}</p>
                           )}
                         </div>
 
                         {/* Amount */}
                         <div className={`text-right min-w-[100px] ${
-                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                          txn.transaction_type === "DEBIT" ? "text-foreground" : "text-primary"
                         }`}>
                           <span className="text-sm font-medium">
                             {txn.transaction_type === "DEBIT" ? "-" : "+"}
@@ -381,16 +381,16 @@ export default function BankReconciliationPage() {
                         </div>
 
                         {/* Arrow */}
-                        <ArrowRight className="h-4 w-4 text-gray-300 flex-shrink-0" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
 
                         {/* Matched Item */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs h-5 px-1.5 bg-gray-50">
+                            <Badge variant="outline" className="text-xs h-5 px-1.5 bg-muted">
                               {txn.matched_to_type === 'invoice' ? 'INV' : 'BILL'}
                             </Badge>
-                            <span className="text-sm text-gray-900">#{txn.matched_to_reference}</span>
-                            <Badge className="text-xs h-5 px-1.5 bg-amber-100 text-amber-700 border-0">
+                            <span className="text-sm text-foreground">#{txn.matched_to_reference}</span>
+                            <Badge className="text-xs h-5 px-1.5 bg-[#D4B35A]/10 text-[#D4B35A] border-0">
                               {confidence}%
                             </Badge>
                           </div>
@@ -401,7 +401,7 @@ export default function BankReconciliationPage() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/5"
                             onClick={() => approveMutation.mutate({
                               transactionId: txn.id,
                               matchType: txn.matched_to_type,
@@ -415,7 +415,7 @@ export default function BankReconciliationPage() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                            className="h-8 w-8 p-0 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5"
                             onClick={() => rejectMutation.mutate(txn.id)}
                             disabled={rejectMutation.isPending}
                           >
@@ -424,7 +424,7 @@ export default function BankReconciliationPage() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400"
+                            className="h-8 w-8 p-0 text-muted-foreground/60"
                             onClick={() => setExpandedTransaction(isExpanded ? null : txn.id)}
                           >
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -434,17 +434,17 @@ export default function BankReconciliationPage() {
 
                       {/* Expanded Details */}
                       {isExpanded && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <div className="flex gap-6 text-xs text-gray-500">
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <div className="flex gap-6 text-xs text-muted-foreground">
                             <div>
-                              <span className="text-gray-400">Match rules:</span>{' '}
+                              <span className="text-muted-foreground/60">Match rules:</span>{' '}
                               {txn.match_rules_applied?.map(r => r.replace(/_/g, ' ')).join(', ') || 'None'}
                             </div>
                             <div>
-                              <span className="text-gray-400">Bank:</span> {txn.source_provider || 'Unknown'}
+                              <span className="text-muted-foreground/60">Bank:</span> {txn.source_provider || 'Unknown'}
                             </div>
                             <div>
-                              <span className="text-gray-400">Reference:</span> {txn.reference || 'N/A'}
+                              <span className="text-muted-foreground/60">Reference:</span> {txn.reference || 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -463,52 +463,52 @@ export default function BankReconciliationPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-orange-500" />
-                <h2 className="text-sm font-medium text-gray-700">
+                <AlertCircle className="h-4 w-4 text-[#D4944A]" />
+                <h2 className="text-sm font-medium text-foreground">
                   Bank Transactions ({unmatchedTransactions.length})
                 </h2>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
               {unmatchedLoading ? (
                 <div className="p-8 text-center">
-                  <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto" />
+                  <div className="animate-spin h-6 w-6 border-2 border-border border-t-gray-600 rounded-full mx-auto" />
                 </div>
               ) : unmatchedTransactions.length === 0 ? (
                 <div className="p-8 text-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">All caught up!</p>
+                  <CheckCircle2 className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">All caught up!</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                   {unmatchedTransactions.map((txn) => (
                     <div
                       key={txn.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="px-4 py-3 hover:bg-muted cursor-pointer transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-muted-foreground/60">
                               {format(new Date(txn.transaction_date), "dd MMM")}
                             </span>
                             <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                               txn.transaction_type === "DEBIT"
-                                ? "bg-orange-50 text-orange-600"
-                                : "bg-green-50 text-green-600"
+                                ? "bg-[#D4944A]/10 text-[#D4944A]"
+                                : "bg-primary/5 text-primary"
                             }`}>
                               {txn.transaction_type === "DEBIT" ? "OUT" : "IN"}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                          <p className="text-sm text-foreground font-medium truncate mt-0.5">
                             {txn.description}
                           </p>
                           {txn.counterparty_name && (
-                            <p className="text-xs text-gray-500 truncate">{txn.counterparty_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{txn.counterparty_name}</p>
                           )}
                         </div>
                         <div className={`text-right ml-4 ${
-                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                          txn.transaction_type === "DEBIT" ? "text-foreground" : "text-primary"
                         }`}>
                           <p className="text-sm font-semibold">
                             {txn.transaction_type === "DEBIT" ? "-" : "+"}
@@ -527,51 +527,51 @@ export default function BankReconciliationPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-blue-500" />
-                <h2 className="text-sm font-medium text-gray-700">
+                <FileText className="h-4 w-4 text-[#6B8FB8]" />
+                <h2 className="text-sm font-medium text-foreground">
                   Invoices & Bills ({(reconciliationItems?.total_invoices || 0) + (reconciliationItems?.total_bills || 0)})
                 </h2>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
               {itemsLoading ? (
                 <div className="p-8 text-center">
-                  <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto" />
+                  <div className="animate-spin h-6 w-6 border-2 border-border border-t-gray-600 rounded-full mx-auto" />
                 </div>
               ) : (!reconciliationItems?.invoices?.length && !reconciliationItems?.bills?.length) ? (
                 <div className="p-8 text-center">
-                  <Receipt className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No items to match</p>
-                  <p className="text-xs text-gray-400 mt-1">Sync from Xero to see items</p>
+                  <Receipt className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No items to match</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Sync from Xero to see items</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                   {/* Invoices */}
                   {reconciliationItems?.invoices?.map((inv: any) => (
                     <div
                       key={inv.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="px-4 py-3 hover:bg-muted cursor-pointer transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-50 text-green-600">
+                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-primary/5 text-primary">
                               INV
                             </span>
-                            <span className="text-xs text-gray-500">#{inv.invoice_number}</span>
+                            <span className="text-xs text-muted-foreground">#{inv.invoice_number}</span>
                           </div>
-                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                          <p className="text-sm text-foreground font-medium truncate mt-0.5">
                             {inv.contact}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             Due {inv.due_date ? format(new Date(inv.due_date), "dd MMM") : "N/A"}
                           </p>
                         </div>
                         <div className="text-right ml-4">
-                          <p className="text-sm font-semibold text-green-600">
+                          <p className="text-sm font-semibold text-primary">
                             +{formatCurrency(inv.amount_due, inv.currency_code)}
                           </p>
-                          <span className="text-xs text-gray-400">{inv.status}</span>
+                          <span className="text-xs text-muted-foreground/60">{inv.status}</span>
                         </div>
                       </div>
                     </div>
@@ -581,28 +581,28 @@ export default function BankReconciliationPage() {
                   {reconciliationItems?.bills?.map((bill: any) => (
                     <div
                       key={bill.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="px-4 py-3 hover:bg-muted cursor-pointer transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-orange-50 text-orange-600">
+                            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-[#D4944A]/10 text-[#D4944A]">
                               BILL
                             </span>
-                            <span className="text-xs text-gray-500">#{bill.invoice_number}</span>
+                            <span className="text-xs text-muted-foreground">#{bill.invoice_number}</span>
                           </div>
-                          <p className="text-sm text-gray-900 font-medium truncate mt-0.5">
+                          <p className="text-sm text-foreground font-medium truncate mt-0.5">
                             {bill.contact}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             Paid {formatCurrency(bill.amount_paid, bill.currency_code)}
                           </p>
                         </div>
                         <div className="text-right ml-4">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-foreground">
                             -{formatCurrency(bill.amount_paid, bill.currency_code)}
                           </p>
-                          <span className="text-xs text-gray-400">{bill.status}</span>
+                          <span className="text-xs text-muted-foreground/60">{bill.status}</span>
                         </div>
                       </div>
                     </div>
@@ -617,30 +617,30 @@ export default function BankReconciliationPage() {
         {matchedTransactions.length > 0 && (
           <div className="mt-6">
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="h-4 w-4 text-blue-500" />
-              <h2 className="text-sm font-medium text-gray-700">
+              <Clock className="h-4 w-4 text-[#6B8FB8]" />
+              <h2 className="text-sm font-medium text-foreground">
                 Matched - Pending Post ({matchedTransactions.length})
               </h2>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
+            <div className="bg-card rounded-lg border border-border">
+              <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
                 {matchedTransactions.map((txn) => (
                   <div key={txn.id} className="px-4 py-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-muted-foreground/60">
                           {format(new Date(txn.transaction_date), "dd MMM")}
                         </span>
-                        <span className="text-sm text-gray-900">{txn.description}</span>
+                        <span className="text-sm text-foreground">{txn.description}</span>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className={`text-sm font-medium ${
-                          txn.transaction_type === "DEBIT" ? "text-gray-900" : "text-green-600"
+                          txn.transaction_type === "DEBIT" ? "text-foreground" : "text-primary"
                         }`}>
                           {txn.transaction_type === "DEBIT" ? "-" : "+"}
                           {formatCurrency(txn.amount, txn.currency)}
                         </span>
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                        <Badge variant="outline" className="text-xs bg-[#6B8FB8]/10 text-[#6B8FB8] border-[#6B8FB8]/20">
                           Matched
                         </Badge>
                       </div>
@@ -669,16 +669,16 @@ function StatPill({
   showDot?: boolean;
 }) {
   const colors = {
-    orange: 'text-orange-600',
-    amber: 'text-amber-600',
-    blue: 'text-blue-600',
-    green: 'text-green-600',
+    orange: 'text-[#D4944A]',
+    amber: 'text-[#D4B35A]',
+    blue: 'text-[#6B8FB8]',
+    green: 'text-primary',
   };
 
   return (
     <div className="flex items-center gap-2">
-      {showDot && <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />}
-      <span className="text-sm text-gray-500">{label}</span>
+      {showDot && <span className="w-2 h-2 rounded-full bg-[#D4944A] animate-pulse" />}
+      <span className="text-sm text-muted-foreground">{label}</span>
       <span className={`text-sm font-semibold ${colors[color]}`}>{value}</span>
     </div>
   );

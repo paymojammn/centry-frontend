@@ -119,23 +119,23 @@ export default function WalletPage() {
 
   if (orgsLoading || walletsLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
+      <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!organizations || organizations.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa]">
+      <div className="min-h-screen bg-[rgb(var(--page-bg))]">
         <PageHeader title="Wallet" subtitle="Manage your department wallet" />
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
-              <Building2 className="w-10 h-10 text-gray-400" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
+              <Building2 className="w-10 h-10 text-muted-foreground/60" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Organizations Found</h2>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            <h2 className="text-xl font-semibold text-foreground mb-2">No Organizations Found</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               You need to be a member of an organization to access department wallets.
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function WalletPage() {
 
   if (!wallets || wallets.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa]">
+      <div className="min-h-screen bg-[rgb(var(--page-bg))]">
         <PageHeader title="Wallet" subtitle="Manage your department wallet">
           {/* Organization Selector - always show when multiple orgs */}
           {organizations.length > 1 && (
@@ -157,8 +157,8 @@ export default function WalletPage() {
                 setSelectedWalletId(null);
               }}
             >
-              <SelectTrigger className="w-[180px] h-9 bg-white">
-                <Building2 className="h-4 w-4 mr-2 text-gray-500" />
+              <SelectTrigger className="w-[180px] h-9 bg-card">
+                <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Organization" />
               </SelectTrigger>
               <SelectContent>
@@ -173,11 +173,11 @@ export default function WalletPage() {
         </PageHeader>
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
-              <WalletIcon className="w-10 h-10 text-gray-400" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
+              <WalletIcon className="w-10 h-10 text-muted-foreground/60" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Wallets Found</h2>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            <h2 className="text-xl font-semibold text-foreground mb-2">No Wallets Found</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {currentOrganization?.name ? (
                 <>No department wallets found for <strong>{currentOrganization.name}</strong>. Create one to get started.</>
               ) : (
@@ -211,7 +211,7 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Wallet"
         subtitle={`Manage transfers for ${selectedWallet?.name || 'your department'}`}
@@ -224,8 +224,8 @@ export default function WalletPage() {
             setSelectedWalletId(null); // Reset wallet when org changes
           }}
         >
-          <SelectTrigger className="w-[200px] h-9 bg-white">
-            <Building2 className="h-4 w-4 mr-2 text-gray-500" />
+          <SelectTrigger className="w-[200px] h-9 bg-card">
+            <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Organization" />
           </SelectTrigger>
           <SelectContent>
@@ -242,8 +242,8 @@ export default function WalletPage() {
             value={selectedWalletId || selectedWallet?.id}
             onValueChange={setSelectedWalletId}
           >
-            <SelectTrigger className="w-[180px] h-9 bg-white">
-              <WalletIcon className="h-4 w-4 mr-2 text-gray-500" />
+            <SelectTrigger className="w-[180px] h-9 bg-card">
+              <WalletIcon className="h-4 w-4 mr-2 text-muted-foreground" />
               <SelectValue placeholder="Select wallet" />
             </SelectTrigger>
             <SelectContent>
@@ -287,8 +287,8 @@ export default function WalletPage() {
             value={`${selectedWallet?.currency} ${parseFloat(selectedWallet?.balance || '0').toLocaleString()}`}
             subtext={selectedWallet?.status === 'active' ? 'Wallet is active' : 'Wallet is inactive'}
             icon={WalletIcon}
-            iconColor="#49a034"
-            iconBgColor="rgba(73, 160, 52, 0.1)"
+            iconColor="rgb(var(--brand-primary))"
+            iconBgColor="rgb(var(--brand-primary) / 0.1)"
             variant="accent"
           />
           <StatCard
@@ -320,20 +320,20 @@ export default function WalletPage() {
         <ContentCard className="mb-6 animate-fade-in-up">
           <ContentCardHeader>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-[#49a034]/10">
-                <Link2 className="h-4 w-4 text-[#49a034]" />
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <Link2 className="h-4 w-4 text-primary" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-900">Linked Accounts</h2>
+              <h2 className="text-sm font-semibold text-foreground">Linked Accounts</h2>
             </div>
           </ContentCardHeader>
 
           {!selectedWallet?.has_linked_account ? (
             <div className="p-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-3">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-[#D4B35A]/10 rounded-full mb-3">
+                <AlertCircle className="w-6 h-6 text-[#D4B35A]" />
               </div>
-              <h3 className="text-sm font-medium text-gray-900 mb-1">No Linked Accounts</h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <h3 className="text-sm font-medium text-foreground mb-1">No Linked Accounts</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Link a mobile money or bank account to enable transfers.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -341,7 +341,7 @@ export default function WalletPage() {
                   href={linkedAccountsData?.admin_links?.add_mobile_money_account || '/admin/payments/mobilemoneyaccount/add/'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-[#49a034] text-white text-sm rounded-lg hover:bg-[#3d8a2b] transition-colors"
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   <Smartphone className="w-4 h-4" />
                   Add Mobile Money
@@ -351,7 +351,7 @@ export default function WalletPage() {
                   href={linkedAccountsData?.admin_links?.add_bank_account || '/admin/banking_integrations/bankaccount/add/'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-muted text-foreground text-sm rounded-lg hover:bg-muted transition-colors"
                 >
                   <Building2 className="w-4 h-4" />
                   Add Bank Account
@@ -364,24 +364,24 @@ export default function WalletPage() {
               {linkedAccountsData?.current_linked_accounts?.map((account: LinkedAccount) => (
                 <div
                   key={account.id}
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                 >
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-card rounded-lg shadow-sm">
                     {account.type === 'mobile_money' ? (
-                      <Smartphone className="w-5 h-5 text-[#49a034]" />
+                      <Smartphone className="w-5 h-5 text-primary" />
                     ) : (
-                      <Building2 className="w-5 h-5 text-[#49a034]" />
+                      <Building2 className="w-5 h-5 text-primary" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900">{account.name}</h4>
-                    <p className="text-xs text-gray-500 capitalize">
+                    <h4 className="text-sm font-medium text-foreground">{account.name}</h4>
+                    <p className="text-xs text-muted-foreground capitalize">
                       {account.provider || account.bank_name} • {account.type.replace('_', ' ')}
                     </p>
-                    <p className="text-xs text-gray-600 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {account.type === 'mobile_money' ? account.phone_number : account.account_number}
                     </p>
-                    <p className="text-xs font-medium text-[#49a034] mt-1">
+                    <p className="text-xs font-medium text-primary mt-1">
                       Balance: {account.currency} {parseFloat(account.balance).toLocaleString()}
                     </p>
                   </div>
@@ -396,11 +396,11 @@ export default function WalletPage() {
           <ContentCardHeader className="px-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[#49a034]/10">
-                  <WalletIcon className="h-4 w-4 text-[#49a034]" />
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <WalletIcon className="h-4 w-4 text-primary" />
                 </div>
-                <h2 className="text-sm font-semibold text-gray-900">Recent Transactions</h2>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                <h2 className="text-sm font-semibold text-foreground">Recent Transactions</h2>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {filteredTransactions?.length || 0} total
                 </span>
               </div>
@@ -408,19 +408,19 @@ export default function WalletPage() {
           </ContentCardHeader>
 
           {/* Filters */}
-          <div className="px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="flex-1 relative max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   placeholder="Search transactions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 bg-white border-gray-200 text-sm text-gray-900"
+                  className="pl-9 h-9 bg-card border-border text-sm text-foreground"
                 />
               </div>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[150px] h-9 bg-white border-gray-200 text-sm text-gray-900">
+                <SelectTrigger className="w-[150px] h-9 bg-card border-border text-sm text-foreground">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -432,7 +432,7 @@ export default function WalletPage() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] h-9 bg-white border-gray-200 text-sm text-gray-900">
+                <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -451,15 +451,15 @@ export default function WalletPage() {
             <TransactionsLoadingSkeleton />
           ) : !filteredTransactions || filteredTransactions.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="p-4 bg-gray-50 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <WalletIcon className="h-10 w-10 text-gray-400" />
+              <div className="p-4 bg-muted rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <WalletIcon className="h-10 w-10 text-muted-foreground/60" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 {searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
                   ? 'No matching transactions'
                   : 'No Transactions Yet'}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
                   ? 'Try adjusting your filters'
                   : 'Make your first transfer to get started'}
@@ -563,42 +563,42 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
     switch (status) {
       case 'completed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/20">
             <CheckCircle2 className="w-3 h-3" />
             Completed
           </span>
         );
       case 'pending':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A] border border-[#D4B35A]/20">
             <Clock className="w-3 h-3" />
             Pending
           </span>
         );
       case 'processing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8] border border-[#6B8FB8]/20">
             <Loader2 className="w-3 h-3 animate-spin" />
             Processing
           </span>
         );
       case 'failed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-destructive/5 text-destructive border border-destructive/20">
             <XCircle className="w-3 h-3" />
             Failed
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-destructive/5 text-destructive border border-destructive/20">
             <Ban className="w-3 h-3" />
             Rejected
           </span>
         );
       case 'cancelled':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-foreground border border-border">
             <Ban className="w-3 h-3" />
             Cancelled
           </span>
@@ -632,22 +632,22 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
       <table className="w-full table-professional">
         <thead>
           <tr>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Type</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Description</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Date</th>
-            <th className="text-right text-xs font-medium text-gray-600 py-3 px-4">Amount</th>
-            <th className="text-right text-xs font-medium text-gray-600 py-3 px-4">Fee</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Status</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Reference</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Type</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Description</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Date</th>
+            <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
+            <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Fee</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Reference</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-border">
           {transactions.map((tx) => {
             const TypeIcon = getTypeIcon(tx.transaction_type);
             const typeColor = getTypeColor(tx.transaction_type);
 
             return (
-              <tr key={tx.id} className="transition-colors hover:bg-gray-50">
+              <tr key={tx.id} className="transition-colors hover:bg-muted">
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
                     <div
@@ -657,11 +657,11 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
                       <TypeIcon className="h-4 w-4" style={{ color: typeColor.bg }} />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {formatType(tx.transaction_type)}
                       </div>
                       {tx.source_type && (
-                        <div className="text-xs text-gray-500 capitalize">
+                        <div className="text-xs text-muted-foreground capitalize">
                           via {tx.source_type.replace('_', ' ')}
                         </div>
                       )}
@@ -669,23 +669,23 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-sm text-gray-600 line-clamp-1">
+                  <span className="text-sm text-muted-foreground line-clamp-1">
                     {tx.description || '—'}
                   </span>
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">{formatDate(tx.created_at)}</span>
-                    <span className="text-xs text-gray-400">{formatTime(tx.created_at)}</span>
+                    <span className="text-sm text-muted-foreground">{formatDate(tx.created_at)}</span>
+                    <span className="text-xs text-muted-foreground/60">{formatTime(tx.created_at)}</span>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-foreground">
                     {currency} {parseFloat(tx.amount).toLocaleString()}
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {parseFloat(tx.fee_amount || '0') > 0
                       ? `${currency} ${parseFloat(tx.fee_amount).toLocaleString()}`
                       : '—'}
@@ -693,7 +693,7 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
                 </td>
                 <td className="py-3 px-4">{getStatusBadge(tx.status)}</td>
                 <td className="py-3 px-4">
-                  <code className="text-xs font-mono bg-gray-50 text-gray-600 px-2.5 py-1 rounded border border-gray-200">
+                  <code className="text-xs font-mono bg-muted text-muted-foreground px-2.5 py-1 rounded border border-border">
                     {tx.reference}
                   </code>
                 </td>
@@ -712,12 +712,12 @@ function TransactionsLoadingSkeleton() {
     <div className="p-8 space-y-4">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="flex items-center gap-4">
-          <div className="h-10 w-10 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="h-10 w-10 bg-muted animate-pulse rounded-lg" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-1/3" />
-            <div className="h-3 bg-gray-50 animate-pulse rounded w-1/4" />
+            <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+            <div className="h-3 bg-muted animate-pulse rounded w-1/4" />
           </div>
-          <div className="h-5 bg-gray-100 animate-pulse rounded-full w-20" />
+          <div className="h-5 bg-muted animate-pulse rounded-full w-20" />
         </div>
       ))}
     </div>

@@ -75,8 +75,8 @@ export function ReconciliationDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black">Reconciliation</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">Reconciliation</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Match unmatched transactions to invoices and bills
           </p>
         </div>
@@ -85,18 +85,18 @@ export function ReconciliationDashboard() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <input
             type="text"
             placeholder="Search transactions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#49a034]/20 focus:border-[#49a034]"
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#49a034]/20 focus:border-[#49a034]"
           />
         </div>
         
         <Select value={sourceFilter} onValueChange={setSourceFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] border-gray-200">
+          <SelectTrigger className="w-full sm:w-[200px] border-border">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="All Sources" />
           </SelectTrigger>
@@ -113,19 +113,19 @@ export function ReconciliationDashboard() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="p-6 border border-gray-100 rounded-lg animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div key={i} className="p-6 border border-border rounded-lg animate-pulse">
+              <div className="h-4 bg-muted rounded w-3/4 mb-3"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </div>
           ))}
         </div>
       ) : filteredTransactions.length === 0 ? (
-        <div className="text-center py-12 border border-gray-100 rounded-lg bg-gray-50">
-          <ArrowRightLeft className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="text-center py-12 border border-border rounded-lg bg-muted">
+          <ArrowRightLeft className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No unmatched transactions
           </h3>
-          <p className="text-gray-500 max-w-sm mx-auto">
+          <p className="text-muted-foreground max-w-sm mx-auto">
             All transactions have been matched or there are no transactions to reconcile.
           </p>
         </div>
@@ -139,28 +139,28 @@ export function ReconciliationDashboard() {
             return (
               <div
                 key={transaction.id}
-                className="group p-6 border border-gray-100 rounded-lg hover:border-[#49a034]/30 hover:shadow-md transition-all duration-200 bg-white"
+                className="group p-6 border border-border rounded-lg hover:border-[#49a034]/30 hover:shadow-md transition-all duration-200 bg-card"
               >
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: Transaction Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-[#49a034]/10 transition-colors">
-                        <SourceIcon className="h-4 w-4 text-gray-600 group-hover:text-[#49a034]" />
+                      <div className="p-2 bg-muted rounded-lg group-hover:bg-[#49a034]/10 transition-colors">
+                        <SourceIcon className="h-4 w-4 text-muted-foreground group-hover:text-[#49a034]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-black truncate">
+                        <h3 className="font-semibold text-foreground truncate">
                           {transaction.description}
                         </h3>
                         {transaction.counterparty_name && (
-                          <p className="text-sm text-gray-600 truncate">
+                          <p className="text-sm text-muted-foreground truncate">
                             {transaction.counterparty_name}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
                         {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
@@ -171,7 +171,7 @@ export function ReconciliationDashboard() {
                         </Badge>
                       )}
                       {transaction.reference && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           Ref: {transaction.reference}
                         </span>
                       )}
@@ -183,13 +183,13 @@ export function ReconciliationDashboard() {
                     <div className="text-right">
                       <div
                         className={`text-lg font-bold ${
-                          isCredit ? "text-green-600" : "text-red-600"
+                          isCredit ? "text-primary" : "text-destructive"
                         }`}
                       >
                         {isCredit ? "+" : "-"}
                         {formatCurrency(amount, transaction.currency)}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {isCredit ? "Received" : "Paid"}
                       </div>
                     </div>

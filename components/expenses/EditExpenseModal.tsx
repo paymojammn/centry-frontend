@@ -190,13 +190,13 @@ export default function EditExpenseModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-            <Receipt className="h-5 w-5 text-[#49a034]" />
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+            <Receipt className="h-5 w-5 text-primary" />
             {isAccountabilityMode ? 'Submit Accountability' : 'Edit Expense'}
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-muted-foreground">
             {isAccountabilityMode
               ? 'Upload receipts to complete your expense accountability'
               : 'Update expense details and upload receipts'
@@ -206,31 +206,31 @@ export default function EditExpenseModal({
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* Expense Summary Card */}
-          <div className="bg-gradient-to-r from-[#49a034]/10 to-transparent rounded-xl p-4 border border-gray-200">
+          <div className="bg-gradient-to-r from-primary/10 to-transparent rounded-xl p-4 border border-border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Status:</span>
+                <span className="text-sm text-muted-foreground">Status:</span>
                 <StatusBadge status={expense.status} />
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500">Amount</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-sm text-muted-foreground">Amount</p>
+                <p className="text-xl font-bold text-foreground">
                   {expense.currency} {parseFloat(expense.amount).toLocaleString()}
                 </p>
               </div>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               <span className="font-medium">{expense.employee_name}</span> &bull; {expense.description}
             </div>
           </div>
 
           {/* Accountability Info Banner */}
           {isAccountabilityMode && (
-            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Accountability Required</p>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-sm font-medium text-primary">Accountability Required</p>
+                <p className="text-xs text-primary/80 mt-1">
                   This advance has been approved. Upload receipts to submit your accountability.
                   Once submitted, it will go to finance for final approval.
                 </p>
@@ -243,11 +243,11 @@ export default function EditExpenseModal({
             <>
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium text-gray-900">
+                <Label htmlFor="category" className="text-sm font-medium text-foreground">
                   Category
                 </Label>
                 <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory)}>
-                  <SelectTrigger className="w-full bg-white text-gray-900 border border-gray-200 focus:border-[#49a034]">
+                  <SelectTrigger className="w-full bg-card text-foreground border border-border focus:border-primary">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,7 +265,7 @@ export default function EditExpenseModal({
 
               {/* Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-sm font-medium text-gray-900">
+                <Label htmlFor="amount" className="text-sm font-medium text-foreground">
                   Amount ({currency})
                 </Label>
                 <Input
@@ -276,21 +276,21 @@ export default function EditExpenseModal({
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="text-lg font-semibold bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
+                  className="text-lg font-semibold bg-card text-foreground border-border focus:border-primary"
                   required
                 />
               </div>
 
               {/* Date */}
               <div className="space-y-2">
-                <Label htmlFor="date" className="text-sm font-medium text-gray-900">
+                <Label htmlFor="date" className="text-sm font-medium text-foreground">
                   Date
                 </Label>
                 <Input
                   id="date"
                   type="date"
                   value={date}
-                  className="bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
+                  className="bg-card text-foreground border-border focus:border-primary"
                   onChange={(e) => setDate(e.target.value)}
                   max={new Date().toISOString().split('T')[0]}
                   required
@@ -299,7 +299,7 @@ export default function EditExpenseModal({
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium text-gray-900">
+                <Label htmlFor="description" className="text-sm font-medium text-foreground">
                   Description
                 </Label>
                 <Textarea
@@ -308,7 +308,7 @@ export default function EditExpenseModal({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="resize-none bg-white text-gray-900 border-gray-200 focus:border-[#49a034]"
+                  className="resize-none bg-card text-foreground border-border focus:border-primary"
                   required
                 />
               </div>
@@ -318,7 +318,7 @@ export default function EditExpenseModal({
           {/* Existing Receipts */}
           {existingReceipts.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-900">Existing Receipts</Label>
+              <Label className="text-sm font-medium text-foreground">Existing Receipts</Label>
               <div className="space-y-2">
                 {existingReceipts.map((url, index) => (
                   <a
@@ -326,13 +326,13 @@ export default function EditExpenseModal({
                     href={buildMediaUrl(url)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-muted transition-colors"
                   >
-                    <Image className="h-5 w-5 text-gray-600 flex-shrink-0" />
-                    <span className="flex-1 text-sm text-gray-700 truncate">
+                    <Image className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <span className="flex-1 text-sm text-foreground truncate">
                       Receipt {index + 1}
                     </span>
-                    <ExternalLink className="h-4 w-4 text-gray-400" />
+                    <ExternalLink className="h-4 w-4 text-muted-foreground/60" />
                   </a>
                 ))}
               </div>
@@ -342,10 +342,10 @@ export default function EditExpenseModal({
           {/* Receipt Upload */}
           {canUploadReceipts && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-900">
+              <Label className="text-sm font-medium text-foreground">
                 {isAccountabilityMode ? 'Upload Receipts (Required)' : 'Add More Receipts'}
               </Label>
-              <div className="rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="rounded-lg p-6 bg-muted hover:bg-muted transition-colors">
                 <input
                   type="file"
                   id="receipt-upload"
@@ -358,14 +358,14 @@ export default function EditExpenseModal({
                   htmlFor="receipt-upload"
                   className="cursor-pointer flex flex-col items-center gap-2 text-center"
                 >
-                  <div className="p-3 bg-white rounded-full shadow-sm">
-                    <Upload className="h-5 w-5 text-gray-600" />
+                  <div className="p-3 bg-card rounded-full shadow-sm">
+                    <Upload className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       Click to upload receipts
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       PNG, JPG, PDF up to 5MB
                     </p>
                   </div>
@@ -375,27 +375,27 @@ export default function EditExpenseModal({
               {/* New Files to Upload */}
               {receiptFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium text-gray-900">Files to Upload:</p>
+                  <p className="text-sm font-medium text-foreground">Files to Upload:</p>
                   {receiptFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-[#49a034]/5 rounded-lg border border-[#49a034]/20"
+                      className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/20"
                     >
-                      <FileText className="h-5 w-5 text-[#49a034] flex-shrink-0" />
+                      <FileText className="h-5 w-5 text-primary flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {file.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {(file.size / 1024).toFixed(1)} KB
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1 hover:bg-muted rounded transition-colors"
                       >
-                        <X className="h-4 w-4 text-gray-600" />
+                        <X className="h-4 w-4 text-muted-foreground" />
                       </button>
                     </div>
                   ))}
@@ -406,11 +406,11 @@ export default function EditExpenseModal({
 
           {/* Read-only notice for non-editable statuses */}
           {!canEditFields && !canUploadReceipts && (
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <AlertCircle className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-4 bg-muted rounded-xl border border-border">
+              <AlertCircle className="h-5 w-5 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-gray-700">View Only</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm font-medium text-foreground">View Only</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   This expense cannot be edited in its current status.
                 </p>
               </div>
@@ -424,7 +424,7 @@ export default function EditExpenseModal({
               variant="outline"
               onClick={onClose}
               disabled={isPending}
-              className="flex-1 border-0 bg-gray-50 text-gray-700 hover:bg-gray-100"
+              className="flex-1 border-0 bg-muted text-foreground hover:bg-muted"
             >
               Cancel
             </Button>
@@ -432,7 +432,7 @@ export default function EditExpenseModal({
               <Button
                 type="submit"
                 disabled={isPending || (isAccountabilityMode && receiptFiles.length === 0)}
-                className="flex-1 bg-[#49a034] hover:bg-[#3d8029] text-white shadow-sm"
+                className="flex-1 bg-primary hover:bg-primary/80 text-white shadow-sm"
               >
                 {isPending
                   ? 'Saving...'

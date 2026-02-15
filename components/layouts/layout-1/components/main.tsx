@@ -49,7 +49,7 @@ export function Main({ children }: { children: React.ReactNode }) {
       <div className="wrapper flex grow flex-col">
         <Header />
 
-        <main className="grow pt-5" role="content">
+        <main id="main-content" className="grow pt-5">
           {children}
         </main>
 

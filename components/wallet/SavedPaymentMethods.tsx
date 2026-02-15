@@ -20,9 +20,9 @@ const cardStyles: Record<string, { gradient: string; accent: string; pattern: st
     pattern: 'bg-gradient-to-br from-[#f77f00]/20 to-transparent',
   },
   mpesa: {
-    gradient: 'from-[#49a034] via-[#3d8a2a] to-[#2d6b1f]',
-    accent: 'bg-[#49a034]/40',
-    pattern: 'bg-gradient-to-br from-[#49a034]/20 to-transparent',
+    gradient: 'from-primary via-[#3d8a2a] to-[#2d6b1f]',
+    accent: 'bg-primary/40',
+    pattern: 'bg-gradient-to-br from-primary/20 to-transparent',
   },
   bank: {
     gradient: 'from-[#4E97D1] via-[#3d7ab3] to-[#2c5d8a]',
@@ -100,12 +100,12 @@ export default function SavedPaymentMethods() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-6 bg-muted rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl"></div>
-            <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl"></div>
+            <div className="h-48 bg-gradient-to-br from-muted to-muted rounded-xl"></div>
+            <div className="h-48 bg-gradient-to-br from-muted to-muted rounded-xl"></div>
           </div>
         </div>
       </div>
@@ -114,20 +114,20 @@ export default function SavedPaymentMethods() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-card rounded-xl shadow-sm border border-border">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-[#49a034] to-[#4f7068] rounded-xl shadow-sm">
+            <div className="p-2.5 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-sm">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Payment Cards</h3>
-              <p className="text-sm text-gray-500">Manage your saved payment methods</p>
+              <h3 className="text-lg font-semibold text-foreground">Payment Cards</h3>
+              <p className="text-sm text-muted-foreground">Manage your saved payment methods</p>
             </div>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#49a034]/25 transition-all duration-200 font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-medium"
           >
             <Plus className="w-4 h-4" />
             Add Card
@@ -137,16 +137,16 @@ export default function SavedPaymentMethods() {
         <div className="p-6">
           {paymentMethods.length === 0 ? (
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4 shadow-inner">
-                <CreditCard className="w-10 h-10 text-gray-400" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-muted to-muted rounded-xl mb-4 shadow-inner">
+                <CreditCard className="w-10 h-10 text-muted-foreground/60" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No payment cards saved</h3>
-              <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+              <h3 className="text-lg font-semibold text-foreground mb-2">No payment cards saved</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Add a payment method to make your future transactions faster and easier
               </p>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#49a034] to-[#4f7068] text-white rounded-xl hover:shadow-lg hover:shadow-[#49a034]/25 transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Add Your First Card
@@ -163,7 +163,7 @@ export default function SavedPaymentMethods() {
                   >
                     {/* Payment Card */}
                     <div
-                      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${style.gradient} p-5 h-48 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
+                      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${style.gradient} p-5 h-48 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
                     >
                       {/* Background Pattern */}
                       <div className="absolute inset-0 opacity-30">
@@ -176,7 +176,7 @@ export default function SavedPaymentMethods() {
                         {/* Top Row */}
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                            <div className="p-2 bg-card/20 backdrop-blur-sm rounded-lg">
                               {getProviderIcon(method.provider, method.method_type)}
                             </div>
                             <div>
@@ -190,7 +190,7 @@ export default function SavedPaymentMethods() {
                           </div>
                           <div className="flex items-center gap-1">
                             {method.is_default && (
-                              <div className="flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full">
+                              <div className="flex items-center gap-1 px-2 py-1 bg-card/20 backdrop-blur-sm rounded-full">
                                 <Star className="w-3 h-3 text-white fill-white" />
                                 <span className="text-white text-xs font-medium">Default</span>
                               </div>
@@ -233,7 +233,7 @@ export default function SavedPaymentMethods() {
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-0 group-hover:opacity-100 group-hover:bottom-4 transition-all duration-300">
                       <button
                         onClick={() => handleEdit(method)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 rounded-lg shadow-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-foreground rounded-lg shadow-lg hover:bg-muted transition-colors text-sm font-medium"
                         title="Edit payment method"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -242,7 +242,7 @@ export default function SavedPaymentMethods() {
                       <button
                         onClick={() => handleDelete(method.id)}
                         disabled={deleteMethodMutation.isPending}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-600 rounded-lg shadow-lg hover:bg-red-50 transition-colors disabled:opacity-50 text-sm font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-destructive rounded-lg shadow-lg hover:bg-destructive/5 transition-colors disabled:opacity-50 text-sm font-medium"
                         title="Delete payment method"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -256,17 +256,17 @@ export default function SavedPaymentMethods() {
               {/* Add New Card Placeholder */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="relative overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 p-5 h-48 hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all duration-300 group"
+                className="relative overflow-hidden rounded-xl border-2 border-dashed border-border p-5 h-48 hover:border-primary hover:bg-primary/5 transition-all duration-300 group"
               >
                 <div className="h-full flex flex-col items-center justify-center gap-3">
-                  <div className="p-4 bg-gray-100 rounded-2xl group-hover:bg-[#49a034]/10 transition-colors">
-                    <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] transition-colors" />
+                  <div className="p-4 bg-muted rounded-xl group-hover:bg-primary/10 transition-colors">
+                    <Plus className="w-8 h-8 text-muted-foreground/60 group-hover:text-primary transition-colors" />
                   </div>
                   <div className="text-center">
-                    <p className="font-semibold text-gray-600 group-hover:text-[#49a034] transition-colors">
+                    <p className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">
                       Add New Card
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-muted-foreground/60">
                       Mobile money or bank account
                     </p>
                   </div>

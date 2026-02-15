@@ -7,9 +7,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
 // Define input size variants
 const textareaVariants = cva(
   `
-    w-full bg-white border border-input shadow-xs shadow-black/5 transition-[color,box-shadow]
-    text-gray-900 placeholder:text-gray-400 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]
-    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 [&[readonly]]:bg-gray-100
+    w-full bg-card border border-input shadow-xs shadow-black/5 transition-[color,box-shadow]
+    text-foreground placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]
+    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 [&[readonly]]:bg-muted
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
   `,
   {

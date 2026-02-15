@@ -87,14 +87,14 @@ export default function TransactionReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Inflows</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
+            <ArrowUpRight className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {isLoadingReport ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-primary">
                   {formatCurrency(transactionReport?.summary.total_credits || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -108,14 +108,14 @@ export default function TransactionReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Outflows</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-red-600" />
+            <ArrowDownRight className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             {isLoadingReport ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-2xl font-bold text-destructive">
                   {formatCurrency(transactionReport?.summary.total_debits || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -135,7 +135,7 @@ export default function TransactionReportsPage() {
             {isLoadingReport ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className={(transactionReport?.summary.net_flow || 0) >= 0 ? "text-2xl font-bold text-green-600" : "text-2xl font-bold text-red-600"}>
+              <div className={(transactionReport?.summary.net_flow || 0) >= 0 ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-destructive"}>
                 {formatCurrency(transactionReport?.summary.net_flow || 0)}
               </div>
             )}
@@ -192,15 +192,15 @@ export default function TransactionReportsPage() {
                   <div className="flex gap-8 text-right">
                     <div>
                       <p className="text-sm text-muted-foreground">Inflows</p>
-                      <p className="font-medium text-green-600">{formatCurrency(month.credits)}</p>
+                      <p className="font-medium text-primary">{formatCurrency(month.credits)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Outflows</p>
-                      <p className="font-medium text-red-600">{formatCurrency(month.debits)}</p>
+                      <p className="font-medium text-destructive">{formatCurrency(month.debits)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Net</p>
-                      <p className={month.net >= 0 ? "font-bold text-green-600" : "font-bold text-red-600"}>
+                      <p className={month.net >= 0 ? "font-bold text-primary" : "font-bold text-destructive"}>
                         {formatCurrency(month.net)}
                       </p>
                     </div>

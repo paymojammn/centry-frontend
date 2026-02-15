@@ -26,9 +26,9 @@ export function ContentCard({
   variant = 'default',
 }: ContentCardProps) {
   const variants = {
-    default: 'bg-white rounded-xl border border-gray-200/80 shadow-sm',
-    elevated: 'bg-white rounded-xl border border-gray-100 shadow-md',
-    outlined: 'bg-white rounded-xl border border-gray-200',
+    default: 'bg-card rounded-xl border border-border shadow-sm',
+    elevated: 'bg-card rounded-xl border border-border/50 shadow-md',
+    outlined: 'bg-card rounded-xl border border-border',
   };
 
   return (
@@ -36,8 +36,8 @@ export function ContentCard({
       className={cn(
         variants[variant],
         'transition-all duration-200',
-        hover && 'hover:shadow-md hover:border-gray-300/80 dark:hover:border-zinc-700 hover:-translate-y-0.5',
-        noPadding ? '' : 'p-5',
+        hover && 'hover:shadow-md hover:border-border hover:-translate-y-0.5',
+        noPadding ? '' : 'p-6',
         className
       )}
     >
@@ -60,8 +60,8 @@ export function ContentCardHeader({
   return (
     <div
       className={cn(
-        'px-5 py-4',
-        withBorder && 'border-b border-gray-100',
+        'px-6 py-5',
+        withBorder && 'border-b border-border/50',
         className
       )}
     >
@@ -76,7 +76,7 @@ interface ContentCardBodyProps {
 }
 
 export function ContentCardBody({ children, className = '' }: ContentCardBodyProps) {
-  return <div className={cn('p-5', className)}>{children}</div>;
+  return <div className={cn('p-6', className)}>{children}</div>;
 }
 
 interface ContentCardFooterProps {
@@ -86,7 +86,7 @@ interface ContentCardFooterProps {
 
 export function ContentCardFooter({ children, className = '' }: ContentCardFooterProps) {
   return (
-    <div className={cn('px-5 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-xl', className)}>
+    <div className={cn('px-5 py-4 border-t border-border/50 bg-muted/50 rounded-b-xl', className)}>
       {children}
     </div>
   );

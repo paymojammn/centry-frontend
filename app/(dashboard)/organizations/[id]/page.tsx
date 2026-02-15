@@ -64,6 +64,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -88,6 +95,7 @@ export default function OrganizationDetailsPage() {
     description: '',
     monthly_budget: '',
     currency: 'UGX',
+    manager_id: '',
   });
 
   const resetDepartmentForm = () => {
@@ -97,6 +105,7 @@ export default function OrganizationDetailsPage() {
       description: '',
       monthly_budget: '',
       currency: 'UGX',
+      manager_id: '',
     });
     setEditingDepartment(null);
   };
@@ -114,6 +123,7 @@ export default function OrganizationDetailsPage() {
       description: dept.description || '',
       monthly_budget: dept.monthly_budget?.toString() || '',
       currency: dept.currency || 'UGX',
+      manager_id: dept.manager || '',
     });
     setIsDepartmentModalOpen(true);
   };
@@ -131,6 +141,7 @@ export default function OrganizationDetailsPage() {
         description: departmentForm.description || undefined,
         monthly_budget: departmentForm.monthly_budget ? parseFloat(departmentForm.monthly_budget) : null,
         currency: departmentForm.currency,
+        manager_id: departmentForm.manager_id || null,
       };
       updateDepartment(
         { departmentId: editingDepartment.id, payload },
@@ -149,6 +160,7 @@ export default function OrganizationDetailsPage() {
         description: departmentForm.description || undefined,
         monthly_budget: departmentForm.monthly_budget ? parseFloat(departmentForm.monthly_budget) : null,
         currency: departmentForm.currency,
+        manager_id: departmentForm.manager_id || undefined,
       };
       createDepartment(payload, {
         onSuccess: () => {
@@ -192,11 +204,11 @@ export default function OrganizationDetailsPage() {
   if (!organization) {
     return (
       <div className="container py-8">
-        <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
+        <div className="bg-card border border-border rounded-lg shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 px-6">
-            <Building2 className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-black mb-2">Organization Not Found</h3>
-            <p className="text-gray-600">
+            <Building2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Organization Not Found</h3>
+            <p className="text-muted-foreground">
               The organization you're looking for doesn't exist or you don't have access.
             </p>
           </div>
@@ -211,12 +223,12 @@ export default function OrganizationDetailsPage() {
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-[#49a034]" />
+            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-black">{organization.name}</h1>
-              <p className="text-gray-600">@{organization.slug}</p>
+              <h1 className="text-3xl font-bold text-foreground">{organization.name}</h1>
+              <p className="text-muted-foreground">@{organization.slug}</p>
             </div>
           </div>
         </div>
@@ -227,14 +239,14 @@ export default function OrganizationDetailsPage() {
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
-            <DropdownMenuLabel className="text-black font-semibold">Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-gray-100" />
-            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+          <DropdownMenuContent align="end" className="border-border shadow-sm">
+            <DropdownMenuLabel className="text-foreground font-semibold">Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+            <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
               <Mail className="mr-2 h-4 w-4" />
               Invite Members
             </DropdownMenuItem>
@@ -272,28 +284,28 @@ export default function OrganizationDetailsPage() {
 
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
+        <TabsList className="bg-card border border-border p-1 rounded-lg shadow-sm">
           <TabsTrigger 
             value="overview"
-            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="members"
-            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Members
           </TabsTrigger>
           <TabsTrigger
             value="departments"
-            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Departments
           </TabsTrigger>
           <TabsTrigger
             value="settings"
-            className="data-[state=active]:bg-[#49a034] data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
             Settings
           </TabsTrigger>
@@ -303,10 +315,10 @@ export default function OrganizationDetailsPage() {
         <TabsContent value="overview" className="space-y-4 mt-6">
           <div className="grid gap-4 md:grid-cols-2">
             {/* Organization Information */}
-            <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-50">
-                <h3 className="text-lg font-semibold text-black">Organization Information</h3>
-                <p className="text-sm text-gray-600">Basic details about your organization</p>
+            <div className="bg-card border border-border rounded-lg shadow-sm">
+              <div className="p-6 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">Organization Information</h3>
+                <p className="text-sm text-muted-foreground">Basic details about your organization</p>
               </div>
               <div className="p-6">
                 <InfoRow label="Primary Currency" value={organization.primary_currency} />
@@ -329,26 +341,26 @@ export default function OrganizationDetailsPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-50">
-                <h3 className="text-lg font-semibold text-black">Quick Actions</h3>
-                <p className="text-sm text-gray-600">Common tasks and operations</p>
+            <div className="bg-card border border-border rounded-lg shadow-sm">
+              <div className="p-6 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
+                <p className="text-sm text-muted-foreground">Common tasks and operations</p>
               </div>
               <div className="p-6 space-y-2">
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Mail className="h-4 w-4 text-[#49a034]" />
+                  <Mail className="h-4 w-4 text-primary" />
                   Invite New Member
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Globe className="h-4 w-4 text-[#49a034]" />
+                  <Globe className="h-4 w-4 text-primary" />
                   Connect ERP System
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <TrendingUp className="h-4 w-4 text-[#49a034]" />
+                  <TrendingUp className="h-4 w-4 text-primary" />
                   Import Bank Statement
                 </Button>
                 <Button variant="outline" className="w-full justify-start" type="button">
-                  <Settings className="h-4 w-4 text-[#49a034]" />
+                  <Settings className="h-4 w-4 text-primary" />
                   Organization Settings
                 </Button>
               </div>
@@ -358,11 +370,11 @@ export default function OrganizationDetailsPage() {
 
         {/* Members Tab */}
         <TabsContent value="members" className="mt-6">
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-black">Team Members</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-lg font-semibold text-foreground">Team Members</h3>
+                <p className="text-sm text-muted-foreground">
                   Manage your organization's team members and their roles
                 </p>
               </div>
@@ -375,28 +387,28 @@ export default function OrganizationDetailsPage() {
               {membersLoading ? (
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 w-full bg-gray-100 animate-pulse rounded" />
+                    <div key={i} className="h-16 w-full bg-muted animate-pulse rounded" />
                   ))}
                 </div>
               ) : members && members.length > 0 ? (
                 <div className="table-professional">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200">
-                        <TableHead className="text-gray-600 font-semibold">Member</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Role</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Status</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Joined</TableHead>
-                        <TableHead className="text-right text-gray-600 font-semibold">Actions</TableHead>
+                      <TableRow className="border-b border-border">
+                        <TableHead className="text-muted-foreground font-semibold">Member</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Role</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Joined</TableHead>
+                        <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                     {members.map((member) => (
-                      <TableRow key={member.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <TableRow key={member.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-[#49a034]/10 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-[#49a034]">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-semibold text-primary">
                                 {member.user_name
                                   .split(' ')
                                   .map((n) => n[0])
@@ -405,8 +417,8 @@ export default function OrganizationDetailsPage() {
                               </span>
                             </div>
                             <div>
-                              <div className="font-medium text-black">{member.user_name}</div>
-                              <div className="text-sm text-gray-600">
+                              <div className="font-medium text-foreground">{member.user_name}</div>
+                              <div className="text-sm text-muted-foreground">
                                 {member.user_email}
                               </div>
                             </div>
@@ -414,22 +426,22 @@ export default function OrganizationDetailsPage() {
                         </TableCell>
                         <TableCell>
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
-                            member.role === 'owner' ? 'bg-red-100 text-red-700' :
-                            member.role === 'admin' ? 'bg-[#49a034]/10 text-[#49a034]' :
-                            member.role === 'manager' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
+                            member.role === 'owner' ? 'bg-destructive/10 text-destructive' :
+                            member.role === 'admin' ? 'bg-primary/10 text-primary' :
+                            member.role === 'manager' ? 'bg-[#6B8FB8]/10 text-[#6B8FB8]' :
+                            'bg-muted text-foreground'
                           }`}>
                             {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
-                            member.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                            member.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
                           }`}>
                             {member.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="text-sm text-muted-foreground">
                           {new Date(member.joined_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
@@ -439,15 +451,15 @@ export default function OrganizationDetailsPage() {
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
-                              <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+                            <DropdownMenuContent align="end" className="border-border shadow-sm">
+                              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
                                 Edit Role
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+                              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
                                 View Permissions
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-gray-100" />
-                              <DropdownMenuItem className="text-red-600 hover:bg-red-50">
+                              <DropdownMenuSeparator className="bg-muted" />
+                              <DropdownMenuItem className="text-destructive hover:bg-destructive/5">
                                 Remove Member
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -460,8 +472,8 @@ export default function OrganizationDetailsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Users className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-gray-600">No members found</p>
+                  <Users className="h-12 w-12 text-muted-foreground/40 mb-4" />
+                  <p className="text-muted-foreground">No members found</p>
                 </div>
               )}
             </div>
@@ -470,11 +482,11 @@ export default function OrganizationDetailsPage() {
 
         {/* Departments Tab */}
         <TabsContent value="departments" className="mt-6">
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-black">Departments</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-lg font-semibold text-foreground">Departments</h3>
+                <p className="text-sm text-muted-foreground">
                   Manage your organization's departments and teams
                 </p>
               </div>
@@ -487,34 +499,34 @@ export default function OrganizationDetailsPage() {
               {departmentsLoading ? (
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 w-full bg-gray-100 animate-pulse rounded" />
+                    <div key={i} className="h-16 w-full bg-muted animate-pulse rounded" />
                   ))}
                 </div>
               ) : departments && departments.length > 0 ? (
                 <div className="table-professional">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200">
-                        <TableHead className="text-gray-600 font-semibold">Department</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Code</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Manager</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Budget</TableHead>
-                        <TableHead className="text-gray-600 font-semibold">Status</TableHead>
-                        <TableHead className="text-right text-gray-600 font-semibold">Actions</TableHead>
+                      <TableRow className="border-b border-border">
+                        <TableHead className="text-muted-foreground font-semibold">Department</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Code</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Manager</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Budget</TableHead>
+                        <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
+                        <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {departments.map((dept) => (
-                        <TableRow key={dept.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <TableRow key={dept.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
-                                <FolderTree className="h-5 w-5 text-[#49a034]" />
+                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <FolderTree className="h-5 w-5 text-primary" />
                               </div>
                               <div>
-                                <div className="font-medium text-black">{dept.name}</div>
+                                <div className="font-medium text-foreground">{dept.name}</div>
                                 {dept.description && (
-                                  <div className="text-sm text-gray-600 truncate max-w-[200px]">
+                                  <div className="text-sm text-muted-foreground truncate max-w-[200px]">
                                     {dept.description}
                                   </div>
                                 )}
@@ -522,32 +534,32 @@ export default function OrganizationDetailsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="px-2.5 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">
+                            <span className="px-2.5 py-0.5 rounded bg-muted text-foreground text-xs font-medium">
                               {dept.code || '-'}
                             </span>
                           </TableCell>
                           <TableCell>
                             {dept.manager_name ? (
                               <div>
-                                <div className="text-sm font-medium text-black">{dept.manager_name}</div>
-                                <div className="text-xs text-gray-600">{dept.manager_email}</div>
+                                <div className="text-sm font-medium text-foreground">{dept.manager_name}</div>
+                                <div className="text-xs text-muted-foreground">{dept.manager_email}</div>
                               </div>
                             ) : (
-                              <span className="text-gray-400">Not assigned</span>
+                              <span className="text-muted-foreground/60">Not assigned</span>
                             )}
                           </TableCell>
                           <TableCell>
                             {dept.monthly_budget ? (
-                              <span className="font-medium text-black">
+                              <span className="font-medium text-foreground">
                                 {dept.currency} {parseFloat(dept.monthly_budget).toLocaleString()}
                               </span>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-muted-foreground/60">-</span>
                             )}
                           </TableCell>
                           <TableCell>
                             <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
-                              dept.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              dept.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
                             }`}>
                               {dept.is_active ? 'Active' : 'Inactive'}
                             </span>
@@ -567,7 +579,7 @@ export default function OrganizationDetailsPage() {
                                 size="sm"
                                 onClick={() => handleDeleteDepartment(dept.id)}
                                 disabled={isDeleting}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/5"
                                 aria-label="Delete department"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -581,9 +593,9 @@ export default function OrganizationDetailsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <FolderTree className="h-12 w-12 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-black mb-2">No Departments</h3>
-                  <p className="text-gray-600 mb-4">Create your first department to organize your team</p>
+                  <FolderTree className="h-12 w-12 text-muted-foreground/40 mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Departments</h3>
+                  <p className="text-muted-foreground mb-4">Create your first department to organize your team</p>
                   <Button type="button" onClick={openAddDepartment}>
                     <Plus className="h-4 w-4" />
                     Add Department
@@ -596,13 +608,13 @@ export default function OrganizationDetailsPage() {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="mt-6">
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50">
-              <h3 className="text-lg font-semibold text-black">Organization Settings</h3>
-              <p className="text-sm text-gray-600">Manage your organization's configuration</p>
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Organization Settings</h3>
+              <p className="text-sm text-muted-foreground">Manage your organization's configuration</p>
             </div>
             <div className="p-6">
-              <p className="text-gray-600">Settings configuration coming soon...</p>
+              <p className="text-muted-foreground">Settings configuration coming soon...</p>
             </div>
           </div>
         </TabsContent>
@@ -638,7 +650,7 @@ export default function OrganizationDetailsPage() {
                 onChange={(e) => setDepartmentForm({ ...departmentForm, code: e.target.value.toUpperCase() })}
                 maxLength={10}
               />
-              <p className="text-xs text-gray-500">Short code for the department (auto-generated if empty)</p>
+              <p className="text-xs text-muted-foreground">Short code for the department (auto-generated if empty)</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="dept-description">Description</Label>
@@ -649,6 +661,25 @@ export default function OrganizationDetailsPage() {
                 onChange={(e) => setDepartmentForm({ ...departmentForm, description: e.target.value })}
                 rows={3}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dept-manager">Manager</Label>
+              <Select
+                value={departmentForm.manager_id || "none"}
+                onValueChange={(value) => setDepartmentForm({ ...departmentForm, manager_id: value === "none" ? "" : value })}
+              >
+                <SelectTrigger size="lg">
+                  <SelectValue placeholder="No manager assigned" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No manager assigned</SelectItem>
+                  {members?.map((member) => (
+                    <SelectItem key={member.id} value={member.user.id}>
+                      {member.user.full_name || member.user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -709,23 +740,23 @@ function StatsCard({
 }) {
   if (loading) {
     return (
-      <div className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 animate-pulse">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6 animate-pulse">
         <div className="flex items-center justify-between mb-2">
-          <div className="h-4 w-24 bg-gray-100 rounded" />
-          <div className="h-4 w-4 bg-gray-100 rounded" />
+          <div className="h-4 w-24 bg-muted rounded" />
+          <div className="h-4 w-4 bg-muted rounded" />
         </div>
-        <div className="h-8 w-16 bg-gray-100 rounded" />
+        <div className="h-8 w-16 bg-muted rounded" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+    <div className="bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all p-6">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-        <div className="text-[#49a034]">{icon}</div>
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <div className="text-primary">{icon}</div>
       </div>
-      <div className="text-2xl font-bold text-black">{value.toLocaleString()}</div>
+      <div className="text-2xl font-bold text-foreground">{value.toLocaleString()}</div>
     </div>
   );
 }
@@ -740,12 +771,12 @@ function InfoRow({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-600 flex items-center gap-2">
-        {icon && <span className="text-[#49a034]">{icon}</span>}
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+      <span className="text-sm text-muted-foreground flex items-center gap-2">
+        {icon && <span className="text-primary">{icon}</span>}
         {label}
       </span>
-      <span className="text-sm font-medium text-black">{value}</span>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }function OrganizationDetailsSkeleton() {
@@ -753,32 +784,32 @@ function InfoRow({
     <div className="container py-8 space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="h-12 w-12 bg-muted animate-pulse rounded-lg" />
           <div className="space-y-2">
-            <div className="h-8 w-48 bg-gray-100 animate-pulse rounded" />
-            <div className="h-4 w-32 bg-gray-100 animate-pulse rounded" />
+            <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+            <div className="h-4 w-32 bg-muted animate-pulse rounded" />
           </div>
         </div>
-        <div className="h-10 w-10 bg-gray-100 animate-pulse rounded" />
+        <div className="h-10 w-10 bg-muted animate-pulse rounded" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-100 rounded-lg shadow-sm p-6">
-            <div className="h-4 w-24 bg-gray-100 animate-pulse rounded mb-3" />
-            <div className="h-8 w-16 bg-gray-100 animate-pulse rounded" />
+          <div key={i} className="bg-card border border-border rounded-lg shadow-sm p-6">
+            <div className="h-4 w-24 bg-muted animate-pulse rounded mb-3" />
+            <div className="h-8 w-16 bg-muted animate-pulse rounded" />
           </div>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-50">
-          <div className="h-6 w-48 bg-gray-100 animate-pulse rounded" />
+      <div className="bg-card border border-border rounded-lg shadow-sm">
+        <div className="p-6 border-b border-border">
+          <div className="h-6 w-48 bg-muted animate-pulse rounded" />
         </div>
         <div className="p-6">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 w-full bg-gray-100 animate-pulse rounded" />
+              <div key={i} className="h-16 w-full bg-muted animate-pulse rounded" />
             ))}
           </div>
         </div>

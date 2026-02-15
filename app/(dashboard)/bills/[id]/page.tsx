@@ -35,12 +35,12 @@ export default function BillDetailPage() {
   if (error || !bill) {
     return (
       <div className="container py-8">
-        <div className="bg-white border border-gray-100 rounded-lg shadow-sm p-12 text-center">
-          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-black mb-2">Error Loading Bill</h3>
-          <p className="text-gray-600 mb-2">{error?.message || 'Bill not found'}</p>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-12 text-center">
+          <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Bill</h3>
+          <p className="text-muted-foreground mb-2">{error?.message || 'Bill not found'}</p>
           {billId && (
-            <p className="text-sm text-gray-500">Bill ID: {billId}</p>
+            <p className="text-sm text-muted-foreground">Bill ID: {billId}</p>
           )}
           <Button onClick={() => router.push('/bills')} className="mt-4">
             Back to Bills
@@ -51,13 +51,13 @@ export default function BillDetailPage() {
   }
 
   const statusConfig = {
-    'PAID': { color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-    'AUTHORISED': { color: 'bg-blue-100 text-blue-700', icon: Clock },
-    'VOIDED': { color: 'bg-red-100 text-red-700', icon: XCircle },
+    'PAID': { color: 'bg-primary/10 text-primary', icon: CheckCircle2 },
+    'AUTHORISED': { color: 'bg-[#6B8FB8]/10 text-[#6B8FB8]', icon: Clock },
+    'VOIDED': { color: 'bg-destructive/10 text-destructive', icon: XCircle },
   };
 
   const statusInfo = statusConfig[bill.status as keyof typeof statusConfig] || {
-    color: 'bg-gray-100 text-gray-700',
+    color: 'bg-muted text-foreground',
     icon: FileText
   };
   const StatusIcon = statusInfo.icon;
@@ -75,8 +75,8 @@ export default function BillDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-black">Bill Details</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">Bill Details</h1>
+          <p className="text-muted-foreground mt-1">
             Invoice #{bill.invoice_number || bill.invoice_id}
           </p>
         </div>
@@ -90,74 +90,74 @@ export default function BillDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Bill Summary */}
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50">
-              <h2 className="text-lg font-semibold text-black">Bill Summary</h2>
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Bill Summary</h2>
             </div>
             <div className="p-6 space-y-4">
               <InfoRow 
                 label="Invoice Number" 
                 value={bill.invoice_number || 'N/A'} 
-                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
+                icon={<FileText className="h-4 w-4 text-primary" />}
               />
               <InfoRow 
                 label="Reference" 
                 value={bill.reference || 'No reference'} 
-                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
+                icon={<FileText className="h-4 w-4 text-primary" />}
               />
               <InfoRow 
                 label="Invoice Date" 
                 value={bill.date ? new Date(bill.date).toLocaleDateString() : 'N/A'} 
-                icon={<Calendar className="h-4 w-4 text-[#49a034]" />}
+                icon={<Calendar className="h-4 w-4 text-primary" />}
               />
               <InfoRow 
                 label="Due Date" 
                 value={bill.due_date ? new Date(bill.due_date).toLocaleDateString() : 'N/A'} 
-                icon={<Calendar className="h-4 w-4 text-[#49a034]" />}
+                icon={<Calendar className="h-4 w-4 text-primary" />}
               />
               <InfoRow 
                 label="Description" 
                 value={bill.description} 
-                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
+                icon={<FileText className="h-4 w-4 text-primary" />}
               />
             </div>
           </div>
 
           {/* Financial Details */}
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50">
-              <h2 className="text-lg font-semibold text-black">Financial Details</h2>
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Financial Details</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="text-black font-medium">
+              <div className="flex justify-between items-center pb-4 border-b border-border">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-foreground font-medium">
                   {bill.currency} {parseFloat(bill.subtotal).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
-                <span className="text-gray-600">Tax</span>
-                <span className="text-black font-medium">
+              <div className="flex justify-between items-center pb-4 border-b border-border">
+                <span className="text-muted-foreground">Tax</span>
+                <span className="text-foreground font-medium">
                   {bill.currency} {parseFloat(bill.total_tax).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
-                <span className="text-gray-600">Total</span>
-                <span className="text-xl font-bold text-black">
+              <div className="flex justify-between items-center pb-4 border-b border-border">
+                <span className="text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-foreground">
                   {bill.currency} {parseFloat(bill.total).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-4 border-b border-gray-50">
-                <span className="text-gray-600">Amount Paid</span>
-                <span className="text-green-600 font-medium">
+              <div className="flex justify-between items-center pb-4 border-b border-border">
+                <span className="text-muted-foreground">Amount Paid</span>
+                <span className="text-primary font-medium">
                   {bill.currency} {parseFloat(bill.amount_paid).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 font-semibold">
+                <span className="text-muted-foreground font-semibold">
                   {bill.status === 'PAID' ? 'Total Amount' : 'Amount Due'}
                 </span>
-                <span className="text-2xl font-bold text-[#49a034]">
+                <span className="text-2xl font-bold text-primary">
                   {bill.currency} {parseFloat(
                     bill.status === 'PAID' ? bill.total : bill.amount_due
                   ).toLocaleString()}
@@ -170,44 +170,44 @@ export default function BillDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Vendor Info */}
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50">
-              <h2 className="text-lg font-semibold text-black">Vendor</h2>
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Vendor</h2>
             </div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-[#49a034]/10 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-[#49a034]" />
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <div className="font-semibold text-black">{bill.vendor_name}</div>
-                  <div className="text-sm text-gray-600">Vendor</div>
+                  <div className="font-semibold text-foreground">{bill.vendor_name}</div>
+                  <div className="text-sm text-muted-foreground">Vendor</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Organization Info */}
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-50">
-              <h2 className="text-lg font-semibold text-black">Organization</h2>
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Organization</h2>
             </div>
             <div className="p-6 space-y-3">
               <InfoRow 
                 label="Name" 
                 value={bill.organization_name} 
-                icon={<Building2 className="h-4 w-4 text-[#49a034]" />}
+                icon={<Building2 className="h-4 w-4 text-primary" />}
               />
               <InfoRow 
                 label="Connection" 
                 value={bill.connection_name} 
-                icon={<FileText className="h-4 w-4 text-[#49a034]" />}
+                icon={<FileText className="h-4 w-4 text-primary" />}
               />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 space-y-3">
+          <div className="bg-card border border-border rounded-lg shadow-sm p-6 space-y-3">
             <Button className="w-full">
               <DollarSign className="h-4 w-4" />
               Schedule Payment
@@ -232,11 +232,11 @@ interface InfoRowProps {
 
 function InfoRow({ label, value, icon }: InfoRowProps) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
       <div className="mt-0.5">{icon}</div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-gray-600">{label}</div>
-        <div className="text-black font-medium break-words">{value}</div>
+        <div className="text-sm text-muted-foreground">{label}</div>
+        <div className="text-foreground font-medium break-words">{value}</div>
       </div>
     </div>
   );
@@ -247,21 +247,21 @@ function BillDetailSkeleton() {
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center gap-4">
-        <div className="h-10 w-10 bg-gray-100 animate-pulse rounded-lg" />
+        <div className="h-10 w-10 bg-muted animate-pulse rounded-lg" />
         <div className="flex-1 space-y-2">
-          <div className="h-8 bg-gray-100 animate-pulse rounded w-1/3" />
-          <div className="h-4 bg-gray-100 animate-pulse rounded w-1/4" />
+          <div className="h-8 bg-muted animate-pulse rounded w-1/3" />
+          <div className="h-4 bg-muted animate-pulse rounded w-1/4" />
         </div>
       </div>
       
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-100 rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-100 animate-pulse rounded w-1/4 mb-4" />
+            <div key={i} className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="h-6 bg-muted animate-pulse rounded w-1/4 mb-4" />
               <div className="space-y-3">
                 {[...Array(4)].map((_, j) => (
-                  <div key={j} className="h-4 bg-gray-100 animate-pulse rounded" />
+                  <div key={j} className="h-4 bg-muted animate-pulse rounded" />
                 ))}
               </div>
             </div>
@@ -269,9 +269,9 @@ function BillDetailSkeleton() {
         </div>
         <div className="space-y-6">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-100 rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-100 animate-pulse rounded w-1/2 mb-4" />
-              <div className="h-12 bg-gray-100 animate-pulse rounded" />
+            <div key={i} className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="h-6 bg-muted animate-pulse rounded w-1/2 mb-4" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
             </div>
           ))}
         </div>

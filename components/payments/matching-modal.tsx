@@ -112,10 +112,10 @@ export function MatchingModal({
   const transactionAmount = transaction.credit_amount || transaction.debit_amount || 0;
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return "text-green-600 bg-green-50";
-    if (confidence >= 0.6) return "text-[#49a034] bg-[#49a034]/10";
-    if (confidence >= 0.4) return "text-orange-600 bg-orange-50";
-    return "text-gray-600 bg-gray-50";
+    if (confidence >= 0.8) return "text-primary bg-primary/5";
+    if (confidence >= 0.6) return "text-primary bg-primary/10";
+    if (confidence >= 0.4) return "text-[#D4944A] bg-[#D4944A]/10";
+    return "text-muted-foreground bg-muted";
   };
 
   const getConfidenceLabel = (confidence: number) => {
@@ -136,14 +136,14 @@ export function MatchingModal({
         </DialogHeader>
 
         {/* Transaction Info */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="p-4 bg-muted rounded-lg border border-border">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
-              <h3 className="font-semibold text-black text-lg">
+              <h3 className="font-semibold text-foreground text-lg">
                 {transaction.description}
               </h3>
               {transaction.counterparty_name && (
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {transaction.counterparty_name}
                 </p>
               )}
@@ -152,8 +152,8 @@ export function MatchingModal({
               <div
                 className={`text-2xl font-bold ${
                   transaction.transaction_type === "CREDIT"
-                    ? "text-green-600"
-                    : "text-red-600"
+                    ? "text-primary"
+                    : "text-destructive"
                 }`}
               >
                 {transaction.transaction_type === "CREDIT" ? "+" : "-"}
@@ -161,7 +161,7 @@ export function MatchingModal({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
@@ -174,7 +174,7 @@ export function MatchingModal({
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             type="text"
             placeholder="Search invoices or bills..."
@@ -188,15 +188,15 @@ export function MatchingModal({
         <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-[#49a034]" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : filteredMatches.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-gray-300 rounded-lg">
-              <AlertCircle className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="text-center py-12 border border-dashed border-border rounded-lg">
+              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 No matches found
               </h3>
-              <p className="text-gray-500 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {searchQuery
                   ? "Try a different search term"
                   : "No potential matches for this transaction"}
@@ -213,22 +213,22 @@ export function MatchingModal({
                   onClick={() => setSelectedMatch(match)}
                   className={`w-full p-4 border rounded-lg text-left transition-all duration-200 ${
                     isSelected
-                      ? "border-[#49a034] bg-[#49a034]/5 shadow-md"
-                      : "border-gray-200 hover:border-[#49a034]/30 hover:shadow-sm"
+                      ? "border-primary bg-primary/5 shadow-md"
+                      : "border-border hover:border-primary/30 hover:shadow-sm"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     {/* Left: Match Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <FileText className="h-5 w-5 text-[#49a034] flex-shrink-0" />
+                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-black truncate">
+                          <h4 className="font-semibold text-foreground truncate">
                             {match.reference}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <User className="h-3.5 w-3.5 text-gray-400" />
-                            <span className="text-sm text-gray-600 truncate">
+                            <User className="h-3.5 w-3.5 text-muted-foreground/60" />
+                            <span className="text-sm text-muted-foreground truncate">
                               {match.contact_name}
                             </span>
                           </div>
@@ -236,7 +236,7 @@ export function MatchingModal({
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <div className="flex items-center gap-1.5 text-gray-600">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           {format(new Date(match.date), "MMM dd, yyyy")}
                         </div>
@@ -258,31 +258,31 @@ export function MatchingModal({
 
                     {/* Right: Amounts */}
                     <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-bold text-black">
+                      <div className="text-lg font-bold text-foreground">
                         {formatCurrency(match.amount, match.currency)}
                       </div>
                       {match.amount_due !== match.amount && (
-                        <div className="text-sm text-gray-500 mt-1">
+                        <div className="text-sm text-muted-foreground mt-1">
                           Due: {formatCurrency(match.amount_due, match.currency)}
                         </div>
                       )}
                       {isSelected && (
-                        <CheckCircle2 className="h-5 w-5 text-[#49a034] mt-2 ml-auto" />
+                        <CheckCircle2 className="h-5 w-5 text-primary mt-2 ml-auto" />
                       )}
                     </div>
                   </div>
 
                   {/* Confidence Bar */}
-                  <div className="mt-3 w-full bg-gray-100 rounded-full h-1.5">
+                  <div className="mt-3 w-full bg-muted rounded-full h-1.5">
                     <div
                       className={`h-1.5 rounded-full transition-all duration-300 ${
                         match.confidence >= 0.8
-                          ? "bg-green-600"
+                          ? "bg-primary"
                           : match.confidence >= 0.6
-                          ? "bg-[#49a034]"
+                          ? "bg-primary"
                           : match.confidence >= 0.4
-                          ? "bg-orange-500"
-                          : "bg-gray-400"
+                          ? "bg-[#D4944A]"
+                          : "bg-muted-foreground/60"
                       }`}
                       style={{ width: `${confidencePercent}%` }}
                     />
@@ -305,7 +305,7 @@ export function MatchingModal({
           <Button
             onClick={() => selectedMatch && applyMatchMutation.mutate(selectedMatch)}
             disabled={!selectedMatch || applyMatchMutation.isPending}
-            className="bg-[#49a034] hover:bg-[#4f7068] text-white"
+            className="bg-primary hover:bg-primary/80 text-white"
           >
             {applyMatchMutation.isPending ? (
               <>

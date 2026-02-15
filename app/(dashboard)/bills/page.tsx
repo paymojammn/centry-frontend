@@ -49,15 +49,7 @@ import { StatusBadge, StatusDot } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
-
-// Status color constants (Xero-inspired)
-const STATUS_COLORS = {
-  draft: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA', border: '#4E97D1' },
-  awaiting_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5', border: '#fed652' },
-  awaiting_payment: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5', border: '#f77f00' },
-  paid: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5', border: '#49a034' },
-  repeating: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7', border: '#bec3c6' },
-} as const;
+import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -67,17 +59,6 @@ const cleanCurrencyCode = (currency: string): string => {
   }
   return currency;
 };
-
-// Format large numbers compactly
-function formatCompactNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-  return num.toLocaleString();
-}
 
 // Get vendor initials for avatar
 function getVendorInitials(name: string): string {
@@ -204,7 +185,7 @@ export default function BillsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
       <PageHeader
         title="Bills"
@@ -227,15 +208,15 @@ export default function BillsPage() {
       </PageHeader>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-card border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex gap-8">
             <button
               onClick={() => setActiveTab('bills')}
               className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
                 activeTab === 'bills'
-                  ? 'border-[#49a034] text-[#49a034]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
               Bills
@@ -244,8 +225,8 @@ export default function BillsPage() {
               onClick={() => setActiveTab('processing')}
               className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
                 activeTab === 'processing'
-                  ? 'border-[#49a034] text-[#49a034]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
               Processing Queue
@@ -306,7 +287,7 @@ export default function BillsPage() {
                     Pay Selected
                   </Button>
                 ) : (
-                  <p className="text-xs text-gray-500">Select bills to pay</p>
+                  <p className="text-xs text-muted-foreground">Select bills to pay</p>
                 )}
               </StatCard>
             </div>
@@ -318,19 +299,19 @@ export default function BillsPage() {
           {activeTab === 'bills' ? (
             <div>
               {/* Filters - Clean toolbar */}
-              <div className="px-4 py-3 border-b border-gray-100">
+              <div className="px-4 py-3 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 relative max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                     <Input
                       placeholder="Search vendors, invoices..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 bg-white border-gray-200 text-sm text-gray-900"
+                      className="pl-9 h-9 bg-card border-border text-sm text-foreground"
                     />
                   </div>
                   <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[140px] h-9 bg-white border-gray-200 text-sm text-gray-900">
+                    <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -373,21 +354,21 @@ export default function BillsPage() {
               {/* Bills Table */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
                 </div>
               ) : error ? (
                 <div className="text-center py-16">
-                  <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-900">Error loading bills</p>
-                  <p className="text-sm text-gray-500 mt-1">Please try refreshing the page</p>
+                  <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-3" />
+                  <p className="text-sm font-medium text-foreground">Error loading bills</p>
+                  <p className="text-sm text-muted-foreground mt-1">Please try refreshing the page</p>
                 </div>
               ) : !filteredBills || filteredBills.length === 0 ? (
                 <div className="text-center py-16">
-                  <FileText className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-900">
+                  <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-foreground">
                     {searchQuery ? 'No bills match your search' : 'No bills found'}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {searchQuery ? 'Try a different search term' : 'Sync with Xero to get started'}
                   </p>
                 </div>
@@ -477,7 +458,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
 
     if (isOverdue(bill.due_date)) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 ml-2">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive ml-2">
           <AlertTriangle className="h-3 w-3" />
           Overdue
         </span>
@@ -508,17 +489,17 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                 }}
                 onChange={handleSelectAll}
                 disabled={payableBills.length === 0}
-                className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c] disabled:opacity-50"
+                className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
               />
             </th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Vendor</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Invoice</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Due Date</th>
-            <th className="text-right text-xs font-medium text-gray-600 py-3 px-4">Amount</th>
-            <th className="text-left text-xs font-medium text-gray-600 py-3 px-4">Status</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Vendor</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
+            <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
+            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-border">
           {bills.map((bill) => {
             const canPay = isPayable(bill);
             const isSelected = selectedBills.has(bill.id);
@@ -527,7 +508,7 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
               <tr
                 key={bill.id}
                 className={`transition-colors ${
-                  isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'
                 } ${!canPay ? 'opacity-60' : 'cursor-pointer'}`}
                 onClick={() => canPay && onSelectBill(bill.id)}
               >
@@ -537,36 +518,36 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onSelectBill(bill.id)}
-                      className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
+                      className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
                     />
                   ) : (
-                    <div className="w-4 h-4 rounded border border-gray-200 bg-gray-50" />
+                    <div className="w-4 h-4 rounded border border-border bg-muted" />
                   )}
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                    <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
                       {getVendorInitials(bill.vendor_name || '')}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{bill.vendor_name}</div>
+                      <div className="text-sm font-medium text-foreground">{bill.vendor_name}</div>
                       {bill.reference && (
-                        <div className="text-xs text-gray-500">{bill.reference}</div>
+                        <div className="text-xs text-muted-foreground">{bill.reference}</div>
                       )}
                     </div>
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-sm text-gray-900">{bill.invoice_number || '-'}</span>
+                  <span className="text-sm text-foreground">{bill.invoice_number || '-'}</span>
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">{formatDate(bill.due_date || '')}</span>
+                    <span className="text-sm text-muted-foreground">{formatDate(bill.due_date || '')}</span>
                     {getDueBadge(bill)}
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-foreground">
                     {cleanCurrencyCode(bill.currency)} {parseFloat(
                       bill.status === 'PAID' ? bill.total : bill.amount_due
                     ).toLocaleString(undefined, {

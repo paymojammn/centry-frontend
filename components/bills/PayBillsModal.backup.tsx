@@ -225,24 +225,24 @@ export default function PayBillsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Pay {bills.length} Bill{bills.length > 1 ? 's' : ''}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Total: {currency} {totalAmount.toLocaleString()}
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -251,7 +251,7 @@ export default function PayBillsModal({
           {/* Step 1: Select Payment Method */}
           {step === 'method' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 How would you like to pay?
               </h3>
               
@@ -259,15 +259,15 @@ export default function PayBillsModal({
               {walletBalanceData && walletBalanceData.currency === currency && (
                 <div className={`p-4 rounded-lg border-2 ${
                   walletBalanceData.has_sufficient_balance 
-                    ? 'bg-green-50 border-green-200' 
+                    ? 'bg-primary/5 border-primary/20' 
                     : 'bg-amber-50 border-amber-200'
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Wallet className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">Wallet Balance ({walletBalanceData.currency}):</span>
+                      <Wallet className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Wallet Balance ({walletBalanceData.currency}):</span>
                     </div>
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="text-lg font-bold text-foreground">
                       {currency} {parseFloat(walletBalanceData.wallet_balance).toLocaleString()}
                     </span>
                   </div>
@@ -276,7 +276,7 @@ export default function PayBillsModal({
                       Insufficient balance for tracking. Required: {currency} {parseFloat(walletBalanceData.total_required).toLocaleString()}
                     </p>
                   )}
-                  <p className="text-xs text-gray-600 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Note: Payment will be made from organization's mobile money account
                   </p>
                 </div>
@@ -288,39 +288,39 @@ export default function PayBillsModal({
                   disabled={!walletBalanceData?.has_sufficient_balance}
                   className={`p-6 border-2 rounded-lg transition-all group ${
                     walletBalanceData?.has_sufficient_balance
-                      ? 'border-gray-200 hover:border-[#49a034] hover:bg-[#49a034]/5'
-                      : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
+                      ? 'border-border hover:border-primary hover:bg-primary/5'
+                      : 'border-border bg-muted cursor-not-allowed opacity-50'
                   }`}
                 >
                   <Wallet className={`w-8 h-8 mb-3 ${
                     walletBalanceData?.has_sufficient_balance
-                      ? 'text-gray-400 group-hover:text-[#49a034]'
-                      : 'text-gray-300'
+                      ? 'text-muted-foreground/60 group-hover:text-primary'
+                      : 'text-muted-foreground/40'
                   }`} />
-                  <h4 className="font-medium text-gray-900">Pay from Wallet</h4>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h4 className="font-medium text-foreground">Pay from Wallet</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Use wallet balance
                   </p>
                 </button>
 
                 <button
                   onClick={() => handleMethodSelect('mobile_money')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
+                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                 >
-                  <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
-                  <h4 className="font-medium text-gray-900">Mobile Money</h4>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <Smartphone className="w-8 h-8 text-muted-foreground/60 group-hover:text-primary mb-3" />
+                  <h4 className="font-medium text-foreground">Mobile Money</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Pay via MTN, Airtel
                   </p>
                 </button>
 
                 <button
                   onClick={() => handleMethodSelect('bank')}
-                  className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
+                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                 >
-                  <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
-                  <h4 className="font-medium text-gray-900">Bank Transfer</h4>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <Building2 className="w-8 h-8 text-muted-foreground/60 group-hover:text-primary mb-3" />
+                  <h4 className="font-medium text-foreground">Bank Transfer</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Pay via bank account
                   </p>
                 </button>
@@ -332,12 +332,12 @@ export default function PayBillsModal({
           {step === 'provider' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-foreground">
                   Select {paymentMethod === 'mobile_money' ? 'Mobile Money Provider' : 'Bank'}
                 </h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   Back
                 </button>
@@ -345,7 +345,7 @@ export default function PayBillsModal({
 
               {providersLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
@@ -353,9 +353,9 @@ export default function PayBillsModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
+                      className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left"
                     >
-                      <div className="font-medium text-gray-900">{provider.name}</div>
+                      <div className="font-medium text-foreground">{provider.name}</div>
                     </button>
                   ))}
 
@@ -363,9 +363,9 @@ export default function PayBillsModal({
                     <button
                       key={provider.code}
                       onClick={() => handleProviderSelect(provider.code)}
-                      className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left"
+                      className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left"
                     >
-                      <div className="font-medium text-gray-900">{provider.name}</div>
+                      <div className="font-medium text-foreground">{provider.name}</div>
                     </button>
                   ))}
                 </div>
@@ -377,10 +377,10 @@ export default function PayBillsModal({
           {step === 'details' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Payment Details</h3>
+                <h3 className="text-lg font-medium text-foreground">Payment Details</h3>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-[#49a034] hover:text-[#4f7068]"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   Back
                 </button>
@@ -388,9 +388,9 @@ export default function PayBillsModal({
 
               {/* Selected provider or wallet */}
               {paymentMethod !== 'wallet' && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-500">Paying via</div>
-                  <div className="font-medium text-gray-900 mt-1">
+                <div className="bg-muted rounded-lg p-4">
+                  <div className="text-sm text-muted-foreground">Paying via</div>
+                  <div className="font-medium text-foreground mt-1">
                     {providers?.[paymentMethod === 'mobile_money' ? 'mobile_money' : 'bank']
                       .find((p: PaymentProvider) => p.code === paymentProvider)?.name}
                   </div>
@@ -398,21 +398,21 @@ export default function PayBillsModal({
               )}
 
               {paymentMethod === 'wallet' && (
-                <div className="bg-[#49a034]/10 rounded-lg p-4 border-2 border-[#49a034]">
+                <div className="bg-primary/10 rounded-lg p-4 border-2 border-primary">
                   <div className="flex items-center gap-2 mb-3">
-                    <Wallet className="w-5 h-5 text-[#49a034]" />
-                    <div className="text-sm font-medium text-gray-700">Paying from Wallet</div>
+                    <Wallet className="w-5 h-5 text-primary" />
+                    <div className="text-sm font-medium text-foreground">Paying from Wallet</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <div className="text-gray-600">Current Balance</div>
-                      <div className="font-bold text-gray-900">
+                      <div className="text-muted-foreground">Current Balance</div>
+                      <div className="font-bold text-foreground">
                         {currency} {walletBalanceData ? parseFloat(walletBalanceData.wallet_balance).toLocaleString() : '0'}
                       </div>
                     </div>
                     <div>
-                      <div className="text-gray-600">After Payment</div>
-                      <div className="font-bold text-green-600">
+                      <div className="text-muted-foreground">After Payment</div>
+                      <div className="font-bold text-primary">
                         {currency} {walletBalanceData ? parseFloat(walletBalanceData.remaining_balance).toLocaleString() : '0'}
                       </div>
                     </div>
@@ -421,30 +421,30 @@ export default function PayBillsModal({
               )}
 
               {/* Bills summary with editable amounts */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">Bills to pay ({bills.length})</h4>
+              <div className="border border-border rounded-lg p-4">
+                <h4 className="font-medium text-foreground mb-3">Bills to pay ({bills.length})</h4>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {bills.map((bill) => {
                     const customAmount = paymentAmounts.get(bill.id) || bill.amount_due;
                     const isPartialPayment = parseFloat(customAmount) < parseFloat(bill.amount_due);
                     
                     return (
-                      <div key={bill.id} className="flex flex-col gap-2 pb-3 border-b border-gray-100 last:border-0">
+                      <div key={bill.id} className="flex flex-col gap-2 pb-3 border-b border-border last:border-0">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-gray-900">{bill.vendor_name}</span>
-                            <div className="text-xs text-gray-500 mt-0.5">
+                            <span className="text-sm font-medium text-foreground">{bill.vendor_name}</span>
+                            <div className="text-xs text-muted-foreground mt-0.5">
                               Invoice: {bill.invoice_number || 'N/A'}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-gray-500">Due: {bill.currency_code} {parseFloat(bill.amount_due).toLocaleString()}</div>
+                            <div className="text-xs text-muted-foreground">Due: {bill.currency_code} {parseFloat(bill.amount_due).toLocaleString()}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <label className="text-xs text-gray-600 whitespace-nowrap">Pay amount:</label>
+                          <label className="text-xs text-muted-foreground whitespace-nowrap">Pay amount:</label>
                           <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                               {bill.currency_code}
                             </span>
                             <input
@@ -454,7 +454,7 @@ export default function PayBillsModal({
                               min="0"
                               max={bill.amount_due}
                               step="0.01"
-                              className="w-full pl-12 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                              className="w-full pl-12 pr-3 py-1.5 text-sm border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                           </div>
                           {isPartialPayment && (
@@ -465,8 +465,8 @@ export default function PayBillsModal({
                     );
                   })}
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="flex justify-between font-medium text-gray-900">
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex justify-between font-medium text-foreground">
                     <span>Total Payment</span>
                     <span>{currency} {totalAmount.toLocaleString()}</span>
                   </div>
@@ -482,7 +482,7 @@ export default function PayBillsModal({
               {paymentMethod === 'wallet' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-foreground mb-3">
                       How should we disburse to vendors?
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -492,11 +492,11 @@ export default function PayBillsModal({
                           onClick={() => setPaymentProvider(provider.code)}
                           className={`p-4 border-2 rounded-lg transition-all text-left ${
                             paymentProvider === provider.code
-                              ? 'border-[#49a034] bg-[#49a034]/5'
-                              : 'border-gray-200 hover:border-[#49a034]'
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary'
                           }`}
                         >
-                          <div className="font-medium text-gray-900">{provider.name}</div>
+                          <div className="font-medium text-foreground">{provider.name}</div>
                         </button>
                       ))}
                       {providers?.bank.slice(0, 2).map((provider: PaymentProvider) => (
@@ -505,11 +505,11 @@ export default function PayBillsModal({
                           onClick={() => setPaymentProvider(provider.code)}
                           className={`p-4 border-2 rounded-lg transition-all text-left ${
                             paymentProvider === provider.code
-                              ? 'border-[#49a034] bg-[#49a034]/5'
-                              : 'border-gray-200 hover:border-[#49a034]'
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary'
                           }`}
                         >
-                          <div className="font-medium text-gray-900">{provider.name}</div>
+                          <div className="font-medium text-foreground">{provider.name}</div>
                         </button>
                       ))}
                     </div>
@@ -518,7 +518,7 @@ export default function PayBillsModal({
                   {/* Vendor payment details */}
                   {paymentProvider && (paymentProvider === 'mtn' || paymentProvider === 'airtel') && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Vendor Phone Number
                       </label>
                       <input
@@ -526,9 +526,9 @@ export default function PayBillsModal({
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="e.g., 256700000000"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Money will be sent to vendor's mobile money account
                       </p>
                     </div>
@@ -537,7 +537,7 @@ export default function PayBillsModal({
                   {paymentProvider && paymentProvider !== 'mtn' && paymentProvider !== 'airtel' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Vendor Account Number
                         </label>
                         <input
@@ -545,11 +545,11 @@ export default function PayBillsModal({
                           value={accountNumber}
                           onChange={(e) => setAccountNumber(e.target.value)}
                           placeholder="e.g., 1234567890"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Bank Name
                         </label>
                         <input
@@ -557,7 +557,7 @@ export default function PayBillsModal({
                           value={bankName}
                           onChange={(e) => setBankName(e.target.value)}
                           placeholder="e.g., Stanbic Bank"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
                     </>
@@ -567,7 +567,7 @@ export default function PayBillsModal({
 
               {paymentMethod === 'mobile_money' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Phone Number
                   </label>
                   <input
@@ -575,7 +575,7 @@ export default function PayBillsModal({
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g., 256700000000"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
               )}
@@ -583,7 +583,7 @@ export default function PayBillsModal({
               {paymentMethod === 'bank' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Account Number
                     </label>
                     <input
@@ -591,11 +591,11 @@ export default function PayBillsModal({
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="e.g., 1234567890"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Bank Name
                     </label>
                     <input
@@ -603,7 +603,7 @@ export default function PayBillsModal({
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
                       placeholder="e.g., Stanbic Bank"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </>
@@ -611,7 +611,7 @@ export default function PayBillsModal({
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Note (Optional)
                 </label>
                 <textarea
@@ -619,7 +619,7 @@ export default function PayBillsModal({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a note for this payment..."
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
 
@@ -634,7 +634,7 @@ export default function PayBillsModal({
                   (paymentMethod === 'mobile_money' && !phoneNumber) ||
                   (paymentMethod === 'bank' && (!accountNumber || !bankName))
                 }
-                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors disabled:bg-muted disabled:cursor-not-allowed font-medium"
               >
                 {paymentMethod === 'wallet' ? 'Pay from Wallet & Disburse' : 'Process Payment'}
               </button>
@@ -644,9 +644,9 @@ export default function PayBillsModal({
           {/* Step 4: Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <Loader2 className="w-16 h-16 animate-spin text-[#49a034] mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Payment...</h3>
-              <p className="text-sm text-gray-500">
+              <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">Processing Payment...</h3>
+              <p className="text-sm text-muted-foreground">
                 Please wait while we process your payment
               </p>
             </div>
@@ -656,27 +656,27 @@ export default function PayBillsModal({
           {step === 'export' && (
             <div className="space-y-6">
               <div className="text-center py-6">
-                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   Payment Instructions Created
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {results.filter(r => r.success).length} payment{results.filter(r => r.success).length > 1 ? 's' : ''} ready for bank processing
                 </p>
               </div>
 
               {/* Export format selection */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                <h4 className="font-medium text-primary mb-2 flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Download Payment File
                 </h4>
-                <p className="text-sm text-blue-700 mb-4">
+                <p className="text-sm text-primary/80 mb-4">
                   Generate a file to upload to your bank's system to process these payments
                 </p>
                 
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-foreground">
                     File Format
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -684,12 +684,12 @@ export default function PayBillsModal({
                       onClick={() => setExportFormat('csv')}
                       className={`p-4 border-2 rounded-lg transition-all text-left ${
                         exportFormat === 'csv'
-                          ? 'border-[#49a034] bg-[#49a034]/5'
-                          : 'border-gray-200 hover:border-[#49a034]'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary'
                       }`}
                     >
-                      <div className="font-medium text-gray-900">CSV Format</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="font-medium text-foreground">CSV Format</div>
+                      <div className="text-xs text-muted-foreground mt-1">
                         For Stanbic and most banks
                       </div>
                     </button>
@@ -697,12 +697,12 @@ export default function PayBillsModal({
                       onClick={() => setExportFormat('xml')}
                       className={`p-4 border-2 rounded-lg transition-all text-left ${
                         exportFormat === 'xml'
-                          ? 'border-[#49a034] bg-[#49a034]/5'
-                          : 'border-gray-200 hover:border-[#49a034]'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary'
                       }`}
                     >
-                      <div className="font-medium text-gray-900">XML Format</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="font-medium text-foreground">XML Format</div>
+                      <div className="text-xs text-muted-foreground mt-1">
                         ISO 20022 (pain.001)
                       </div>
                     </button>
@@ -711,8 +711,8 @@ export default function PayBillsModal({
               </div>
 
               {/* Payment summary */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">
+              <div className="border border-border rounded-lg p-4">
+                <h4 className="font-medium text-foreground mb-3">
                   Payments to Export ({paymentEventIds.length})
                 </h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -720,8 +720,8 @@ export default function PayBillsModal({
                     const bill = bills.find(b => b.id.toString() === result.bill_id);
                     return (
                       <div key={result.bill_id} className="flex justify-between text-sm">
-                        <span className="text-gray-600">{bill?.vendor_name}</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-muted-foreground">{bill?.vendor_name}</span>
+                        <span className="font-medium text-foreground">
                           {bill?.currency_code} {bill ? parseFloat(bill.amount_due).toLocaleString() : ''}
                         </span>
                       </div>
@@ -734,14 +734,14 @@ export default function PayBillsModal({
               <div className="flex gap-3">
                 <button
                   onClick={handleSkipExport}
-                  className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 border-2 border-border text-foreground py-3 rounded-lg hover:bg-muted transition-colors font-medium"
                 >
                   Skip for Now
                 </button>
                 <button
                   onClick={handleExportPayment}
                   disabled={isExporting}
-                  className="flex-1 bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                  className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors disabled:bg-muted disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isExporting ? (
                     <>
@@ -757,7 +757,7 @@ export default function PayBillsModal({
                 </button>
               </div>
 
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 You can download this file later from the payment history
               </p>
             </div>
@@ -769,21 +769,21 @@ export default function PayBillsModal({
               <div className="text-center py-6">
                 {results.every(r => r.success) ? (
                   <>
-                    <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       Payment Successful!
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {results.length} bill{results.length > 1 ? 's' : ''} paid successfully
                     </p>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       Payment Issues
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Some payments could not be processed
                     </p>
                   </>
@@ -791,31 +791,31 @@ export default function PayBillsModal({
               </div>
 
               {/* Results list */}
-              <div className="border border-gray-200 rounded-lg divide-y divide-gray-200">
+              <div className="border border-border rounded-lg divide-y divide-border">
                 {results.map((result) => {
                   const bill = bills.find(b => b.id.toString() === result.bill_id);
                   return (
                     <div key={result.bill_id} className="p-4 flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-foreground">
                           {bill?.vendor_name || `Bill #${result.bill_id}`}
                         </div>
                         {result.reference && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Ref: {result.reference}
                           </div>
                         )}
                         {result.error_message && (
-                          <div className="text-xs text-red-600 mt-1">
+                          <div className="text-xs text-destructive mt-1">
                             {result.error_message}
                           </div>
                         )}
                       </div>
                       <div>
                         {result.success ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <CheckCircle2 className="w-5 h-5 text-primary" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-500" />
+                          <XCircle className="w-5 h-5 text-destructive" />
                         )}
                       </div>
                     </div>
@@ -825,7 +825,7 @@ export default function PayBillsModal({
 
               <button
                 onClick={handleClose}
-                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#4f7068] transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors font-medium"
               >
                 Done
               </button>

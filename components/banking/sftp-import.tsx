@@ -177,18 +177,18 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
   return (
     <div className="space-y-6">
       {/* Config Section */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Server className="h-4 w-4 text-[#49a034]" />
-            <h3 className="text-sm font-medium text-gray-900">SFTP Import</h3>
+            <h3 className="text-sm font-medium text-foreground">SFTP Import</h3>
           </div>
-          <p className="text-xs text-gray-500 mt-1">Download bank statement files from SFTP server</p>
+          <p className="text-xs text-muted-foreground mt-1">Download bank statement files from SFTP server</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Bank Account</Label>
+              <Label className="text-sm font-medium text-foreground">Bank Account</Label>
               <Select
                 value={selectedAccountId?.toString()}
                 onValueChange={(value) => {
@@ -197,7 +197,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                 }}
                 disabled={accountsLoading}
               >
-                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                <SelectTrigger className="h-10 bg-muted border-border">
                   <SelectValue placeholder="Select account..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -211,13 +211,13 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">SFTP Connection</Label>
+              <Label className="text-sm font-medium text-foreground">SFTP Connection</Label>
               <Select
                 value={selectedSFTPCredentialId?.toString() || ""}
                 onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
                 disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
               >
-                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                <SelectTrigger className="h-10 bg-muted border-border">
                   <SelectValue placeholder={
                     credentialsLoading ? "Loading..." :
                     sftpCredentials.length === 0 ? "No connections" :
@@ -229,7 +229,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                     <SelectItem key={credential.id} value={credential.id.toString()}>
                       <div className="flex items-center gap-2">
                         <span>{credential.host}</span>
-                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-green-500" />}
+                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-primary" />}
                       </div>
                     </SelectItem>
                   ))}
@@ -238,14 +238,14 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Options</Label>
-              <div className="flex items-center space-x-2 h-10 px-3 bg-gray-50 rounded-md border border-gray-200">
+              <Label className="text-sm font-medium text-foreground">Options</Label>
+              <div className="flex items-center space-x-2 h-10 px-3 bg-muted rounded-md border border-border">
                 <Checkbox
                   id="auto-import"
                   checked={autoImport}
                   onCheckedChange={(checked) => setAutoImport(!!checked)}
                 />
-                <Label htmlFor="auto-import" className="text-sm text-gray-600 cursor-pointer">
+                <Label htmlFor="auto-import" className="text-sm text-muted-foreground cursor-pointer">
                   Auto-import after download
                 </Label>
               </div>
@@ -253,14 +253,14 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
           </div>
 
           {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-border">
               {(() => {
                 const cred = sftpCredentials.find((c: SFTPCredential) => c.id === selectedSFTPCredentialId);
                 if (!cred) return null;
                 return (
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
-                    <span><span className="text-gray-400">Host:</span> {cred.host}:{cred.port}</span>
-                    <span><span className="text-gray-400">Download:</span> <code className="text-xs bg-gray-100 px-1 rounded">{cred.download_path}</code></span>
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                    <span><span className="text-muted-foreground/60">Host:</span> {cred.host}:{cred.port}</span>
+                    <span><span className="text-muted-foreground/60">Download:</span> <code className="text-xs bg-muted px-1 rounded">{cred.download_path}</code></span>
                   </div>
                 );
               })()}
@@ -272,21 +272,21 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       {/* Task Progress */}
       {activeTaskId && taskStatus && (
         <div className={`rounded-lg border p-4 flex items-center gap-3 ${
-          taskStatus.status === "SUCCESS" ? "border-green-200 bg-green-50" :
-          taskStatus.status === "FAILURE" ? "border-orange-200 bg-orange-50" :
-          "border-blue-200 bg-blue-50"
+          taskStatus.status === "SUCCESS" ? "border-primary/20 bg-primary/5" :
+          taskStatus.status === "FAILURE" ? "border-[#D4944A]/20 bg-[#D4944A]/10" :
+          "border-[#6B8FB8]/20 bg-[#6B8FB8]/10"
         }`}>
           {taskStatus.status === "SUCCESS" ? (
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-primary" />
           ) : taskStatus.status === "FAILURE" ? (
-            <XCircle className="h-5 w-5 text-orange-600" />
+            <XCircle className="h-5 w-5 text-[#D4944A]" />
           ) : (
-            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+            <Loader2 className="h-5 w-5 text-[#6B8FB8] animate-spin" />
           )}
           <span className={`text-sm font-medium ${
-            taskStatus.status === "SUCCESS" ? "text-green-700" :
-            taskStatus.status === "FAILURE" ? "text-orange-700" :
-            "text-blue-700"
+            taskStatus.status === "SUCCESS" ? "text-primary" :
+            taskStatus.status === "FAILURE" ? "text-[#D4944A]" :
+            "text-[#6B8FB8]"
           }`}>
             {taskStatus.status === "SUCCESS" ? (
               <>Download complete! {taskStatus.result?.files_downloaded ? `${taskStatus.result.files_downloaded} file(s)` : ""}</>
@@ -300,14 +300,14 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       )}
 
       {/* Remote Files */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4 text-[#49a034]" />
-              <h3 className="text-sm font-medium text-gray-900">Remote Files</h3>
+              <h3 className="text-sm font-medium text-foreground">Remote Files</h3>
             </div>
-            {downloadPath && <p className="text-xs text-gray-500 mt-1 font-mono">{downloadPath}</p>}
+            {downloadPath && <p className="text-xs text-muted-foreground mt-1 font-mono">{downloadPath}</p>}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -340,8 +340,8 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
         {!selectedAccountId ? (
           <div className="text-center py-12">
-            <Server className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Select a bank account</p>
+            <Server className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Select a bank account</p>
           </div>
         ) : filesLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -349,31 +349,31 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
           </div>
         ) : filesError ? (
           <div className="text-center py-12">
-            <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">{(filesError as any)?.message || "Failed to connect to SFTP"}</p>
+            <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">{(filesError as any)?.message || "Failed to connect to SFTP"}</p>
           </div>
         ) : files.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No files found</p>
+            <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No files found</p>
           </div>
         ) : (
           <table className="w-full table-professional">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
+              <tr className="border-b border-border bg-muted/50">
                 <th className="w-10 px-4 py-3">
                   <Checkbox
                     checked={selectedFiles.size === files.filter((f) => !f.is_dir).length}
                     onCheckedChange={handleSelectAll}
                   />
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Filename</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Size</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Modified</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Filename</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Size</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Modified</th>
                 <th className="w-10"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 animate-stagger">
+            <tbody className="divide-y divide-border animate-stagger">
               {files.map((file: SFTPRemoteFile) => (
                 <tr key={file.name} className="row-interactive">
                   <td className="px-4 py-3">
@@ -387,19 +387,19 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {file.is_dir ? (
-                        <FolderOpen className="h-4 w-4 text-amber-500" />
+                        <FolderOpen className="h-4 w-4 text-[#D4B35A]" />
                       ) : (
-                        <FileText className="h-4 w-4 text-gray-400" />
+                        <FileText className="h-4 w-4 text-muted-foreground/60" />
                       )}
-                      <span className={`text-sm ${file.is_dir ? "text-gray-500" : "text-gray-900"}`}>{file.name}</span>
+                      <span className={`text-sm ${file.is_dir ? "text-muted-foreground" : "text-foreground"}`}>{file.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{file.is_dir ? "-" : formatFileSize(file.size)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{formatDate(file.mtime)}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{file.is_dir ? "-" : formatFileSize(file.size)}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(file.mtime)}</td>
                   <td className="px-4 py-3">
                     {!file.is_dir && (
                       <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file.name)} disabled={isDownloading} className="h-8 w-8">
-                        <Download className="h-4 w-4 text-gray-400" />
+                        <Download className="h-4 w-4 text-muted-foreground/60" />
                       </Button>
                     )}
                   </td>
@@ -412,32 +412,32 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
 
       {/* Recent Downloads */}
       {selectedAccountId && transferLogs.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100">
+        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-[#49a034]" />
-              <h3 className="text-sm font-medium text-gray-900">Recent Downloads</h3>
+              <h3 className="text-sm font-medium text-foreground">Recent Downloads</h3>
             </div>
           </div>
           <table className="w-full table-professional">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Size</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Time</th>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Size</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 animate-stagger">
+            <tbody className="divide-y divide-border animate-stagger">
               {transferLogs.map((log) => (
                 <tr key={log.id} className="row-interactive">
-                  <td className="px-6 py-3 text-sm text-gray-900">{log.remote_file_path.split("/").pop()}</td>
-                  <td className="px-6 py-3 text-sm text-gray-500">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
+                  <td className="px-6 py-3 text-sm text-foreground">{log.remote_file_path.split("/").pop()}</td>
+                  <td className="px-6 py-3 text-sm text-muted-foreground">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
                   <td className="px-6 py-3">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                      log.status === "success" ? "bg-green-50 text-green-700" :
-                      log.status === "failed" ? "bg-orange-50 text-orange-700" :
-                      "bg-blue-50 text-blue-700"
+                      log.status === "success" ? "bg-primary/5 text-primary" :
+                      log.status === "failed" ? "bg-[#D4944A]/10 text-[#D4944A]" :
+                      "bg-[#6B8FB8]/10 text-[#6B8FB8]"
                     }`}>
                       {log.status === "success" && <CheckCircle2 className="h-3 w-3" />}
                       {log.status === "failed" && <XCircle className="h-3 w-3" />}
@@ -445,7 +445,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                       {log.status}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-sm text-gray-500">{formatDate(log.started_at)}</td>
+                  <td className="px-6 py-3 text-sm text-muted-foreground">{formatDate(log.started_at)}</td>
                 </tr>
               ))}
             </tbody>

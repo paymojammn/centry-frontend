@@ -167,27 +167,27 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#49a034]/10 rounded-lg">
-              <ArrowRight className="w-6 h-6 text-[#49a034]" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <ArrowRight className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Make Transfer</h2>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h2 className="text-xl font-semibold text-foreground">Make Transfer</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Transfer from {wallet.name}
               </p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -199,8 +199,8 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
                 <AlertCircle className="w-8 h-8 text-amber-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Linked Accounts</h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              <h3 className="text-lg font-medium text-foreground mb-2">No Linked Accounts</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 You need to link a mobile money or bank account to this wallet before making transfers.
               </p>
             </div>
@@ -209,13 +209,13 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {/* Step 1: Select Source Account */}
           {step === 'source' && hasAnyLinkedAccount && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 Transfer from which account?
               </h3>
 
               {accountsLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -223,27 +223,27 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                     <button
                       key={account.id}
                       onClick={() => handleSelectSource(account.type as 'mobile_money' | 'bank')}
-                      className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left group"
+                      className="w-full p-4 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-[#49a034]/10 rounded-lg group-hover:bg-[#49a034]/20 transition-colors">
+                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                           {account.type === 'mobile_money' ? (
-                            <Smartphone className="w-5 h-5 text-[#49a034]" />
+                            <Smartphone className="w-5 h-5 text-primary" />
                           ) : (
-                            <Building2 className="w-5 h-5 text-[#49a034]" />
+                            <Building2 className="w-5 h-5 text-primary" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900">{account.name}</h4>
-                          <p className="text-sm text-gray-500 capitalize mt-0.5">
+                          <h4 className="font-medium text-foreground">{account.name}</h4>
+                          <p className="text-sm text-muted-foreground capitalize mt-0.5">
                             {account.provider || account.bank_name} - {account.type.replace('_', ' ')}
                           </p>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {account.type === 'mobile_money'
                               ? account.phone_number
                               : account.account_number}
                           </p>
-                          <p className="text-sm font-medium text-[#49a034] mt-2">
+                          <p className="text-sm font-medium text-primary mt-2">
                             Balance: {account.currency} {parseFloat(account.balance).toLocaleString()}
                           </p>
                         </div>
@@ -259,25 +259,25 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {step === 'destination' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-foreground">
                   Transfer to which account?
                 </h3>
-                <button onClick={handleBack} className="text-sm text-[#49a034] hover:text-[#3d8a2b]">
+                <button onClick={handleBack} className="text-sm text-primary hover:text-primary/80">
                   Back
                 </button>
               </div>
 
               {orgAccountsLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : destinationAccounts.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
                     <AlertCircle className="w-8 h-8 text-amber-600" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Destination Accounts</h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <h3 className="text-lg font-medium text-foreground mb-2">No Destination Accounts</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
                     No configured accounts available to transfer to. Add mobile money or bank accounts to your organization first.
                   </p>
                 </div>
@@ -287,22 +287,22 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                     <button
                       key={account.id}
                       onClick={() => handleSelectDestination(account)}
-                      className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all text-left group"
+                      className="w-full p-4 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-[#49a034]/10 transition-colors">
+                        <div className="p-2 bg-muted rounded-lg group-hover:bg-primary/10 transition-colors">
                           {account.type === 'mobile_money' ? (
-                            <Smartphone className="w-5 h-5 text-gray-600 group-hover:text-[#49a034]" />
+                            <Smartphone className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
                           ) : (
-                            <Building2 className="w-5 h-5 text-gray-600 group-hover:text-[#49a034]" />
+                            <Building2 className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900">{account.name}</h4>
-                          <p className="text-sm text-gray-500 capitalize mt-0.5">
+                          <h4 className="font-medium text-foreground">{account.name}</h4>
+                          <p className="text-sm text-muted-foreground capitalize mt-0.5">
                             {account.provider} - {account.type.replace('_', ' ')}
                           </p>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {account.identifier}
                           </p>
                         </div>
@@ -318,37 +318,37 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {step === 'amount' && selectedDestination && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Transfer Details</h3>
-                <button onClick={handleBack} className="text-sm text-[#49a034] hover:text-[#3d8a2b]">
+                <h3 className="text-lg font-medium text-foreground">Transfer Details</h3>
+                <button onClick={handleBack} className="text-sm text-primary hover:text-primary/80">
                   Back
                 </button>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-destructive/5 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
               {/* Destination summary */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500 mb-1">Sending to</p>
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Sending to</p>
                 <div className="flex items-center gap-2">
                   {selectedDestination.type === 'mobile_money' ? (
-                    <Smartphone className="w-4 h-4 text-gray-600" />
+                    <Smartphone className="w-4 h-4 text-muted-foreground" />
                   ) : (
-                    <Building2 className="w-4 h-4 text-gray-600" />
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
                   )}
-                  <span className="font-medium text-gray-900">{selectedDestination.name}</span>
+                  <span className="font-medium text-foreground">{selectedDestination.name}</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {selectedDestination.provider} - {selectedDestination.identifier}
                 </p>
               </div>
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Amount ({wallet.currency})
                 </label>
                 <input
@@ -358,13 +358,13 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                   placeholder="e.g., 100000"
                   min="1"
                   step="1"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent text-lg"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-lg"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Description (optional)
                 </label>
                 <input
@@ -372,38 +372,38 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g., Payment for supplies"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
 
               {/* Fee Preview */}
               {amount && parseFloat(amount) > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="bg-muted rounded-lg p-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Transfer Amount:</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-muted-foreground">Transfer Amount:</span>
+                    <span className="font-medium text-foreground">
                       {wallet.currency} {parseFloat(amount).toLocaleString()}
                     </span>
                   </div>
                   {feeLoading ? (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Processing Fee:</span>
-                      <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                      <span className="text-muted-foreground">Processing Fee:</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground/60" />
                     </div>
                   ) : feePreview ? (
                     <>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-muted-foreground">
                           Fee ({feePreview.fee_percentage}%):
                         </span>
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-foreground">
                           {wallet.currency} {parseFloat(feePreview.calculated_fee).toLocaleString()}
                         </span>
                       </div>
-                      <div className="border-t border-gray-200 pt-2 mt-2">
+                      <div className="border-t border-border pt-2 mt-2">
                         <div className="flex justify-between">
-                          <span className="font-medium text-gray-900">Total:</span>
-                          <span className="font-bold text-[#49a034]">
+                          <span className="font-medium text-foreground">Total:</span>
+                          <span className="font-bold text-primary">
                             {wallet.currency} {parseFloat(feePreview.total_amount).toLocaleString()}
                           </span>
                         </div>
@@ -416,7 +416,7 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
               <button
                 onClick={handleProceedToConfirm}
                 disabled={!amount || parseFloat(amount) <= 0}
-                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#3d8a2b] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors disabled:bg-muted disabled:cursor-not-allowed font-medium"
               >
                 Continue
               </button>
@@ -427,51 +427,51 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {step === 'confirm' && selectedDestination && feePreview && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Transfer</h3>
-                <button onClick={handleBack} className="text-sm text-[#49a034] hover:text-[#3d8a2b]">
+                <h3 className="text-lg font-medium text-foreground">Confirm Transfer</h3>
+                <button onClick={handleBack} className="text-sm text-primary hover:text-primary/80">
                   Back
                 </button>
               </div>
 
-              <div className="bg-[#49a034]/5 border border-[#49a034]/20 rounded-lg p-4 space-y-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">From:</span>
-                  <span className="font-medium text-gray-900">{wallet.name}</span>
+                  <span className="text-muted-foreground">From:</span>
+                  <span className="font-medium text-foreground">{wallet.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Source:</span>
-                  <span className="font-medium text-gray-900 capitalize">
+                  <span className="text-muted-foreground">Source:</span>
+                  <span className="font-medium text-foreground capitalize">
                     {sourceType?.replace('_', ' ')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">To:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-muted-foreground">To:</span>
+                  <span className="font-medium text-foreground">
                     {selectedDestination.name}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Account:</span>
-                  <span className="text-gray-700">
+                  <span className="text-muted-foreground">Account:</span>
+                  <span className="text-foreground">
                     {selectedDestination.identifier}
                   </span>
                 </div>
-                <div className="border-t border-[#49a034]/20 pt-3">
+                <div className="border-t border-primary/20 pt-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Amount:</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-muted-foreground">Amount:</span>
+                    <span className="font-medium text-foreground">
                       {wallet.currency} {parseFloat(amount).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-gray-600">Fee ({feePreview.fee_percentage}%):</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-muted-foreground">Fee ({feePreview.fee_percentage}%):</span>
+                    <span className="font-medium text-foreground">
                       {wallet.currency} {parseFloat(feePreview.calculated_fee).toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between mt-2 pt-2 border-t border-[#49a034]/20">
-                    <span className="font-bold text-gray-900">Total Debit:</span>
-                    <span className="font-bold text-[#49a034]">
+                  <div className="flex justify-between mt-2 pt-2 border-t border-primary/20">
+                    <span className="font-bold text-foreground">Total Debit:</span>
+                    <span className="font-bold text-primary">
                       {wallet.currency} {parseFloat(feePreview.total_amount).toLocaleString()}
                     </span>
                   </div>
@@ -479,14 +479,14 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
               </div>
 
               {description && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   <span className="font-medium">Note:</span> {description}
                 </div>
               )}
 
               <button
                 onClick={handleSubmit}
-                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#3d8a2b] transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors font-medium"
               >
                 Confirm & Transfer
               </button>
@@ -496,9 +496,9 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {/* Step 5: Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <Loader2 className="w-16 h-16 animate-spin text-[#49a034] mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Transfer...</h3>
-              <p className="text-sm text-gray-500">
+              <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">Processing Transfer...</h3>
+              <p className="text-sm text-muted-foreground">
                 Please wait while we process your transfer
               </p>
             </div>
@@ -510,23 +510,23 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
               <div className="text-center py-6">
                 {result && !error ? (
                   <>
-                    <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       {result.requires_approval ? 'Transfer Submitted for Approval' : 'Transfer Initiated!'}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                       {result.requires_approval
                         ? 'This transfer requires manager approval before processing.'
                         : 'Your transfer is being processed.'}
                     </p>
                     <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                        <span className="text-xs text-gray-500">Reference:</span>
-                        <span className="text-sm font-mono font-medium text-gray-900">
+                      <div className="inline-flex items-center gap-2 bg-muted px-4 py-2 rounded-lg">
+                        <span className="text-xs text-muted-foreground">Reference:</span>
+                        <span className="text-sm font-mono font-medium text-foreground">
                           {result.reference}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         Amount: {wallet.currency} {parseFloat(result.amount).toLocaleString()}
                         <br />
                         Fee: {wallet.currency} {parseFloat(result.fee_amount).toLocaleString()}
@@ -537,11 +537,11 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       Transfer Failed
                     </h3>
-                    <p className="text-sm text-red-600">
+                    <p className="text-sm text-destructive">
                       {error || 'Something went wrong'}
                     </p>
                   </>
@@ -550,7 +550,7 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
 
               <button
                 onClick={handleClose}
-                className="w-full bg-[#49a034] text-white py-3 rounded-lg hover:bg-[#3d8a2b] transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/80 transition-colors font-medium"
               >
                 Done
               </button>

@@ -91,13 +91,13 @@ export default function FinancialOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
+            <ArrowUpRight className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {isLoadingOverview ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-primary">
                 {formatCurrency(overview?.income.total || 0)}
               </div>
             )}
@@ -107,13 +107,13 @@ export default function FinancialOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-red-600" />
+            <ArrowDownRight className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             {isLoadingOverview ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-destructive">
                 {formatCurrency(overview?.expenses.total || 0)}
               </div>
             )}
@@ -129,7 +129,7 @@ export default function FinancialOverviewPage() {
             {isLoadingOverview ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className={(overview?.net_position || 0) >= 0 ? "text-2xl font-bold text-green-600" : "text-2xl font-bold text-red-600"}>
+              <div className={(overview?.net_position || 0) >= 0 ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-destructive"}>
                 {formatCurrency(overview?.net_position || 0)}
               </div>
             )}
@@ -145,7 +145,7 @@ export default function FinancialOverviewPage() {
             {isLoadingOverview ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className={(overview?.cash_flow.net || 0) >= 0 ? "text-2xl font-bold text-green-600" : "text-2xl font-bold text-red-600"}>
+              <div className={(overview?.cash_flow.net || 0) >= 0 ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-destructive"}>
                 {formatCurrency(overview?.cash_flow.net || 0)}
               </div>
             )}
@@ -194,9 +194,9 @@ export default function FinancialOverviewPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Pending</span>
-                    <span className="font-medium text-amber-600">{formatCurrency(overview?.expenses.pending || 0)}</span>
+                    <span className="font-medium text-[#D4B35A]">{formatCurrency(overview?.expenses.pending || 0)}</span>
                   </div>
-                  <Progress value={100 - expensesPaidPercent} className="h-2 [&>div]:bg-amber-500" />
+                  <Progress value={100 - expensesPaidPercent} className="h-2 [&>div]:bg-[#D4B35A]" />
                 </div>
 
                 <div className="pt-4 border-t">
@@ -204,11 +204,11 @@ export default function FinancialOverviewPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Inflows</span>
-                      <span className="text-green-600">{formatCurrency(overview?.cash_flow.inflow || 0)}</span>
+                      <span className="text-primary">{formatCurrency(overview?.cash_flow.inflow || 0)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Outflows</span>
-                      <span className="text-red-600">{formatCurrency(overview?.cash_flow.outflow || 0)}</span>
+                      <span className="text-destructive">{formatCurrency(overview?.cash_flow.outflow || 0)}</span>
                     </div>
                   </div>
                 </div>

@@ -48,7 +48,7 @@ export default function ReportsPage() {
   const formatChange = (change: number) => {
     const isPositive = change >= 0;
     return (
-      <span className={isPositive ? "text-green-600" : "text-red-600"}>
+      <span className={isPositive ? "text-primary" : "text-destructive"}>
         {isPositive ? <ArrowUpRight className="inline h-4 w-4" /> : <ArrowDownRight className="inline h-4 w-4" />}
         {Math.abs(change)}%
       </span>

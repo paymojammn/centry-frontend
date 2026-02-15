@@ -37,12 +37,12 @@ export function SidebarMenu() {
     label:
       'uppercase text-[11px] font-bold text-white/40 pt-5 pb-2 px-3 tracking-wider',
     separator: 'border-white/10',
-    item: 'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-[#49a034]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+    item: 'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-primary! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
     sub: '',
     subTrigger:
-      'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-[#49a034]! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+      'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-primary! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
     subContent: 'py-0.5 ps-6',
-    indicator: 'text-[#49a034]',
+    indicator: 'text-primary',
   };
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {

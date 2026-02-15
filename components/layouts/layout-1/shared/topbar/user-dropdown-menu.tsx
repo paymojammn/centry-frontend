@@ -45,13 +45,13 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-[rgb(var(--divider-light))]">
           <div className="flex items-center gap-2">
-            <div className="size-9 rounded-full border-2 border-[#49a034] bg-[#49a034]/10 flex items-center justify-center">
-              <UserCircle className="h-6 w-6 text-[#49a034]" />
+            <div className="size-9 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
+              <UserCircle className="h-6 w-6 text-primary" />
             </div>
             <div className="flex flex-col">
               <Link
                 href="/account/profile"
-                className="text-sm font-semibold text-black hover:text-[#49a034] transition-colors"
+                className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
               >
                 Admin
               </Link>
@@ -68,44 +68,44 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
           <Link
             href="/account/profile"
-            className="flex items-center gap-2 text-black hover:text-[#49a034]"
+            className="flex items-center gap-2 text-foreground hover:text-primary"
           >
-            <UserCircle className="text-[#49a034]" />
+            <UserCircle className="text-primary" />
             My Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
           <Link
             href="/organizations"
-            className="flex items-center gap-2 text-black hover:text-[#49a034]"
+            className="flex items-center gap-2 text-foreground hover:text-primary"
           >
-            <Users className="text-[#49a034]" />
+            <Users className="text-primary" />
             Organizations
           </Link>
         </DropdownMenuItem>
 
         {/* Account Settings Submenu */}
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="flex items-center gap-2 hover:bg-[var(--hover-row)] text-black hover:text-[#49a034]">
-            <Settings className="text-[#49a034]" />
+          <DropdownMenuSubTrigger className="flex items-center gap-2 hover:bg-[var(--hover-row)] text-foreground hover:text-primary">
+            <Settings className="text-primary" />
             Settings
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-48 border-[rgb(var(--divider-warm))]">
             <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
               <Link
                 href="/account/security"
-                className="flex items-center gap-2 text-black hover:text-[#49a034]"
+                className="flex items-center gap-2 text-foreground hover:text-primary"
               >
-                <Shield className="text-[#49a034]" />
+                <Shield className="text-primary" />
                 Security
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
               <Link
                 href="/integrations"
-                className="flex items-center gap-2 text-black hover:text-[#49a034]"
+                className="flex items-center gap-2 text-foreground hover:text-primary"
               >
-                <BetweenHorizontalStart className="text-[#49a034]" />
+                <BetweenHorizontalStart className="text-primary" />
                 Integrations
               </Link>
             </DropdownMenuItem>
@@ -119,8 +119,8 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
           className="flex items-center gap-2 hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]"
           onSelect={(event) => event.preventDefault()}
         >
-          <Moon className="text-[#49a034]" />
-          <div className="flex items-center gap-2 justify-between grow text-black">
+          <Moon className="text-primary" />
+          <div className="flex items-center gap-2 justify-between grow text-foreground">
             Dark Mode
             <Switch
               size="sm"
@@ -134,7 +134,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full border-[rgb(var(--divider-warm))] hover:bg-[#49a034] hover:text-white hover:border-[#49a034] transition-colors" 
+            className="w-full border-[rgb(var(--divider-warm))] hover:bg-primary hover:text-white hover:border-primary transition-colors" 
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />

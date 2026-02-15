@@ -92,21 +92,21 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
   const canUpload = file && selectedBankAccount && activeConnection && !uploadFile.isPending;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-100">
+    <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+      <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center gap-2">
           <Upload className="h-4 w-4 text-[#49a034]" />
-          <h3 className="text-sm font-medium text-gray-900">Upload Bank File</h3>
+          <h3 className="text-sm font-medium text-foreground">Upload Bank File</h3>
         </div>
-        <p className="text-xs text-gray-500 mt-1">Import bank statement for reconciliation</p>
+        <p className="text-xs text-muted-foreground mt-1">Import bank statement for reconciliation</p>
       </div>
 
       <div className="p-6 space-y-5">
         {/* File Input */}
         <div className="space-y-2">
-          <Label htmlFor="file" className="text-sm font-medium text-gray-700">Bank Statement File</Label>
+          <Label htmlFor="file" className="text-sm font-medium text-foreground">Bank Statement File</Label>
           <div className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
-            file ? 'border-[#49a034] bg-[#49a034]/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            file ? 'border-[#49a034] bg-[#49a034]/5' : 'border-border hover:border-border hover:bg-muted'
           }`}>
             <input
               id="file"
@@ -123,15 +123,15 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
                 <div className="flex items-center justify-center gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#49a034]" />
                   <div className="text-left">
-                    <p className="text-sm font-medium text-gray-800">{file.name}</p>
-                    <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <FileUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Drop your file here or click to browse</p>
-                  <p className="text-xs text-gray-400 mt-1">CSV, TXT, MT940, XML, XLSX, XLS</p>
+                  <FileUp className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Drop your file here or click to browse</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">CSV, TXT, MT940, XML, XLSX, XLS</p>
                 </>
               )}
             </div>
@@ -140,15 +140,15 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
 
         {/* Bank Account */}
         <div className="space-y-2">
-          <Label htmlFor="bank-account" className="text-sm font-medium text-gray-700">Bank Account</Label>
+          <Label htmlFor="bank-account" className="text-sm font-medium text-foreground">Bank Account</Label>
           {isLoading ? (
-            <div className="flex items-center justify-center py-6 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-center py-6 bg-muted rounded-lg">
               <Loader2 className="h-5 w-5 animate-spin text-[#49a034]" />
             </div>
           ) : bankAccounts.length === 0 ? (
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
-              <p className="text-sm font-medium text-amber-700">No bank accounts synced</p>
-              <p className="text-xs text-gray-600 mt-1">
+            <div className="bg-[#D4B35A]/10 border border-[#D4B35A]/20 rounded-lg p-4">
+              <p className="text-sm font-medium text-[#D4B35A]">No bank accounts synced</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 Please sync bank accounts from Xero first in{" "}
                 <a href="/banking/accounts" className="text-[#49a034] font-medium hover:underline">
                   Bank Accounts
@@ -157,16 +157,16 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
             </div>
           ) : (
             <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
-              <SelectTrigger id="bank-account" className="h-10 bg-gray-50 border-gray-200">
-                <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+              <SelectTrigger id="bank-account" className="h-10 bg-muted border-border">
+                <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
                 <SelectValue placeholder="Select bank account..." />
               </SelectTrigger>
               <SelectContent>
                 {bankAccounts.map((account: any) => (
                   <SelectItem key={account.id} value={account.id.toString()}>
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-800">{account.account_name}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="font-medium text-foreground">{account.account_name}</span>
+                      <span className="text-xs text-muted-foreground">
                         {account.account_number} · {account.bank?.name || account.bank_provider?.name} · {account.currency}
                       </span>
                     </div>
@@ -179,9 +179,9 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
 
         {/* Connection Info */}
         {activeConnection && (
-          <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center gap-2">
+          <div className="bg-muted border border-border rounded-lg p-3 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-[#49a034]" />
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               <span className="font-medium">{activeConnection.organization?.name}</span>
               {" · "}{activeConnection.provider?.name}
             </p>
@@ -189,9 +189,9 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         )}
 
         {!activeConnection && organizationId && (
-          <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
-            <p className="text-sm font-medium text-orange-700">No active Xero connection</p>
-            <p className="text-xs text-gray-600 mt-0.5">Please set up a Xero connection first</p>
+          <div className="bg-[#D4944A]/10 border border-[#D4944A]/20 rounded-lg p-3">
+            <p className="text-sm font-medium text-[#D4944A]">No active Xero connection</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Please set up a Xero connection first</p>
           </div>
         )}
 

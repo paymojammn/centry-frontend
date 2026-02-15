@@ -202,11 +202,11 @@ export function PaymentReconciliationItem({
 
   const getConfidenceBadge = (confidence: number) => {
     if (confidence >= 80) {
-      return <Badge className="bg-green-100 text-green-800 text-xs">High confidence</Badge>;
+      return <Badge className="bg-primary/10 text-primary text-xs">High confidence</Badge>;
     } else if (confidence >= 50) {
-      return <Badge className="bg-blue-100 text-blue-800 text-xs">Medium confidence</Badge>;
+      return <Badge className="bg-[#6B8FB8]/10 text-[#6B8FB8] text-xs">Medium confidence</Badge>;
     }
-    return <Badge className="bg-gray-100 text-gray-800 text-xs">Low confidence</Badge>;
+    return <Badge className="bg-muted text-foreground text-xs">Low confidence</Badge>;
   };
 
   const getSourceIcon = (sourceType: string) => {
@@ -243,9 +243,9 @@ export function PaymentReconciliationItem({
   const amountDifference = Math.abs(transaction.amount - selectedTotal);
 
   return (
-    <Card className="border-gray-200 overflow-hidden">
+    <Card className="border-border overflow-hidden">
       {/* Transaction Header */}
-      <div className="bg-gray-50 p-4 flex items-center justify-between border-b">
+      <div className="bg-muted p-4 flex items-center justify-between border-b">
         <div className="flex items-center gap-4 flex-1">
           <Button
             variant="ghost"
@@ -262,15 +262,15 @@ export function PaymentReconciliationItem({
 
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-medium text-foreground">
                 {format(new Date(transaction.transaction_date), "dd MMM yyyy")}
               </span>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{getSourceIcon(transaction.source_type)}</span>
                   <div>
-                    <div className="font-medium text-gray-900">{transaction.description}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-medium text-foreground">{transaction.description}</div>
+                    <div className="text-sm text-muted-foreground">
                       {transaction.counterparty_name || transaction.source_provider || transaction.bank_name}
                       {transaction.counterparty_phone && ` • ${transaction.counterparty_phone}`}
                     </div>
@@ -282,17 +282,17 @@ export function PaymentReconciliationItem({
 
           <div className="flex items-center gap-4">
             <div className="text-right min-w-[100px]">
-              <div className="text-sm font-medium text-gray-600">Spent</div>
+              <div className="text-sm font-medium text-muted-foreground">Spent</div>
               {transaction.transaction_type === "DEBIT" && (
-                <div className="font-semibold text-gray-900">
+                <div className="font-semibold text-foreground">
                   {formatCurrency(transaction.amount, transaction.currency)}
                 </div>
               )}
             </div>
             <div className="text-right min-w-[100px]">
-              <div className="text-sm font-medium text-gray-600">Received</div>
+              <div className="text-sm font-medium text-muted-foreground">Received</div>
               {transaction.transaction_type === "CREDIT" && (
-                <div className="font-semibold text-gray-900">
+                <div className="font-semibold text-foreground">
                   {formatCurrency(transaction.amount, transaction.currency)}
                 </div>
               )}
@@ -320,9 +320,9 @@ export function PaymentReconciliationItem({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="p-6 bg-white">
+        <div className="p-6 bg-card">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Options <ChevronDown className="h-4 w-4 inline ml-1" />
             </div>
             <div className="text-sm text-[#49a034] font-medium cursor-pointer hover:underline">
@@ -331,7 +331,7 @@ export function PaymentReconciliationItem({
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-100">
+            <TabsList className="grid w-full grid-cols-4 bg-muted">
               <TabsTrigger value="match">Match</TabsTrigger>
               <TabsTrigger value="create">Create</TabsTrigger>
               <TabsTrigger value="transfer">Transfer</TabsTrigger>
@@ -341,11 +341,11 @@ export function PaymentReconciliationItem({
             {/* Match Tab */}
             <TabsContent value="match" className="space-y-4">
               {isMatched ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-green-900">Transaction Matched</h4>
-                      <p className="text-sm text-green-700 mt-1">
+                      <h4 className="font-medium text-primary">Transaction Matched</h4>
+                      <p className="text-sm text-primary mt-1">
                         This transaction is ready to be reconciled
                       </p>
                     </div>
@@ -371,8 +371,8 @@ export function PaymentReconciliationItem({
                 </div>
               ) : (
                 <>
-                  <div className="text-center py-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">Find & select matching transactions below</p>
+                  <div className="text-center py-4 bg-muted rounded-lg">
+                    <p className="text-sm text-foreground">Find & select matching transactions below</p>
                   </div>
 
                   {/* Search section */}
@@ -423,25 +423,25 @@ export function PaymentReconciliationItem({
                   {/* Matches Table */}
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b">
+                      <thead className="bg-muted border-b">
                         <tr>
-                          <th className="text-left p-3 text-sm font-medium text-gray-700">Date</th>
-                          <th className="text-left p-3 text-sm font-medium text-gray-700">Name</th>
-                          <th className="text-left p-3 text-sm font-medium text-gray-700">Reference</th>
-                          <th className="text-right p-3 text-sm font-medium text-gray-700">Spent</th>
-                          <th className="text-right p-3 text-sm font-medium text-gray-700">Received</th>
+                          <th className="text-left p-3 text-sm font-medium text-foreground">Date</th>
+                          <th className="text-left p-3 text-sm font-medium text-foreground">Name</th>
+                          <th className="text-left p-3 text-sm font-medium text-foreground">Reference</th>
+                          <th className="text-right p-3 text-sm font-medium text-foreground">Spent</th>
+                          <th className="text-right p-3 text-sm font-medium text-foreground">Received</th>
                         </tr>
                       </thead>
                       <tbody>
                         {matchesLoading ? (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                            <td colSpan={5} className="text-center py-8 text-muted-foreground">
                               Loading matches...
                             </td>
                           </tr>
                         ) : filteredMatches.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                            <td colSpan={5} className="text-center py-8 text-muted-foreground">
                               No matching transactions found
                             </td>
                           </tr>
@@ -449,8 +449,8 @@ export function PaymentReconciliationItem({
                           filteredMatches.map((match) => (
                             <tr
                               key={match.id}
-                              className={`border-b hover:bg-gray-50 cursor-pointer ${
-                                selectedMatches.includes(match.id) ? "bg-green-50" : ""
+                              className={`border-b hover:bg-muted cursor-pointer ${
+                                selectedMatches.includes(match.id) ? "bg-primary/5" : ""
                               }`}
                               onClick={() => handleMatchSelect(match.id)}
                             >
@@ -495,7 +495,7 @@ export function PaymentReconciliationItem({
 
                   {/* Match Summary */}
                   {selectedMatches.length > 0 && (
-                    <div className="bg-gray-50 border rounded-lg p-4">
+                    <div className="bg-muted border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">
                           Must match money {transaction.transaction_type === "DEBIT" ? "spent" : "received"}:
@@ -507,12 +507,12 @@ export function PaymentReconciliationItem({
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{transaction.currency} 0.00</span>
                         {amountDifference > 0.01 ? (
-                          <span className="text-sm text-red-600 flex items-center gap-1">
+                          <span className="text-sm text-destructive flex items-center gap-1">
                             <XCircle className="h-4 w-4" />
                             Total is out by: {amountDifference.toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-sm text-green-600 flex items-center gap-1">
+                          <span className="text-sm text-primary flex items-center gap-1">
                             <CheckCircle2 className="h-4 w-4" />
                             Amounts match
                           </span>
@@ -629,7 +629,7 @@ export function PaymentReconciliationItem({
 
             {/* Discuss Tab */}
             <TabsContent value="discuss" className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 <p>Discussion feature coming soon...</p>
               </div>
             </TabsContent>

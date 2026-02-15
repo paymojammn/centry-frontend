@@ -13,7 +13,7 @@ export function StoreClientTopbar() {
           <Search className="size-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 start-3" />
           <Input 
             type="text" 
-            className="ps-9 pe-3 border-[rgb(var(--divider-warm))] focus:ring-[#49a034] focus:border-[#49a034]" 
+            className="ps-9 pe-3 border-[rgb(var(--divider-warm))] focus:ring-primary focus:border-primary" 
             placeholder="Search bills, vendors, transactions..." 
           />
         </div>
@@ -24,11 +24,11 @@ export function StoreClientTopbar() {
           size="lg"
           mode="icon"
           shape="circle"
-          className="hover:text-[#49a034] hover:bg-[var(--hover-row)] relative transition-colors"
+          className="hover:text-primary hover:bg-[var(--hover-row)] relative transition-colors"
         >
           <Bell className="size-5!" />
           <Badge
-            className="absolute top-0.5 end-0.5 bg-[#49a034] text-white border-none"
+            className="absolute top-0.5 end-0.5 bg-primary text-white border-none"
             size="xs"
             shape="circle"
           >
@@ -44,7 +44,7 @@ export function StoreClientTopbar() {
               size="lg"
               mode="icon"
               shape="circle"
-              className="hover:text-[#49a034] hover:bg-[var(--hover-row)] transition-colors"
+              className="hover:text-primary hover:bg-[var(--hover-row)] transition-colors"
             >
               <UserCircle className="size-5!" />
             </Button>

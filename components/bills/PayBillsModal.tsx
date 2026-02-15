@@ -215,29 +215,29 @@ export default function PayBillsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-card rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="flex-shrink-0 px-6 pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#49a034] to-[#4a6b62] flex items-center justify-center shadow-lg shadow-[#49a034]/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
                 <CreditCard className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Pay Bills</h2>
-                <p className="text-sm text-gray-500">
-                  {bills.length} bill{bills.length > 1 ? 's' : ''} • <span className="font-medium text-[#49a034]">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <h2 className="text-lg font-semibold text-foreground">Pay Bills</h2>
+                <p className="text-sm text-muted-foreground">
+                  {bills.length} bill{bills.length > 1 ? 's' : ''} • <span className="font-medium text-primary">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
               aria-label="Close modal"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-muted-foreground/60" />
             </button>
           </div>
 
@@ -253,29 +253,29 @@ export default function PayBillsModal({
                     <div className={`
                       flex items-center gap-2 px-3 py-2 rounded-lg transition-all flex-1
                       ${isActive
-                        ? 'bg-[#49a034]/10'
+                        ? 'bg-primary/10'
                         : isComplete
-                          ? 'bg-green-50'
-                          : 'bg-gray-50'
+                          ? 'bg-primary/5'
+                          : 'bg-muted'
                       }
                     `}>
                       <div className={`
                         w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all
                         ${isActive
-                          ? 'bg-[#49a034] text-white shadow-md shadow-[#49a034]/30'
+                          ? 'bg-primary text-white shadow-md shadow-primary/20'
                           : isComplete
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-200 text-gray-500'
+                            ? 'bg-primary/50 text-white'
+                            : 'bg-muted text-muted-foreground'
                         }
                       `}>
                         {isComplete ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
                       </div>
                       <span className={`text-sm font-medium hidden sm:inline ${
-                        isActive ? 'text-[#49a034]' : isComplete ? 'text-green-600' : 'text-gray-400'
+                        isActive ? 'text-primary' : isComplete ? 'text-primary' : 'text-muted-foreground/60'
                       }`}>{s.label}</span>
                     </div>
                     {index < STEPS.length - 1 && (
-                      <div className={`w-6 h-0.5 mx-0.5 rounded-full ${isComplete ? 'bg-green-300' : 'bg-gray-200'}`} />
+                      <div className={`w-6 h-0.5 mx-0.5 rounded-full ${isComplete ? 'bg-primary/40' : 'bg-muted'}`} />
                     )}
                   </div>
                 );
@@ -285,7 +285,7 @@ export default function PayBillsModal({
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -293,28 +293,28 @@ export default function PayBillsModal({
           {step === 'source' && (
             <div className="space-y-5">
               <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                <h3 className="text-base font-semibold text-foreground mb-1">
                   Select Payment Source
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Choose where to pay from
                 </p>
               </div>
 
               {sourcesLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-[#49a034]/10 flex items-center justify-center mb-3">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#49a034]" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
-                  <p className="text-sm text-gray-500">Loading payment sources...</p>
+                  <p className="text-sm text-muted-foreground">Loading payment sources...</p>
                 </div>
               ) : sourcesError ? (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
-                    <AlertCircle className="w-5 h-5 text-red-500" />
+                <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 text-center">
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+                    <AlertCircle className="w-5 h-5 text-destructive" />
                   </div>
-                  <h4 className="font-medium text-red-900 mb-1">Error Loading Sources</h4>
-                  <p className="text-sm text-red-600">
+                  <h4 className="font-medium text-destructive mb-1">Error Loading Sources</h4>
+                  <p className="text-sm text-destructive">
                     {sourcesError instanceof Error ? sourcesError.message : 'Failed to load payment sources'}
                   </p>
                 </div>
@@ -329,13 +329,13 @@ export default function PayBillsModal({
               )}
 
               {selectedSource && !hasSufficientBalance && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
-                    <AlertCircle className="w-4 h-4 text-red-500" />
+                <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                    <AlertCircle className="w-4 h-4 text-destructive" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-red-900 text-sm">Insufficient Balance</h4>
-                    <p className="text-sm text-red-600 mt-0.5">
+                    <h4 className="font-medium text-destructive text-sm">Insufficient Balance</h4>
+                    <p className="text-sm text-destructive mt-0.5">
                       Please top up or select another source.
                     </p>
                   </div>
@@ -349,17 +349,17 @@ export default function PayBillsModal({
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  <h3 className="text-base font-semibold text-foreground mb-1">
                     Recipient Details
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Enter payment recipient info
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex items-center gap-1.5 text-sm text-[#49a034] hover:text-[#4a6b62] font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -380,17 +380,17 @@ export default function PayBillsModal({
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  <h3 className="text-base font-semibold text-foreground mb-1">
                     Review Payment
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Confirm details before payment
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex items-center gap-1.5 text-sm text-[#49a034] hover:text-[#4a6b62] font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -398,7 +398,7 @@ export default function PayBillsModal({
               </div>
 
               {/* Selected Payment Source Card */}
-              <div className="bg-gradient-to-br from-[#49a034] to-[#4a6b62] rounded-xl p-5 text-white shadow-lg shadow-[#49a034]/20">
+              <div className="bg-gradient-to-br from-primary to-primary/80 rounded-xl p-5 text-white shadow-lg shadow-primary/20">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
                     {selectedSource.type === 'mobile_money' ? (
@@ -430,13 +430,13 @@ export default function PayBillsModal({
 
               {/* Currency Conversion Notice */}
               {selectedSource.currency !== currency && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <span className="text-base">💱</span>
                   </div>
                   <div>
-                    <h4 className="font-medium text-blue-900 text-sm">Currency Conversion</h4>
-                    <p className="text-sm text-blue-700 mt-0.5">
+                    <h4 className="font-medium text-primary text-sm">Currency Conversion</h4>
+                    <p className="text-sm text-primary/80 mt-0.5">
                       {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} from {selectedSource.currency} account
                     </p>
                   </div>
@@ -444,28 +444,28 @@ export default function PayBillsModal({
               )}
 
               {/* Bills List */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h4 className="font-medium text-gray-900 text-sm">
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div className="bg-muted px-4 py-3 border-b border-border">
+                  <h4 className="font-medium text-foreground text-sm">
                     Bills ({bills.length})
                   </h4>
                 </div>
-                <div className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                <div className="divide-y divide-border max-h-48 overflow-y-auto">
                   {bills.map((bill) => {
                     const customAmount = paymentAmounts.get(bill.id) || '';
                     const isPartial = customAmount && parseFloat(customAmount) < parseFloat(bill.amount_due);
 
                     return (
-                      <div key={bill.id} className="p-4 hover:bg-gray-50/50 transition-colors">
+                      <div key={bill.id} className="p-4 hover:bg-muted/50 transition-colors">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className="font-medium text-gray-900 text-sm">{bill.vendor_name}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="font-medium text-foreground text-sm">{bill.vendor_name}</div>
+                            <div className="text-xs text-muted-foreground">
                               {bill.invoice_number || 'N/A'}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               Due: {String(bill.currency_code).split('.').pop()} {parseFloat(bill.amount_due).toLocaleString()}
                             </div>
                           </div>
@@ -473,7 +473,7 @@ export default function PayBillsModal({
 
                         <div className="flex items-center gap-2">
                           <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
                               {String(bill.currency_code).split('.').pop()}
                             </span>
                             <input
@@ -484,7 +484,7 @@ export default function PayBillsModal({
                               min="0"
                               max={bill.amount_due}
                               step="0.01"
-                              className="w-full pl-14 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent placeholder:text-gray-400 transition-all"
+                              className="w-full pl-14 pr-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground/60 transition-all"
                             />
                           </div>
                           {isPartial && (
@@ -498,10 +498,10 @@ export default function PayBillsModal({
                   })}
                 </div>
 
-                <div className="bg-gradient-to-r from-gray-50 to-white px-4 py-3 border-t border-gray-200">
+                <div className="bg-gradient-to-r from-muted to-card px-4 py-3 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700 text-sm">Total</span>
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="font-medium text-foreground text-sm">Total</span>
+                    <span className="text-lg font-bold text-foreground">
                       {currency} {totalAmount.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -513,7 +513,7 @@ export default function PayBillsModal({
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Note (Optional)
                 </label>
                 <textarea
@@ -521,7 +521,7 @@ export default function PayBillsModal({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a payment note..."
                   rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#49a034] focus:border-transparent resize-none transition-all"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
                 />
               </div>
             </div>
@@ -530,13 +530,13 @@ export default function PayBillsModal({
           {/* Processing */}
           {step === 'processing' && (
             <div className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#49a034]/20 to-[#49a034]/10 rounded-full mb-4">
-                <Loader2 className="w-8 h-8 animate-spin text-[#49a034]" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full mb-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
                 Processing Payment
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Please wait...
               </p>
             </div>
@@ -551,22 +551,22 @@ export default function PayBillsModal({
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-3 shadow-lg shadow-amber-100">
                       <ClipboardCheck className="w-8 h-8 text-amber-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    <h3 className="text-xl font-bold text-foreground mb-1">
                       Payment Submitted
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {results.length} payment{results.length > 1 ? 's' : ''} pending approval
                     </p>
                   </>
                 ) : (
                   <>
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3 shadow-lg shadow-red-100">
-                      <XCircle className="w-8 h-8 text-red-600" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-destructive/10 rounded-full mb-3 shadow-lg shadow-destructive/10">
+                      <XCircle className="w-8 h-8 text-destructive" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    <h3 className="text-xl font-bold text-foreground mb-1">
                       Payment Issues
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Some payments failed
                     </p>
                   </>
@@ -590,22 +590,22 @@ export default function PayBillsModal({
               )}
 
               {/* Results List */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+              <div className="border border-border rounded-xl overflow-hidden divide-y divide-border">
                 {results.map((result) => {
                   const bill = bills.find(b => b.id.toString() === result.bill_id);
                   return (
-                    <div key={result.bill_id} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                    <div key={result.bill_id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-sm">
+                        <div className="font-medium text-foreground text-sm">
                           {bill?.vendor_name || `Bill #${result.bill_id}`}
                         </div>
                         {result.reference && (
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             Ref: {result.reference}
                           </div>
                         )}
                         {result.error_message && (
-                          <div className="text-xs text-red-600 mt-0.5">
+                          <div className="text-xs text-destructive mt-0.5">
                             {result.error_message}
                           </div>
                         )}
@@ -616,8 +616,8 @@ export default function PayBillsModal({
                             <ClipboardCheck className="w-4 h-4 text-amber-600" />
                           </div>
                         ) : (
-                          <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-                            <XCircle className="w-4 h-4 text-red-600" />
+                          <div className="w-7 h-7 bg-destructive/10 rounded-full flex items-center justify-center">
+                            <XCircle className="w-4 h-4 text-destructive" />
                           </div>
                         )}
                       </div>
@@ -630,13 +630,13 @@ export default function PayBillsModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <div className="flex-shrink-0 px-6 py-4 border-t border-border bg-muted/50">
           {step === 'source' && (
             <button
               type="button"
               onClick={() => setStep('recipients')}
               disabled={!selectedSource || !hasSufficientBalance}
-              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
             >
               Continue
             </button>
@@ -647,7 +647,7 @@ export default function PayBillsModal({
               type="button"
               onClick={() => setStep('confirm')}
               disabled={recipients.size !== bills.length}
-              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all disabled:from-muted disabled:to-muted disabled:shadow-none disabled:cursor-not-allowed font-semibold text-sm"
             >
               Continue to Review
             </button>
@@ -657,7 +657,7 @@ export default function PayBillsModal({
             <button
               type="button"
               onClick={handleConfirm}
-              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all font-semibold text-sm flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all font-semibold text-sm flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               Confirm Payment
@@ -668,7 +668,7 @@ export default function PayBillsModal({
             <button
               type="button"
               onClick={handleClose}
-              className="w-full bg-gradient-to-r from-[#49a034] to-[#4a6b62] text-white py-3 rounded-xl hover:shadow-lg hover:shadow-[#49a034]/20 transition-all font-semibold text-sm"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all font-semibold text-sm"
             >
               Done
             </button>

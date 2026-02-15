@@ -11,7 +11,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        'sidebar bg-[#1c252c] lg:border-e lg:border-[#2d3a44] lg:fixed lg:top-0 lg:bottom-0 lg:z-20 lg:flex flex-col items-stretch shrink-0',
+        'sidebar bg-[rgb(var(--brand-dark))] lg:border-e lg:border-[rgb(var(--brand-dark-light))] lg:fixed lg:top-0 lg:bottom-0 lg:z-20 lg:flex flex-col items-stretch shrink-0',
         (sidebarTheme === 'dark' || pathname.includes('dark-sidebar')) &&
           'dark',
       )}

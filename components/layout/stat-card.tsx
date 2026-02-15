@@ -29,24 +29,24 @@ interface StatCardProps {
 
 const variantStyles = {
   default: {
-    card: 'bg-white border-gray-200/80',
-    icon: '#9ca3af',
-    iconBg: '#f5f5f5',
+    card: 'bg-card border-border',
+    icon: 'rgb(var(--brand-gray))',
+    iconBg: 'rgb(var(--page-bg-subtle))',
   },
   accent: {
-    card: 'bg-white border-l-4 border-l-[#49a034] border-gray-200/80',
-    icon: '#49a034',
-    iconBg: 'rgba(73, 160, 52, 0.1)',
+    card: 'bg-card border-l-4 border-l-primary border-border',
+    icon: 'rgb(var(--brand-primary))',
+    iconBg: 'rgb(var(--brand-primary) / 0.1)',
   },
   warning: {
-    card: 'bg-white border-l-4 border-l-amber-500 border-gray-200/80',
-    icon: '#f59e0b',
-    iconBg: 'rgba(245, 158, 11, 0.1)',
+    card: 'bg-card border-l-4 border-l-[rgb(var(--warning))] border-border',
+    icon: 'rgb(var(--warning))',
+    iconBg: 'rgb(var(--warning) / 0.1)',
   },
   danger: {
-    card: 'bg-white border-l-4 border-l-red-500 border-gray-200/80',
-    icon: '#ef4444',
-    iconBg: 'rgba(239, 68, 68, 0.1)',
+    card: 'bg-card border-l-4 border-l-destructive border-border',
+    icon: 'rgb(var(--destructive))',
+    iconBg: 'rgb(var(--destructive) / 0.1)',
   },
 };
 
@@ -67,22 +67,22 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'rounded-xl border shadow-sm p-5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+        'rounded-xl border shadow-sm p-6 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
         styles.card
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             {label}
           </p>
           <div className="flex items-baseline gap-2 mt-1.5">
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-[32px] font-semibold text-foreground leading-tight">{value}</p>
             {trend && (
               <span
                 className={cn(
                   'inline-flex items-center gap-0.5 text-xs font-medium',
-                  trendIsPositive ? 'text-green-600' : 'text-red-600'
+                  trendIsPositive ? 'text-primary' : 'text-destructive'
                 )}
               >
                 {trendIsPositive ? (
@@ -108,7 +108,7 @@ export function StatCard({
         )}
       </div>
       {subtext && (
-        <p className="text-xs text-gray-500 mt-3 leading-relaxed">{subtext}</p>
+        <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{subtext}</p>
       )}
       {children && <div className="mt-3">{children}</div>}
     </div>
@@ -132,8 +132,8 @@ export function CompactStat({ label, value, color }: CompactStatProps) {
         />
       )}
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-sm font-semibold text-gray-900">{value}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold text-foreground">{value}</p>
       </div>
     </div>
   );

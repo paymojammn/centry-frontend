@@ -43,15 +43,12 @@ const cleanCurrencyCode = (currency: string): string => {
   return currency;
 };
 
-// Format compact numbers
-function formatCompactNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-  return num.toLocaleString();
+// Format currency amount with proper grouping
+function formatCurrencyAmount(num: number): string {
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export default function BankAccountsPage() {
@@ -103,7 +100,7 @@ export default function BankAccountsPage() {
 
   // Calculate stats
   const stats = useMemo(() => {
-    const totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    const totalBalance = accounts.reduce((sum, acc) => sum + (parseFloat(String(acc.balance)) || 0), 0);
     const activeAccounts = accounts.filter(acc => acc.is_active).length;
     const defaultAccount = accounts.find(acc => acc.is_default);
     const primaryCurrency = accounts[0]?.currency ? cleanCurrencyCode(accounts[0].currency) : 'UGX';
@@ -139,20 +136,20 @@ export default function BankAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Bank Accounts</h1>
+              <h1 className="text-xl font-semibold text-foreground">Bank Accounts</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
                 disabled={orgsLoading || !organizations?.length}
               >
-                <SelectTrigger className="w-[200px] h-9 bg-gray-50 border-gray-200">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                <SelectTrigger className="w-[200px] h-9 bg-muted border-border">
+                  <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
@@ -181,7 +178,7 @@ export default function BankAccountsPage() {
               <Button
                 size="sm"
                 onClick={handleAddAccount}
-                className="h-9 bg-[#49a034] hover:bg-[#547568]"
+                className="h-9 bg-primary hover:bg-primary/90"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Account
@@ -192,30 +189,30 @@ export default function BankAccountsPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Total Balance:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#49a034]/10 text-[#49a034]">
-                {stats.primaryCurrency} {formatCompactNumber(stats.totalBalance)}
+              <span className="text-muted-foreground text-sm">Total Balance:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/10 text-primary">
+                {stats.primaryCurrency} {formatCurrencyAmount(stats.totalBalance)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Accounts:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
+              <span className="text-muted-foreground text-sm">Accounts:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
                 {stats.totalAccounts}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Active:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-green-50 text-green-700">
+              <span className="text-muted-foreground text-sm">Active:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/5 text-primary">
                 {stats.activeAccounts}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Default:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-amber-50 text-amber-700">
+              <span className="text-muted-foreground text-sm">Default:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
                 {stats.defaultAccount ? stats.defaultAccount.account_name : 'None'}
               </span>
             </div>
@@ -225,13 +222,13 @@ export default function BankAccountsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
+        <div className="bg-card rounded-lg border border-border">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-medium text-gray-900">All Accounts</h3>
+              <Landmark className="h-4 w-4 text-muted-foreground/60" />
+              <h3 className="text-sm font-medium text-foreground">All Accounts</h3>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Manage your organization's bank accounts</p>
+            <p className="text-xs text-muted-foreground mt-1">Manage your organization's bank accounts</p>
           </div>
           <BankAccountsList
             onEditAccount={handleEditAccount}

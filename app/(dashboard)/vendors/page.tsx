@@ -124,14 +124,14 @@ export default function VendorsPage() {
 
   // Stats bar data
   const statsBarData = [
-    { label: 'Total', value: stats.total, color: '#49a034' },
+    { label: 'Total', value: stats.total, color: 'rgb(var(--brand-primary))' },
     { label: 'Suppliers', value: stats.suppliers, color: '#4E97D1' },
-    { label: 'Customers', value: stats.customers, color: '#49a034' },
+    { label: 'Customers', value: stats.customers, color: 'rgb(var(--brand-primary))' },
     { label: 'Active', value: stats.active, color: '#fed652' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Contacts"
         subtitle="Manage vendors, suppliers, and customers"
@@ -146,7 +146,7 @@ export default function VendorsPage() {
           size="sm"
           onClick={handleSyncContacts}
           disabled={isSyncing || !activeConnectionId}
-          className="h-8 text-gray-600 hover:text-gray-900 btn-press"
+          className="h-8 text-muted-foreground hover:text-foreground btn-press"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
           {isSyncing ? 'Syncing...' : 'Sync from Xero'}
@@ -158,20 +158,20 @@ export default function VendorsPage() {
       <PageContainer>
         <div className="space-y-4 animate-fade-in-up">
           {/* Filters */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm px-4 py-3">
+          <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   placeholder="Search contacts..."
                   value={filters.search}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
+                  className="pl-9 h-8 bg-muted border-border text-sm"
                 />
               </div>
 
               <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
-                <SelectTrigger className="w-[140px] h-8 bg-gray-50 border-gray-200 text-sm">
+                <SelectTrigger className="w-[140px] h-8 bg-muted border-border text-sm">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -184,10 +184,10 @@ export default function VendorsPage() {
           </div>
 
           {/* Contacts Table */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+          <div className="bg-card rounded-xl border border-border/80 shadow-sm">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : error ? (
               <EmptyState
@@ -221,14 +221,14 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   const getTypeBadge = (contact: Contact) => {
     if (contact.is_supplier && contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#49a034]/10 text-[#49a034]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
           Both
         </span>
       );
     }
     if (contact.is_supplier) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Package className="h-3 w-3" />
           Supplier
         </span>
@@ -236,26 +236,26 @@ function ContactsTable({ contacts }: ContactsTableProps) {
     }
     if (contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <ShoppingCart className="h-3 w-3" />
           Customer
         </span>
       );
     }
-    return <span className="text-xs text-gray-400">-</span>;
+    return <span className="text-xs text-muted-foreground/60">-</span>;
   };
 
   const getStatusBadge = (status: string) => {
     if (status === 'ACTIVE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <CheckCircle className="h-3 w-3" />
           Active
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
         {status}
       </span>
     );
@@ -281,13 +281,13 @@ function ContactsTable({ contacts }: ContactsTableProps) {
           >
             <td className="py-3 px-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
                   {getInitials(contact.name)}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+                  <div className="text-sm font-medium text-foreground">{contact.name}</div>
                   {contact.organization_name && (
-                    <div className="text-xs text-gray-500">{contact.organization_name}</div>
+                    <div className="text-xs text-muted-foreground">{contact.organization_name}</div>
                   )}
                 </div>
               </div>
@@ -295,19 +295,19 @@ function ContactsTable({ contacts }: ContactsTableProps) {
             <td className="py-3 px-4">
               <div className="space-y-1">
                 {contact.primary_phone && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="h-3 w-3 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-3 w-3 text-muted-foreground/60" />
                     {contact.primary_phone}
                   </div>
                 )}
                 {contact.email_address && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Mail className="h-3 w-3 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-3 w-3 text-muted-foreground/60" />
                     <span className="truncate max-w-[200px]">{contact.email_address}</span>
                   </div>
                 )}
                 {!contact.primary_phone && !contact.email_address && (
-                  <span className="text-xs text-gray-400">No contact info</span>
+                  <span className="text-xs text-muted-foreground/60">No contact info</span>
                 )}
               </div>
             </td>
@@ -318,7 +318,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
               {getStatusBadge(contact.contact_status)}
             </td>
             <td className="py-3 px-3">
-              <ChevronRight className="h-4 w-4 text-gray-400" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
             </td>
           </tr>
         ))}

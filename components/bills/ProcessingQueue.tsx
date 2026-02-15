@@ -210,20 +210,20 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       case 'PENDING_APPROVAL':
         return <ShieldCheck className="h-4 w-4 text-amber-500" />;
       case 'PROCESSING':
-        return <FileText className="h-4 w-4 text-blue-500" />;
+        return <FileText className="h-4 w-4 text-primary" />;
       case 'PENDING':
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
       case 'SENT_PAYMENT':
         return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       case 'SUCCESS_PAYMENT':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-primary" />;
       case 'FAILED_PAYMENT':
       case 'ERROR_PAYMENT':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       case 'REJECTED':
-        return <ThumbsDown className="h-4 w-4 text-red-500" />;
+        return <ThumbsDown className="h-4 w-4 text-destructive" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -292,11 +292,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   if (error) {
     return (
       <div className="text-center py-16">
-        <div className="p-4 bg-red-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-          <XCircle className="h-8 w-8 text-red-500" />
+        <div className="p-4 bg-destructive/5 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <XCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Queue</h3>
-        <p className="text-gray-600 text-sm mb-4">{error.message}</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Queue</h3>
+        <p className="text-muted-foreground text-sm mb-4">{error.message}</p>
         <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           Retry
@@ -309,7 +309,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     <div>
       {/* Stats Row - Compact inline pills */}
       {stats && (
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-6 flex-wrap">
+        <div className="px-4 py-3 border-b border-border flex items-center gap-6 flex-wrap">
           <button
             onClick={() => { setStatusFilter('PENDING_APPROVAL'); selectAllByStatus('PENDING_APPROVAL'); }}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
@@ -318,8 +318,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }}
             />
-            <span className="text-sm text-gray-600">Pending Approval</span>
-            <span className="text-sm font-semibold text-gray-900">{stats.pending_approval}</span>
+            <span className="text-sm text-muted-foreground">Pending Approval</span>
+            <span className="text-sm font-semibold text-foreground">{stats.pending_approval}</span>
           </button>
 
           <button
@@ -330,8 +330,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.processing.bg }}
             />
-            <span className="text-sm text-gray-600">Ready for File</span>
-            <span className="text-sm font-semibold text-gray-900">{stats.processing}</span>
+            <span className="text-sm text-muted-foreground">Ready for File</span>
+            <span className="text-sm font-semibold text-foreground">{stats.processing}</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -339,8 +339,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.pending.bg }}
             />
-            <span className="text-sm text-gray-600">File Sent</span>
-            <span className="text-sm font-semibold text-gray-900">{stats.pending}</span>
+            <span className="text-sm text-muted-foreground">File Sent</span>
+            <span className="text-sm font-semibold text-foreground">{stats.pending}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -348,8 +348,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.sent.bg }}
             />
-            <span className="text-sm text-gray-600">Processing</span>
-            <span className="text-sm font-semibold text-gray-900">{stats.sent}</span>
+            <span className="text-sm text-muted-foreground">Processing</span>
+            <span className="text-sm font-semibold text-foreground">{stats.sent}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -357,8 +357,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.success.bg }}
             />
-            <span className="text-sm text-gray-600">Successful</span>
-            <span className="text-sm font-semibold text-gray-900">{stats.success}</span>
+            <span className="text-sm text-muted-foreground">Successful</span>
+            <span className="text-sm font-semibold text-foreground">{stats.success}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -366,21 +366,21 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: STATUS_COLORS.failed.bg }}
             />
-            <span className="text-sm text-gray-600">Failed</span>
-            <span className="text-sm font-semibold text-gray-900">{(stats.failed || 0) + (stats.rejected || 0)}</span>
+            <span className="text-sm text-muted-foreground">Failed</span>
+            <span className="text-sm font-semibold text-foreground">{(stats.failed || 0) + (stats.rejected || 0)}</span>
           </div>
         </div>
       )}
 
       {/* Toolbar - Clean horizontal layout */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         {/* Left: Filter and Refresh */}
         <div className="flex items-center gap-3">
           <Select
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val as PaymentEventStatus | 'all')}
           >
-            <SelectTrigger className="w-[160px] h-9 bg-white border-gray-200 text-sm">
+            <SelectTrigger className="w-[160px] h-9 bg-card border-border text-sm">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -438,7 +438,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         {/* Right: Action Buttons - Grouped together */}
         <div className="flex items-center gap-2">
           {selectedPayments.size > 0 && (
-            <span className="text-sm text-gray-500 mr-2">{selectedPayments.size} selected</span>
+            <span className="text-sm text-muted-foreground mr-2">{selectedPayments.size} selected</span>
           )}
 
           {canApprove && (
@@ -499,7 +499,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               onClick={() => setSelectedPayments(new Set())}
               variant="ghost"
               size="sm"
-              className="h-8 text-gray-500"
+              className="h-8 text-muted-foreground"
             >
               Clear
             </Button>
@@ -510,9 +510,9 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       {/* Payments List */}
       {!payments || payments.length === 0 ? (
         <div className="py-16 text-center">
-          <Send className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm font-medium text-gray-900">No Payments in Queue</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <Send className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-sm font-medium text-foreground">No Payments in Queue</p>
+          <p className="text-sm text-muted-foreground mt-1">
             {statusFilter !== 'all'
               ? 'No payments with this status. Try a different filter.'
               : 'Payments you initiate will appear here for tracking.'}
@@ -522,7 +522,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
+              <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 w-10">
                   <input
                     type="checkbox"
@@ -534,23 +534,23 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                         setSelectedPayments(new Set());
                       }
                     }}
-                    className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
+                    className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Vendor</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Bill</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-600">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Method</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Vendor</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Bill</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Method</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Created</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {payments.map((payment: PaymentEvent) => (
                 <tr
                   key={payment.id}
                   className={`transition-colors cursor-pointer ${
-                    selectedPayments.has(payment.id) ? 'bg-blue-50' : 'hover:bg-gray-50'
+                    selectedPayments.has(payment.id) ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
                   onClick={() => togglePaymentSelection(payment.id)}
                 >
@@ -559,32 +559,32 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       type="checkbox"
                       checked={selectedPayments.has(payment.id)}
                       onChange={() => togglePaymentSelection(payment.id)}
-                      className="w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]"
+                      className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
                     />
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-xs">
+                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
                         {getInitials(payment.vendor_name)}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-foreground">
                           {payment.vendor_name || 'Unknown Vendor'}
                         </div>
                         {payment.account_name && (
-                          <div className="text-xs text-gray-500">{payment.account_name}</div>
+                          <div className="text-xs text-muted-foreground">{payment.account_name}</div>
                         )}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{payment.bill_number || '-'}</div>
+                    <div className="text-sm text-foreground">{payment.bill_number || '-'}</div>
                     {payment.bill_reference && (
-                      <div className="text-xs text-gray-500">{payment.bill_reference}</div>
+                      <div className="text-xs text-muted-foreground">{payment.bill_reference}</div>
                     )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-right">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-foreground">
                       {payment.currency}{' '}
                       {parseFloat(payment.amount).toLocaleString(undefined, {
                         minimumFractionDigits: 0,
@@ -594,16 +594,16 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <span className="p-1 bg-gray-100 rounded">
+                      <span className="p-1 bg-muted rounded">
                         {getMethodIcon(payment.method)}
                       </span>
                       <div>
-                        <div className="text-sm text-gray-900">{payment.method_display}</div>
+                        <div className="text-sm text-foreground">{payment.method_display}</div>
                         {payment.phone_number && (
-                          <div className="text-xs text-gray-500">{payment.phone_number}</div>
+                          <div className="text-xs text-muted-foreground">{payment.phone_number}</div>
                         )}
                         {payment.account_number && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {payment.bank_name_display ? `${payment.bank_name_display} - ` : ''}
                             {payment.account_number}
                           </div>
@@ -614,15 +614,15 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   <td className="px-4 py-3 whitespace-nowrap">
                     {getStatusBadge(payment.provider_status)}
                     {payment.rejection_reason && (
-                      <div className="text-xs text-red-500 mt-1 max-w-[120px] truncate" title={payment.rejection_reason}>
+                      <div className="text-xs text-destructive mt-1 max-w-[120px] truncate" title={payment.rejection_reason}>
                         {payment.rejection_reason}
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{formatDate(payment.created_at)}</div>
+                    <div className="text-sm text-muted-foreground">{formatDate(payment.created_at)}</div>
                     {payment.created_by_name && (
-                      <div className="text-xs text-gray-500">by {payment.created_by_name}</div>
+                      <div className="text-xs text-muted-foreground">by {payment.created_by_name}</div>
                     )}
                     {payment.approved_by_name && (
                       <div className="text-xs" style={{ color: STATUS_COLORS.success.bg }}>
@@ -647,7 +647,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Reason (optional)
             </label>
             <Textarea
@@ -691,7 +691,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Source Bank Account
               </label>
               <Select
@@ -712,7 +712,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 File Format
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -721,24 +721,24 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   onClick={() => setSelectedFileFormat('xml')}
                   className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'xml'
-                      ? 'border-[#1c252c] bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-[#1c252c] bg-muted'
+                      : 'border-border hover:border-border'
                   }`}
                 >
-                  <div className="font-medium text-gray-900 text-sm">XML</div>
-                  <div className="text-xs text-gray-500 mt-0.5">ISO 20022</div>
+                  <div className="font-medium text-foreground text-sm">XML</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">ISO 20022</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedFileFormat('csv')}
                   className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'csv'
-                      ? 'border-[#1c252c] bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-[#1c252c] bg-muted'
+                      : 'border-border hover:border-border'
                   }`}
                 >
-                  <div className="font-medium text-gray-900 text-sm">CSV</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Standard</div>
+                  <div className="font-medium text-foreground text-sm">CSV</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Standard</div>
                 </button>
               </div>
             </div>
@@ -775,7 +775,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Reason (optional)
             </label>
             <Textarea
@@ -815,20 +815,20 @@ function ProcessingQueueSkeleton() {
   return (
     <div>
       {/* Stats skeleton */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-6">
+      <div className="px-4 py-3 border-b border-border flex items-center gap-6">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-gray-200 animate-pulse rounded-full" />
-            <div className="h-4 w-20 bg-gray-100 animate-pulse rounded" />
-            <div className="h-4 w-6 bg-gray-200 animate-pulse rounded" />
+            <div className="w-2 h-2 bg-muted animate-pulse rounded-full" />
+            <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+            <div className="h-4 w-6 bg-muted animate-pulse rounded" />
           </div>
         ))}
       </div>
 
       {/* Toolbar skeleton */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-        <div className="h-9 w-40 bg-gray-100 animate-pulse rounded" />
-        <div className="h-8 w-24 bg-gray-100 animate-pulse rounded" />
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        <div className="h-9 w-40 bg-muted animate-pulse rounded" />
+        <div className="h-8 w-24 bg-muted animate-pulse rounded" />
       </div>
 
       {/* Table skeleton */}
@@ -836,13 +836,13 @@ function ProcessingQueueSkeleton() {
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
-              <div className="h-4 w-4 bg-gray-200 animate-pulse rounded" />
-              <div className="h-8 w-8 bg-gray-200 animate-pulse rounded" />
+              <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+              <div className="h-8 w-8 bg-muted animate-pulse rounded" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-4 bg-gray-200 animate-pulse rounded w-1/4" />
-                <div className="h-3 bg-gray-100 animate-pulse rounded w-1/6" />
+                <div className="h-4 bg-muted animate-pulse rounded w-1/4" />
+                <div className="h-3 bg-muted animate-pulse rounded w-1/6" />
               </div>
-              <div className="h-5 bg-gray-200 animate-pulse rounded w-20" />
+              <div className="h-5 bg-muted animate-pulse rounded w-20" />
             </div>
           ))}
         </div>

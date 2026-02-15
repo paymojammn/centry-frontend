@@ -1,13 +1,8 @@
 /**
  * Status Badge Component
  *
- * Consistent status badges using the Centry color system:
- * - #4E97D1 Blue - Draft
- * - #fed652 Mustard – Awaiting Approval
- * - #f77f00 Orange – Awaiting Payment
- * - #49a034 Green – Paid/Success
- * - #bec3c6 Grey - Repeating/Neutral
- * - #dc2626 Red - Failed/Error
+ * Consistent status badges using muted Centry color system.
+ * Pill-shaped badges with soft, muted colors.
  */
 
 import { cn } from '@/lib/utils';
@@ -49,7 +44,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded font-medium',
+        'inline-flex items-center gap-1.5 rounded-full font-medium',
         sizeClasses[size],
         className
       )}
@@ -125,7 +120,7 @@ export function StatusWithDot({ status, label, className }: StatusWithDotProps) 
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
       <StatusDot status={status} />
-      <span className="text-sm text-gray-700">{displayLabel}</span>
+      <span className="text-sm text-foreground">{displayLabel}</span>
     </span>
   );
 }

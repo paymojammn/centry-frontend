@@ -21,78 +21,96 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
   
-  /** Brand Colors - Vibrant Green Theme **/
-  --brand-primary: 73 160 52; /* #49a034 - Vibrant Green */
-  --brand-primary-light: 93 180 72; /* Lighter variant */
-  --brand-primary-dark: 53 140 32; /* Darker variant */
-  --brand-dark: 28 37 44; /* #1c252c - Dark background */
-  --brand-dark-light: 45 58 68; /* #2d3a44 - Lighter dark */
-  --brand-black: 0 0 0;
+  /** Brand Colors - Muted Sage / European Fintech **/
+  --brand-primary: 92 138 101; /* #5C8A65 - Muted Sage Green */
+  --brand-primary-light: 120 160 128; /* #78A080 - Lighter sage */
+  --brand-primary-dark: 72 118 81; /* #487651 - Darker sage */
+  --brand-dark: 28 28 30; /* #1C1C1E - Charcoal */
+  --brand-dark-light: 44 44 46; /* #2C2C2E - Lighter charcoal */
+  --brand-black: 28 28 30; /* Charcoal, not pure black */
   --brand-white: 255 255 255;
-  --brand-gray-light: 249 250 251;
-  --brand-gray: 156 163 175;
-  --brand-gray-dark: 75 85 99;
+  --brand-gray-light: 248 248 247; /* #F8F8F7 - Soft off-white */
+  --brand-gray: 107 107 111; /* #6B6B6F - Warm grey */
+  --brand-gray-dark: 92 92 96; /* #5C5C60 - Subtle graphite */
+
+  /** Accent Colors **/
+  --accent-sand: 176 162 138; /* #B0A28A - Deep sand */
+  --accent-graphite: 92 92 96; /* #5C5C60 - Subtle graphite */
+
+  /** Page-level tokens **/
+  --page-bg: 248 248 247; /* #F8F8F7 - Soft off-white */
+  --page-bg-subtle: 242 242 240; /* #F2F2F0 - Slightly deeper */
+
+  /** Semantic Status Colors **/
+  --warning: 196 163 64; /* #C4A340 - Warm amber */
+  --success: 107 155 113; /* #6B9B71 - Soft muted green */
 
   /** Border & Divider Colors **/
-  --divider-light: 229 231 235; /* #E5E7EB - Light grey divider, standard table lines */
-  --divider-warm: 209 213 219; /* #D1D5DB - Warm neutral grey, more visible */
-  --divider-teal: rgba(73, 160, 52, 0.15); /* Green accent border for headers */
-  --hover-row: rgba(73, 160, 52, 0.08); /* Hover/selected row highlight */
-  
+  --divider-light: 235 235 234; /* #EBEBEA - Very subtle hairline */
+  --divider-warm: 220 220 218; /* #DCDCDA - Warm neutral grey */
+  --divider-teal: rgba(92, 138, 101, 0.12); /* Sage accent border */
+  --hover-row: rgba(92, 138, 101, 0.05); /* Very subtle sage hover */
+
   --background: rgb(var(--brand-white));
-  --foreground: rgb(var(--brand-black));
+  --foreground: rgb(var(--brand-dark)); /* Charcoal #1C1C1E */
   --card: rgb(var(--brand-white));
-  --card-foreground: rgb(var(--brand-black));
+  --card-foreground: rgb(var(--brand-dark));
   --popover: rgb(var(--brand-white));
-  --popover-foreground: rgb(var(--brand-black));
+  --popover-foreground: rgb(var(--brand-dark));
   --primary: rgb(var(--brand-primary));
   --primary-foreground: rgb(var(--brand-white));
   --secondary: rgb(var(--brand-gray-light));
-  --secondary-foreground: rgb(var(--brand-black));
+  --secondary-foreground: rgb(var(--brand-dark));
   --muted: rgb(var(--brand-gray-light));
-  --muted-foreground: rgb(var(--brand-gray));
+  --muted-foreground: rgb(var(--brand-gray)); /* Warm grey #6B6B6F */
   --accent: rgb(var(--brand-primary-light));
-  --accent-foreground: rgb(var(--brand-black));
-  --destructive: 220 38 38; /* Red for errors */
+  --accent-foreground: rgb(var(--brand-dark));
+  --destructive: 184 92 92; /* #B85C5C - Soft muted red */
   --destructive-foreground: rgb(var(--brand-white));
   --chart-1: rgb(var(--brand-primary));
   --chart-2: rgb(var(--brand-primary-light));
   --chart-3: rgb(var(--brand-gray));
   --chart-4: rgb(var(--brand-gray-dark));
   --chart-5: rgb(var(--brand-primary-dark));
-  --border: var(--divider-light); /* Default border - light grey */
-  --border-warm: var(--divider-warm); /* More visible borders */
-  --border-accent: var(--divider-teal); /* Accent borders */
-  --input: 229 231 235;
+  --border: rgb(var(--divider-light)); /* Very subtle hairline border */
+  --border-warm: rgb(var(--divider-warm));
+  --border-accent: var(--divider-teal);
+  --input: rgb(235 235 234); /* #EBEBEA */
   --ring: rgb(var(--brand-primary));
-  --radius: 0.375rem; /* Slightly smaller for classic look */
+  --radius: 0.875rem; /* 14px base for premium feel */
 }
 
 .dark {
-  --background: var(--color-zinc-950);
-  --foreground: var(--color-zinc-50);
-  --card: var(--color-zinc-950);
-  --card-foreground: var(--color-zinc-50);
-  --popover: var(--color-zinc-950);
-  --popover-foreground: var(--color-zinc-50);
-  --primary: var(--color-zinc-300);
-  --primary-foreground: var(--color-zinc-950);
-  --secondary: var(--color-zinc-800);
-  --secondary-foreground: var(--color-zinc-50);
-  --muted: var(--color-zinc-900);
-  --muted-foreground: var(--color-zinc-500);
-  --accent: var(--color-zinc-900);
-  --accent-foreground: var(--color-zinc-50);
-  --destructive: var(--color-red-600);
-  --destructive-foreground: var(--color-white);
-  --chart-1: var(--color-blue-500);
-  --chart-2: var(--color-green-500);
-  --chart-3: var(--color-yellow-500);
-  --chart-4: var(--color-red-500);
-  --chart-5: var(--color-purple-500);
-  --border: var(--color-zinc-800);
-  --input: var(--color-zinc-800);
-  --ring: var(--color-zinc-600);
+  --page-bg: var(--brand-dark);
+  --page-bg-subtle: 44 44 46;
+
+  --background: rgb(var(--brand-dark));
+  --foreground: rgb(220 220 218);
+  --card: rgb(var(--brand-dark-light));
+  --card-foreground: rgb(220 220 218);
+  --popover: rgb(var(--brand-dark-light));
+  --popover-foreground: rgb(220 220 218);
+  --primary: rgb(var(--brand-primary));
+  --primary-foreground: rgb(var(--brand-white));
+  --secondary: rgb(44 44 46);
+  --secondary-foreground: rgb(200 200 198);
+  --muted: rgb(44 44 46);
+  --muted-foreground: rgb(140 140 144);
+  --accent: rgb(var(--brand-primary-light));
+  --accent-foreground: rgb(var(--brand-white));
+  --destructive: 184 92 92;
+  --destructive-foreground: rgb(var(--brand-white));
+  --border: rgb(60 60 64);
+  --input: rgb(60 60 64);
+  --ring: rgb(var(--brand-primary));
+  --divider-teal: rgba(92, 138, 101, 0.2);
+  --hover-row: rgba(92, 138, 101, 0.08);
+
+  --chart-1: rgb(var(--brand-primary));
+  --chart-2: rgb(var(--brand-primary-light));
+  --chart-3: rgb(140 140 144);
+  --chart-4: rgb(100 100 104);
+  --chart-5: rgb(var(--brand-primary-dark));
 }
 
 /** Theme Setup **/
@@ -123,17 +141,24 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive: var(--destructive);
+  --color-destructive: rgb(var(--destructive));
   --color-destructive-foreground: var(--destructive-foreground);
 
   /** Base Styles **/
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 2px); /* 16px - Cards */
+  --radius-lg: var(--radius); /* 14px - Buttons, Dialogs */
+  --radius-md: calc(var(--radius) - 2px); /* 12px - Inputs */
+  --radius-sm: calc(var(--radius) - 6px); /* 8px - Small elements */
+
+  /** Softer Shadows **/
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.03);
+  --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.1), 0 8px 16px -8px rgb(0 0 0 / 0.04);
 
   /** Animations **/
   --animate-marquee: marquee var(--duration) infinite linear;
@@ -213,16 +238,16 @@ html {
 @layer base {
   /* Subtle card with barely-visible border and soft shadow */
   .card-classy {
-    background: white;
-    border: 1px solid rgb(249, 250, 251); /* Very light grey, almost invisible */
+    background: var(--card);
+    border: 1px solid rgb(var(--page-bg-subtle) / 0.8);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     transition: all 0.2s ease;
   }
-  
+
   .card-classy:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    border-color: rgb(243, 244, 246);
+    border-color: rgb(var(--page-bg-subtle));
   }
 }
 
@@ -267,14 +292,15 @@ html {
     text-align: left;
     font-weight: 600;
     font-size: 0.875rem;
-    color: rgb(var(--brand-black));
-    background-color: rgba(73, 160, 52, 0.05);
+    color: var(--foreground);
+    background-color: rgb(var(--brand-primary) / 0.05);
   }
   
   .table-professional td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgb(var(--divider-light));
+    border-bottom: 1px solid var(--border);
     font-size: 0.875rem;
+    color: var(--foreground);
   }
   
   .table-professional tbody tr {
@@ -364,13 +390,13 @@ html {
   .skeleton {
     background: linear-gradient(
       90deg,
-      rgb(243 244 246) 25%,
-      rgb(229 231 235) 50%,
-      rgb(243 244 246) 75%
+      rgb(var(--page-bg-subtle)) 25%,
+      rgb(var(--divider-light)) 50%,
+      rgb(var(--page-bg-subtle)) 75%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
-    border-radius: 0.375rem;
+    border-radius: 0.75rem;
   }
 
   /* Button press effect */
@@ -387,7 +413,7 @@ html {
   }
   .card-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.06), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
   }
 
   /* Interactive row highlight */
@@ -395,13 +421,35 @@ html {
     transition: background-color 0.15s ease, box-shadow 0.15s ease;
   }
   .row-interactive:hover {
-    background-color: rgba(73, 160, 52, 0.04);
-    box-shadow: inset 3px 0 0 0 #49a034;
+    background-color: var(--hover-row);
+    box-shadow: inset 3px 0 0 0 var(--primary);
   }
 
   /* Focus ring with brand color */
   .focus-brand:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(73, 160, 52, 0.5);
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgb(var(--brand-primary) / 0.5);
+  }
+
+  /* Scrollable table container with edge fade indicators */
+  .table-scroll-container {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to left, var(--card) 0%, transparent 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .table-scroll-container.has-scroll::after {
+    opacity: 1;
   }
 }

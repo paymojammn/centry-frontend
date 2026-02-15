@@ -1,54 +1,54 @@
 /**
  * Centry Design System - Theme Constants
  *
- * This file defines the consistent color scheme and design tokens
- * used across the entire application. Inspired by Xero's clean design.
+ * Premium European fintech aesthetic with muted, calm colors.
  *
- * STATUS COLORS (for bills, payments, expenses):
- * - #4E97D1 Blue - Draft
- * - #fed652 Mustard – Awaiting Approval
- * - #f77f00 Orange – Awaiting Payment
- * - #49a034 Green – Paid/Success
- * - #bec3c6 Grey - Repeating/Neutral
+ * STATUS COLORS (muted palette):
+ * - #6B8FB8 Soft Blue - Draft
+ * - #D4B35A Warm Amber – Awaiting Approval
+ * - #D4944A Muted Orange – Awaiting Payment
+ * - #6B9B71 Soft Green – Paid/Success
+ * - #9B9B9F Warm Grey - Repeating/Neutral
+ * - #B85C5C Soft Red - Failed
  */
 
 // Primary status colors used across bills, payments, and expenses
 export const STATUS_COLORS = {
   draft: {
-    bg: '#4E97D1',
+    bg: '#6B8FB8',
     text: '#ffffff',
-    light: '#E8F2FA',
-    border: '#4E97D1',
+    light: '#EDF2F7',
+    border: '#6B8FB8',
   },
   awaiting_approval: {
-    bg: '#fed652',
-    text: '#7a5c00',
-    light: '#FFF9E5',
-    border: '#fed652',
+    bg: '#D4B35A',
+    text: '#5C4A1A',
+    light: '#FAF5E8',
+    border: '#D4B35A',
   },
   awaiting_payment: {
-    bg: '#f77f00',
+    bg: '#D4944A',
     text: '#ffffff',
-    light: '#FFF0E5',
-    border: '#f77f00',
+    light: '#FAF0E5',
+    border: '#D4944A',
   },
   paid: {
-    bg: '#49a034',
+    bg: '#6B9B71',
     text: '#ffffff',
-    light: '#E8F5E5',
-    border: '#49a034',
+    light: '#EDF5EE',
+    border: '#6B9B71',
   },
   repeating: {
-    bg: '#bec3c6',
-    text: '#4a5568',
-    light: '#F5F6F7',
-    border: '#bec3c6',
+    bg: '#9B9B9F',
+    text: '#3A3A3C',
+    light: '#F5F5F5',
+    border: '#9B9B9F',
   },
   failed: {
-    bg: '#dc2626',
+    bg: '#B85C5C',
     text: '#ffffff',
-    light: '#FEE2E2',
-    border: '#dc2626',
+    light: '#F8EDED',
+    border: '#B85C5C',
   },
 } as const;
 
@@ -65,74 +65,76 @@ export const PROCESSING_STATUS_COLORS = {
 // Page layout constants
 export const LAYOUT = {
   maxWidth: 'max-w-7xl',
-  pageBg: 'bg-[#f8f9fa]',
-  headerBg: 'bg-white',
-  cardBg: 'bg-white',
-  borderColor: 'border-gray-200',
-  borderLight: 'border-gray-100',
+  pageBg: 'bg-[rgb(var(--page-bg))]',
+  headerBg: 'bg-card',
+  cardBg: 'bg-card',
+  borderColor: 'border-border',
+  borderLight: 'border-border/50',
 } as const;
 
-// Typography
+// Typography — premium, breathable hierarchy
 export const TYPOGRAPHY = {
-  pageTitle: 'text-xl font-semibold text-gray-900',
-  sectionTitle: 'text-sm font-medium text-gray-900',
-  label: 'text-xs font-medium text-gray-500 uppercase tracking-wide',
-  body: 'text-sm text-gray-900',
-  bodyMuted: 'text-sm text-gray-600',
-  small: 'text-xs text-gray-500',
+  pageTitle: 'text-xl font-semibold text-foreground',
+  sectionTitle: 'text-lg font-medium text-foreground',
+  label: 'text-xs font-medium text-muted-foreground uppercase tracking-wide',
+  body: 'text-[15px] text-foreground',
+  bodyMuted: 'text-[15px] text-muted-foreground',
+  small: 'text-xs text-muted-foreground',
+  caption: 'text-xs font-medium text-muted-foreground',
+  balance: 'text-[32px] font-semibold text-foreground',
 } as const;
 
-// Spacing
+// Spacing — 8pt grid system
 export const SPACING = {
   page: 'px-6 py-6',
   header: 'px-6',
   headerHeight: 'h-16',
-  card: 'p-4',
-  cardLarge: 'p-6',
-  gap: 'gap-4',
-  gapSmall: 'gap-3',
+  card: 'p-6',
+  cardLarge: 'p-8',
+  gap: 'gap-5',
+  gapSmall: 'gap-4',
   gapLarge: 'gap-6',
 } as const;
 
 // Common component styles
 export const COMPONENTS = {
   // Buttons
-  primaryButton: 'bg-[#1c252c] text-white hover:bg-[#2d3a44]',
-  secondaryButton: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50',
-  successButton: `text-white hover:opacity-90`,
-  dangerButton: `text-white hover:opacity-90`,
+  primaryButton: 'bg-primary text-primary-foreground hover:bg-primary/90',
+  secondaryButton: 'bg-card border border-border text-foreground hover:bg-muted',
+  successButton: 'text-white hover:opacity-90',
+  dangerButton: 'text-white hover:opacity-90',
 
   // Inputs
-  input: 'h-9 bg-white border-gray-200 text-sm',
-  select: 'h-9 bg-white border-gray-200 text-sm',
+  input: 'h-9 bg-card border-border text-sm',
+  select: 'h-9 bg-card border-border text-sm',
 
-  // Cards
-  card: 'bg-white rounded-lg border border-gray-200',
-  cardWithShadow: 'bg-white rounded-lg border border-gray-200 shadow-sm',
+  // Cards — 16px radius, soft shadow
+  card: 'bg-card rounded-xl border border-border',
+  cardWithShadow: 'bg-card rounded-xl border border-border shadow-sm',
 
   // Tables
-  tableHeader: 'border-b border-gray-200 bg-gray-50',
-  tableHeaderCell: 'px-4 py-3 text-left text-xs font-medium text-gray-600',
-  tableRow: 'transition-colors hover:bg-gray-50',
-  tableRowSelected: 'bg-blue-50',
+  tableHeader: 'border-b border-border bg-muted',
+  tableHeaderCell: 'px-4 py-3 text-left text-xs font-medium text-muted-foreground',
+  tableRow: 'transition-colors hover:bg-muted',
+  tableRowSelected: 'bg-primary/10',
   tableCell: 'px-4 py-3',
 
   // Tabs
-  tabActive: 'border-[#1c252c] text-[#1c252c]',
-  tabInactive: 'border-transparent text-gray-500 hover:text-gray-700',
+  tabActive: 'border-primary text-primary',
+  tabInactive: 'border-transparent text-muted-foreground hover:text-foreground',
 
-  // Badges
-  badge: 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium',
+  // Badges — pill style
+  badge: 'inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-medium',
 
   // Checkbox
-  checkbox: 'w-4 h-4 rounded border-gray-300 text-[#1c252c] focus:ring-[#1c252c]',
+  checkbox: 'w-4 h-4 rounded border-border text-primary focus:ring-primary',
 } as const;
 
-// Expense-specific status colors
+// Expense-specific status colors (muted palette)
 export const EXPENSE_STATUS_COLORS = {
-  pending_manager_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5', border: '#fed652' },
-  pending_finance_approval: { bg: '#9b59b6', text: '#ffffff', light: '#F3E8F7', border: '#9b59b6' },
-  manager_approved: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA', border: '#4E97D1' },
+  pending_manager_approval: { bg: '#D4B35A', text: '#5C4A1A', light: '#FAF5E8', border: '#D4B35A' },
+  pending_finance_approval: { bg: '#8B7BB8', text: '#ffffff', light: '#F0ECF7', border: '#8B7BB8' },
+  manager_approved: { bg: '#6B8FB8', text: '#ffffff', light: '#EDF2F7', border: '#6B8FB8' },
 } as const;
 
 // Helper function to get status color

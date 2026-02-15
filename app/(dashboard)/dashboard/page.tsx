@@ -161,7 +161,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title={greeting}
         organizations={organizations}
@@ -179,15 +179,15 @@ export default function DashboardPage() {
             <ContentCardHeader className="px-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[#49a034]/10">
-                    <CreditCard className="h-4 w-4 text-[#49a034]" />
+                  <div className="p-1.5 rounded-lg bg-primary/10">
+                    <CreditCard className="h-4 w-4 text-primary" />
                   </div>
-                  <h2 className="text-sm font-semibold text-gray-900">Upcoming Bills</h2>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <h2 className="text-sm font-semibold text-foreground">Upcoming Bills</h2>
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {openBills.length} pending
                   </span>
                   {overdueBills.length > 0 && (
-                    <span className="text-xs text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-[#D4944A] bg-[#D4944A]/10 px-2 py-0.5 rounded-full">
                       {overdueBills.length} overdue
                     </span>
                   )}
@@ -195,7 +195,7 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-gray-500 hover:text-[#49a034] h-8 btn-press"
+                  className="text-muted-foreground hover:text-primary h-8 btn-press"
                   onClick={() => router.push('/bills')}
                 >
                   View all
@@ -206,15 +206,15 @@ export default function DashboardPage() {
 
             {openBills.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
+                <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">All caught up!</p>
-                <p className="text-xs text-gray-500 mt-1">No bills awaiting payment</p>
+                <p className="text-sm font-medium text-foreground">All caught up!</p>
+                <p className="text-xs text-muted-foreground mt-1">No bills awaiting payment</p>
               </div>
             ) : (
               <>
-                <div className="divide-y divide-gray-100 animate-stagger">
+                <div className="divide-y divide-border animate-stagger">
                   {openBills.slice(0, 6).map((bill: Payable) => (
                     <BillItem key={bill.id} bill={bill} />
                   ))}
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full text-gray-500 hover:text-[#49a034] h-8 btn-press"
+                      className="w-full text-muted-foreground hover:text-primary h-8 btn-press"
                       onClick={() => router.push('/bills')}
                     >
                       View {openBills.length - 6} more bills
@@ -242,15 +242,15 @@ export default function DashboardPage() {
             <ContentCardHeader className="px-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-blue-50">
-                    <Receipt className="h-4 w-4 text-blue-600" />
+                  <div className="p-1.5 rounded-lg bg-[#6B8FB8]/10">
+                    <Receipt className="h-4 w-4 text-[#6B8FB8]" />
                   </div>
-                  <h2 className="text-sm font-semibold text-gray-900">Recent Activity</h2>
+                  <h2 className="text-sm font-semibold text-foreground">Recent Activity</h2>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-gray-500 hover:text-[#49a034] h-8 px-2 btn-press"
+                  className="text-muted-foreground hover:text-primary h-8 px-2 btn-press"
                   onClick={() => router.push('/banking/transactions')}
                 >
                   <ArrowUpRight className="h-3.5 w-3.5" />
@@ -260,18 +260,18 @@ export default function DashboardPage() {
 
             {(loadingImports || loadingExports) ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (recentImports.length === 0 && recentExports.length === 0) ? (
               <div className="text-center py-12">
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                  <Receipt className="h-6 w-6 text-gray-400" />
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                  <Receipt className="h-6 w-6 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">No recent activity</p>
-                <p className="text-xs text-gray-500 mt-1">Import or export bank statements to see activity here</p>
+                <p className="text-sm font-medium text-foreground">No recent activity</p>
+                <p className="text-xs text-muted-foreground mt-1">Import or export bank statements to see activity here</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100 animate-stagger">
+              <div className="divide-y divide-border animate-stagger">
                 {/* Recent Imports */}
                 {recentImports.slice(0, 3).map((imp: any) => (
                   <ActivityItem
@@ -314,20 +314,20 @@ function BillItem({ bill }: { bill: Payable }) {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold transition-colors ${
-            isOverdue ? 'bg-orange-100 text-orange-600' : 'bg-[#49a034]/10 text-[#49a034]'
+            isOverdue ? 'bg-[#D4944A]/10 text-[#D4944A]' : 'bg-primary/10 text-primary'
           }`}>
             {bill.vendor_name?.charAt(0).toUpperCase() || 'V'}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-gray-900 truncate">{bill.vendor_name}</p>
+              <p className="text-sm font-medium text-foreground truncate">{bill.vendor_name}</p>
               {isOverdue ? (
                 <StatusBadge status="failed" label="Overdue" size="sm" showIcon pulse />
               ) : daysUntilDue !== null && daysUntilDue <= 3 && daysUntilDue >= 0 ? (
                 <StatusBadge status="awaiting_approval" label="Soon" size="sm" />
               ) : null}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {dueDate ? (
                 isOverdue
                   ? `Was due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
@@ -337,7 +337,7 @@ function BillItem({ bill }: { bill: Payable }) {
           </div>
         </div>
         <div className="text-right">
-          <p className={`text-sm font-semibold ${isOverdue ? 'text-orange-600' : 'text-gray-900'}`}>
+          <p className={`text-sm font-semibold ${isOverdue ? 'text-[#D4944A]' : 'text-foreground'}`}>
             {formatCurrency(bill.amount, bill.currency)}
           </p>
         </div>
@@ -379,17 +379,17 @@ function ActivityItem({
     <div className="px-6 py-3.5 row-interactive cursor-pointer">
       <div className="flex items-center gap-3">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-          type === 'import' ? 'bg-blue-100' : 'bg-[#49a034]/10'
+          type === 'import' ? 'bg-[#6B8FB8]/10' : 'bg-primary/10'
         }`}>
           {type === 'import' ? (
-            <FileDown className="h-4 w-4 text-blue-600" />
+            <FileDown className="h-4 w-4 text-[#6B8FB8]" />
           ) : (
-            <FileUp className="h-4 w-4 text-[#49a034]" />
+            <FileUp className="h-4 w-4 text-primary" />
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
+            <p className="text-sm font-medium text-foreground truncate">{title}</p>
             {statusInfo && (
               <StatusBadge
                 status={statusInfo.status}
@@ -399,7 +399,7 @@ function ActivityItem({
               />
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">{subtitle} · {date}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{subtitle} · {date}</p>
         </div>
       </div>
     </div>

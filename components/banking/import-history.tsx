@@ -25,7 +25,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
   const getStatusBadge = (status: string, syncedCount: number, totalCount: number) => {
     if (status === 'SYNCED' || syncedCount === totalCount) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <CheckCircle className="h-3 w-3" />
           Synced
         </span>
@@ -33,7 +33,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
     }
     if (status === 'FAILED') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4944A]/10 text-[#D4944A]">
           <XCircle className="h-3 w-3" />
           Failed
         </span>
@@ -41,14 +41,14 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
     }
     if (syncedCount > 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Clock className="h-3 w-3" />
           {syncedCount}/{totalCount}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
         <Clock className="h-3 w-3" />
         Pending
       </span>
@@ -57,15 +57,15 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-card rounded-lg border border-border">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-gray-400" />
-            <h3 className="text-sm font-medium text-gray-900">Import History</h3>
+            <FileText className="h-4 w-4 text-muted-foreground/60" />
+            <h3 className="text-sm font-medium text-foreground">Import History</h3>
           </div>
         </div>
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
         </div>
       </div>
     );
@@ -73,70 +73,70 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-card rounded-lg border border-border">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-gray-400" />
-            <h3 className="text-sm font-medium text-gray-900">Import History</h3>
+            <FileText className="h-4 w-4 text-muted-foreground/60" />
+            <h3 className="text-sm font-medium text-foreground">Import History</h3>
           </div>
         </div>
         <div className="text-center py-12">
-          <XCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-600">Failed to load import history</p>
+          <XCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load import history</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-100">
+    <div className="bg-card rounded-lg border border-border">
+      <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-gray-400" />
-          <h3 className="text-sm font-medium text-gray-900">Import History</h3>
+          <FileText className="h-4 w-4 text-muted-foreground/60" />
+          <h3 className="text-sm font-medium text-foreground">Import History</h3>
         </div>
-        <p className="text-xs text-gray-500 mt-1">Recent bank file imports and sync status</p>
+        <p className="text-xs text-muted-foreground mt-1">Recent bank file imports and sync status</p>
       </div>
 
       {imports.length === 0 ? (
         <div className="text-center py-12">
-          <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">No imports yet</p>
-          <p className="text-xs text-gray-400 mt-1">Upload a bank file to get started</p>
+          <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No imports yet</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Upload a bank file to get started</p>
         </div>
       ) : (
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">File</th>
-              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Bank</th>
-              <th className="text-center text-xs font-medium text-gray-500 px-6 py-3">Transactions</th>
-              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Status</th>
-              <th className="text-left text-xs font-medium text-gray-500 px-6 py-3">Date</th>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
+              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Bank</th>
+              <th className="text-center text-xs font-medium text-muted-foreground px-6 py-3">Transactions</th>
+              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Status</th>
+              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Date</th>
               <th className="w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-border">
             {imports.map((imp) => (
               <tr
                 key={imp.id}
-                className={`cursor-pointer hover:bg-gray-50 transition-colors ${
+                className={`cursor-pointer hover:bg-muted transition-colors ${
                   selectedImportId === imp.id ? 'bg-[#49a034]/5' : ''
                 }`}
                 onClick={() => onSelectImport?.(imp.id)}
               >
                 <td className="px-6 py-3">
-                  <span className="text-sm font-medium text-gray-900 truncate max-w-[200px] block">
+                  <span className="text-sm font-medium text-foreground truncate max-w-[200px] block">
                     {imp.original_filename}
                   </span>
                 </td>
                 <td className="px-6 py-3">
-                  <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                     {imp.bank_provider.name}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-center">
-                  <span className="text-sm font-medium text-gray-900">{imp.transactions_count}</span>
+                  <span className="text-sm font-medium text-foreground">{imp.transactions_count}</span>
                   {imp.transactions_synced > 0 && (
                     <span className="text-xs text-[#49a034] ml-1">
                       ({imp.transactions_synced} synced)
@@ -147,16 +147,16 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
                   {getStatusBadge(imp.status, imp.transactions_synced, imp.transactions_count)}
                 </td>
                 <td className="px-6 py-3">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(imp.imported_at), { addSuffix: true })}
                   </span>
                 </td>
                 <td className="px-3 py-3">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
                     {imp.transactions_synced === imp.transactions_count ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-primary" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
                     )}
                   </Button>
                 </td>

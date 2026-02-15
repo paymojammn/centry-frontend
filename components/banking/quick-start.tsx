@@ -6,15 +6,15 @@ import { Lightbulb } from "lucide-react";
 
 export function BankingQuickStart() {
   return (
-    <Alert className="border-emerald-200 bg-emerald-50/50">
-      <Lightbulb className="h-4 w-4 text-emerald-600" />
-      <AlertTitle className="text-emerald-900">Quick Start: Test Bank Reconciliation</AlertTitle>
-      <AlertDescription className="text-emerald-800 space-y-3">
+    <Alert className="border-primary/20 bg-primary/5/50">
+      <Lightbulb className="h-4 w-4 text-primary" />
+      <AlertTitle className="text-primary">Quick Start: Test Bank Reconciliation</AlertTitle>
+      <AlertDescription className="text-primary space-y-3">
         <p className="text-sm">Follow these steps to test the bank statement import and reconciliation workflow:</p>
         
         <ol className="text-sm space-y-2 ml-4">
           <li className="flex items-start gap-2">
-            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-emerald-100 text-emerald-700 border-emerald-300">
+            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-primary/10 text-primary border-primary/20">
               1
             </Badge>
             <div>
@@ -23,7 +23,7 @@ export function BankingQuickStart() {
           </li>
           
           <li className="flex items-start gap-2">
-            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-emerald-100 text-emerald-700 border-emerald-300">
+            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-primary/10 text-primary border-primary/20">
               2
             </Badge>
             <div>
@@ -32,7 +32,7 @@ export function BankingQuickStart() {
           </li>
           
           <li className="flex items-start gap-2">
-            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-emerald-100 text-emerald-700 border-emerald-300">
+            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-primary/10 text-primary border-primary/20">
               3
             </Badge>
             <div>
@@ -41,16 +41,16 @@ export function BankingQuickStart() {
           </li>
           
           <li className="flex items-start gap-2">
-            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-emerald-100 text-emerald-700 border-emerald-300">
+            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-primary/10 text-primary border-primary/20">
               4
             </Badge>
             <div>
-              <strong>Verify:</strong> Transactions are created in Xero with <code className="bg-emerald-100 px-1 rounded">IsReconciled: false</code>
+              <strong>Verify:</strong> Transactions are created in Xero with <code className="bg-primary/10 px-1 rounded">IsReconciled: false</code>
             </div>
           </li>
           
           <li className="flex items-start gap-2">
-            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-emerald-100 text-emerald-700 border-emerald-300">
+            <Badge variant="outline" className="flex-shrink-0 mt-0.5 bg-primary/10 text-primary border-primary/20">
               5
             </Badge>
             <div>
@@ -59,8 +59,8 @@ export function BankingQuickStart() {
           </li>
         </ol>
 
-        <div className="bg-white border border-emerald-200 rounded-md p-3 mt-3">
-          <p className="text-xs text-emerald-900">
+        <div className="bg-white border border-primary/20 rounded-md p-3 mt-3">
+          <p className="text-xs text-primary">
             <strong>Key Feature:</strong> All synced transactions appear as <strong>unreconciled</strong> in Xero, 
             allowing you to use the standard Xero reconciliation workflow to match them to invoices and bills.
           </p>

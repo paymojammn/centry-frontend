@@ -43,20 +43,20 @@ export default function BankingExportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-900">Export</h1>
+              <h1 className="text-xl font-semibold text-foreground">Export</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
                 disabled={orgsLoading || !organizations?.length}
               >
-                <SelectTrigger className="w-[200px] h-9 text-sm bg-gray-50 border-gray-200">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                <SelectTrigger className="w-[200px] h-9 text-sm bg-muted border-border">
+                  <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
                   <SelectValue placeholder="Select org" />
                 </SelectTrigger>
                 <SelectContent>
@@ -65,7 +65,7 @@ export default function BankingExportPage() {
                       <div className="flex items-center gap-2">
                         <span>{org.name}</span>
                         {org.external_id?.startsWith('xero_') && (
-                          <span className="text-[10px] bg-[#49a034]/10 text-[#49a034] px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                             Xero
                           </span>
                         )}
@@ -80,7 +80,7 @@ export default function BankingExportPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex gap-1">
             {tabs.map((tab) => {
@@ -91,8 +91,8 @@ export default function BankingExportPage() {
                   onClick={() => setActiveTab(tab.value)}
                   className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.value
-                      ? "border-[#49a034] text-[#49a034]"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" />

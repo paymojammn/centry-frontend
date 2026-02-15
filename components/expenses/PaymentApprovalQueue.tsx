@@ -193,7 +193,7 @@ export default function PaymentApprovalQueue({
   return (
     <div className="space-y-4 animate-fade-in-up">
       {/* Stats Bar */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm p-4">
         <div className="flex items-center gap-6 flex-wrap">
           {statsBarData.map((stat, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -201,11 +201,11 @@ export default function PaymentApprovalQueue({
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: stat.color }}
               />
-              <span className="text-sm text-gray-500">{stat.label}:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-gray-100 text-gray-700">
+              <span className="text-sm text-muted-foreground">{stat.label}:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-muted text-foreground">
                 {stat.value}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-muted-foreground/60">
                 ({currency} {parseFloat(stat.amount).toLocaleString()})
               </span>
             </div>
@@ -214,9 +214,9 @@ export default function PaymentApprovalQueue({
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
         {/* Header with Tabs */}
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-4 py-3 border-b border-border">
           <div className="flex items-center justify-between gap-4">
             {/* Tabs */}
             <div className="flex items-center gap-1">
@@ -226,8 +226,8 @@ export default function PaymentApprovalQueue({
                   onClick={() => setStatusFilter(tab.value)}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors btn-press ${
                     statusFilter === tab.value
-                      ? 'bg-[#49a034] text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-primary text-white'
+                      : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
                   {tab.label}
@@ -240,7 +240,7 @@ export default function PaymentApprovalQueue({
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="h-8 text-gray-600 hover:text-gray-900"
+              className="h-8 text-muted-foreground hover:text-foreground"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Refresh
@@ -251,7 +251,7 @@ export default function PaymentApprovalQueue({
         {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : filteredRequests.length === 0 ? (
           <EmptyState
@@ -268,25 +268,25 @@ export default function PaymentApprovalQueue({
             <table className="table-professional w-full">
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Employee
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Expense
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Method
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Requested
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -296,34 +296,34 @@ export default function PaymentApprovalQueue({
                   <tr key={request.id} className="row-interactive">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-foreground">
                           {request.expense.employee_name}
                         </div>
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]">
+                        <div className="text-xs text-muted-foreground truncate max-w-[150px]">
                           {request.expense.employee_email}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-900 max-w-[200px] truncate">
+                      <div className="text-sm text-foreground max-w-[200px] truncate">
                         {request.expense.description}
                       </div>
-                      <div className="text-xs text-gray-500 capitalize">
+                      <div className="text-xs text-muted-foreground capitalize">
                         {request.expense.category.replace(/_/g, ' ')}
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <span className="p-1.5 bg-gray-100 rounded">
+                        <span className="p-1.5 bg-muted rounded">
                           {getPaymentMethodIcon(request.payment_method)}
                         </span>
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-foreground">
                           {getPaymentMethodLabel(request.payment_method)}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {request.currency} {parseFloat(request.amount).toLocaleString()}
                       </div>
                     </td>
@@ -331,7 +331,7 @@ export default function PaymentApprovalQueue({
                       <StatusBadge status={request.status} />
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         {request.requested_at
                           ? formatDistanceToNow(new Date(request.requested_at), {
@@ -339,7 +339,7 @@ export default function PaymentApprovalQueue({
                             })
                           : '-'}
                       </div>
-                      <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                      <div className="text-xs text-muted-foreground/60 flex items-center gap-1 mt-0.5">
                         <User className="h-3 w-3" />
                         {request.requested_by?.name || 'Unknown'}
                       </div>
@@ -355,7 +355,7 @@ export default function PaymentApprovalQueue({
                               }}
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/5"
                             >
                               <ThumbsDown className="h-3 w-3" />
                             </Button>
@@ -365,7 +365,7 @@ export default function PaymentApprovalQueue({
                                 setShowApproveDialog(true);
                               }}
                               size="sm"
-                              className="h-7 px-2 bg-green-500 hover:bg-green-600 text-white"
+                              className="h-7 px-2 bg-primary/50 hover:bg-primary/80 text-white"
                             >
                               <ThumbsUp className="h-3 w-3" />
                             </Button>
@@ -383,13 +383,13 @@ export default function PaymentApprovalQueue({
                           </Button>
                         )}
                         {request.status === 'completed' && (
-                          <span className="text-xs text-green-600 flex items-center gap-1">
+                          <span className="text-xs text-primary flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Paid
                           </span>
                         )}
                         {request.status === 'failed' && (
-                          <span className="text-xs text-red-600 flex items-center gap-1">
+                          <span className="text-xs text-destructive flex items-center gap-1">
                             <XCircle className="h-3 w-3" />
                             Failed
                           </span>
@@ -409,7 +409,7 @@ export default function PaymentApprovalQueue({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-primary" />
               Approve Payment
             </DialogTitle>
             <DialogDescription>
@@ -418,21 +418,21 @@ export default function PaymentApprovalQueue({
           </DialogHeader>
 
           <div className="py-4">
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="bg-muted rounded-lg p-4 mb-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Amount</span>
-                <span className="text-xl font-bold text-gray-900">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="text-xl font-bold text-foreground">
                   {selectedRequest?.currency}{' '}
                   {parseFloat(selectedRequest?.amount || '0').toLocaleString()}
                 </span>
               </div>
-              <div className="text-sm text-gray-500 mt-2">
+              <div className="text-sm text-muted-foreground mt-2">
                 {selectedRequest?.expense.description}
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Notes (Optional)</label>
+              <label className="text-sm font-medium text-foreground">Notes (Optional)</label>
               <Input
                 placeholder="Add approval notes..."
                 value={approvalNotes}
@@ -452,7 +452,7 @@ export default function PaymentApprovalQueue({
               Cancel
             </Button>
             <Button
-              className="bg-[#49a034] hover:bg-[#3d8a2b] text-white"
+              className="bg-primary hover:bg-primary/80 text-white"
               onClick={handleApprove}
               disabled={isApproving}
             >
@@ -467,7 +467,7 @@ export default function PaymentApprovalQueue({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-600" />
+              <XCircle className="h-5 w-5 text-destructive" />
               Reject Payment
             </DialogTitle>
             <DialogDescription>
@@ -476,10 +476,10 @@ export default function PaymentApprovalQueue({
           </DialogHeader>
 
           <div className="py-4">
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="bg-muted rounded-lg p-4 mb-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Amount</span>
-                <span className="text-xl font-bold text-gray-900">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="text-xl font-bold text-foreground">
                   {selectedRequest?.currency}{' '}
                   {parseFloat(selectedRequest?.amount || '0').toLocaleString()}
                 </span>
@@ -487,8 +487,8 @@ export default function PaymentApprovalQueue({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Rejection Reason <span className="text-red-500">*</span>
+              <label className="text-sm font-medium text-foreground">
+                Rejection Reason <span className="text-destructive">*</span>
               </label>
               <Input
                 placeholder="Enter reason for rejection..."
@@ -497,7 +497,7 @@ export default function PaymentApprovalQueue({
                 required
               />
               {!rejectReason.trim() && (
-                <p className="text-xs text-red-500 flex items-center gap-1">
+                <p className="text-xs text-destructive flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
                   Rejection reason is required
                 </p>

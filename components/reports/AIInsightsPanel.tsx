@@ -36,10 +36,10 @@ const INSIGHT_ICONS = {
 };
 
 const PRIORITY_COLORS = {
-  low: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' },
-  medium: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  high: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
-  critical: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  low: { bg: 'bg-muted', text: 'text-foreground', border: 'border-border' },
+  medium: { bg: 'bg-[#6B8FB8]/10', text: 'text-[#6B8FB8]', border: 'border-[#6B8FB8]/20' },
+  high: { bg: 'bg-[#D4B35A]/10', text: 'text-[#D4B35A]', border: 'border-[#D4B35A]/20' },
+  critical: { bg: 'bg-destructive/5', text: 'text-destructive', border: 'border-destructive/20' },
 };
 
 const INSIGHT_TYPE_LABELS = {
@@ -87,13 +87,13 @@ export default function AIInsightsPanel({
   }
 
   return (
-    <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-white">
+    <Card className="border-[#8B7BB8]/20 bg-gradient-to-r from-[#8B7BB8]/10 to-card">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
-            <CardTitle className="text-base text-purple-900">AI Insights</CardTitle>
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+            <Sparkles className="h-5 w-5 text-[#8B7BB8]" />
+            <CardTitle className="text-base text-[#8B7BB8]">AI Insights</CardTitle>
+            <span className="text-xs bg-[#8B7BB8]/10 text-[#8B7BB8] px-2 py-0.5 rounded-full">
               {visibleInsights.length} new
             </span>
           </div>
@@ -101,7 +101,7 @@ export default function AIInsightsPanel({
             variant="ghost"
             size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="text-purple-600 hover:text-purple-800"
+            className="text-[#8B7BB8] hover:text-[#7A6BA8]"
           >
             {expanded ? (
               <>
@@ -142,24 +142,24 @@ export default function AIInsightsPanel({
                             {typeLabel}
                           </span>
                           {insight.priority === 'high' || insight.priority === 'critical' ? (
-                            <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                            <span className="text-xs bg-destructive/10 text-destructive px-1.5 py-0.5 rounded">
                               {insight.priority}
                             </span>
                           ) : null}
                         </div>
-                        <h4 className="font-medium text-gray-900 mb-1">
+                        <h4 className="font-medium text-foreground mb-1">
                           {insight.title}
                         </h4>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           {insight.description}
                         </p>
                         {insight.metric && (
-                          <div className="text-sm font-medium text-gray-700 mb-2">
+                          <div className="text-sm font-medium text-foreground mb-2">
                             Metric: {insight.metric}
                           </div>
                         )}
                         {insight.suggestion && (
-                          <div className="text-sm text-purple-700 bg-purple-50 p-2 rounded">
+                          <div className="text-sm text-[#8B7BB8] bg-[#8B7BB8]/10 p-2 rounded">
                             <Lightbulb className="h-3 w-3 inline mr-1" />
                             {insight.suggestion}
                           </div>
@@ -170,7 +170,7 @@ export default function AIInsightsPanel({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDismiss(insight.id)}
-                      className="text-gray-400 hover:text-gray-600 -mt-1 -mr-1"
+                      className="text-muted-foreground/60 hover:text-muted-foreground -mt-1 -mr-1"
                     >
                       <X className="h-4 w-4" />
                     </Button>

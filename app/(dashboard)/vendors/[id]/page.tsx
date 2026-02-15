@@ -62,22 +62,22 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/60" />
       </div>
     );
   }
 
   if (error || !contact) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200">
+      <div className="min-h-screen bg-muted">
+        <div className="bg-card border-b border-border">
           <div className="max-w-4xl mx-auto px-6 py-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.back()}
-              className="h-9 text-gray-600 hover:text-gray-900"
+              className="h-9 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -85,10 +85,10 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
           </div>
         </div>
         <div className="max-w-4xl mx-auto px-6 py-12">
-          <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-            <AlertCircle className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Error loading contact details</p>
-            <p className="text-xs text-gray-400 mt-1">Please try again</p>
+          <div className="bg-card rounded-lg border border-border text-center py-12">
+            <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Error loading contact details</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Please try again</p>
           </div>
         </div>
       </div>
@@ -98,14 +98,14 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   const getTypeBadge = () => {
     if (contact.is_supplier && contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#49a034]/10 text-[#49a034]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
           Both
         </span>
       );
     }
     if (contact.is_supplier) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Package className="h-3 w-3" />
           Supplier
         </span>
@@ -113,7 +113,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
     }
     if (contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <ShoppingCart className="h-3 w-3" />
           Customer
         </span>
@@ -125,23 +125,23 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   const getStatusBadge = () => {
     if (contact.contact_status === 'ACTIVE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <CheckCircle className="h-3 w-3" />
           Active
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
         {contact.contact_status}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -149,13 +149,13 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.back()}
-                className="h-9 text-gray-600 hover:text-gray-900"
+                className="h-9 text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <div className="h-6 w-px bg-gray-200" />
-              <h1 className="text-lg font-semibold text-gray-900">Contact Details</h1>
+              <div className="h-6 w-px bg-border" />
+              <h1 className="text-lg font-semibold text-foreground">Contact Details</h1>
             </div>
             <Button
               variant="outline"
@@ -180,37 +180,37 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
       <div className="max-w-4xl mx-auto px-6 py-6">
         <div className="space-y-6">
           {/* Contact Header Card */}
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-card rounded-lg border border-border">
             <div className="px-6 py-5">
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-lg">
+                <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-semibold text-lg">
                   {getContactInitials(contact.name)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h2 className="text-xl font-semibold text-gray-900">{contact.name}</h2>
+                    <h2 className="text-xl font-semibold text-foreground">{contact.name}</h2>
                     {getTypeBadge()}
                     {getStatusBadge()}
                   </div>
                   {contact.organization_name && (
-                    <p className="text-sm text-gray-500 mt-1">{contact.organization_name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{contact.organization_name}</p>
                   )}
                   <div className="flex items-center gap-4 mt-3 text-sm">
                     {contact.email_address && (
                       <a
                         href={`mailto:${contact.email_address}`}
-                        className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
                       >
-                        <Mail className="h-4 w-4 text-gray-400" />
+                        <Mail className="h-4 w-4 text-muted-foreground/60" />
                         {contact.email_address}
                       </a>
                     )}
                     {contact.primary_phone && (
                       <a
                         href={`tel:${contact.primary_phone}`}
-                        className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
                       >
-                        <Phone className="h-4 w-4 text-gray-400" />
+                        <Phone className="h-4 w-4 text-muted-foreground/60" />
                         {contact.primary_phone}
                       </a>
                     )}
@@ -222,23 +222,23 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Contact Information */}
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-100">
+            <div className="bg-card rounded-lg border border-border">
+              <div className="px-6 py-4 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-400" />
-                  <h3 className="text-sm font-medium text-gray-900">Contact Information</h3>
+                  <User className="h-4 w-4 text-muted-foreground/60" />
+                  <h3 className="text-sm font-medium text-foreground">Contact Information</h3>
                 </div>
               </div>
               <div className="px-6 py-4 space-y-4">
                 {/* Email */}
                 {contact.email_address && (
                   <div className="flex items-start gap-3">
-                    <Mail className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Mail className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500">Email</p>
+                      <p className="text-xs text-muted-foreground">Email</p>
                       <a
                         href={`mailto:${contact.email_address}`}
-                        className="text-sm text-gray-900 hover:text-[#49a034] truncate block"
+                        className="text-sm text-foreground hover:text-primary truncate block"
                       >
                         {contact.email_address}
                       </a>
@@ -249,12 +249,12 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                 {/* Primary Phone */}
                 {contact.primary_phone && (
                   <div className="flex items-start gap-3">
-                    <Phone className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Phone className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500">Primary Phone</p>
+                      <p className="text-xs text-muted-foreground">Primary Phone</p>
                       <a
                         href={`tel:${contact.primary_phone}`}
-                        className="text-sm text-gray-900 hover:text-[#49a034]"
+                        className="text-sm text-foreground hover:text-primary"
                       >
                         {contact.primary_phone}
                       </a>
@@ -265,18 +265,18 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                 {/* Additional Phones */}
                 {contact.phones && contact.phones.length > 0 && (
                   <div className="flex items-start gap-3">
-                    <Phone className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Phone className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500">Additional Phones</p>
+                      <p className="text-xs text-muted-foreground">Additional Phones</p>
                       <div className="space-y-1 mt-1">
                         {contact.phones.map((phone, idx) => (
                           <div key={idx} className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">
                               {phone.phone_type}
                             </span>
                             <a
                               href={`tel:${phone.phone_number}`}
-                              className="text-sm text-gray-900 hover:text-[#49a034]"
+                              className="text-sm text-foreground hover:text-primary"
                             >
                               {phone.phone_number}
                             </a>
@@ -290,20 +290,20 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                 {/* Organization */}
                 {contact.organization_name && (
                   <div className="flex items-start gap-3">
-                    <Building2 className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Building2 className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500">Organization</p>
-                      <p className="text-sm text-gray-900">{contact.organization_name}</p>
+                      <p className="text-xs text-muted-foreground">Organization</p>
+                      <p className="text-sm text-foreground">{contact.organization_name}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Created Date */}
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
+                  <Calendar className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500">Created</p>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-xs text-muted-foreground">Created</p>
+                    <p className="text-sm text-foreground">
                       {new Date(contact.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
@@ -316,10 +316,10 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                 {/* Last Updated */}
                 {contact.updated_utc && (
                   <div className="flex items-start gap-3">
-                    <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Calendar className="h-4 w-4 text-muted-foreground/60 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500">Last Updated</p>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-xs text-muted-foreground">Last Updated</p>
+                      <p className="text-sm text-foreground">
                         {new Date(contact.updated_utc).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -332,45 +332,45 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
 
                 {/* No contact info */}
                 {!contact.email_address && !contact.primary_phone && (!contact.phones || contact.phones.length === 0) && (
-                  <p className="text-sm text-gray-400">No contact information available</p>
+                  <p className="text-sm text-muted-foreground/60">No contact information available</p>
                 )}
               </div>
             </div>
 
             {/* Payment Details */}
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-100">
+            <div className="bg-card rounded-lg border border-border">
+              <div className="px-6 py-4 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-gray-400" />
-                  <h3 className="text-sm font-medium text-gray-900">Payment Details</h3>
+                  <CreditCard className="h-4 w-4 text-muted-foreground/60" />
+                  <h3 className="text-sm font-medium text-foreground">Payment Details</h3>
                 </div>
               </div>
               <div className="px-6 py-4 space-y-4">
                 {loadingPayment ? (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
                   </div>
                 ) : paymentDetails ? (
                   <>
                     {/* Bank Account Name */}
                     {paymentDetails.bank_account_name && (
                       <div>
-                        <p className="text-xs text-gray-500">Bank Account Name</p>
-                        <p className="text-sm text-gray-900 mt-0.5">{paymentDetails.bank_account_name}</p>
+                        <p className="text-xs text-muted-foreground">Bank Account Name</p>
+                        <p className="text-sm text-foreground mt-0.5">{paymentDetails.bank_account_name}</p>
                       </div>
                     )}
 
                     {/* Bank Account Number */}
                     {paymentDetails.bank_account_number && (
                       <div>
-                        <p className="text-xs text-gray-500">Bank Account Number</p>
+                        <p className="text-xs text-muted-foreground">Bank Account Number</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <code className="text-sm text-gray-900 font-mono bg-gray-50 px-2 py-0.5 rounded">
+                          <code className="text-sm text-foreground font-mono bg-muted px-2 py-0.5 rounded">
                             {paymentDetails.bank_account_number}
                           </code>
                           <button
                             onClick={() => copyToClipboard(paymentDetails.bank_account_number || '', 'Account number')}
-                            className="text-gray-400 hover:text-gray-600"
+                            className="text-muted-foreground/60 hover:text-muted-foreground"
                           >
                             <Copy className="h-3.5 w-3.5" />
                           </button>
@@ -381,8 +381,8 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                     {/* Bank Account Details */}
                     {paymentDetails.bank_account_details && (
                       <div>
-                        <p className="text-xs text-gray-500">Bank Details</p>
-                        <p className="text-sm text-gray-900 mt-0.5 whitespace-pre-wrap">
+                        <p className="text-xs text-muted-foreground">Bank Details</p>
+                        <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">
                           {paymentDetails.bank_account_details}
                         </p>
                       </div>
@@ -392,16 +392,16 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                     <div className="flex gap-4">
                       {paymentDetails.accounts_payable_tax_type && (
                         <div>
-                          <p className="text-xs text-gray-500">Tax Type</p>
-                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                          <p className="text-xs text-muted-foreground">Tax Type</p>
+                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
                             {paymentDetails.accounts_payable_tax_type}
                           </span>
                         </div>
                       )}
                       {paymentDetails.default_currency && (
                         <div>
-                          <p className="text-xs text-gray-500">Currency</p>
-                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                          <p className="text-xs text-muted-foreground">Currency</p>
+                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
                             {paymentDetails.default_currency}
                           </span>
                         </div>
@@ -412,27 +412,27 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                     {!paymentDetails.bank_account_details &&
                      !paymentDetails.bank_account_number &&
                      !paymentDetails.bank_account_name && (
-                      <div className="rounded-lg bg-amber-50 border border-amber-100 px-4 py-3">
-                        <p className="text-sm text-amber-800">
+                      <div className="rounded-lg bg-[#D4B35A]/10 border border-[#D4B35A]/20 px-4 py-3">
+                        <p className="text-sm text-[#D4B35A]">
                           No bank account details found. Import contacts CSV from Xero to update.
                         </p>
                       </div>
                     )}
                   </>
                 ) : (
-                  <p className="text-sm text-gray-400">No payment details available</p>
+                  <p className="text-sm text-muted-foreground/60">No payment details available</p>
                 )}
 
                 {/* ERP Contact ID */}
-                <div className="pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">Xero Contact ID</p>
+                <div className="pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground">Xero Contact ID</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded font-mono truncate flex-1">
+                    <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded font-mono truncate flex-1">
                       {contact.contact_id}
                     </code>
                     <button
                       onClick={() => copyToClipboard(contact.contact_id, 'Contact ID')}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-muted-foreground/60 hover:text-muted-foreground"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </button>

@@ -57,7 +57,7 @@ export default function BankingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Import"
         subtitle="Import and manage bank statements"
@@ -68,7 +68,7 @@ export default function BankingPage() {
       />
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex gap-1">
             {tabs.map((tab) => {
@@ -79,8 +79,8 @@ export default function BankingPage() {
                   onClick={() => setActiveTab(tab.value)}
                   className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors btn-press ${
                     activeTab === tab.value
-                      ? 'border-[#49a034] text-[#49a034]'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <Icon className="h-4 w-4" />

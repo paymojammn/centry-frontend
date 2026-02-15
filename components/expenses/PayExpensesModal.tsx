@@ -187,26 +187,26 @@ export default function PayExpensesModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             Request Payment
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Summary Bar */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600">
+          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+            <div className="text-sm text-muted-foreground">
               {expenses.length} expense{expenses.length > 1 ? 's' : ''}
               {hasPartialPayments && <span className="text-amber-600 ml-1">(partial)</span>}
             </div>
-            <div className="text-lg font-bold text-gray-900">
+            <div className="text-lg font-bold text-foreground">
               {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
           </div>
 
           {/* Payment Method Selector */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
+            <Label className="text-sm font-medium text-foreground">Payment Method</Label>
             <div className="grid grid-cols-3 gap-2">
               {methodOptions.map((opt) => (
                 <button
@@ -215,8 +215,8 @@ export default function PayExpensesModal({
                   onClick={() => setPaymentMethod(opt.value as PaymentRequestMethod)}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     paymentMethod === opt.value
-                      ? 'bg-[#49a034] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-primary text-white'
+                      : 'bg-muted text-foreground hover:bg-muted'
                   }`}
                 >
                   <opt.icon className="h-4 w-4" />
@@ -229,9 +229,9 @@ export default function PayExpensesModal({
           {/* Wallet Selection */}
           {paymentMethod === 'wallet' && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Select Wallet</Label>
+              <Label className="text-sm font-medium text-foreground">Select Wallet</Label>
               {walletsLoading ? (
-                <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                <div className="p-3 text-center text-sm text-muted-foreground">Loading...</div>
               ) : departmentWallets.length === 0 ? (
                 <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
                   <AlertCircle className="h-4 w-4" />
@@ -242,7 +242,7 @@ export default function PayExpensesModal({
                   <select
                     value={selectedWalletId}
                     onChange={(e) => setSelectedWalletId(e.target.value)}
-                    className="w-full h-9 px-3 rounded-lg bg-white text-gray-900 text-sm border border-gray-200 focus:border-[#49a034] focus:ring-1 focus:ring-[#49a034]"
+                    className="w-full h-9 px-3 rounded-lg bg-card text-foreground text-sm border border-border focus:border-primary focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Choose wallet...</option>
                     {departmentWallets.map((wallet: any) => (
@@ -252,7 +252,7 @@ export default function PayExpensesModal({
                     ))}
                   </select>
                   {selectedWallet && !hasSufficientBalance && (
-                    <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg text-xs text-red-700">
+                    <div className="flex items-center gap-2 p-2 bg-destructive/5 rounded-lg text-xs text-destructive">
                       <AlertCircle className="h-3.5 w-3.5" />
                       Insufficient balance (need {currency} {(totalAmount - parseFloat(selectedWallet.balance)).toLocaleString()} more)
                     </div>
@@ -265,13 +265,13 @@ export default function PayExpensesModal({
           {/* Mobile Money Fields */}
           {paymentMethod === 'mobile_money' && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
+              <Label className="text-sm font-medium text-foreground">Phone Number</Label>
               <Input
                 type="tel"
                 placeholder="e.g., 0700000000"
                 value={destinationPhone}
                 onChange={(e) => setDestinationPhone(e.target.value)}
-                className="h-9 border-gray-200 focus:border-[#49a034]"
+                className="h-9 border-border focus:border-primary"
               />
             </div>
           )}
@@ -280,31 +280,31 @@ export default function PayExpensesModal({
           {paymentMethod === 'bank' && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-gray-700">Bank Name</Label>
+                <Label className="text-sm font-medium text-foreground">Bank Name</Label>
                 <Input
                   placeholder="e.g., Stanbic Bank"
                   value={destinationBankName}
                   onChange={(e) => setDestinationBankName(e.target.value)}
-                  className="h-9 border-gray-200 focus:border-[#49a034]"
+                  className="h-9 border-border focus:border-primary"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-sm font-medium text-gray-700">Account Name</Label>
+                  <Label className="text-sm font-medium text-foreground">Account Name</Label>
                   <Input
                     placeholder="John Doe"
                     value={destinationAccountName}
                     onChange={(e) => setDestinationAccountName(e.target.value)}
-                    className="h-9 border-gray-200 focus:border-[#49a034]"
+                    className="h-9 border-border focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sm font-medium text-gray-700">Account Number</Label>
+                  <Label className="text-sm font-medium text-foreground">Account Number</Label>
                   <Input
                     placeholder="1234567890"
                     value={destinationAccountNumber}
                     onChange={(e) => setDestinationAccountNumber(e.target.value)}
-                    className="h-9 border-gray-200 focus:border-[#49a034]"
+                    className="h-9 border-border focus:border-primary"
                   />
                 </div>
               </div>
@@ -314,23 +314,23 @@ export default function PayExpensesModal({
           {/* Optional Phone for Wallet Disbursement */}
           {paymentMethod === 'wallet' && selectedWalletId && (
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Recipient Phone (optional)</Label>
+              <Label className="text-sm font-medium text-foreground">Recipient Phone (optional)</Label>
               <Input
                 type="tel"
                 placeholder="For mobile money disbursement"
                 value={destinationPhone}
                 onChange={(e) => setDestinationPhone(e.target.value)}
-                className="h-9 border-gray-200 focus:border-[#49a034]"
+                className="h-9 border-border focus:border-primary"
               />
             </div>
           )}
 
           {/* Expenses List (Collapsible) */}
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => setShowAmountEditor(!showAmountEditor)}
-              className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 text-sm text-gray-700 hover:bg-gray-100"
+              className="w-full flex items-center justify-between px-3 py-2 bg-muted text-sm text-foreground hover:bg-muted"
             >
               <span>
                 {expenses.length} expense{expenses.length > 1 ? 's' : ''}
@@ -340,30 +340,30 @@ export default function PayExpensesModal({
             </button>
 
             {showAmountEditor && (
-              <div className="max-h-48 overflow-y-auto divide-y divide-gray-100">
+              <div className="max-h-48 overflow-y-auto divide-y divide-border">
                 {expenses.map((expense) => {
                   const payableAmount = getPayableAmount(expense);
                   const isPartial = expense.payment_status === 'partial';
                   const customAmount = customAmounts[expense.id] || '';
 
                   return (
-                    <div key={expense.id} className="px-3 py-2 bg-white">
+                    <div key={expense.id} className="px-3 py-2 bg-card">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{expense.employee_name}</p>
-                          <p className="text-xs text-gray-500 truncate">{expense.description}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{expense.employee_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{expense.description}</p>
                         </div>
                         <div className="ml-3 text-right">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-foreground">
                             {currency} {payableAmount.toLocaleString()}
                           </p>
                           {isPartial && <span className="text-xs text-amber-600">remaining</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">Pay:</span>
+                        <span className="text-xs text-muted-foreground">Pay:</span>
                         <div className="relative flex-1">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{currency}</span>
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/60">{currency}</span>
                           <Input
                             type="number"
                             placeholder={payableAmount.toString()}
@@ -372,7 +372,7 @@ export default function PayExpensesModal({
                             max={payableAmount}
                             min={0}
                             step="0.01"
-                            className="h-7 pl-10 text-xs border-gray-200 focus:border-[#49a034]"
+                            className="h-7 pl-10 text-xs border-border focus:border-primary"
                           />
                         </div>
                         {customAmount && parseFloat(customAmount) < payableAmount && (
@@ -388,12 +388,12 @@ export default function PayExpensesModal({
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-gray-700">Notes (optional)</Label>
+            <Label className="text-sm font-medium text-foreground">Notes (optional)</Label>
             <Input
               placeholder="Add a note for the approver..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="h-9 border-gray-200 focus:border-[#49a034]"
+              className="h-9 border-border focus:border-primary"
             />
           </div>
 
@@ -405,7 +405,7 @@ export default function PayExpensesModal({
             <Button
               type="submit"
               disabled={isPending || (paymentMethod === 'wallet' && (!selectedWalletId || !hasSufficientBalance))}
-              className="flex-1 h-9 bg-[#49a034] hover:bg-[#3d8a2b] text-white"
+              className="flex-1 h-9 bg-primary hover:bg-primary/80 text-white"
             >
               {isPending ? 'Submitting...' : `Pay ${currency} ${totalAmount.toLocaleString()}`}
             </Button>

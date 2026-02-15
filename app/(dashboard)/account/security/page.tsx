@@ -209,10 +209,10 @@ export default function SecurityPage() {
 
   const getSeverityBadge = (severity: string) => {
     const styles = {
-      info: "bg-blue-100 text-blue-800",
-      warning: "bg-yellow-100 text-yellow-800",
-      error: "bg-red-100 text-red-800",
-      critical: "bg-purple-100 text-purple-800",
+      info: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+      warning: "bg-[#D4B35A]/10 text-[#D4B35A]",
+      error: "bg-destructive/10 text-destructive",
+      critical: "bg-[#8B7BB8]/10 text-[#8B7BB8]",
     };
     return styles[severity as keyof typeof styles] || styles.info;
   };
@@ -220,36 +220,36 @@ export default function SecurityPage() {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case "critical":
-        return <AlertTriangle className="h-4 w-4 text-purple-600" />;
+        return <AlertTriangle className="h-4 w-4 text-[#8B7BB8]" />;
       case "error":
-        return <XCircle className="h-4 w-4 text-red-600" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangle className="h-4 w-4 text-[#D4B35A]" />;
       default:
-        return <CheckCircle2 className="h-4 w-4 text-blue-600" />;
+        return <CheckCircle2 className="h-4 w-4 text-[#6B8FB8]" />;
     }
   };
 
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType) {
       case "mobile":
-        return <Smartphone className="h-5 w-5 text-gray-500" />;
+        return <Smartphone className="h-5 w-5 text-muted-foreground" />;
       case "tablet":
-        return <Tablet className="h-5 w-5 text-gray-500" />;
+        return <Tablet className="h-5 w-5 text-muted-foreground" />;
       case "desktop":
-        return <Monitor className="h-5 w-5 text-gray-500" />;
+        return <Monitor className="h-5 w-5 text-muted-foreground" />;
       default:
-        return <Laptop className="h-5 w-5 text-gray-500" />;
+        return <Laptop className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
   const getAuthMethodBadge = (method: string) => {
     const styles: Record<string, string> = {
-      password: "bg-gray-100 text-gray-700",
-      "2fa_otp": "bg-blue-100 text-blue-700",
-      "2fa_totp": "bg-green-100 text-green-700",
-      "2fa_backup": "bg-amber-100 text-amber-700",
-      xero: "bg-cyan-100 text-cyan-700",
+      password: "bg-muted text-foreground",
+      "2fa_otp": "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+      "2fa_totp": "bg-primary/10 text-primary",
+      "2fa_backup": "bg-[#D4B35A]/10 text-[#D4B35A]",
+      xero: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
     };
     const labels: Record<string, string> = {
       password: "Password",
@@ -267,18 +267,18 @@ export default function SecurityPage() {
   const otherSessions = sessions.filter(s => !s.is_current);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
+      <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#49a034]/10 rounded-lg">
-                <Shield className="h-6 w-6 text-[#49a034]" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Shield className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Security</h1>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <h1 className="text-xl font-semibold text-foreground">Security</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   Manage your account security and monitor activity
                 </p>
               </div>
@@ -291,16 +291,16 @@ export default function SecurityPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-md grid-cols-3 bg-white rounded-xl border border-gray-200/80 shadow-sm p-1">
-          <TabsTrigger value="sessions" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
+        <TabsList className="grid w-full max-w-md grid-cols-3 bg-card rounded-xl border border-border/80 shadow-sm p-1">
+          <TabsTrigger value="sessions" className="flex items-center gap-2 btn-press data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
             <Monitor className="h-4 w-4" />
             Sessions
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
+          <TabsTrigger value="history" className="flex items-center gap-2 btn-press data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
             <History className="h-4 w-4" />
             Login History
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-2 btn-press data-[state=active]:bg-[#49a034] data-[state=active]:text-white rounded-lg">
+          <TabsTrigger value="audit" className="flex items-center gap-2 btn-press data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
             <FileText className="h-4 w-4" />
             Audit Log
           </TabsTrigger>
@@ -310,16 +310,16 @@ export default function SecurityPage() {
         <TabsContent value="sessions" className="space-y-6 mt-6">
           {/* Current Session */}
           {sessions.filter(s => s.is_current).map(session => (
-            <Card key={session.id} className="p-6 border-[#49a034]/20 bg-[#49a034]/5 rounded-xl shadow-sm">
+            <Card key={session.id} className="p-6 border-primary/20 bg-primary/5 rounded-xl shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
                   {getDeviceIcon(session.device_type)}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">{session.device_name}</h3>
-                      <Badge className="bg-[#49a034] text-white">Current Session</Badge>
+                      <h3 className="font-semibold text-foreground">{session.device_name}</h3>
+                      <Badge className="bg-primary text-white">Current Session</Badge>
                     </div>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         {session.ip_address} {session.location && `- ${session.location}`}
@@ -335,18 +335,18 @@ export default function SecurityPage() {
           ))}
 
           {/* Other Sessions */}
-          <Card className="border-gray-200/80 rounded-xl shadow-sm">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <Card className="border-border/80 rounded-xl shadow-sm">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Other Active Sessions</h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <h2 className="text-lg font-semibold text-foreground">Other Active Sessions</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   Devices that are currently signed in to your account
                 </p>
               </div>
               {otherSessions.length > 0 && (
                 <Button
                   variant="outline"
-                  className="text-red-600 border-red-200 hover:bg-red-50 btn-press"
+                  className="text-destructive border-destructive/20 hover:bg-destructive/5 btn-press"
                   onClick={() => setShowRevokeAllDialog(true)}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -357,26 +357,26 @@ export default function SecurityPage() {
 
             {sessionsLoading ? (
               <div className="p-8 text-center">
-                <div className="animate-spin h-5 w-5 border-2 border-[#49a034] border-t-transparent rounded-full mx-auto" />
-                <p className="text-gray-500 mt-2">Loading sessions...</p>
+                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+                <p className="text-muted-foreground mt-2">Loading sessions...</p>
               </div>
             ) : otherSessions.length === 0 ? (
               <div className="p-8 text-center">
-                <Monitor className="h-12 w-12 text-gray-300 mx-auto" />
-                <p className="text-gray-500 mt-2">No other active sessions</p>
+                <Monitor className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                <p className="text-muted-foreground mt-2">No other active sessions</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100 animate-stagger">
+              <div className="divide-y divide-border animate-stagger">
                 {otherSessions.map(session => (
                   <div key={session.id} className="p-4 flex items-center justify-between row-interactive">
                     <div className="flex items-center gap-4">
                       {getDeviceIcon(session.device_type)}
                       <div>
-                        <p className="font-medium text-gray-900">{session.device_name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-medium text-foreground">{session.device_name}</p>
+                        <p className="text-sm text-muted-foreground">
                           {session.ip_address} {session.location && `- ${session.location}`}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground/60 mt-1">
                           Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
                         </p>
                       </div>
@@ -384,7 +384,7 @@ export default function SecurityPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/5"
                       onClick={() => setSessionToRevoke(session)}
                     >
                       Sign out
@@ -398,13 +398,13 @@ export default function SecurityPage() {
 
         {/* Login History Tab */}
         <TabsContent value="history" className="space-y-6 mt-6">
-          <Card className="border-gray-200/80 rounded-xl shadow-sm">
-            <div className="p-6 border-b border-gray-100">
+          <Card className="border-border/80 rounded-xl shadow-sm">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center gap-2">
-                <History className="h-5 w-5 text-[#49a034]" />
-                <h2 className="text-lg font-semibold text-gray-900">Recent Login Activity</h2>
+                <History className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Recent Login Activity</h2>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 A log of all sign-in attempts to your account
               </p>
             </div>
@@ -425,7 +425,7 @@ export default function SecurityPage() {
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin h-5 w-5 border-2 border-[#49a034] border-t-transparent rounded-full" />
+                          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
                           Loading...
                         </div>
                       </TableCell>
@@ -433,8 +433,8 @@ export default function SecurityPage() {
                   ) : loginHistory.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8">
-                        <History className="h-12 w-12 text-gray-300 mx-auto" />
-                        <p className="text-gray-500 mt-2">No login history yet</p>
+                        <History className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                        <p className="text-muted-foreground mt-2">No login history yet</p>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -444,10 +444,10 @@ export default function SecurityPage() {
                         <TableRow key={item.id} className="row-interactive">
                           <TableCell>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-foreground">
                                 {format(new Date(item.timestamp), "MMM dd, yyyy")}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-muted-foreground">
                                 {format(new Date(item.timestamp), "HH:mm:ss")}
                               </p>
                             </div>
@@ -455,12 +455,12 @@ export default function SecurityPage() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {getDeviceIcon(item.device_type)}
-                              <span className="text-gray-700">{item.device_name}</span>
+                              <span className="text-foreground">{item.device_name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-gray-400" />
+                              <MapPin className="h-4 w-4 text-muted-foreground/60" />
                               <span className="font-mono text-sm">{item.ip_address}</span>
                             </div>
                           </TableCell>
@@ -471,12 +471,12 @@ export default function SecurityPage() {
                           </TableCell>
                           <TableCell>
                             {item.success ? (
-                              <div className="flex items-center gap-2 text-green-600">
+                              <div className="flex items-center gap-2 text-primary">
                                 <CheckCircle2 className="h-4 w-4" />
                                 <span>Success</span>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 text-red-600">
+                              <div className="flex items-center gap-2 text-destructive">
                                 <XCircle className="h-4 w-4" />
                                 <span title={item.failure_reason}>Failed</span>
                               </div>
@@ -496,74 +496,74 @@ export default function SecurityPage() {
         <TabsContent value="audit" className="space-y-6 mt-6">
           {/* Stats Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
+            <Card className="p-6 border-border/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Events</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Events</p>
                   <p className="text-2xl font-bold text-black mt-2">
                     {stats?.total_logs || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <Activity className="h-6 w-6 text-blue-600" />
+                <div className="p-3 bg-[#6B8FB8]/10 rounded-lg">
+                  <Activity className="h-6 w-6 text-[#6B8FB8]" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
+            <Card className="p-6 border-border/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Last 24h</p>
+                  <p className="text-sm font-medium text-muted-foreground">Last 24h</p>
                   <p className="text-2xl font-bold text-black mt-2">
                     {stats?.recent_count || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <Calendar className="h-6 w-6 text-green-600" />
+                <div className="p-3 bg-primary/5 rounded-lg">
+                  <Calendar className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
+            <Card className="p-6 border-border/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Errors</p>
-                  <p className="text-2xl font-bold text-red-600 mt-2">
+                  <p className="text-sm font-medium text-muted-foreground">Errors</p>
+                  <p className="text-2xl font-bold text-destructive mt-2">
                     {stats?.error_count || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-red-50 rounded-lg">
-                  <XCircle className="h-6 w-6 text-red-600" />
+                <div className="p-3 bg-destructive/5 rounded-lg">
+                  <XCircle className="h-6 w-6 text-destructive" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm card-lift">
+            <Card className="p-6 border-border/80 rounded-xl shadow-sm card-lift">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Critical</p>
-                  <p className="text-2xl font-bold text-purple-600 mt-2">
+                  <p className="text-sm font-medium text-muted-foreground">Critical</p>
+                  <p className="text-2xl font-bold text-[#8B7BB8] mt-2">
                     {stats?.critical_count || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-purple-600" />
+                <div className="p-3 bg-[#8B7BB8]/10 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-[#8B7BB8]" />
                 </div>
               </div>
             </Card>
           </div>
 
           {/* Filters */}
-          <Card className="p-6 border-gray-200/80 rounded-xl shadow-sm">
+          <Card className="p-6 border-border/80 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-[#49a034]" />
-                <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                <Filter className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Filters</h2>
               </div>
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="border-[#49a034] text-[#49a034] hover:bg-[#49a034]/10 btn-press"
+                className="border-primary text-primary hover:bg-primary/10 btn-press"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export Logs
@@ -665,15 +665,15 @@ export default function SecurityPage() {
 
           {/* Error Display */}
           {(statsError || logsError) && (
-            <Card className="border-red-200 bg-red-50 p-6">
+            <Card className="border-destructive/20 bg-destructive/5 p-6">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <AlertTriangle className="h-5 w-5 text-destructive" />
                 <div>
-                  <h3 className="font-semibold text-red-900">Error Loading Audit Logs</h3>
-                  <p className="text-sm text-red-700 mt-1">
+                  <h3 className="font-semibold text-destructive">Error Loading Audit Logs</h3>
+                  <p className="text-sm text-destructive mt-1">
                     {String(statsError || logsError)}
                   </p>
-                  <p className="text-xs text-red-600 mt-2">
+                  <p className="text-xs text-destructive mt-2">
                     Please ensure you are logged in and have the necessary permissions.
                   </p>
                 </div>
@@ -682,12 +682,12 @@ export default function SecurityPage() {
           )}
 
           {/* Audit Logs Table */}
-          <Card className="border-gray-200/80 rounded-xl shadow-sm">
-            <div className="p-6 border-b border-gray-100">
+          <Card className="border-border/80 rounded-xl shadow-sm">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-[#49a034]" />
-                <h2 className="text-lg font-semibold text-gray-900">Audit Log Entries</h2>
-                <Badge className="ml-2 bg-gray-100 text-gray-700">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Audit Log Entries</h2>
+                <Badge className="ml-2 bg-muted text-foreground">
                   {logs.length} records
                 </Badge>
               </div>
@@ -711,7 +711,7 @@ export default function SecurityPage() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin h-5 w-5 border-2 border-[#49a034] border-t-transparent rounded-full" />
+                          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
                           Loading...
                         </div>
                       </TableCell>
@@ -720,8 +720,8 @@ export default function SecurityPage() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
-                          <Eye className="h-12 w-12 text-gray-300" />
-                          <p className="text-gray-500">No audit logs found</p>
+                          <Eye className="h-12 w-12 text-muted-foreground/40" />
+                          <p className="text-muted-foreground">No audit logs found</p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -733,12 +733,12 @@ export default function SecurityPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-400" />
+                            <User className="h-4 w-4 text-muted-foreground/60" />
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-foreground">
                                 {log.user_name || "System"}
                               </p>
-                              <p className="text-xs text-gray-500">{log.user_email}</p>
+                              <p className="text-xs text-muted-foreground">{log.user_email}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -748,12 +748,12 @@ export default function SecurityPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-gray-100 text-gray-700">
+                          <Badge className="bg-muted text-foreground">
                             {log.module}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-md">
-                          <p className="text-sm text-gray-700 truncate">
+                          <p className="text-sm text-foreground truncate">
                             {log.action_description}
                           </p>
                         </TableCell>
@@ -767,9 +767,9 @@ export default function SecurityPage() {
                         </TableCell>
                         <TableCell>
                           {log.success ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-600" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                         </TableCell>
                       </TableRow>

@@ -12,7 +12,7 @@ const githubButtonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-zinc-950 hover:bg-zinc-900 text-white border-gray-700 dark:bg-zinc-50 dark:border-gray-300 dark:text-zinc-950 dark:hover:bg-zinc-50',
+          'bg-[rgb(var(--brand-dark))] hover:bg-[rgb(var(--brand-dark))]/90 text-white border-border dark:bg-muted dark:border-border dark:text-foreground dark:hover:bg-muted/90',
         outline: 'bg-background text-accent-foreground border border-input hover:bg-accent',
       },
       size: {

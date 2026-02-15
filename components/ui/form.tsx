@@ -127,6 +127,7 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
     <div
       data-slot="form-message"
       id={formMessageId}
+      role="alert"
       className={cn('-mt-0.5 text-xs font-normal text-destructive', className)}
       {...props}
     >

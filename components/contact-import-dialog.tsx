@@ -153,16 +153,16 @@ export function ContactImportDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             Import Contacts
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Format Info */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <p className="text-xs font-medium text-gray-700 mb-1">Expected CSV Format (Xero Export)</p>
-            <p className="text-xs text-gray-500">
+          <div className="bg-muted border border-border rounded-lg p-3">
+            <p className="text-xs font-medium text-foreground mb-1">Expected CSV Format (Xero Export)</p>
+            <p className="text-xs text-muted-foreground">
               ContactName, EmailAddress, BankAccountName, BankAccountNumber, PhoneNumber, MobileNumber
             </p>
           </div>
@@ -181,26 +181,26 @@ export function ContactImportDialog() {
             {!selectedFile ? (
               <label
                 htmlFor="csv-file-input"
-                className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-border hover:bg-muted transition-colors"
               >
-                <FileUp className="h-8 w-8 text-gray-300 mb-2" />
-                <span className="text-sm text-gray-600">Click to upload CSV file</span>
-                <span className="text-xs text-gray-400 mt-1">or drag and drop</span>
+                <FileUp className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                <span className="text-sm text-muted-foreground">Click to upload CSV file</span>
+                <span className="text-xs text-muted-foreground/60 mt-1">or drag and drop</span>
               </label>
             ) : (
-              <div className="flex items-center gap-3 p-3 bg-[#49a034]/5 border border-[#49a034]/20 rounded-lg">
-                <div className="w-10 h-10 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
-                  <FileSpreadsheet className="h-5 w-5 text-[#49a034]" />
+              <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FileSpreadsheet className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{selectedFile.name}</p>
-                  <p className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-sm font-medium text-foreground truncate">{selectedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024).toFixed(1)} KB</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleClearFile}
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+                  className="h-8 w-8 p-0 text-muted-foreground/60 hover:text-muted-foreground"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -210,30 +210,30 @@ export function ContactImportDialog() {
 
           {/* Import Progress */}
           {importMutation.isPending && (
-            <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+              <Loader2 className="h-5 w-5 text-primary animate-spin" />
               <div>
-                <p className="text-sm font-medium text-blue-800">Importing contacts...</p>
-                <p className="text-xs text-blue-600">This may take a moment</p>
+                <p className="text-sm font-medium text-primary">Importing contacts...</p>
+                <p className="text-xs text-primary">This may take a moment</p>
               </div>
             </div>
           )}
 
           {/* Success Result */}
           {importResult && importResult.status === 'success' && (
-            <div className="p-3 bg-green-50 border border-green-100 rounded-lg">
+            <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <p className="text-sm font-medium text-green-800">Import Successful</p>
+                <CheckCircle className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium text-primary">Import Successful</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
-                <span className="text-green-700">
+                <span className="text-primary">
                   <span className="font-medium">{importResult.created}</span> created
                 </span>
-                <span className="text-blue-700">
+                <span className="text-primary/80">
                   <span className="font-medium">{importResult.updated}</span> updated
                 </span>
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   <span className="font-medium">{importResult.skipped}</span> skipped
                 </span>
               </div>
@@ -242,12 +242,12 @@ export function ContactImportDialog() {
 
           {/* Queued Result */}
           {importResult && importResult.status === 'queued' && (
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+            <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
-                <Loader2 className="h-4 w-4 text-blue-600" />
-                <p className="text-sm font-medium text-blue-800">Processing in Background</p>
+                <Loader2 className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium text-primary">Processing in Background</p>
               </div>
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-primary">
                 Contacts will appear shortly
               </p>
             </div>
@@ -294,7 +294,7 @@ export function ContactImportDialog() {
             size="sm"
             onClick={handleImport}
             disabled={!selectedFile || importMutation.isPending}
-            className="h-9 bg-[#49a034] hover:bg-[#547568]"
+            className="h-9 bg-primary hover:bg-primary/80"
           >
             {importMutation.isPending ? (
               <>

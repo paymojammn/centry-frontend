@@ -40,20 +40,8 @@ import { StatsBar } from '@/components/layout/stats-bar';
 import { PageContainer } from '@/components/layout/page-container';
 import { LoadingState } from '@/components/layout/loading-state';
 import { EmptyState } from '@/components/layout/empty-state';
-import { STATUS_COLORS } from '@/lib/theme';
+import { STATUS_COLORS, getStatusColor } from '@/lib/theme';
 import { StatusBadge } from '@/components/layout/status-badge';
-
-// Expense status colors matching the design system
-const EXPENSE_STATUS_COLORS = {
-  pending_manager_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
-  pending_finance_approval: { bg: '#9b59b6', text: '#ffffff', light: '#F3E8F7' },
-  manager_approved: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
-  approved: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5' },
-  rejected: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
-  draft: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
-  submitted: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
-  cancelled: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
-} as const;
 
 export default function ExpensesPage() {
   const [filters, setFilters] = useState<ExpenseFilters>({ status: 'all' });
@@ -126,22 +114,22 @@ export default function ExpensesPage() {
     {
       label: 'Manager Review',
       value: stats?.pending_manager_approval || 0,
-      color: EXPENSE_STATUS_COLORS.pending_manager_approval.bg,
+      color: getStatusColor('pending_manager_approval').bg,
     },
     {
       label: 'Finance Review',
       value: stats?.pending_finance_approval || 0,
-      color: EXPENSE_STATUS_COLORS.pending_finance_approval.bg,
+      color: getStatusColor('pending_finance_approval').bg,
     },
     {
       label: 'Awaiting Receipts',
       value: stats?.awaiting_receipts || 0,
-      color: EXPENSE_STATUS_COLORS.manager_approved.bg,
+      color: getStatusColor('manager_approved').bg,
     },
     {
       label: 'Approved',
       value: stats?.approved || 0,
-      color: EXPENSE_STATUS_COLORS.approved.bg,
+      color: getStatusColor('approved').bg,
     },
     {
       label: 'Paid',
@@ -161,7 +149,7 @@ export default function ExpensesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Expenses"
         subtitle="Manage petty cash and employee reimbursements"
@@ -171,13 +159,13 @@ export default function ExpensesPage() {
         isLoadingOrgs={orgsLoading}
       >
         {/* View Toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
           <button
             onClick={() => setActiveView('expenses')}
             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
               activeView === 'expenses'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Receipt className="h-3.5 w-3.5 inline mr-1.5" />
@@ -187,14 +175,14 @@ export default function ExpensesPage() {
             onClick={() => setActiveView('payment-queue')}
             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors relative ${
               activeView === 'payment-queue'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <CreditCard className="h-3.5 w-3.5 inline mr-1.5" />
             Payment Queue
             {paymentRequestStats?.pending?.count && paymentRequestStats.pending.count > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 {paymentRequestStats.pending.count}
               </span>
             )}
@@ -205,7 +193,7 @@ export default function ExpensesPage() {
           variant="outline"
           size="sm"
           onClick={handleRefresh}
-          className="h-8 text-gray-600 hover:text-gray-900 btn-press"
+          className="h-8 text-muted-foreground hover:text-foreground btn-press"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
           Refresh
@@ -214,7 +202,7 @@ export default function ExpensesPage() {
           <Button
             size="sm"
             onClick={() => setIsCreateModalOpen(true)}
-            className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
+            className="h-8 bg-primary hover:bg-primary/90 text-white btn-press"
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             New Expense
@@ -228,8 +216,8 @@ export default function ExpensesPage() {
         {activeView === 'expenses' ? (
           <div className="space-y-4 animate-fade-in-up">
             {/* Tabs and Filters */}
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-              <div className="px-4 py-3 border-b border-gray-100">
+            <div className="bg-card rounded-xl border border-border shadow-sm">
+              <div className="px-4 py-3 border-b border-border">
                 <div className="flex items-center justify-between gap-4">
                   {/* Tabs */}
                   <div className="flex items-center gap-1">
@@ -239,8 +227,8 @@ export default function ExpensesPage() {
                         onClick={() => setFilters((prev) => ({ ...prev, status: tab.value as ExpenseStatus | 'all' }))}
                         className={`px-3 py-1.5 rounded text-sm font-medium transition-colors btn-press ${
                           filters.status === tab.value
-                            ? 'bg-[#49a034] text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-primary text-white'
+                            : 'text-muted-foreground hover:bg-muted'
                         }`}
                       >
                         {tab.label}
@@ -250,12 +238,12 @@ export default function ExpensesPage() {
 
                   {/* Search */}
                   <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                     <Input
                       placeholder="Search expenses..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-8 bg-gray-50 border-gray-200 text-sm"
+                      className="pl-9 h-8 bg-muted border-border text-sm"
                     />
                   </div>
                 </div>
@@ -264,7 +252,7 @@ export default function ExpensesPage() {
               {/* Expenses Table */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : error ? (
                 <EmptyState
@@ -281,7 +269,7 @@ export default function ExpensesPage() {
                     <Button
                       onClick={() => setIsCreateModalOpen(true)}
                       size="sm"
-                      className="bg-[#49a034] text-white hover:bg-[#3d8a2b] btn-press"
+                      className="bg-primary text-white hover:bg-primary/90 btn-press"
                     >
                       <Plus className="w-4 h-4 mr-1.5" />
                       Create Expense
@@ -319,7 +307,7 @@ export default function ExpensesPage() {
         <div className="fixed bottom-6 right-6 z-50">
           <Button
             onClick={() => setIsPayModalOpen(true)}
-            className="bg-[#49a034] hover:bg-[#547568] text-white shadow-lg px-6 py-5 text-sm rounded-lg"
+            className="bg-primary hover:bg-primary/90 text-white shadow-lg px-6 py-5 text-sm rounded-lg"
           >
             <DollarSign className="h-4 w-4 mr-2" />
             Pay {selectedExpenses.length} Expense{selectedExpenses.length > 1 ? 's' : ''}
@@ -456,7 +444,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
   };
 
   const getStatusBadge = (status: ExpenseStatus) => {
-    const colors = EXPENSE_STATUS_COLORS[status] || { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' };
+    const colors = getStatusColor(status);
     return colors;
   };
 
@@ -485,32 +473,32 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                   type="checkbox"
                   checked={selectedExpenses.length === payableExpenses.length && payableExpenses.length > 0}
                   onChange={toggleSelectAll}
-                  className="w-4 h-4 text-[#49a034] bg-gray-100 border-gray-300 rounded focus:ring-[#49a034] focus:ring-2 cursor-pointer"
+                  className="w-4 h-4 text-primary bg-muted border-border rounded focus:ring-primary focus:ring-2 cursor-pointer"
                 />
               )}
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Date
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Employee
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Category
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Description
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Amount
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Payment
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -524,7 +512,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
               <tr
                 key={expense.id}
                 className={`row-interactive ${
-                  isExpenseSelected(expense) ? 'bg-[#49a034]/5' : ''
+                  isExpenseSelected(expense) ? 'bg-primary/5' : ''
                 }`}
               >
                 <td className="px-4 py-3">
@@ -533,12 +521,12 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                       type="checkbox"
                       checked={isExpenseSelected(expense)}
                       onChange={() => toggleExpenseSelection(expense)}
-                      className="w-4 h-4 text-[#49a034] bg-gray-100 border-gray-300 rounded focus:ring-[#49a034] focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-primary bg-muted border-border rounded focus:ring-primary focus:ring-2 cursor-pointer"
                     />
                   )}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-foreground">
                     {new Date(expense.date).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -547,21 +535,21 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{expense.employee_name}</div>
-                    <div className="text-xs text-gray-500 truncate max-w-[150px]">{expense.employee_email}</div>
+                    <div className="text-sm font-medium text-foreground">{expense.employee_name}</div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[150px]">{expense.employee_email}</div>
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{categoryInfo.icon}</span>
-                    <span className="text-sm text-gray-700">{categoryInfo.label}</span>
+                    <span className="text-sm text-foreground">{categoryInfo.label}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="text-sm text-gray-900 max-w-[200px] truncate">{expense.description}</div>
+                  <div className="text-sm text-foreground max-w-[200px] truncate">{expense.description}</div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-right">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-foreground">
                     {expense.currency} {parseFloat(expense.amount).toLocaleString()}
                   </div>
                   {expense.payment_status === 'partial' && expense.remaining_amount && (
@@ -594,7 +582,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                       onClick={() => onViewExpense(expense)}
                       size="sm"
                       variant="outline"
-                      className="h-7 px-2 text-gray-600 hover:text-gray-900 border-gray-200"
+                      className="h-7 px-2 text-muted-foreground hover:text-foreground border-border"
                       title="View Details"
                     >
                       <Eye className="h-3 w-3" />
@@ -606,7 +594,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                         onClick={() => onEditExpense(expense)}
                         size="sm"
                         variant="outline"
-                        className="h-7 px-2 text-gray-600 hover:text-gray-900 border-gray-200"
+                        className="h-7 px-2 text-muted-foreground hover:text-foreground border-border"
                         title={expense.status === 'manager_approved' ? 'Upload Receipts' : 'Edit'}
                       >
                         {expense.status === 'manager_approved' ? (
@@ -624,7 +612,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                           onClick={() => handleApprove(expense.id)}
                           disabled={isApproving}
                           size="sm"
-                          className="h-7 px-2 bg-green-500 hover:bg-green-600 text-white"
+                          className="h-7 px-2 bg-primary hover:bg-primary/90 text-white"
                         >
                           <ThumbsUp className="h-3 w-3" />
                         </Button>

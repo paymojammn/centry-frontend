@@ -165,14 +165,14 @@ export function TwoFAChallenge({
       {/* Left - Branding Panel (60%) */}
       <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
+          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
         <div className="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16 2xl:p-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-card rounded-lg flex items-center justify-center">
               <span className="text-[#1c252c] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
@@ -193,23 +193,23 @@ export function TwoFAChallenge({
           {/* Footer */}
           <div className="flex items-center gap-8 text-white/40 text-sm">
             <span>Secure login</span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="w-1 h-1 rounded-full bg-card/20" />
             <span>256-bit encryption</span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="w-1 h-1 rounded-full bg-card/20" />
             <span>Protected</span>
           </div>
         </div>
       </div>
 
       {/* Right - 2FA Form (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+      <div className="w-full lg:w-[40%] flex flex-col bg-card overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
+        <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Centry</span>
+            <span className="text-lg font-semibold text-foreground">Centry</span>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export function TwoFAChallenge({
             {/* Back link */}
             <button
               onClick={onCancel}
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
             >
               <RiArrowLeftLine className="w-4 h-4" />
               Back to login
@@ -228,10 +228,10 @@ export function TwoFAChallenge({
             {!showBackupInput ? (
               <>
                 <div className="mb-8">
-                  <h2 className="text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">
+                  <h2 className="text-2xl xl:text-3xl font-semibold text-foreground mb-2">
                     Two-Factor Authentication
                   </h2>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     Enter the verification code to continue
                   </p>
                 </div>
@@ -247,7 +247,7 @@ export function TwoFAChallenge({
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
                           selectedMethod === method
                             ? 'border-[#1c252c] bg-[#1c252c]/5 text-[#1c252c]'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            : 'border-border hover:border-border text-muted-foreground'
                         }`}
                       >
                         {methodIcons[method]}
@@ -259,7 +259,7 @@ export function TwoFAChallenge({
 
                 {/* Instructions */}
                 <div className="mb-6">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {selectedMethod === 'totp'
                       ? 'Enter the 6-digit code from your authenticator app'
                       : `Enter the 6-digit code sent to your ${methodLabels[selectedMethod]?.toLowerCase()}`}
@@ -277,12 +277,12 @@ export function TwoFAChallenge({
                       disabled={isLoading}
                     >
                       <InputOTPGroup className="gap-2">
-                        <InputOTPSlot index={0} className="w-12 h-14 text-xl border-gray-200" />
-                        <InputOTPSlot index={1} className="w-12 h-14 text-xl border-gray-200" />
-                        <InputOTPSlot index={2} className="w-12 h-14 text-xl border-gray-200" />
-                        <InputOTPSlot index={3} className="w-12 h-14 text-xl border-gray-200" />
-                        <InputOTPSlot index={4} className="w-12 h-14 text-xl border-gray-200" />
-                        <InputOTPSlot index={5} className="w-12 h-14 text-xl border-gray-200" />
+                        <InputOTPSlot index={0} className="w-12 h-14 text-xl border-border" />
+                        <InputOTPSlot index={1} className="w-12 h-14 text-xl border-border" />
+                        <InputOTPSlot index={2} className="w-12 h-14 text-xl border-border" />
+                        <InputOTPSlot index={3} className="w-12 h-14 text-xl border-border" />
+                        <InputOTPSlot index={4} className="w-12 h-14 text-xl border-border" />
+                        <InputOTPSlot index={5} className="w-12 h-14 text-xl border-border" />
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
@@ -321,7 +321,7 @@ export function TwoFAChallenge({
                 <div className="mt-6 text-center">
                   <button
                     onClick={() => setShowBackupInput(true)}
-                    className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
                   >
                     <RiKey2Line className="w-4 h-4" />
                     Use a backup code instead
@@ -332,16 +332,16 @@ export function TwoFAChallenge({
               <>
                 {/* Backup Code Input */}
                 <div className="mb-8">
-                  <h2 className="text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">
+                  <h2 className="text-2xl xl:text-3xl font-semibold text-foreground mb-2">
                     Use Backup Code
                   </h2>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     Enter one of your backup codes to sign in
                   </p>
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Backup code
                   </label>
                   <input
@@ -349,10 +349,10 @@ export function TwoFAChallenge({
                     value={backupCode}
                     onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
                     placeholder="XXXX-XXXX"
-                    className="w-full h-12 px-4 border border-gray-200 rounded-lg text-center text-lg tracking-widest font-mono focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c]"
+                    className="w-full h-12 px-4 border border-border rounded-lg text-center text-lg tracking-widest font-mono focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c]"
                     disabled={isLoading}
                   />
-                  <p className="mt-2 text-xs text-gray-400">
+                  <p className="mt-2 text-xs text-muted-foreground/60">
                     Backup codes are single-use and will be removed after use
                   </p>
                 </div>
@@ -378,7 +378,7 @@ export function TwoFAChallenge({
                       setShowBackupInput(false);
                       setBackupCode('');
                     }}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="text-sm text-muted-foreground hover:text-foreground"
                   >
                     Back to verification code
                   </button>
@@ -389,8 +389,8 @@ export function TwoFAChallenge({
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="p-6 border-t border-border text-center shrink-0">
+          <p className="text-xs text-muted-foreground/60">
             Protected by 256-bit SSL encryption
           </p>
         </div>

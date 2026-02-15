@@ -118,14 +118,14 @@ export function MatchedTransactions() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black">Matched Transactions</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">Matched Transactions</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Review and sync matched transactions to your ERP
           </p>
         </div>
         {matchedTransactions.length > 0 && (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {selectedIds.length} of {matchedTransactions.length} selected
             </span>
             <Button
@@ -153,19 +153,19 @@ export function MatchedTransactions() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="p-6 border border-gray-100 rounded-lg animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div key={i} className="p-6 border border-border rounded-lg animate-pulse">
+              <div className="h-4 bg-muted rounded w-3/4 mb-3"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </div>
           ))}
         </div>
       ) : matchedTransactions.length === 0 ? (
-        <div className="text-center py-12 border border-gray-100 rounded-lg bg-gray-50">
-          <CheckCircle2 className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="text-center py-12 border border-border rounded-lg bg-muted">
+          <CheckCircle2 className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No matched transactions
           </h3>
-          <p className="text-gray-500 max-w-sm mx-auto">
+          <p className="text-muted-foreground max-w-sm mx-auto">
             Transactions you match will appear here, ready to be synced to your ERP.
           </p>
         </div>
@@ -173,12 +173,12 @@ export function MatchedTransactions() {
         <div className="space-y-3">
           {/* Select All */}
           {matchedTransactions.length > 1 && (
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-3 p-4 bg-muted rounded-lg border border-border">
               <Checkbox
                 checked={selectedIds.length === matchedTransactions.length}
                 onCheckedChange={toggleSelectAll}
               />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-foreground">
                 Select all transactions
               </span>
             </div>
@@ -196,7 +196,7 @@ export function MatchedTransactions() {
                 className={`p-6 border rounded-lg transition-all duration-200 ${
                   isSelected
                     ? "border-[#49a034] bg-[#49a034]/5 shadow-md"
-                    : "border-gray-100 hover:border-[#49a034]/30 hover:shadow-sm"
+                    : "border-border hover:border-[#49a034]/30 hover:shadow-sm"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -211,17 +211,17 @@ export function MatchedTransactions() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-black truncate">
+                        <h3 className="font-semibold text-foreground truncate">
                           {transaction.description}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           {format(new Date(transaction.transaction_date), "MMM dd, yyyy")}
                         </div>
                       </div>
                       <div
                         className={`text-lg font-bold ${
-                          isCredit ? "text-green-600" : "text-red-600"
+                          isCredit ? "text-primary" : "text-destructive"
                         }`}
                       >
                         {isCredit ? "+" : "-"}
@@ -230,17 +230,17 @@ export function MatchedTransactions() {
                     </div>
 
                     {/* Match Info */}
-                    <div className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg">
                       <div className="flex items-center gap-2 flex-1">
                         <FileText className="h-4 w-4 text-[#49a034]" />
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-foreground">
                           Matched to:
                         </span>
                         <Badge variant="outline" className="text-xs capitalize">
                           {transaction.matched_to_type}
                         </Badge>
-                        <ArrowRight className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-sm font-semibold text-black">
+                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60" />
+                        <span className="text-sm font-semibold text-foreground">
                           {transaction.matched_to_reference}
                         </span>
                       </div>
@@ -256,7 +256,7 @@ export function MatchedTransactions() {
                           size="sm"
                           onClick={() => unmatchMutation.mutate(transaction.id)}
                           disabled={unmatchMutation.isPending}
-                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          className="h-8 w-8 p-0 hover:bg-destructive/5 hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
                         </Button>

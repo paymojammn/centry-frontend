@@ -305,13 +305,13 @@ export default function TwoFactorSettingsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+      <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
         <Card className="p-6 max-w-md">
-          <div className="flex items-center gap-3 text-red-600 mb-4">
+          <div className="flex items-center gap-3 text-destructive mb-4">
             <AlertTriangle className="h-5 w-5" />
             <h2 className="font-semibold">Error Loading Settings</h2>
           </div>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Failed to load 2FA settings. Please try again.
           </p>
           <Button onClick={() => window.location.reload()} className="w-full">
@@ -326,22 +326,22 @@ export default function TwoFactorSettingsPage() {
   const enabledCount = methods.filter((m) => isMethodEnabled(m)).length;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Link
               href="/account/profile"
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
             </Link>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-foreground">
                 Two-Factor Authentication
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Add an extra layer of security to your account
               </p>
             </div>
@@ -354,26 +354,26 @@ export default function TwoFactorSettingsPage() {
         <Card
           className={`p-4 border ${
             settings?.is_2fa_enabled
-              ? "border-green-200 bg-green-50"
-              : "border-amber-200 bg-amber-50"
+              ? "border-primary/20 bg-primary/5"
+              : "border-[#D4B35A]/20 bg-[#D4B35A]/10"
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-lg ${
-                settings?.is_2fa_enabled ? "bg-green-100" : "bg-amber-100"
+                settings?.is_2fa_enabled ? "bg-primary/10" : "bg-[#D4B35A]/10"
               }`}
             >
               <Shield
                 className={`h-5 w-5 ${
-                  settings?.is_2fa_enabled ? "text-green-600" : "text-amber-600"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
                 }`}
               />
             </div>
             <div className="flex-1">
               <h3
                 className={`font-medium ${
-                  settings?.is_2fa_enabled ? "text-green-900" : "text-amber-900"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
                 }`}
               >
                 {settings?.is_2fa_enabled
@@ -382,7 +382,7 @@ export default function TwoFactorSettingsPage() {
               </h3>
               <p
                 className={`text-sm ${
-                  settings?.is_2fa_enabled ? "text-green-700" : "text-amber-700"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
                 }`}
               >
                 {settings?.is_2fa_enabled
@@ -396,7 +396,7 @@ export default function TwoFactorSettingsPage() {
 
       {/* Methods */}
       <div className="max-w-3xl mx-auto px-6 pb-6">
-        <Card className="divide-y divide-gray-100">
+        <Card className="divide-y divide-border">
           {methods.map((method) => {
             const Icon = getMethodIcon(method);
             const enabled = isMethodEnabled(method);
@@ -409,32 +409,32 @@ export default function TwoFactorSettingsPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      enabled ? "bg-[#49a034]/10" : "bg-gray-100"
+                      enabled ? "bg-primary/10" : "bg-muted"
                     }`}
                   >
                     <Icon
                       className={`h-5 w-5 ${
-                        enabled ? "text-[#49a034]" : "text-gray-500"
+                        enabled ? "text-primary" : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-medium text-gray-900">
+                      <h3 className="text-sm font-medium text-foreground">
                         {getMethodLabel(method)}
                       </h3>
                       {enabled && (
-                        <Badge className="bg-green-100 text-green-700 text-xs">
+                        <Badge className="bg-primary/10 text-primary text-xs">
                           Enabled
                         </Badge>
                       )}
                       {settings?.preferred_method === method && (
-                        <Badge className="bg-blue-100 text-blue-700 text-xs">
+                        <Badge className="bg-[#6B8FB8]/10 text-[#6B8FB8] text-xs">
                           Preferred
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {method === "email" &&
                         `Send codes to ${settings?.email || "your email"}`}
                       {method === "sms" &&
@@ -468,16 +468,16 @@ export default function TwoFactorSettingsPage() {
 
         {/* Backup Codes */}
         <Card className="mt-6">
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Key className="h-5 w-5 text-gray-600" />
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <Key className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-900">
+                <h3 className="text-sm font-medium text-foreground">
                   Backup Codes
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Use these codes if you lose access to your authentication methods
                 </p>
               </div>
@@ -487,15 +487,15 @@ export default function TwoFactorSettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 {settings?.has_backup_codes ? (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     You have{" "}
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-foreground">
                       {settings.backup_codes_count}
                     </span>{" "}
                     backup codes remaining
                   </p>
                 ) : (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     No backup codes generated yet
                   </p>
                 )}
@@ -518,7 +518,7 @@ export default function TwoFactorSettingsPage() {
               </Button>
             </div>
             {!settings?.is_2fa_enabled && (
-              <p className="text-xs text-amber-600 mt-2">
+              <p className="text-xs text-[#D4B35A] mt-2">
                 Enable at least one 2FA method to generate backup codes
               </p>
             )}
@@ -572,7 +572,7 @@ export default function TwoFactorSettingsPage() {
             <Button
               onClick={handleVerifyEnable}
               disabled={otpValue.length !== 6 || isVerifying}
-              className="bg-[#49a034] hover:bg-[#547568]"
+              className="bg-primary hover:bg-primary/90"
             >
               {isVerifying ? (
                 <>
@@ -611,7 +611,7 @@ export default function TwoFactorSettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="disable-password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   id="disable-password"
                   type={showPassword ? "text" : "password"}
@@ -623,7 +623,7 @@ export default function TwoFactorSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -685,7 +685,7 @@ export default function TwoFactorSettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="totp-disable-password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   id="totp-disable-password"
                   type={showPassword ? "text" : "password"}
@@ -697,7 +697,7 @@ export default function TwoFactorSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -772,7 +772,7 @@ export default function TwoFactorSettingsPage() {
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
             {totpQrCode && (
-              <div className="bg-white p-4 rounded-lg border">
+              <div className="bg-card p-4 rounded-lg border">
                 <img
                   src={totpQrCode}
                   alt="TOTP QR Code"
@@ -782,12 +782,12 @@ export default function TwoFactorSettingsPage() {
             )}
             {totpSecret && (
               <div className="w-full">
-                <p className="text-xs text-gray-500 text-center mb-2">
+                <p className="text-xs text-muted-foreground text-center mb-2">
                   Or enter this code manually:
                 </p>
                 <div className="flex items-center gap-2">
                   <code
-                    className={`flex-1 text-sm bg-gray-100 px-3 py-2 rounded font-mono text-center ${
+                    className={`flex-1 text-sm bg-muted px-3 py-2 rounded font-mono text-center ${
                       showTotpSecret ? "" : "blur-sm select-none"
                     }`}
                   >
@@ -820,7 +820,7 @@ export default function TwoFactorSettingsPage() {
               </div>
             )}
             <div className="w-full">
-              <p className="text-sm text-gray-600 text-center mb-3">
+              <p className="text-sm text-muted-foreground text-center mb-3">
                 Enter the 6-digit code from your app:
               </p>
               <div className="flex justify-center">
@@ -857,7 +857,7 @@ export default function TwoFactorSettingsPage() {
             <Button
               onClick={handleVerifyTotp}
               disabled={otpValue.length !== 6 || isVerifying}
-              className="bg-[#49a034] hover:bg-[#547568]"
+              className="bg-primary hover:bg-primary/90"
             >
               {isVerifying ? (
                 <>
@@ -898,7 +898,7 @@ export default function TwoFactorSettingsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="backup-password">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                     <Input
                       id="backup-password"
                       type={showPassword ? "text" : "password"}
@@ -910,7 +910,7 @@ export default function TwoFactorSettingsPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -920,24 +920,24 @@ export default function TwoFactorSettingsPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                  <p className="text-sm text-amber-700">
+                <div className="flex items-start gap-2 p-3 bg-[#D4B35A]/10 border border-[#D4B35A]/20 rounded-lg">
+                  <AlertTriangle className="h-4 w-4 text-[#D4B35A] mt-0.5 shrink-0" />
+                  <p className="text-sm text-[#D4B35A]">
                     Generating new codes will invalidate any existing backup codes.
                   </p>
                 </div>
               </div>
             ) : generateBackupCodesMutation.isPending ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
               </div>
             ) : backupCodes.length > 0 ? (
-              <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="bg-muted rounded-lg p-4 border">
                 <div className="grid grid-cols-2 gap-2">
                   {backupCodes.map((code, index) => (
                     <code
                       key={index}
-                      className="text-sm font-mono bg-white px-3 py-2 rounded border text-center"
+                      className="text-sm font-mono bg-card px-3 py-2 rounded border text-center"
                     >
                       {code}
                     </code>
@@ -962,7 +962,7 @@ export default function TwoFactorSettingsPage() {
                 <Button
                   onClick={handleConfirmGenerateBackupCodes}
                   disabled={!password || generateBackupCodesMutation.isPending}
-                  className="bg-[#49a034] hover:bg-[#547568]"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {generateBackupCodesMutation.isPending ? (
                     <>
@@ -983,7 +983,7 @@ export default function TwoFactorSettingsPage() {
                 >
                   {copiedCodes ? (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                      <CheckCircle className="h-4 w-4 mr-2 text-primary" />
                       Copied!
                     </>
                   ) : (
@@ -999,7 +999,7 @@ export default function TwoFactorSettingsPage() {
                     setBackupCodes([]);
                     setPassword("");
                   }}
-                  className="bg-[#49a034] hover:bg-[#547568]"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   Done
                 </Button>

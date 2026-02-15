@@ -102,32 +102,32 @@ export default function SavePaymentMethodModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">
+        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">
             {editMethod ? 'Edit Payment Method' : 'Add Payment Method'}
           </h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         {/* Success State */}
         {success ? (
           <div className="p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <Check className="w-8 h-8 text-green-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+              <Check className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               {editMethod ? 'Payment Method Updated!' : 'Payment Method Saved!'}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {editMethod 
                 ? 'Your payment method has been updated successfully.' 
                 : 'Your payment method has been added successfully.'
@@ -139,26 +139,26 @@ export default function SavePaymentMethodModal({
             {/* Step 1: Select Method Type */}
             {!methodType && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Select Payment Method Type</h3>
+                <h3 className="text-lg font-medium text-foreground">Select Payment Method Type</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => setMethodType('mobile_money')}
-                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
+                    className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                   >
-                    <Smartphone className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
-                    <h4 className="font-medium text-gray-900">Mobile Money</h4>
-                    <p className="text-sm text-gray-500 mt-1">MTN, Airtel, etc.</p>
+                    <Smartphone className="w-8 h-8 text-muted-foreground/60 group-hover:text-primary mb-3" />
+                    <h4 className="font-medium text-foreground">Mobile Money</h4>
+                    <p className="text-sm text-muted-foreground mt-1">MTN, Airtel, etc.</p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setMethodType('bank')}
-                    className="p-6 border-2 border-gray-200 rounded-lg hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all group"
+                    className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                   >
-                    <Building2 className="w-8 h-8 text-gray-400 group-hover:text-[#49a034] mb-3" />
-                    <h4 className="font-medium text-gray-900">Bank Account</h4>
-                    <p className="text-sm text-gray-500 mt-1">Stanbic, DFCU, etc.</p>
+                    <Building2 className="w-8 h-8 text-muted-foreground/60 group-hover:text-primary mb-3" />
+                    <h4 className="font-medium text-foreground">Bank Account</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Stanbic, DFCU, etc.</p>
                   </button>
                 </div>
               </div>
@@ -168,14 +168,14 @@ export default function SavePaymentMethodModal({
             {methodType && (
               <>
                 <div>
-                  <label htmlFor="provider-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="provider-select" className="block text-sm font-medium text-foreground mb-2">
                     Provider *
                   </label>
                   <select
                     id="provider-select"
                     value={provider}
                     onChange={(e) => setProvider(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   >
                     <option value="">Select provider</option>
@@ -194,7 +194,7 @@ export default function SavePaymentMethodModal({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Nickname *
                   </label>
                   <input
@@ -202,14 +202,14 @@ export default function SavePaymentMethodModal({
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     placeholder="e.g., My MTN Number, Primary Account"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />
                 </div>
 
                 {methodType === 'mobile_money' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Phone Number *
                     </label>
                     <input
@@ -217,7 +217,7 @@ export default function SavePaymentMethodModal({
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="256700000000"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
                     />
                   </div>
@@ -226,7 +226,7 @@ export default function SavePaymentMethodModal({
                 {methodType === 'bank' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Account Number *
                       </label>
                       <input
@@ -234,13 +234,13 @@ export default function SavePaymentMethodModal({
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
                         placeholder="1234567890"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Account Name *
                       </label>
                       <input
@@ -248,13 +248,13 @@ export default function SavePaymentMethodModal({
                         value={accountName}
                         onChange={(e) => setAccountName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Bank Name *
                       </label>
                       <input
@@ -262,13 +262,13 @@ export default function SavePaymentMethodModal({
                         value={bankName}
                         onChange={(e) => setBankName(e.target.value)}
                         placeholder="Stanbic Bank Uganda"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Branch Name (Optional)
                       </label>
                       <input
@@ -276,7 +276,7 @@ export default function SavePaymentMethodModal({
                         value={branchName}
                         onChange={(e) => setBranchName(e.target.value)}
                         placeholder="Kampala Branch"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                   </>
@@ -288,9 +288,9 @@ export default function SavePaymentMethodModal({
                     id="is_default"
                     checked={isDefault}
                     onChange={(e) => setIsDefault(e.target.checked)}
-                    className="w-4 h-4 text-[#49a034] border-gray-300 rounded focus:ring-[#49a034]"
+                    className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                   />
-                  <label htmlFor="is_default" className="text-sm text-gray-700">
+                  <label htmlFor="is_default" className="text-sm text-foreground">
                     Set as default payment method
                   </label>
                 </div>
@@ -299,14 +299,14 @@ export default function SavePaymentMethodModal({
                   <button
                     type="button"
                     onClick={() => setMethodType(null)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={saveMethodMutation.isPending}
-                    className="flex-1 px-4 py-2 bg-[#49a034] text-white rounded-lg hover:bg-[#4f7068] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {saveMethodMutation.isPending ? 'Saving...' : 'Save Payment Method'}
                   </button>

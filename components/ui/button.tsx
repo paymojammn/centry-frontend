@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: 'bg-primary text-primary-foreground hover:bg-primary/90 data-[state=open]:bg-primary/90',
-        mono: 'bg-zinc-950 text-white dark:bg-zinc-300 dark:text-black hover:bg-zinc-950/90 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90',
+        mono: 'bg-[rgb(var(--brand-dark))] text-white dark:bg-muted dark:text-foreground hover:bg-[rgb(var(--brand-dark))]/90 dark:hover:bg-muted/90 data-[state=open]:bg-[rgb(var(--brand-dark))]/90 dark:data-[state=open]:bg-muted/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90 data-[state=open]:bg-destructive/90',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/90 data-[state=open]:bg-secondary/90',
-        outline: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 data-[state=open]:bg-gray-50',
+        outline: 'bg-card text-foreground border border-border hover:bg-muted hover:border-border data-[state=open]:bg-muted',
         dashed:
-          'text-gray-700 border border-gray-200 border-dashed bg-white hover:bg-gray-50 hover:border-gray-300 data-[state=open]:bg-gray-50',
+          'text-foreground border border-border border-dashed bg-card hover:bg-muted hover:border-border data-[state=open]:bg-muted',
         ghost:
           'text-accent-foreground hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
         dim: 'text-muted-foreground hover:text-foreground data-[state=open]:text-foreground',
@@ -36,10 +36,10 @@ const buttonVariants = cva(
         dashed: '',
       },
       size: {
-        lg: 'h-10 rounded-md px-4 text-sm gap-1.5 [&_svg:not([class*=size-])]:size-4',
-        md: 'h-8.5 rounded-md px-3 gap-1.5 text-[0.8125rem] leading-(--text-sm--line-height) [&_svg:not([class*=size-])]:size-4',
-        sm: 'h-7 rounded-md px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5',
-        icon: 'size-8.5 rounded-md [&_svg:not([class*=size-])]:size-4 shrink-0',
+        lg: 'h-10 rounded-lg px-4 text-sm gap-1.5 [&_svg:not([class*=size-])]:size-4',
+        md: 'h-8.5 rounded-lg px-3 gap-1.5 text-[0.8125rem] leading-(--text-sm--line-height) [&_svg:not([class*=size-])]:size-4',
+        sm: 'h-7 rounded-lg px-2.5 gap-1.25 text-xs [&_svg:not([class*=size-])]:size-3.5',
+        icon: 'size-8.5 rounded-lg [&_svg:not([class*=size-])]:size-4 shrink-0',
       },
       autoHeight: {
         true: '',

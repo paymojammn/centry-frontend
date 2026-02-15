@@ -37,15 +37,15 @@ function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.G
 }
 
 function SelectValue({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" className={cn('text-gray-900', className)} {...props} />;
+  return <SelectPrimitive.Value data-slot="select-value" className={cn('text-foreground', className)} {...props} />;
 }
 
 // Define size variants for SelectTrigger
 const selectTriggerVariants = cva(
   `
-    flex bg-white w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-shadow
-    text-gray-900 data-placeholder:text-gray-400 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]
-    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-gray-900
+    flex bg-card w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-shadow
+    text-foreground data-placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]
+    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-foreground
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10
   `,
@@ -120,7 +120,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white shadow-md shadow-black/5 text-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-border bg-card shadow-md shadow-black/5 text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1.5 data-[side=left]:-translate-x-1.5 data-[side=right]:translate-x-1.5 data-[side=top]:-translate-y-1.5',
           className,
@@ -148,7 +148,7 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn('py-1.5 ps-8 pe-2 text-xs text-gray-500 font-medium', className)}
+      className={cn('py-1.5 ps-8 pe-2 text-xs text-muted-foreground font-medium', className)}
       {...props}
     />
   );
@@ -161,7 +161,7 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 text-sm outline-hidden text-gray-900 hover:bg-gray-100 focus:bg-gray-100 data-disabled:pointer-events-none data-disabled:opacity-50',
+        'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 text-sm outline-hidden text-foreground hover:bg-muted focus:bg-muted data-disabled:pointer-events-none data-disabled:opacity-50',
         indicatorPosition === 'left' ? 'ps-8 pe-2' : 'pe-8 ps-2',
         className,
       )}
@@ -213,7 +213,7 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn('-mx-1.5 my-1.5 h-px bg-gray-200', className)}
+      className={cn('-mx-1.5 my-1.5 h-px bg-border', className)}
       {...props}
     />
   );

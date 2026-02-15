@@ -1,6 +1,7 @@
 'use client';
 
 import { Layout1 } from '@/components/layouts/layout-1';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { getAuthToken } from '@/lib/api';
@@ -111,8 +112,10 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
   }
   
   return (
-    <Layout1>
-      {children}
-    </Layout1>
+    <ErrorBoundary>
+      <Layout1>
+        {children}
+      </Layout1>
+    </ErrorBoundary>
   );
 }

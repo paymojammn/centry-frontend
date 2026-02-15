@@ -33,7 +33,7 @@ export function SidebarHeader() {
         mode="icon"
         variant="outline"
         className={cn(
-          'size-7 absolute start-full top-2/4 rtl:translate-x-2/4 -translate-x-2/4 -translate-y-2/4 border-[#2d3a44] bg-[#1c252c] text-white/70 hover:bg-[#2d3a44] hover:text-white',
+          'size-7 absolute start-full top-2/4 rtl:translate-x-2/4 -translate-x-2/4 -translate-y-2/4 border-[rgb(var(--brand-dark-light))] bg-[rgb(var(--brand-dark))] text-white/70 hover:bg-[rgb(var(--brand-dark-light))] hover:text-white',
           sidebarCollapse ? 'ltr:rotate-180' : 'rtl:rotate-180',
         )}
       >

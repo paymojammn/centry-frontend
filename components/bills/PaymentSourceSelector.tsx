@@ -34,24 +34,24 @@ export default function PaymentSourceSelector({
     if (isSelected) {
       switch (type) {
         case 'mobile_money':
-          return 'from-[#49a034] to-[#4f7068]';
+          return 'from-primary to-primary/80';
         case 'bank_account':
-          return 'from-blue-600 to-blue-700';
+          return 'from-primary to-primary/80';
         default:
-          return 'from-gray-600 to-gray-700';
+          return 'from-muted-foreground to-muted-foreground/80';
       }
     }
-    return 'from-white to-white';
+    return 'from-white to-card';
   };
 
   const getBorderColor = (type: string) => {
     switch (type) {
       case 'mobile_money':
-        return 'border-[#49a034]/30 hover:border-[#49a034]';
+        return 'border-primary/30 hover:border-primary';
       case 'bank_account':
-        return 'border-blue-200 hover:border-blue-500';
+        return 'border-primary/20 hover:border-primary';
       default:
-        return 'border-gray-200 hover:border-gray-400';
+        return 'border-border hover:border-border';
     }
   };
 
@@ -72,11 +72,11 @@ export default function PaymentSourceSelector({
   if (filteredSources.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-          <Smartphone className="w-8 h-8 text-gray-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
+          <Smartphone className="w-8 h-8 text-muted-foreground/60" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment Sources Available</h3>
-        <p className="text-gray-500">
+        <h3 className="text-lg font-medium text-foreground mb-2">No Payment Sources Available</h3>
+        <p className="text-muted-foreground">
           Please add mobile money accounts or bank accounts in the admin panel.
         </p>
       </div>
@@ -102,7 +102,7 @@ export default function PaymentSourceSelector({
               relative w-full text-left rounded-xl border-2 transition-all duration-200
               ${isSelected 
                 ? `bg-gradient-to-br ${getGradient(source.type, true)} border-transparent shadow-lg scale-[1.02]` 
-                : `bg-white ${getBorderColor(source.type)} hover:shadow-md`
+                : `bg-card ${getBorderColor(source.type)} hover:shadow-md`
               }
             `}
           >
@@ -112,21 +112,21 @@ export default function PaymentSourceSelector({
                 <div className={`
                   flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-colors
                   ${isSelected 
-                    ? 'bg-white/20 backdrop-blur-sm' 
-                    : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                    ? 'bg-card/20 backdrop-blur-sm' 
+                    : 'bg-gradient-to-br from-muted to-muted'
                   }
                 `}>
-                  <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
+                  <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h4 className={`text-base font-semibold mb-1 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                      <h4 className={`text-base font-semibold mb-1 ${isSelected ? 'text-white' : 'text-foreground'}`}>
                         {source.name}
                       </h4>
-                      <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>
+                      <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}>
                         {getTypeLabel(source.type)}
                       </p>
                     </div>
@@ -134,15 +134,15 @@ export default function PaymentSourceSelector({
                     {/* Selection indicator */}
                     {isSelected && (
                       <div className="flex-shrink-0 ml-3">
-                        <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                          <CheckCircle2 className="w-4 h-4 text-[#49a034]" />
+                        <div className="w-6 h-6 rounded-full bg-card flex items-center justify-center">
+                          <CheckCircle2 className="w-4 h-4 text-primary" />
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Account details */}
-                  <div className={`space-y-1 text-sm ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
+                  <div className={`space-y-1 text-sm ${isSelected ? 'text-white/90' : 'text-muted-foreground'}`}>
                     {source.type === 'mobile_money' && (
                       <div className="flex items-center gap-2">
                         <Smartphone className="w-3.5 h-3.5" />
@@ -158,13 +158,13 @@ export default function PaymentSourceSelector({
                   </div>
 
                   {/* Balance Info */}
-                  <div className="mt-3 pt-3 border-t border-gray-200/20">
+                  <div className="mt-3 pt-3 border-t border-border/20">
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-medium ${isSelected ? 'text-white/70' : 'text-gray-500'}`}>
+                      <span className={`text-xs font-medium ${isSelected ? 'text-white/70' : 'text-muted-foreground'}`}>
                         Available Balance
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                        <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-foreground'}`}>
                           {source.currency} {parseFloat(source.balance).toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -174,7 +174,7 @@ export default function PaymentSourceSelector({
                           <span className={`
                             text-[10px] font-semibold px-2 py-0.5 rounded-full
                             ${isSelected 
-                              ? 'bg-white/20 text-white' 
+                              ? 'bg-card/20 text-white' 
                               : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
                             }
                           `}>
@@ -187,11 +187,11 @@ export default function PaymentSourceSelector({
 
                   {/* Currency conversion note */}
                   {needsConversion && billAmount && (
-                    <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-xs text-blue-800 font-medium">
+                    <div className="mt-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg">
+                      <p className="text-xs text-primary font-medium">
                         💱 Currency conversion: {billCurrency} {billAmount.toLocaleString()} → {source.currency}
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         Conversion rate will be applied at payment time
                       </p>
                     </div>
@@ -212,7 +212,7 @@ export default function PaymentSourceSelector({
             {/* Subtle arrow indicator on hover */}
             {!isSelected && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground/60" />
               </div>
             )}
           </button>

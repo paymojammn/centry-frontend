@@ -66,35 +66,35 @@ function getStatusBadge(status: string) {
   switch (status) {
     case "ACSP":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <CheckCircle2 className="h-3 w-3" />
           Accepted
         </span>
       );
     case "ACWC":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
           <AlertTriangle className="h-3 w-3" />
           Accepted with Change
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Clock className="h-3 w-3" />
           Pending
         </span>
       );
     case "RJCT":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
           <XCircle className="h-3 w-3" />
           Rejected
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-50 text-gray-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
           {status || "Unknown"}
         </span>
       );
@@ -105,31 +105,31 @@ function getGroupStatusBadge(status: string | null) {
   switch (status) {
     case "RCVD":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Received
         </span>
       );
     case "ACSP":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           All Accepted
         </span>
       );
     case "PART":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
           Partial
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Pending
         </span>
       );
     case "RJCT":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
           Rejected
         </span>
       );
@@ -142,33 +142,33 @@ function getReportTypeBadge(type: string) {
   switch (type) {
     case "ACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
           <FileCheck className="h-3 w-3" />
           ACK
         </span>
       );
     case "NACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
           <XCircle className="h-3 w-3" />
           NACK
         </span>
       );
     case "INTERIM":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Interim
         </span>
       );
     case "FINAL":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#8B7BB8]/10 text-[#8B7BB8]">
           Final
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-50 text-gray-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
           {type}
         </span>
       );
@@ -180,63 +180,63 @@ function TransactionStatusRow({ tx }: { tx: PaymentTransactionStatus }) {
 
   return (
     <>
-      <tr className="hover:bg-gray-50">
+      <tr className="hover:bg-muted">
         <td className="px-4 py-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
           >
             {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
         </td>
         <td className="px-4 py-2">
-          <p className="text-sm font-mono text-gray-900">{tx.original_end_to_end_id}</p>
+          <p className="text-sm font-mono text-foreground">{tx.original_end_to_end_id}</p>
         </td>
         <td className="px-4 py-2">
           {getStatusBadge(tx.status)}
         </td>
-        <td className="px-4 py-2 text-sm text-gray-600">
+        <td className="px-4 py-2 text-sm text-muted-foreground">
           {tx.status_code || "-"}
         </td>
-        <td className="px-4 py-2 text-sm text-gray-900">
+        <td className="px-4 py-2 text-sm text-foreground">
           {formatCurrency(tx.original_amount, tx.original_currency)}
         </td>
-        <td className="px-4 py-2 text-sm text-gray-600">
+        <td className="px-4 py-2 text-sm text-muted-foreground">
           {tx.payment_event_id ? `#${tx.payment_event_id}` : "-"}
         </td>
       </tr>
       {isExpanded && (
-        <tr className="bg-gray-50/50">
+        <tr className="bg-muted/50">
           <td colSpan={6} className="px-4 py-3">
             <div className="ml-6 space-y-2 text-sm">
               {tx.creditor_name && (
                 <div>
-                  <span className="font-medium text-gray-500">Creditor:</span>{" "}
-                  <span className="text-gray-900">{tx.creditor_name}</span>
+                  <span className="font-medium text-muted-foreground">Creditor:</span>{" "}
+                  <span className="text-foreground">{tx.creditor_name}</span>
                 </div>
               )}
               {tx.invoice_number && (
                 <div>
-                  <span className="font-medium text-gray-500">Invoice:</span>{" "}
-                  <span className="text-gray-900">{tx.invoice_number}</span>
+                  <span className="font-medium text-muted-foreground">Invoice:</span>{" "}
+                  <span className="text-foreground">{tx.invoice_number}</span>
                 </div>
               )}
               {tx.status_description && (
                 <div>
-                  <span className="font-medium text-gray-500">Description:</span>{" "}
-                  <span className="text-gray-900">{tx.status_description}</span>
+                  <span className="font-medium text-muted-foreground">Description:</span>{" "}
+                  <span className="text-foreground">{tx.status_description}</span>
                 </div>
               )}
               {tx.original_instruction_id && (
                 <div>
-                  <span className="font-medium text-gray-500">Instruction ID:</span>{" "}
-                  <span className="font-mono text-gray-900">{tx.original_instruction_id}</span>
+                  <span className="font-medium text-muted-foreground">Instruction ID:</span>{" "}
+                  <span className="font-mono text-foreground">{tx.original_instruction_id}</span>
                 </div>
               )}
               {tx.additional_info && tx.additional_info.length > 0 && (
                 <div>
-                  <span className="font-medium text-gray-500">Additional Info:</span>
-                  <ul className="list-disc list-inside mt-1 text-gray-700">
+                  <span className="font-medium text-muted-foreground">Additional Info:</span>
+                  <ul className="list-disc list-inside mt-1 text-foreground">
                     {tx.additional_info.map((info, i) => (
                       <li key={i}>{info}</li>
                     ))}
@@ -267,24 +267,24 @@ function ExportStatusCard({
 
   return (
     <div
-      className={`bg-white rounded-lg border transition-colors ${
-        isSelected ? "border-[#49a034] ring-1 ring-[#49a034]/20" : "border-gray-200"
+      className={`bg-card rounded-lg border transition-colors ${
+        isSelected ? "border-[#49a034] ring-1 ring-[#49a034]/20" : "border-border"
       }`}
     >
       <div
-        className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+        className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-muted"
         onClick={() => {
           setIsExpanded(!isExpanded);
           onSelect();
         }}
       >
         <div className="flex items-center gap-3">
-          <button className="text-gray-400 hover:text-gray-600">
+          <button className="text-muted-foreground/60 hover:text-muted-foreground">
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
           <div>
-            <p className="text-sm font-medium text-gray-900">{exportFile.file_name}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-medium text-foreground">{exportFile.file_name}</p>
+            <p className="text-xs text-muted-foreground">
               {exportFile.payment_count} payments · {formatCurrency(exportFile.total_amount, exportFile.currency)}
             </p>
           </div>
@@ -294,34 +294,34 @@ function ExportStatusCard({
             <div className="flex items-center gap-2">
               {getReportTypeBadge(latestStatus.report_type)}
               {getGroupStatusBadge(latestStatus.group_status)}
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {latestStatus.successful_count}/{latestStatus.total_transactions} OK
               </div>
             </div>
           ) : statusesLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
           ) : (
-            <span className="text-xs text-gray-400">No bank response yet</span>
+            <span className="text-xs text-muted-foreground/60">No bank response yet</span>
           )}
         </div>
       </div>
 
       {isExpanded && (
-        <div className="border-t border-gray-100">
+        <div className="border-t border-border">
           {statusesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
             </div>
           ) : statuses.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Awaiting bank response</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <Clock className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Awaiting bank response</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 Pull pain.002 files from SFTP to get status updates
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border">
               {statuses.map((status) => (
                 <StatusDetail key={status.id} status={status} />
               ))}
@@ -346,29 +346,29 @@ function StatusDetail({ status }: { status: PaymentExportStatus }) {
         <div className="flex items-center gap-2">
           {getReportTypeBadge(status.report_type)}
           {getGroupStatusBadge(status.group_status)}
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             {formatDate(status.received_at)}
           </span>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-green-600">{status.successful_count} accepted</span>
-          <span className="text-red-600">{status.rejected_count} rejected</span>
-          <span className="text-blue-600">{status.pending_count} pending</span>
+          <span className="text-primary">{status.successful_count} accepted</span>
+          <span className="text-destructive">{status.rejected_count} rejected</span>
+          <span className="text-[#6B8FB8]">{status.pending_count} pending</span>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-3 text-sm">
         <div>
-          <span className="text-gray-500">Message ID:</span>
-          <p className="font-mono text-xs text-gray-900 truncate">{status.message_id}</p>
+          <span className="text-muted-foreground">Message ID:</span>
+          <p className="font-mono text-xs text-foreground truncate">{status.message_id}</p>
         </div>
         <div>
-          <span className="text-gray-500">Original Message:</span>
-          <p className="font-mono text-xs text-gray-900 truncate">{status.original_message_id}</p>
+          <span className="text-muted-foreground">Original Message:</span>
+          <p className="font-mono text-xs text-foreground truncate">{status.original_message_id}</p>
         </div>
         <div>
-          <span className="text-gray-500">Source:</span>
-          <p className="text-xs text-gray-900">{status.source_file || "-"}</p>
+          <span className="text-muted-foreground">Source:</span>
+          <p className="text-xs text-foreground">{status.source_file || "-"}</p>
         </div>
       </div>
 
@@ -392,28 +392,28 @@ function StatusDetail({ status }: { status: PaymentExportStatus }) {
       </Button>
 
       {showTransactions && (
-        <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+        <div className="mt-3 border border-border rounded-lg overflow-hidden">
           {detailLoading ? (
             <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
             </div>
           ) : transactions.length === 0 ? (
-            <div className="text-center py-6 text-sm text-gray-500">
+            <div className="text-center py-6 text-sm text-muted-foreground">
               No transaction details available
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-muted border-b border-border">
                   <th className="w-8 px-4 py-2"></th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">End-to-End ID</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Status</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Code</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Amount</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Payment</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">End-to-End ID</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Status</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Code</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Amount</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Payment</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {transactions.map((tx) => (
                   <TransactionStatusRow key={tx.id} tx={tx} />
                 ))}
@@ -526,20 +526,20 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
   return (
     <div className="space-y-6">
       {/* Config Section */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Server className="h-4 w-4 text-[#49a034]" />
-            <h3 className="text-sm font-medium text-gray-900">Bank Response (pain.002)</h3>
+            <h3 className="text-sm font-medium text-foreground">Bank Response (pain.002)</h3>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Pull payment status reports from the bank to track transaction outcomes
           </p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Bank Account</Label>
+              <Label className="text-sm font-medium text-foreground">Bank Account</Label>
               <Select
                 value={selectedAccountId?.toString() || "all"}
                 onValueChange={(value) => {
@@ -548,7 +548,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
                 }}
                 disabled={accountsLoading}
               >
-                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                <SelectTrigger className="h-10 bg-muted border-border">
                   <SelectValue placeholder="All accounts" />
                 </SelectTrigger>
                 <SelectContent>
@@ -563,13 +563,13 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">SFTP Connection</Label>
+              <Label className="text-sm font-medium text-foreground">SFTP Connection</Label>
               <Select
                 value={selectedSFTPCredentialId?.toString() || ""}
                 onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
                 disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
               >
-                <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                <SelectTrigger className="h-10 bg-muted border-border">
                   <SelectValue
                     placeholder={
                       credentialsLoading
@@ -585,7 +585,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
                     <SelectItem key={credential.id} value={credential.id.toString()}>
                       <div className="flex items-center gap-2">
                         <span>{credential.host}</span>
-                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-green-500" />}
+                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-primary" />}
                       </div>
                     </SelectItem>
                   ))}
@@ -615,18 +615,18 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           </div>
 
           {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-border">
               {(() => {
                 const cred = sftpCredentials.find((c: SFTPCredential) => c.id === selectedSFTPCredentialId);
                 if (!cred) return null;
                 return (
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
                     <span>
-                      <span className="text-gray-400">Host:</span> {cred.host}:{cred.port}
+                      <span className="text-muted-foreground/60">Host:</span> {cred.host}:{cred.port}
                     </span>
                     <span>
-                      <span className="text-gray-400">Download:</span>{" "}
-                      <code className="text-xs bg-gray-100 px-1 rounded">{cred.download_path}</code>
+                      <span className="text-muted-foreground/60">Download:</span>{" "}
+                      <code className="text-xs bg-muted px-1 rounded">{cred.download_path}</code>
                     </span>
                   </div>
                 );
@@ -638,14 +638,14 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
       {/* Remote Files Available */}
       {selectedAccountId && pain002Files.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-[#49a034]" />
-                <h3 className="text-sm font-medium text-gray-900">Available on SFTP</h3>
+                <h3 className="text-sm font-medium text-foreground">Available on SFTP</h3>
               </div>
-              <p className="text-xs text-gray-500 mt-1">{pain002Files.length} pain.002 files found</p>
+              <p className="text-xs text-muted-foreground mt-1">{pain002Files.length} pain.002 files found</p>
             </div>
             <Button
               variant="outline"
@@ -663,11 +663,11 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               {pain002Files.map((file) => (
                 <div
                   key={file.name}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded border border-gray-200 text-sm"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded border border-border text-sm"
                 >
-                  <FileText className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-900">{file.name}</span>
-                  <span className="text-gray-400">{formatFileSize(file.size)}</span>
+                  <FileText className="h-3 w-3 text-muted-foreground/60" />
+                  <span className="text-foreground">{file.name}</span>
+                  <span className="text-muted-foreground/60">{formatFileSize(file.size)}</span>
                 </div>
               ))}
             </div>
@@ -676,14 +676,14 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
       )}
 
       {/* Export Status List */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <FileCheck className="h-4 w-4 text-[#49a034]" />
-              <h3 className="text-sm font-medium text-gray-900">Payment Export Status</h3>
+              <h3 className="text-sm font-medium text-foreground">Payment Export Status</h3>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Track bank responses for uploaded payment files
             </p>
           </div>
@@ -705,9 +705,9 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           </div>
         ) : uploadedExports.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No uploaded exports yet</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No uploaded exports yet</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
               Upload payment files from the SFTP Export tab to track their status
             </p>
           </div>
@@ -727,9 +727,9 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
       {/* No account selected */}
       {!selectedAccountId && (
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm text-center py-12">
-          <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">Select a bank account to view payment status</p>
+        <div className="bg-card rounded-xl border border-border/80 shadow-sm text-center py-12">
+          <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Select a bank account to view payment status</p>
         </div>
       )}
     </div>

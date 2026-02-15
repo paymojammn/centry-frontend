@@ -42,17 +42,17 @@ export default function OrganizationsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="min-h-screen bg-muted">
+        <div className="bg-card border-b border-border sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-6 py-4">
-            <h1 className="text-xl font-semibold text-gray-900">Organizations</h1>
+            <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="bg-white rounded-lg border border-gray-200 text-center py-12">
-            <Building2 className="h-8 w-8 text-orange-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Error Loading Organizations</p>
-            <p className="text-xs text-gray-400 mt-1">
+          <div className="bg-card rounded-lg border border-border text-center py-12">
+            <Building2 className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Error Loading Organizations</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
               {(error as Error).message || 'Failed to load organizations'}
             </p>
           </div>
@@ -62,16 +62,16 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
+      <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Organizations</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Manage your organizations and teams</p>
+              <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">Manage your organizations and teams</p>
             </div>
-            <Button size="sm" className="h-9 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
+            <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 btn-press">
               <Plus className="h-4 w-4 mr-2" />
               Create Organization
             </Button>
@@ -80,24 +80,24 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Organizations:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#49a034]/10 text-[#49a034]">
+              <span className="text-muted-foreground text-sm">Organizations:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/10 text-primary">
                 {stats.total}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Members:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700">
+              <span className="text-muted-foreground text-sm">Members:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
                 {stats.totalMembers}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">Connections:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-green-50 text-green-700">
+              <span className="text-muted-foreground text-sm">Connections:</span>
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/5 text-primary">
                 {stats.totalConnections}
               </span>
             </div>
@@ -109,23 +109,23 @@ export default function OrganizationsPage() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="space-y-4 animate-fade-in-up">
           {/* Search */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm px-4 py-3">
+          <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3">
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
               <Input
                 placeholder="Search organizations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 bg-gray-50 border-gray-200"
+                className="pl-9 h-9 bg-muted border-border"
               />
             </div>
           </div>
 
           {/* Organizations Grid */}
           {isLoading ? (
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+            <div className="bg-card rounded-xl border border-border/80 shadow-sm">
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             </div>
           ) : filteredOrganizations.length > 0 ? (
@@ -135,20 +135,20 @@ export default function OrganizationsPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm text-center py-12">
-              <div className="p-3 bg-gray-100 rounded-xl w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                <Building2 className="h-7 w-7 text-gray-400" />
+            <div className="bg-card rounded-xl border border-border/80 shadow-sm text-center py-12">
+              <div className="p-3 bg-muted rounded-xl w-14 h-14 mx-auto mb-3 flex items-center justify-center">
+                <Building2 className="h-7 w-7 text-muted-foreground/60" />
               </div>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-foreground">
                 {searchQuery ? 'No Organizations Found' : 'No Organizations Yet'}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 {searchQuery
                   ? 'Try adjusting your search query'
                   : 'Create one or ask to be invited'}
               </p>
               {!searchQuery && (
-                <Button size="sm" className="mt-4 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
+                <Button size="sm" className="mt-4 bg-primary hover:bg-primary/90 btn-press">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Organization
                 </Button>
@@ -176,16 +176,16 @@ interface OrganizationCardProps {
 
 function OrganizationCard({ organization }: OrganizationCardProps) {
   return (
-    <div className="bg-white border border-gray-200/80 rounded-xl shadow-sm card-lift">
+    <div className="bg-card border border-border/80 rounded-xl shadow-sm card-lift">
       {/* Header */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-gray-600" />
+          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-900">{organization.name}</h3>
-            <p className="text-xs text-gray-500">@{organization.slug}</p>
+            <h3 className="text-sm font-medium text-foreground">{organization.name}</h3>
+            <p className="text-xs text-muted-foreground">@{organization.slug}</p>
           </div>
         </div>
       </div>
@@ -194,32 +194,32 @@ function OrganizationCard({ organization }: OrganizationCardProps) {
       <div className="p-4 space-y-3">
         {/* Stats */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Users className="h-3.5 w-3.5 text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-3.5 w-3.5 text-muted-foreground/60" />
             {organization.members_count || 0} members
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Globe className="h-3.5 w-3.5 text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Globe className="h-3.5 w-3.5 text-muted-foreground/60" />
             {organization.connections_count || 0} connections
           </div>
         </div>
 
         {/* Info */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">Currency</span>
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+          <span className="text-muted-foreground">Currency</span>
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
             {organization.primary_currency}
           </span>
         </div>
 
         {organization.industry && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Industry</span>
-            <span className="text-gray-700">{organization.industry}</span>
+            <span className="text-muted-foreground">Industry</span>
+            <span className="text-foreground">{organization.industry}</span>
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground/60 pt-2 border-t border-border">
           <Calendar className="h-3 w-3" />
           Created {new Date(organization.created_at).toLocaleDateString()}
         </div>

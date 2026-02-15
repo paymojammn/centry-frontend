@@ -88,9 +88,9 @@ export function CurrencyConversionSelector({
 
   if (!needsConversion) {
     return (
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
-          <span className="text-[#49a034]">✓</span>
+          <span className="text-primary">✓</span>
           <span>Payment currency matches bill currency ({fromCurrency})</span>
         </div>
       </div>
@@ -98,17 +98,17 @@ export function CurrencyConversionSelector({
   }
 
   return (
-    <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+    <div className="space-y-3 bg-muted p-4 rounded-lg border border-border">
       {/* Currency Selector */}
       {showSelector && currencies && currencies.length > 0 && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Payment Currency
           </label>
           <select
             value={selectedCurrency}
             onChange={(e) => handleCurrencyChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#49a034] focus:border-transparent"
+            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             {currencies.map((currency) => (
               <option key={currency.code} value={currency.code}>
@@ -122,22 +122,22 @@ export function CurrencyConversionSelector({
       {/* Conversion Display */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">Currency Conversion</span>
+          <span className="text-sm font-medium text-foreground">Currency Conversion</span>
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="text-[#49a034] hover:text-[#4f7068] disabled:opacity-50"
+            className="text-primary hover:text-primary/80 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
         {isLoading && (
-          <div className="text-sm text-gray-500">Loading exchange rate...</div>
+          <div className="text-sm text-muted-foreground">Loading exchange rate...</div>
         )}
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+          <div className="text-sm text-destructive bg-destructive/5 p-2 rounded">
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>Unable to fetch exchange rate. Please try again.</span>
@@ -148,44 +148,44 @@ export function CurrencyConversionSelector({
         {rate && !isLoading && !error && (
           <>
             {/* Conversion Details */}
-            <div className="bg-white p-3 rounded border border-gray-200">
+            <div className="bg-card p-3 rounded border border-border">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-center flex-1">
                   <div className="text-lg font-bold text-black">
                     {formatCurrencyAmount(numAmount, fromCurrency)}
                   </div>
-                  <div className="text-xs text-gray-500">{fromCurrency}</div>
+                  <div className="text-xs text-muted-foreground">{fromCurrency}</div>
                 </div>
 
-                <ArrowRight className="h-5 w-5 text-[#49a034] mx-3" />
+                <ArrowRight className="h-5 w-5 text-primary mx-3" />
 
                 <div className="text-center flex-1">
-                  <div className="text-lg font-bold text-[#49a034]">
+                  <div className="text-lg font-bold text-primary">
                     {formatCurrencyAmount(convertedAmount, selectedCurrency)}
                   </div>
-                  <div className="text-xs text-gray-500">{selectedCurrency}</div>
+                  <div className="text-xs text-muted-foreground">{selectedCurrency}</div>
                 </div>
               </div>
 
               {/* Exchange Rate Info */}
-              <div className="border-t border-gray-100 pt-2 mt-2">
-                <div className="flex justify-between text-xs text-gray-600">
+              <div className="border-t border-border pt-2 mt-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Exchange Rate:</span>
                   <span className="font-medium">
                     1 {fromCurrency} = {parseFloat(rate.rate).toFixed(4)} {selectedCurrency}
                   </span>
                 </div>
                 {margin > 0 && (
-                  <div className="flex justify-between text-xs text-gray-600 mt-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>Margin:</span>
                     <span className="font-medium">{(margin * 100).toFixed(2)}%</span>
                   </div>
                 )}
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-muted-foreground mt-1">
                   <span>Provider:</span>
                   <span>{rate.provider_name}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <div className="flex justify-between text-xs text-muted-foreground/60 mt-1">
                   <span>Updated:</span>
                   <span>{new Date(rate.timestamp).toLocaleTimeString()}</span>
                 </div>
@@ -193,8 +193,8 @@ export function CurrencyConversionSelector({
             </div>
 
             {/* Info Message */}
-            <div className="bg-blue-50 border border-blue-200 rounded p-2">
-              <div className="flex items-start gap-2 text-xs text-blue-800">
+            <div className="bg-primary/5 border border-primary/20 rounded p-2">
+              <div className="flex items-start gap-2 text-xs text-primary">
                 <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
                 <span>
                   Exchange rates are updated in real-time. The final amount charged may vary slightly depending on your payment provider.
