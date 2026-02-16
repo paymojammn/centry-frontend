@@ -105,24 +105,24 @@ export default function SubscribePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading plans...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading plans...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-muted py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Start with a 14-day free trial. No credit card required.
             Upgrade anytime.
           </p>
@@ -130,20 +130,20 @@ export default function SubscribePage() {
 
         {/* Error Message */}
         {error && (
-          <div className="max-w-md mx-auto mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-700 text-center">{error}</p>
+          <div className="max-w-md mx-auto mb-8 bg-destructive/5 border border-destructive/20 rounded-lg p-4">
+            <p className="text-destructive text-center">{error}</p>
           </div>
         )}
 
         {/* Billing Cycle Toggle */}
         <div className="flex justify-center mb-8">
-          <div className="bg-gray-100 p-1 rounded-lg inline-flex">
+          <div className="bg-muted p-1 rounded-lg inline-flex">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 billingCycle === 'monthly'
-                  ? 'bg-white text-gray-900 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-card text-foreground shadow'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Monthly
@@ -152,12 +152,12 @@ export default function SubscribePage() {
               onClick={() => setBillingCycle('annual')}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 billingCycle === 'annual'
-                  ? 'bg-white text-gray-900 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-card text-foreground shadow'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Annual
-              <span className="ml-2 text-green-600 text-xs font-bold">
+              <span className="ml-2 text-primary text-xs font-bold">
                 Save 17%
               </span>
             </button>
@@ -178,39 +178,39 @@ export default function SubscribePage() {
               <div
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.code)}
-                className={`relative bg-white rounded-2xl shadow-sm cursor-pointer transition-all ${
+                className={`relative bg-card rounded-xl shadow-sm cursor-pointer transition-all ${
                   isSelected
-                    ? 'ring-2 ring-indigo-600 shadow-lg'
+                    ? 'ring-2 ring-primary shadow-lg'
                     : 'hover:shadow-md'
-                } ${isPopular ? 'border-2 border-indigo-600' : 'border border-gray-200'}`}
+                } ${isPopular ? 'border-2 border-primary' : 'border border-border'}`}
               >
                 {isPopular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-indigo-600 text-white text-sm font-medium px-4 py-1 rounded-full">
+                    <span className="bg-primary text-white text-sm font-medium px-4 py-1 rounded-full">
                       Most Popular
                     </span>
                   </div>
                 )}
 
                 <div className="p-8">
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-xl font-semibold text-foreground">
                     {plan.name}
                   </h3>
-                  <p className="mt-2 text-gray-500 text-sm">
+                  <p className="mt-2 text-muted-foreground text-sm">
                     {plan.description}
                   </p>
 
                   <div className="mt-6">
-                    <span className="text-4xl font-bold text-gray-900">
+                    <span className="text-4xl font-bold text-foreground">
                       {formatPrice(price)}
                     </span>
-                    <span className="text-gray-500">
+                    <span className="text-muted-foreground">
                       /{billingCycle === 'annual' ? 'year' : 'month'}
                     </span>
                   </div>
 
                   {plan.trial_days > 0 && (
-                    <p className="mt-2 text-sm text-green-600">
+                    <p className="mt-2 text-sm text-primary">
                       {plan.trial_days}-day free trial
                     </p>
                   )}
@@ -219,7 +219,7 @@ export default function SubscribePage() {
                     {plan.max_users && (
                       <li className="flex items-center">
                         <CheckIcon />
-                        <span className="ml-3 text-gray-600">
+                        <span className="ml-3 text-muted-foreground">
                           Up to {plan.max_users} users
                         </span>
                       </li>
@@ -227,7 +227,7 @@ export default function SubscribePage() {
                     {plan.max_erp_connections && (
                       <li className="flex items-center">
                         <CheckIcon />
-                        <span className="ml-3 text-gray-600">
+                        <span className="ml-3 text-muted-foreground">
                           {plan.max_erp_connections} ERP connection
                           {plan.max_erp_connections > 1 ? 's' : ''}
                         </span>
@@ -238,7 +238,7 @@ export default function SubscribePage() {
                         enabled && (
                           <li key={feature} className="flex items-center">
                             <CheckIcon />
-                            <span className="ml-3 text-gray-600 capitalize">
+                            <span className="ml-3 text-muted-foreground capitalize">
                               {feature.replace(/_/g, ' ')}
                             </span>
                           </li>
@@ -253,8 +253,8 @@ export default function SubscribePage() {
                     }}
                     className={`mt-8 w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                       isSelected
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                        ? 'bg-primary text-white hover:bg-primary/90'
+                        : 'bg-muted text-foreground hover:bg-muted'
                     }`}
                   >
                     {isSelected ? 'Selected' : 'Select Plan'}
@@ -270,7 +270,7 @@ export default function SubscribePage() {
           <button
             onClick={handleSubscribe}
             disabled={!selectedPlan || processingCheckout}
-            className="px-8 py-4 bg-indigo-600 text-white text-lg font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-8 py-4 bg-primary text-white text-lg font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {processingCheckout ? (
               <span className="flex items-center justify-center">
@@ -300,18 +300,18 @@ export default function SubscribePage() {
               'Start Free Trial'
             )}
           </button>
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-muted-foreground">
             No credit card required for trial. Cancel anytime.
           </p>
         </div>
 
         {/* Login Link */}
         <div className="mt-8 text-center">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Already have an account?{' '}
             <a
               href="/auth/login"
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               Sign in
             </a>
@@ -325,7 +325,7 @@ export default function SubscribePage() {
 function CheckIcon() {
   return (
     <svg
-      className="h-5 w-5 text-green-500"
+      className="h-5 w-5 text-primary"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

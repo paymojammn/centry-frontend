@@ -75,7 +75,7 @@ export function PaymentMethodList({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-16 rounded-lg bg-gray-100 animate-pulse"
+            className="h-16 rounded-lg bg-muted animate-pulse"
           />
         ))}
       </div>
@@ -85,7 +85,7 @@ export function PaymentMethodList({
   if (providers.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           No payment methods available for this country.
         </p>
       </div>
@@ -101,7 +101,7 @@ export function PaymentMethodList({
             <div style={{ color: provider.color }}>
               {PROVIDER_ICONS[provider.provider] || <CreditCard className="size-5" />}
             </div>
-            <span className="text-sm font-medium text-gray-700">{provider.name}</span>
+            <span className="text-sm font-medium text-foreground">{provider.name}</span>
           </div>
 
           {/* Payment Methods */}
@@ -117,17 +117,17 @@ export function PaymentMethodList({
                   onClick={() => onSelect(provider.provider, method.code)}
                   className={cn(
                     'w-full flex items-center gap-4 p-4 rounded-lg border transition-all',
-                    'hover:border-gray-300 hover:bg-gray-50',
+                    'hover:border-border hover:bg-muted',
                     isSelected
                       ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-gray-200 bg-white'
+                      : 'border-border bg-card'
                   )}
                 >
                   {/* Method Icon */}
                   <div
                     className={cn(
                       'size-10 rounded-full flex items-center justify-center',
-                      isSelected ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
+                      isSelected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
                     )}
                   >
                     {getMethodIcon(method.code)}
@@ -138,12 +138,12 @@ export function PaymentMethodList({
                     <p
                       className={cn(
                         'font-medium',
-                        isSelected ? 'text-primary' : 'text-gray-900'
+                        isSelected ? 'text-primary' : 'text-foreground'
                       )}
                     >
                       {method.name}
                     </p>
-                    <p className="text-sm text-gray-500">{method.description}</p>
+                    <p className="text-sm text-muted-foreground">{method.description}</p>
                   </div>
 
                   {/* Selection Indicator */}
@@ -152,7 +152,7 @@ export function PaymentMethodList({
                       'size-5 rounded-full border-2 flex items-center justify-center transition-colors',
                       isSelected
                         ? 'border-primary bg-primary'
-                        : 'border-gray-300 bg-white'
+                        : 'border-muted-foreground/40 bg-card'
                     )}
                   >
                     {isSelected && <Check className="size-3 text-white" />}

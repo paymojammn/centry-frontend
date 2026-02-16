@@ -54,21 +54,21 @@ export function CheckoutWidget({
   }, [onClose, onSuccess, onError]);
 
   return (
-    <div className={cn('relative bg-white rounded-xl overflow-hidden shadow-xl', className)}>
+    <div className={cn('relative bg-card rounded-xl overflow-hidden shadow-xl', className)}>
       {/* Close Button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 hover:bg-gray-100 transition-colors shadow-sm"
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 hover:bg-muted transition-colors shadow-sm"
           aria-label="Close"
         >
-          <X className="size-4 text-gray-600" />
+          <X className="size-4 text-muted-foreground" />
         </button>
       )}
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white z-5">
+        <div className="absolute inset-0 flex items-center justify-center bg-card z-5">
           <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       )}
@@ -118,7 +118,7 @@ export function CheckoutModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
         onClick={onClose}
       />
 

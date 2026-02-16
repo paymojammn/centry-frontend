@@ -180,7 +180,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       <div className="bg-card rounded-xl border border-border/80 shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-[#49a034]" />
+            <Server className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-medium text-foreground">SFTP Import</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-1">Download bank statement files from SFTP server</p>
@@ -304,7 +304,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4 text-[#49a034]" />
+              <FolderOpen className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Remote Files</h3>
             </div>
             {downloadPath && <p className="text-xs text-muted-foreground mt-1 font-mono">{downloadPath}</p>}
@@ -321,7 +321,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               Refresh
             </Button>
             {selectedFiles.size > 0 && (
-              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press">
+              <Button size="sm" onClick={handleDownloadSelected} disabled={isDownloading} className="h-8 bg-primary hover:bg-primary/90 btn-press">
                 <Download className="h-3 w-3 mr-1.5" />
                 Download ({selectedFiles.size})
               </Button>
@@ -330,7 +330,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
               size="sm"
               onClick={handleDownloadAll}
               disabled={!selectedAccountId || files.length === 0 || isDownloading}
-              className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
+              className="h-8 bg-primary hover:bg-primary/90 btn-press"
             >
               <Download className="h-3 w-3 mr-1.5" />
               Download All
@@ -345,11 +345,11 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
           </div>
         ) : filesLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : filesError ? (
           <div className="text-center py-12">
-            <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">{(filesError as any)?.message || "Failed to connect to SFTP"}</p>
           </div>
         ) : files.length === 0 ? (
@@ -415,7 +415,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
         <div className="bg-card rounded-xl border border-border/80 shadow-sm">
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#49a034]" />
+              <Clock className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Recent Downloads</h3>
             </div>
           </div>

@@ -11,9 +11,9 @@ interface CheckoutLayoutProps {
 
 export function CheckoutLayout({ children, merchantName, merchantLogo }: CheckoutLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 py-4 px-6">
+      <header className="bg-card border-b border-border py-4 px-6">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           {merchantLogo ? (
             <img
@@ -22,14 +22,14 @@ export function CheckoutLayout({ children, merchantName, merchantLogo }: Checkou
               className="h-8 w-auto object-contain"
             />
           ) : (
-            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-sm font-semibold text-gray-600">
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-sm font-semibold text-muted-foreground">
                 {merchantName?.charAt(0)?.toUpperCase() || 'M'}
               </span>
             </div>
           )}
           {merchantName && (
-            <span className="text-sm font-medium text-gray-900">{merchantName}</span>
+            <span className="text-sm font-medium text-foreground">{merchantName}</span>
           )}
         </div>
       </header>
@@ -41,9 +41,9 @@ export function CheckoutLayout({ children, merchantName, merchantLogo }: Checkou
 
       {/* Footer */}
       <footer className="py-6 px-4 text-center">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Secured by{' '}
-          <span className="font-medium text-gray-700">Centry</span>
+          <span className="font-medium text-foreground">Centry</span>
         </p>
       </footer>
     </div>
@@ -59,7 +59,7 @@ export function CheckoutCard({ children, className }: CheckoutCardProps) {
   return (
     <div
       className={cn(
-        'bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden',
+        'bg-card rounded-xl border border-border shadow-sm overflow-hidden',
         className
       )}
     >
@@ -75,7 +75,7 @@ interface CheckoutCardHeaderProps {
 
 export function CheckoutCardHeader({ children, className }: CheckoutCardHeaderProps) {
   return (
-    <div className={cn('px-6 py-4 border-b border-gray-100', className)}>{children}</div>
+    <div className={cn('px-6 py-4 border-b border-border', className)}>{children}</div>
   );
 }
 

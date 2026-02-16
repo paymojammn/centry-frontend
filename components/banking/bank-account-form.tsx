@@ -360,7 +360,7 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
                 id="is_active"
                 checked={isActive}
                 onCheckedChange={(checked) => setValue("is_active", checked)}
-                className="data-[state=checked]:bg-[#49a034]"
+                className="data-[state=checked]:bg-primary"
               />
             </div>
 
@@ -375,7 +375,7 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
                 id="is_default"
                 checked={isDefault}
                 onCheckedChange={(checked) => setValue("is_default", checked)}
-                className="data-[state=checked]:bg-[#49a034]"
+                className="data-[state=checked]:bg-primary"
               />
             </div>
           </div>
@@ -399,7 +399,7 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="bg-[#49a034] hover:bg-[#3d8a2b] text-white btn-press"
+              className="bg-primary hover:bg-primary/90 text-white btn-press"
             >
               {mutation.isPending ? "Saving..." : (isEdit ? "Update Account" : "Add Account")}
             </Button>

@@ -29,14 +29,14 @@ export default function CheckoutDocsPage() {
       <div className="px-6 lg:px-12 py-12 max-w-4xl">
         {/* Hero */}
         <div className="mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 text-primary text-sm font-medium mb-4">
             <Zap className="size-4" />
             Checkout API
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Accept payments across Africa
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed">
+          <p className="text-xl text-muted-foreground leading-relaxed">
             Centry Checkout is a payment orchestration platform that allows you to accept
             payments via multiple providers including Paystack, Netcash, MTN MoMo, and Airtel Money.
             One integration, all payment methods.
@@ -72,33 +72,33 @@ export default function CheckoutDocsPage() {
           description="How Centry Checkout works"
         >
           <div className="prose prose-gray max-w-none">
-            <p className="text-gray-600 leading-relaxed mb-6">
+            <p className="text-muted-foreground leading-relaxed mb-6">
               Centry Checkout provides a unified API for accepting payments across multiple
               African countries and payment providers. Instead of integrating with each provider
               individually, you integrate once with Centry and we handle the routing.
             </p>
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
-              <h4 className="font-semibold text-gray-900 mb-3">The checkout flow:</h4>
-              <ol className="space-y-2 text-gray-700">
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 mb-6">
+              <h4 className="font-semibold text-foreground mb-3">The checkout flow:</h4>
+              <ol className="space-y-2 text-foreground">
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 size-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 size-6 rounded-full bg-primary text-white text-sm flex items-center justify-center">1</span>
                   <span>Your server creates a checkout session via our API</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 size-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 size-6 rounded-full bg-primary text-white text-sm flex items-center justify-center">2</span>
                   <span>Redirect your customer to the checkout URL (or embed the widget)</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 size-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 size-6 rounded-full bg-primary text-white text-sm flex items-center justify-center">3</span>
                   <span>Customer selects their country and payment method</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 size-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 size-6 rounded-full bg-primary text-white text-sm flex items-center justify-center">4</span>
                   <span>We route the payment to the appropriate provider</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 size-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 size-6 rounded-full bg-primary text-white text-sm flex items-center justify-center">5</span>
                   <span>You receive a webhook when the payment completes</span>
                 </li>
               </ol>
@@ -114,18 +114,18 @@ export default function CheckoutDocsPage() {
         >
           <div className="space-y-6">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">1. Get your API key</h4>
-              <p className="text-gray-600 mb-4">
+              <h4 className="font-semibold text-foreground mb-3">1. Get your API key</h4>
+              <p className="text-muted-foreground mb-4">
                 Create an account and get your API key from the{' '}
-                <a href="/dashboard" className="text-blue-600 hover:underline">
+                <a href="/dashboard" className="text-primary hover:underline">
                   dashboard
                 </a>
-                . API keys start with <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">cen_</code>.
+                . API keys start with <code className="px-1.5 py-0.5 bg-muted rounded text-sm">cen_</code>.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">2. Create a checkout session</h4>
+              <h4 className="font-semibold text-foreground mb-3">2. Create a checkout session</h4>
               <CodeBlock
                 language="bash"
                 filename="Terminal"
@@ -146,9 +146,9 @@ export default function CheckoutDocsPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">3. Redirect to checkout</h4>
-              <p className="text-gray-600 mb-4">
-                The response includes a <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">checkout_url</code>.
+              <h4 className="font-semibold text-foreground mb-3">3. Redirect to checkout</h4>
+              <p className="text-muted-foreground mb-4">
+                The response includes a <code className="px-1.5 py-0.5 bg-muted rounded text-sm">checkout_url</code>.
                 Redirect your customer to this URL to complete payment.
               </p>
               <CodeBlock
@@ -165,8 +165,8 @@ export default function CheckoutDocsPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">4. Handle the webhook</h4>
-              <p className="text-gray-600 mb-4">
+              <h4 className="font-semibold text-foreground mb-3">4. Handle the webhook</h4>
+              <p className="text-muted-foreground mb-4">
                 When the payment completes, we&apos;ll send a webhook to your server.
               </p>
               <CodeBlock
@@ -199,7 +199,7 @@ export default function CheckoutDocsPage() {
           description="Secure your API requests"
         >
           <div className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               All API requests must include your API key in the Authorization header.
               Keep your API key secret and never expose it in client-side code.
             </p>
@@ -209,12 +209,12 @@ export default function CheckoutDocsPage() {
               code={`Authorization: Api-Key cen_your_api_key`}
             />
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="bg-[rgb(var(--warning))]/10 border border-[rgb(var(--warning))]/20 rounded-xl p-4">
               <div className="flex gap-3">
-                <Shield className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <Shield className="size-5 text-[rgb(var(--warning))] flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-amber-800">Keep your API key secure</h4>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <h4 className="font-medium text-[rgb(var(--warning))]">Keep your API key secure</h4>
+                  <p className="text-sm text-[rgb(var(--warning))] mt-1">
                     Never expose your API key in client-side code or public repositories.
                     Use environment variables to store your key securely.
                   </p>
@@ -231,7 +231,7 @@ export default function CheckoutDocsPage() {
           description="Redirect customers to our hosted checkout page"
         >
           <div className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               The simplest integration method. Create a session and redirect your customer
               to the checkout URL. We handle the entire payment flow.
             </p>
@@ -270,13 +270,13 @@ res.redirect(checkout_url);`}
           description="Embed checkout in your site with our JavaScript SDK"
         >
           <div className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Keep customers on your site by embedding our checkout widget in a modal.
               The widget handles country selection, payment methods, and the entire payment flow.
             </p>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">1. Include the SDK</h4>
+              <h4 className="font-semibold text-foreground mb-3">1. Include the SDK</h4>
               <CodeBlock
                 language="html"
                 code={`<script src="https://checkout.centry.io/widget/centry-checkout.js"></script>`}
@@ -284,7 +284,7 @@ res.redirect(checkout_url);`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">2. Open the checkout modal</h4>
+              <h4 className="font-semibold text-foreground mb-3">2. Open the checkout modal</h4>
               <CodeBlock
                 language="javascript"
                 filename="checkout.js"
@@ -305,9 +305,9 @@ CentryCheckout.open({
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-medium text-blue-800 mb-2">Try it out</h4>
-              <p className="text-sm text-blue-700">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+              <h4 className="font-medium text-primary mb-2">Try it out</h4>
+              <p className="text-sm text-primary">
                 See the{' '}
                 <a href="/widget/example.html" className="underline" target="_blank">
                   live example
@@ -324,8 +324,8 @@ CentryCheckout.open({
           title="API Reference"
           description="Complete API documentation"
         >
-          <p className="text-gray-600 mb-6">
-            Base URL: <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">https://api.centry.io</code>
+          <p className="text-muted-foreground mb-6">
+            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-sm">https://api.centry.io</code>
           </p>
         </DocsSection>
 
@@ -343,7 +343,7 @@ CentryCheckout.open({
             />
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Request Parameters</h4>
+              <h4 className="font-semibold text-foreground mb-3">Request Parameters</h4>
               <ParamTable
                 params={[
                   { name: 'amount', type: 'string', required: true, description: 'Payment amount (e.g., "5000.00")' },
@@ -364,7 +364,7 @@ CentryCheckout.open({
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Example Request</h4>
+              <h4 className="font-semibold text-foreground mb-3">Example Request</h4>
               <CodeBlock
                 language="javascript"
                 code={`const response = await fetch('https://api.centry.io/api/v1/checkout/sessions/', {
@@ -392,7 +392,7 @@ CentryCheckout.open({
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Response</h4>
+              <h4 className="font-semibold text-foreground mb-3">Response</h4>
               <CodeBlock
                 language="json"
                 code={`{
@@ -454,33 +454,33 @@ CentryCheckout.open({
           description="Receive real-time payment notifications"
         >
           <div className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Webhooks notify your server when payment events occur. Configure your webhook URL
               when creating a session or set a default in your dashboard.
             </p>
 
             <div id="webhook-events">
-              <h4 className="font-semibold text-gray-900 mb-3">Webhook Events</h4>
+              <h4 className="font-semibold text-foreground mb-3">Webhook Events</h4>
               <div className="space-y-3">
-                <div className="p-4 rounded-lg border border-gray-200">
-                  <code className="text-sm font-mono text-blue-600">session.completed</code>
-                  <p className="text-sm text-gray-600 mt-1">Payment was successful</p>
+                <div className="p-4 rounded-lg border border-border">
+                  <code className="text-sm font-mono text-primary">session.completed</code>
+                  <p className="text-sm text-muted-foreground mt-1">Payment was successful</p>
                 </div>
-                <div className="p-4 rounded-lg border border-gray-200">
-                  <code className="text-sm font-mono text-blue-600">session.failed</code>
-                  <p className="text-sm text-gray-600 mt-1">Payment failed</p>
+                <div className="p-4 rounded-lg border border-border">
+                  <code className="text-sm font-mono text-primary">session.failed</code>
+                  <p className="text-sm text-muted-foreground mt-1">Payment failed</p>
                 </div>
-                <div className="p-4 rounded-lg border border-gray-200">
-                  <code className="text-sm font-mono text-blue-600">session.expired</code>
-                  <p className="text-sm text-gray-600 mt-1">Session expired without payment</p>
+                <div className="p-4 rounded-lg border border-border">
+                  <code className="text-sm font-mono text-primary">session.expired</code>
+                  <p className="text-sm text-muted-foreground mt-1">Session expired without payment</p>
                 </div>
               </div>
             </div>
 
             <div id="webhook-verification">
-              <h4 className="font-semibold text-gray-900 mb-3">Signature Verification</h4>
-              <p className="text-gray-600 mb-4">
-                Webhooks include an HMAC signature in the <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm">X-Centry-Signature</code> header.
+              <h4 className="font-semibold text-foreground mb-3">Signature Verification</h4>
+              <p className="text-muted-foreground mb-4">
+                Webhooks include an HMAC signature in the <code className="px-1.5 py-0.5 bg-muted rounded text-sm">X-Centry-Signature</code> header.
                 Verify this signature to ensure the webhook is authentic.
               </p>
               <CodeBlock
@@ -521,17 +521,17 @@ def handle_webhook(request):
           title="Supported Countries"
           description="Available countries and payment methods"
         >
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Country</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Currency</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Providers</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Methods</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Country</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Currency</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Providers</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Methods</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 <tr>
                   <td className="px-4 py-3 font-medium">Nigeria (NG)</td>
                   <td className="px-4 py-3">NGN</td>
@@ -580,18 +580,18 @@ def handle_webhook(request):
         </DocsSection>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
+        <div className="mt-16 pt-8 border-t border-border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Need help? Contact{' '}
-              <a href="mailto:support@centry.io" className="text-blue-600 hover:underline">
+              <a href="mailto:support@centry.io" className="text-primary hover:underline">
                 support@centry.io
               </a>
             </p>
             <div className="flex items-center gap-4">
               <a
                 href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-muted-foreground hover:text-foreground"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -599,7 +599,7 @@ def handle_webhook(request):
               </a>
               <a
                 href="https://github.com/centry"
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-muted-foreground hover:text-foreground"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -607,7 +607,7 @@ def handle_webhook(request):
               </a>
               <a
                 href="/dashboard"
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-muted-foreground hover:text-foreground"
               >
                 Dashboard
               </a>

@@ -147,14 +147,14 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-card">
       {/* Header */}
-      <header className="bg-[#1c252c] text-white">
+      <header className="bg-[rgb(var(--brand-dark))] text-white">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-[#1c252c] font-bold text-xl">C</span>
+                <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
               </div>
               <span className="text-xl font-semibold">Centry</span>
             </Link>
@@ -164,7 +164,7 @@ export default function PricingPage() {
               </Link>
               <Link
                 href="/auth/signup"
-                className="bg-white text-[#1c252c] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                className="bg-white text-[rgb(var(--brand-dark))] px-4 py-2 rounded-lg font-medium hover:bg-muted transition-colors"
               >
                 Get Started
               </Link>
@@ -174,7 +174,7 @@ export default function PricingPage() {
       </header>
 
       {/* Hero */}
-      <section className="bg-[#1c252c] text-white pt-16 pb-24">
+      <section className="bg-[rgb(var(--brand-dark))] text-white pt-16 pb-24">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Simple, transparent pricing
@@ -191,7 +191,7 @@ export default function PricingPage() {
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all ${
                 billingCycle === 'monthly'
-                  ? 'bg-white text-[#1c252c]'
+                  ? 'bg-white text-[rgb(var(--brand-dark))]'
                   : 'text-white/80 hover:text-white'
               }`}
             >
@@ -201,12 +201,12 @@ export default function PricingPage() {
               onClick={() => setBillingCycle('annual')}
               className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all ${
                 billingCycle === 'annual'
-                  ? 'bg-white text-[#1c252c]'
+                  ? 'bg-white text-[rgb(var(--brand-dark))]'
                   : 'text-white/80 hover:text-white'
               }`}
             >
               Annual
-              <span className="ml-2 bg-[#49a034] text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">
                 Save 17%
               </span>
             </button>
@@ -223,37 +223,37 @@ export default function PricingPage() {
             return (
               <div
                 key={tier.name}
-                className={`relative bg-white rounded-2xl border-2 ${
+                className={`relative bg-card rounded-xl border-2 ${
                   tier.highlighted
-                    ? 'border-[#1c252c] shadow-xl'
-                    : 'border-gray-200 shadow-sm'
+                    ? 'border-[rgb(var(--brand-dark))] shadow-xl'
+                    : 'border-border shadow-sm'
                 }`}
               >
                 {tier.highlighted && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-[#1c252c] text-white text-sm font-medium px-4 py-1 rounded-full">
+                    <span className="bg-[rgb(var(--brand-dark))] text-white text-sm font-medium px-4 py-1 rounded-full">
                       Most Popular
                     </span>
                   </div>
                 )}
 
                 <div className="p-8">
-                  <h3 className="text-xl font-semibold text-gray-900">{tier.name}</h3>
-                  <p className="mt-2 text-gray-500 text-sm h-12">{tier.description}</p>
+                  <h3 className="text-xl font-semibold text-foreground">{tier.name}</h3>
+                  <p className="mt-2 text-muted-foreground text-sm h-12">{tier.description}</p>
 
                   <div className="mt-6">
-                    <span className="text-4xl font-bold text-gray-900">
+                    <span className="text-4xl font-bold text-foreground">
                       {formatPrice(price)}
                     </span>
                     {price > 0 && (
-                      <span className="text-gray-500">
+                      <span className="text-muted-foreground">
                         /{billingCycle === 'annual' ? 'year' : 'month'}
                       </span>
                     )}
                   </div>
 
                   {price > 0 && billingCycle === 'annual' && (
-                    <p className="mt-1 text-sm text-[#49a034]">
+                    <p className="mt-1 text-sm text-primary">
                       ${Math.round(price / 12)}/month billed annually
                     </p>
                   )}
@@ -262,8 +262,8 @@ export default function PricingPage() {
                     href={tier.ctaLink}
                     className={`mt-6 w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                       tier.highlighted
-                        ? 'bg-[#1c252c] text-white hover:bg-[#2d3a44]'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                        ? 'bg-[rgb(var(--brand-dark))] text-white hover:bg-[#2d3a44]'
+                        : 'bg-muted text-foreground hover:bg-muted'
                     }`}
                   >
                     {tier.cta}
@@ -273,8 +273,8 @@ export default function PricingPage() {
                   <ul className="mt-8 space-y-4">
                     {tier.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <RiCheckLine className="w-5 h-5 text-[#49a034] shrink-0 mt-0.5" />
-                        <span className="text-gray-600 text-sm">{feature}</span>
+                        <RiCheckLine className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -288,17 +288,17 @@ export default function PricingPage() {
       {/* Transaction Fees */}
       <section className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Transaction Fees</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4">Transaction Fees</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Pay-as-you-go transaction fees. No hidden charges.
             Fees are charged per successful payment.
           </p>
         </div>
 
-        <div className="bg-gray-50 rounded-2xl overflow-hidden">
+        <div className="bg-muted rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#1c252c] text-white">
+              <tr className="bg-[rgb(var(--brand-dark))] text-white">
                 <th className="text-left py-4 px-6 font-medium">Payment Type</th>
                 <th className="text-left py-4 px-6 font-medium hidden md:table-cell">Description</th>
                 <th className="text-center py-4 px-6 font-medium">Fee</th>
@@ -308,42 +308,42 @@ export default function PricingPage() {
             </thead>
             <tbody>
               {transactionFees.map((fee, idx) => (
-                <tr key={idx} className="border-b border-gray-200 last:border-0">
+                <tr key={idx} className="border-b border-border last:border-0">
                   <td className="py-4 px-6">
-                    <div className="font-medium text-gray-900">{fee.type}</div>
-                    <div className="text-sm text-gray-500 md:hidden">{fee.description}</div>
+                    <div className="font-medium text-foreground">{fee.type}</div>
+                    <div className="text-sm text-muted-foreground md:hidden">{fee.description}</div>
                   </td>
-                  <td className="py-4 px-6 text-gray-600 hidden md:table-cell">{fee.description}</td>
-                  <td className="py-4 px-6 text-center font-semibold text-gray-900">{fee.fee}</td>
-                  <td className="py-4 px-6 text-center text-gray-600">{fee.min}</td>
-                  <td className="py-4 px-6 text-center text-gray-600">{fee.max}</td>
+                  <td className="py-4 px-6 text-muted-foreground hidden md:table-cell">{fee.description}</td>
+                  <td className="py-4 px-6 text-center font-semibold text-foreground">{fee.fee}</td>
+                  <td className="py-4 px-6 text-center text-muted-foreground">{fee.min}</td>
+                  <td className="py-4 px-6 text-center text-muted-foreground">{fee.max}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Volume discounts available for Enterprise customers. <Link href="mailto:sales@getcentry.app" className="text-[#1c252c] hover:underline">Contact sales</Link> for custom pricing.
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          Volume discounts available for Enterprise customers. <Link href="mailto:sales@getcentry.app" className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
         </p>
       </section>
 
       {/* Features Comparison */}
-      <section className="bg-gray-50 py-24">
+      <section className="bg-muted py-24">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Compare Plans</h2>
-            <p className="text-gray-600">Choose the plan that fits your business needs</p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Compare Plans</h2>
+            <p className="text-muted-foreground">Choose the plan that fits your business needs</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Feature</th>
-                  <th className="text-center py-4 px-4 font-medium text-gray-900">Starter</th>
-                  <th className="text-center py-4 px-4 font-medium text-gray-900 bg-gray-50">Professional</th>
-                  <th className="text-center py-4 px-4 font-medium text-gray-900">Enterprise</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-4 px-6 font-medium text-foreground">Feature</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground">Starter</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground bg-muted">Professional</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground">Enterprise</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -360,39 +360,39 @@ export default function PricingPage() {
                   { feature: 'SLA Guarantee', starter: false, professional: false, enterprise: true },
                   { feature: 'Dedicated Support', starter: false, professional: false, enterprise: true },
                 ].map((row, idx) => (
-                  <tr key={idx} className="border-b border-gray-100 last:border-0">
-                    <td className="py-4 px-6 text-gray-900">{row.feature}</td>
+                  <tr key={idx} className="border-b border-border last:border-0">
+                    <td className="py-4 px-6 text-foreground">{row.feature}</td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.starter === 'boolean' ? (
                         row.starter ? (
-                          <RiCheckLine className="w-5 h-5 text-[#49a034] mx-auto" />
+                          <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-gray-600">{row.starter}</span>
+                        <span className="text-muted-foreground">{row.starter}</span>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-center bg-gray-50">
+                    <td className="py-4 px-4 text-center bg-muted">
                       {typeof row.professional === 'boolean' ? (
                         row.professional ? (
-                          <RiCheckLine className="w-5 h-5 text-[#49a034] mx-auto" />
+                          <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-gray-900 font-medium">{row.professional}</span>
+                        <span className="text-foreground font-medium">{row.professional}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.enterprise === 'boolean' ? (
                         row.enterprise ? (
-                          <RiCheckLine className="w-5 h-5 text-[#49a034] mx-auto" />
+                          <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-gray-600">{row.enterprise}</span>
+                        <span className="text-muted-foreground">{row.enterprise}</span>
                       )}
                     </td>
                   </tr>
@@ -406,25 +406,25 @@ export default function PricingPage() {
       {/* FAQs */}
       <section className="max-w-3xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
         </div>
 
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div key={idx} className="border border-border rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-muted transition-colors"
               >
-                <span className="font-medium text-gray-900">{faq.question}</span>
+                <span className="font-medium text-foreground">{faq.question}</span>
                 <RiQuestionLine
-                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                  className={`w-5 h-5 text-muted-foreground/60 transition-transform ${
                     expandedFaq === idx ? 'rotate-180' : ''
                   }`}
                 />
               </button>
               {expandedFaq === idx && (
-                <div className="px-5 pb-5 text-gray-600">
+                <div className="px-5 pb-5 text-muted-foreground">
                   {faq.answer}
                 </div>
               )}
@@ -434,7 +434,7 @@ export default function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-[#1c252c] text-white py-16">
+      <section className="bg-[rgb(var(--brand-dark))] text-white py-16">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to streamline your payments?</h2>
           <p className="text-white/70 mb-8">
@@ -443,7 +443,7 @@ export default function PricingPage() {
           <div className="flex items-center justify-center gap-4">
             <Link
               href="/auth/signup"
-              className="bg-white text-[#1c252c] px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              className="bg-white text-[rgb(var(--brand-dark))] px-8 py-3 rounded-lg font-medium hover:bg-muted transition-colors"
             >
               Start Free Trial
             </Link>
@@ -458,21 +458,21 @@ export default function PricingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 py-12">
+      <footer className="bg-muted py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#1c252c] rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">C</span>
               </div>
-              <span className="text-gray-900 font-semibold">Centry</span>
+              <span className="text-foreground font-semibold">Centry</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-600">
-              <Link href="/refund-policy" className="hover:text-gray-900">Refund Policy</Link>
-              <Link href="/cancellation-policy" className="hover:text-gray-900">Cancellation Policy</Link>
-              <Link href="mailto:support@getcentry.app" className="hover:text-gray-900">Support</Link>
+            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <Link href="/refund-policy" className="hover:text-foreground">Refund Policy</Link>
+              <Link href="/cancellation-policy" className="hover:text-foreground">Cancellation Policy</Link>
+              <Link href="mailto:support@getcentry.app" className="hover:text-foreground">Support</Link>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} Centry. All rights reserved.
             </p>
           </div>

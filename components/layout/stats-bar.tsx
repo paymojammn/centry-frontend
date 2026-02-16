@@ -21,16 +21,16 @@ interface StatsBarProps {
 }
 
 const VARIANT_COLORS = {
-  default: { bg: 'bg-gray-100', text: 'text-gray-700' },
-  success: { bg: 'bg-green-50', text: 'text-green-700' },
+  default: { bg: 'bg-muted', text: 'text-foreground' },
+  success: { bg: 'bg-primary/5', text: 'text-primary' },
   warning: { bg: 'bg-amber-50', text: 'text-amber-700' },
-  danger: { bg: 'bg-red-50', text: 'text-red-600' },
-  info: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  danger: { bg: 'bg-destructive/5', text: 'text-destructive' },
+  info: { bg: 'bg-primary/5', text: 'text-primary' },
 };
 
 export function StatsBar({ stats }: StatsBarProps) {
   return (
-    <div className="bg-white border-b border-gray-100">
+    <div className="bg-card border-b border-border">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex items-center gap-6 flex-wrap">
           {stats.map((stat, index) => {
@@ -43,7 +43,7 @@ export function StatsBar({ stats }: StatsBarProps) {
                     style={{ backgroundColor: stat.color }}
                   />
                 )}
-                <span className="text-sm text-gray-500">{stat.label}:</span>
+                <span className="text-sm text-muted-foreground">{stat.label}:</span>
                 <span
                   className={`px-2 py-0.5 rounded text-sm font-medium ${variant.bg} ${variant.text}`}
                 >

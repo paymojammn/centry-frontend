@@ -131,7 +131,7 @@ export function MatchedTransactions() {
             <Button
               onClick={handleBulkSync}
               disabled={selectedIds.length === 0 || bulkSyncMutation.isPending}
-              className="bg-[#49a034] hover:bg-[#4f7068] text-white"
+              className="bg-primary hover:bg-primary/80 text-white"
             >
               {bulkSyncMutation.isPending ? (
                 <>
@@ -195,8 +195,8 @@ export function MatchedTransactions() {
                 key={transaction.id}
                 className={`p-6 border rounded-lg transition-all duration-200 ${
                   isSelected
-                    ? "border-[#49a034] bg-[#49a034]/5 shadow-md"
-                    : "border-border hover:border-[#49a034]/30 hover:shadow-sm"
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-primary/30 hover:shadow-sm"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -232,7 +232,7 @@ export function MatchedTransactions() {
                     {/* Match Info */}
                     <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg">
                       <div className="flex items-center gap-2 flex-1">
-                        <FileText className="h-4 w-4 text-[#49a034]" />
+                        <FileText className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium text-foreground">
                           Matched to:
                         </span>
@@ -247,7 +247,7 @@ export function MatchedTransactions() {
 
                       <div className="flex items-center gap-2">
                         <Badge
-                          className="text-xs font-semibold text-[#49a034] bg-[#49a034]/10"
+                          className="text-xs font-semibold text-primary bg-primary/10"
                         >
                           {Math.round(transaction.match_confidence * 100)}% confidence
                         </Badge>

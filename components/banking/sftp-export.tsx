@@ -168,7 +168,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
       <div className="bg-card rounded-xl border border-border/80 shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-[#49a034]" />
+            <Server className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-medium text-foreground">SFTP Export</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-1">Upload payment files to bank SFTP server</p>
@@ -286,7 +286,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-[#49a034]" />
+              <Upload className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Ready for Upload</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{pendingExports.length} files pending</p>
@@ -299,7 +299,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
         {exportsLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : pendingExports.length === 0 ? (
           <div className="text-center py-12">
@@ -323,7 +323,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
               {pendingExports.map((exportFile: BankPaymentExport) => (
                 <tr
                   key={exportFile.id}
-                  className={`row-interactive cursor-pointer ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}
+                  className={`row-interactive cursor-pointer ${selectedExportId === exportFile.id ? 'bg-primary/5' : ''}`}
                   onClick={() => onSelectExport?.(exportFile.id)}
                 >
                   <td className="px-6 py-3">
@@ -355,7 +355,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                         size="sm"
                         onClick={(e) => { e.stopPropagation(); handleUploadFile(exportFile); }}
                         disabled={isUploading || uploadingFileId === exportFile.id}
-                        className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
+                        className="h-8 bg-primary hover:bg-primary/90 btn-press"
                       >
                         {uploadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                       </Button>
@@ -374,7 +374,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-[#49a034]" />
+                <Server className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-medium text-foreground">Local Export Files</h3>
               </div>
               {localFilesData?.export_path && (
@@ -389,7 +389,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
 
           {localFilesLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : localFiles.length === 0 ? (
             <div className="text-center py-12">
@@ -436,7 +436,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                           size="sm"
                           onClick={() => handleUploadLocalFile(file)}
                           disabled={isUploading || uploadingLocalFile === file.absolute_path}
-                          className="h-8 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
+                          className="h-8 bg-primary hover:bg-primary/90 btn-press"
                         >
                           {uploadingLocalFile === file.absolute_path ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         </Button>
@@ -463,7 +463,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
         <div className="bg-card rounded-xl border border-border/80 shadow-sm">
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-[#49a034]" />
+              <CheckCircle2 className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Uploaded Files</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{uploadedExports.length} files completed</p>
@@ -481,7 +481,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             </thead>
             <tbody className="divide-y divide-border animate-stagger">
               {uploadedExports.map((exportFile: BankPaymentExport) => (
-                <tr key={exportFile.id} className={`row-interactive ${selectedExportId === exportFile.id ? 'bg-[#49a034]/5' : ''}`}>
+                <tr key={exportFile.id} className={`row-interactive ${selectedExportId === exportFile.id ? 'bg-primary/5' : ''}`}>
                   <td className="px-6 py-3">
                     <p className="text-sm font-medium text-foreground">{exportFile.file_name}</p>
                     <p className="text-xs text-muted-foreground">{formatFileSize(exportFile.file_size)}</p>
@@ -516,7 +516,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
         <div className="bg-card rounded-xl border border-border/80 shadow-sm">
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#49a034]" />
+              <Clock className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Recent Uploads</h3>
             </div>
           </div>

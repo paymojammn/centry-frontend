@@ -81,7 +81,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
           </div>
         </div>
         <div className="text-center py-12">
-          <XCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+          <XCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Failed to load import history</p>
         </div>
       </div>
@@ -121,7 +121,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
               <tr
                 key={imp.id}
                 className={`cursor-pointer hover:bg-muted transition-colors ${
-                  selectedImportId === imp.id ? 'bg-[#49a034]/5' : ''
+                  selectedImportId === imp.id ? 'bg-primary/5' : ''
                 }`}
                 onClick={() => onSelectImport?.(imp.id)}
               >
@@ -138,7 +138,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
                 <td className="px-6 py-3 text-center">
                   <span className="text-sm font-medium text-foreground">{imp.transactions_count}</span>
                   {imp.transactions_synced > 0 && (
-                    <span className="text-xs text-[#49a034] ml-1">
+                    <span className="text-xs text-primary ml-1">
                       ({imp.transactions_synced} synced)
                     </span>
                   )}

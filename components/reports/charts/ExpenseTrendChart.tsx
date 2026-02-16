@@ -48,12 +48,12 @@ function formatCompactCurrency(amount: number): string {
 const CustomTooltip = ({ active, payload, label, currency }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white shadow-lg rounded-lg p-3 border">
-        <p className="text-sm text-gray-500 mb-1">{label}</p>
+      <div className="bg-card shadow-lg rounded-lg p-3 border">
+        <p className="text-sm text-muted-foreground mb-1">{label}</p>
         <p className="font-medium text-purple-600">
           {formatCurrency(payload[0].value, currency)}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           {payload[0].payload.count} expense{payload[0].payload.count !== 1 ? 's' : ''}
         </p>
       </div>

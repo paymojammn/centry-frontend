@@ -63,7 +63,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
   if (error || !stats) {
     return (
       <div className="text-center py-8">
-        <XCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+        <XCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
         <p className="text-sm text-muted-foreground">Failed to load statistics</p>
       </div>
     );
@@ -112,7 +112,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                   <p className="text-xs text-muted-foreground font-mono">{provider.bank_provider__code}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-[#49a034]">
+                  <p className="text-sm font-medium text-primary">
                     {provider.count} {provider.count === 1 ? 'import' : 'imports'}
                   </p>
                   <p className="text-xs text-muted-foreground">{provider.total_txs.toLocaleString()} txns</p>
@@ -142,7 +142,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                   <p className="text-xs text-muted-foreground">{bank.bank_account__bank_provider__name || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-[#49a034]">
+                  <p className="text-sm font-medium text-primary">
                     {bank.count} {bank.count === 1 ? 'export' : 'exports'}
                   </p>
                   <p className="text-xs text-muted-foreground">{bank.total_payments.toLocaleString()} payments</p>

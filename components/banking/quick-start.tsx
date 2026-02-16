@@ -59,7 +59,7 @@ export function BankingQuickStart() {
           </li>
         </ol>
 
-        <div className="bg-white border border-primary/20 rounded-md p-3 mt-3">
+        <div className="bg-card border border-primary/20 rounded-md p-3 mt-3">
           <p className="text-xs text-primary">
             <strong>Key Feature:</strong> All synced transactions appear as <strong>unreconciled</strong> in Xero, 
             allowing you to use the standard Xero reconciliation workflow to match them to invoices and bills.

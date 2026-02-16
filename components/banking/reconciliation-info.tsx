@@ -42,7 +42,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         </Alert>
 
         {/* How it works */}
-        <Alert className="border-[#6B8FB8]/30 bg-white">
+        <Alert className="border-[#6B8FB8]/30 bg-card">
           <Info className="h-4 w-4 text-[#6B8FB8]" />
           <AlertTitle className="text-[#6B8FB8]">How Transactions Are Synced</AlertTitle>
           <AlertDescription className="text-[#6B8FB8] space-y-2">
@@ -116,7 +116,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         </div>
 
         {/* What you can do */}
-        <div className="rounded-lg border border-[#6B8FB8]/20 bg-white p-4 space-y-2">
+        <div className="rounded-lg border border-[#6B8FB8]/20 bg-card p-4 space-y-2">
           <h4 className="font-semibold text-[#6B8FB8]">In Xero&apos;s Reconciliation Screen:</h4>
           <ul className="text-sm text-[#6B8FB8] space-y-1 ml-4 list-disc">
             <li>Match transactions to existing invoices or bills</li>

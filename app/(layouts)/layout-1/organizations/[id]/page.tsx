@@ -92,11 +92,11 @@ export default function OrganizationDetailsPage() {
   if (!organization) {
     return (
       <div className="container py-8">
-        <div className="bg-white border border-gray-100 rounded-lg shadow-sm">
+        <div className="bg-card border border-border rounded-lg shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 px-6">
-            <Building2 className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-black mb-2">Organization Not Found</h3>
-            <p className="text-gray-600">
+            <Building2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Organization Not Found</h3>
+            <p className="text-muted-foreground">
               The organization you're looking for doesn't exist or you don't have access.
             </p>
           </div>
@@ -111,33 +111,33 @@ export default function OrganizationDetailsPage() {
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-[#49a034]/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-[#49a034]" />
+            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-black">{organization.name}</h1>
-              <p className="text-gray-600">@{organization.slug}</p>
+              <h1 className="text-3xl font-bold text-foreground">{organization.name}</h1>
+              <p className="text-muted-foreground">@{organization.slug}</p>
             </div>
           </div>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button 
-              className="h-10 w-10 border border-gray-200 rounded-lg flex items-center justify-center hover:border-[#49a034] hover:bg-[#49a034]/5 transition-all shadow-sm hover:shadow"
+            <button
+              className="h-10 w-10 border border-border rounded-lg flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-all shadow-sm hover:shadow"
               aria-label="More options"
             >
-              <MoreVertical className="h-4 w-4 text-gray-600" />
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="border-gray-200 shadow-sm">
-            <DropdownMenuLabel className="text-black font-semibold">Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-gray-100" />
-            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+          <DropdownMenuContent align="end" className="border-border shadow-sm">
+            <DropdownMenuLabel className="text-foreground font-semibold">Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-[#49a034]/10 hover:text-[#49a034]">
+            <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
               <Mail className="mr-2 h-4 w-4" />
               Invite Members
             </DropdownMenuItem>
@@ -370,23 +370,23 @@ function StatsCard({
 }) {
   if (loading) {
     return (
-      <div className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 animate-pulse">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6 animate-pulse">
         <div className="flex items-center justify-between mb-2">
-          <div className="h-4 w-24 bg-gray-100 rounded" />
-          <div className="h-4 w-4 bg-gray-100 rounded" />
+          <div className="h-4 w-24 bg-muted rounded" />
+          <div className="h-4 w-4 bg-muted rounded" />
         </div>
-        <div className="h-8 w-16 bg-gray-100 rounded" />
+        <div className="h-8 w-16 bg-muted rounded" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+    <div className="bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all p-6">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-        <div className="text-[#49a034]">{icon}</div>
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <div className="text-primary">{icon}</div>
       </div>
-      <div className="text-2xl font-bold text-black">{value.toLocaleString()}</div>
+      <div className="text-2xl font-bold text-foreground">{value.toLocaleString()}</div>
     </div>
   );
 }
@@ -401,12 +401,12 @@ function InfoRow({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-600 flex items-center gap-2">
-        {icon && <span className="text-[#49a034]">{icon}</span>}
+    <div className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+      <span className="text-sm text-muted-foreground flex items-center gap-2">
+        {icon && <span className="text-primary">{icon}</span>}
         {label}
       </span>
-      <span className="text-sm font-medium text-black">{value}</span>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }

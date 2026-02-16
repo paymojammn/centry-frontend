@@ -95,9 +95,9 @@ export function DocsLayout({ children }: DocsLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-card">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -106,10 +106,10 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 <div className="size-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">C</span>
                 </div>
-                <span className="font-semibold text-gray-900">Centry</span>
+                <span className="font-semibold text-foreground">Centry</span>
               </Link>
-              <span className="text-gray-300">|</span>
-              <Link href="/docs/checkout" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <span className="text-muted-foreground/40">|</span>
+              <Link href="/docs/checkout" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Documentation
               </Link>
             </div>
@@ -118,18 +118,18 @@ export function DocsLayout({ children }: DocsLayoutProps) {
             <div className="hidden md:flex items-center gap-6">
               <a
                 href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-muted-foreground hover:text-foreground"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Website
               </a>
-              <Link href="/docs/checkout" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/docs/checkout" className="text-sm text-muted-foreground hover:text-foreground">
                 Checkout API
               </Link>
               <a
                 href="https://github.com/centry"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-muted-foreground hover:text-foreground"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -137,7 +137,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
               </a>
               <Link
                 href="/auth/login"
-                className="text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-lg transition-colors"
+                className="text-sm font-medium text-white bg-[rgb(var(--brand-dark))] hover:bg-[rgb(var(--brand-dark))] px-4 py-2 rounded-lg transition-colors"
               >
                 Dashboard
               </Link>
@@ -146,7 +146,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
             {/* Mobile menu button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="md:hidden p-2 rounded-lg hover:bg-muted"
             >
               {sidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
@@ -158,7 +158,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
         {/* Sidebar */}
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 pt-16 transform transition-transform duration-200 md:translate-x-0 md:static md:pt-0',
+            'fixed inset-y-0 left-0 z-40 w-72 bg-card border-r border-border pt-16 transform transition-transform duration-200 md:translate-x-0 md:static md:pt-0',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           )}
         >
@@ -168,18 +168,18 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 <div key={section.title}>
                   <Link
                     href={section.href}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-blue-600"
+                    className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary"
                   >
                     {section.icon}
                     {section.title}
                   </Link>
                   {section.items && (
-                    <ul className="mt-3 space-y-2 pl-6 border-l border-gray-200">
+                    <ul className="mt-3 space-y-2 pl-6 border-l border-border">
                       {section.items.map((item) => (
                         <li key={item.href}>
                           <Link
                             href={item.href}
-                            className="block text-sm text-gray-600 hover:text-blue-600 py-1"
+                            className="block text-sm text-muted-foreground hover:text-primary py-1"
                           >
                             {item.title}
                           </Link>
@@ -217,9 +217,9 @@ interface DocsSectionProps {
 
 export function DocsSection({ id, title, description, children }: DocsSectionProps) {
   return (
-    <section id={id} className="scroll-mt-20 py-12 border-b border-gray-100 last:border-0">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-      {description && <p className="text-gray-600 mb-6">{description}</p>}
+    <section id={id} className="scroll-mt-20 py-12 border-b border-border last:border-0">
+      <h2 className="text-2xl font-bold text-foreground mb-2">{title}</h2>
+      {description && <p className="text-muted-foreground mb-6">{description}</p>}
       {children}
     </section>
   );
@@ -238,15 +238,15 @@ export function DocsCard({ icon, title, description, href }: DocsCardProps) {
     <Comp
       href={href || '#'}
       className={cn(
-        'block p-6 rounded-xl border border-gray-200 bg-white',
-        href && 'hover:border-blue-300 hover:shadow-md transition-all'
+        'block p-6 rounded-xl border border-border bg-card',
+        href && 'hover:border-primary/20 hover:shadow-md transition-all'
       )}
     >
-      <div className="size-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+      <div className="size-10 rounded-lg bg-primary/5 text-primary flex items-center justify-center mb-4">
         {icon}
       </div>
-      <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
+      <h3 className="font-semibold text-foreground mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </Comp>
   );
 }
@@ -259,15 +259,15 @@ interface EndpointProps {
 
 export function Endpoint({ method, path, description }: EndpointProps) {
   const methodColors = {
-    GET: 'bg-green-100 text-green-700',
-    POST: 'bg-blue-100 text-blue-700',
-    PUT: 'bg-amber-100 text-amber-700',
-    DELETE: 'bg-red-100 text-red-700',
+    GET: 'bg-primary/10 text-primary',
+    POST: 'bg-primary/5 text-primary',
+    PUT: 'bg-[rgb(var(--warning))]/10 text-[rgb(var(--warning))]',
+    DELETE: 'bg-destructive/5 text-destructive',
     PATCH: 'bg-purple-100 text-purple-700',
   };
 
   return (
-    <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
+    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted border border-border">
       <span
         className={cn(
           'px-2 py-1 rounded text-xs font-bold uppercase',
@@ -277,8 +277,8 @@ export function Endpoint({ method, path, description }: EndpointProps) {
         {method}
       </span>
       <div>
-        <code className="text-sm font-mono text-gray-900">{path}</code>
-        <p className="text-sm text-gray-600 mt-1">{description}</p>
+        <code className="text-sm font-mono text-foreground">{path}</code>
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
     </div>
   );
@@ -295,26 +295,26 @@ interface ParamTableProps {
 
 export function ParamTable({ params }: ParamTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-muted border-b border-border">
           <tr>
-            <th className="text-left px-4 py-3 font-semibold text-gray-900">Parameter</th>
-            <th className="text-left px-4 py-3 font-semibold text-gray-900">Type</th>
-            <th className="text-left px-4 py-3 font-semibold text-gray-900">Description</th>
+            <th className="text-left px-4 py-3 font-semibold text-foreground">Parameter</th>
+            <th className="text-left px-4 py-3 font-semibold text-foreground">Type</th>
+            <th className="text-left px-4 py-3 font-semibold text-foreground">Description</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-border">
           {params.map((param) => (
             <tr key={param.name}>
               <td className="px-4 py-3">
-                <code className="text-sm font-mono text-gray-900">{param.name}</code>
+                <code className="text-sm font-mono text-foreground">{param.name}</code>
                 {param.required && (
-                  <span className="ml-2 text-xs text-red-500 font-medium">required</span>
+                  <span className="ml-2 text-xs text-destructive font-medium">required</span>
                 )}
               </td>
-              <td className="px-4 py-3 text-gray-600">{param.type}</td>
-              <td className="px-4 py-3 text-gray-600">{param.description}</td>
+              <td className="px-4 py-3 text-muted-foreground">{param.type}</td>
+              <td className="px-4 py-3 text-muted-foreground">{param.description}</td>
             </tr>
           ))}
         </tbody>

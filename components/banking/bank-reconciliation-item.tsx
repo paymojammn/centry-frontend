@@ -242,9 +242,9 @@ export function BankReconciliationItem({
             className="p-0 h-auto hover:bg-transparent"
           >
             {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-[#49a034]" />
+              <ChevronUp className="h-5 w-5 text-primary" />
             ) : (
-              <ChevronDown className="h-5 w-5 text-[#49a034]" />
+              <ChevronDown className="h-5 w-5 text-primary" />
             )}
           </Button>
 
@@ -285,14 +285,14 @@ export function BankReconciliationItem({
             <Button
               size="sm"
               onClick={() => setIsExpanded(true)}
-              className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               OK
             </Button>
           )}
 
           {isReconciled && (
-            <Badge className="bg-[#49a034]/20 text-[#49a034]">
+            <Badge className="bg-primary/20 text-primary">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Reconciled
             </Badge>
@@ -335,7 +335,7 @@ export function BankReconciliationItem({
                         size="sm"
                         onClick={handleReconcile}
                         disabled={reconcileMutation.isPending}
-                        className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+                        className="bg-primary hover:bg-primary/90 text-white"
                       >
                         {reconcileMutation.isPending ? "Reconciling..." : "Reconcile"}
                       </Button>
@@ -375,7 +375,7 @@ export function BankReconciliationItem({
                         onChange={(e) => setSearchAmount(e.target.value)}
                         className="max-w-[150px]"
                       />
-                      <Button size="sm" className="bg-[#49a034] hover:bg-[#49a034]/90 text-white">
+                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
                         Go
                       </Button>
                       <Button
@@ -385,7 +385,7 @@ export function BankReconciliationItem({
                           setSearchQuery("");
                           setSearchAmount("");
                         }}
-                        className="text-[#49a034]"
+                        className="text-primary"
                       >
                         Clear search
                       </Button>
@@ -439,7 +439,7 @@ export function BankReconciliationItem({
                               </td>
                               <td className="p-3">
                                 <div>
-                                  <div className="text-sm font-medium text-[#49a034] hover:underline">
+                                  <div className="text-sm font-medium text-primary hover:underline">
                                     {match.contact_name}
                                   </div>
                                   {match.confidence && (
@@ -585,7 +585,7 @@ export function BankReconciliationItem({
               <Button
                 onClick={handleOkClick}
                 disabled={selectedMatches.length === 0 || matchMutation.isPending}
-                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 {matchMutation.isPending ? "Matching..." : "OK"}
               </Button>
@@ -594,7 +594,7 @@ export function BankReconciliationItem({
               <Button
                 onClick={handleCreateTransaction}
                 disabled={!contactName || !accountCode || createMutation.isPending}
-                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 {createMutation.isPending ? "Creating..." : "Create"}
               </Button>
@@ -602,7 +602,7 @@ export function BankReconciliationItem({
             {activeTab === "transfer" && (
               <Button
                 disabled={!selectedBankAccount}
-                className="bg-[#49a034] hover:bg-[#49a034]/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 Transfer
               </Button>

@@ -51,28 +51,28 @@ const CustomTooltip = ({ active, payload, label, currency }: any) => {
     const data = payload[0].payload;
     const net = data.inflow - data.outflow;
     return (
-      <div className="bg-white shadow-lg rounded-lg p-3 border">
-        <p className="text-sm font-medium text-gray-900 mb-2">{data.dateFormatted}</p>
+      <div className="bg-card shadow-lg rounded-lg p-3 border">
+        <p className="text-sm font-medium text-foreground mb-2">{data.dateFormatted}</p>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded" style={{ backgroundColor: '#22c55e' }} />
-            <span className="text-sm text-gray-600">Income:</span>
-            <span className="text-sm font-medium text-green-600">
+            <span className="text-sm text-muted-foreground">Income:</span>
+            <span className="text-sm font-medium text-primary">
               {formatCurrency(data.inflow, currency)}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444' }} />
-            <span className="text-sm text-gray-600">Expenses:</span>
-            <span className="text-sm font-medium text-red-600">
+            <span className="text-sm text-muted-foreground">Expenses:</span>
+            <span className="text-sm font-medium text-destructive">
               {formatCurrency(data.outflow, currency)}
             </span>
           </div>
           <div className="pt-1 border-t mt-2">
-            <span className="text-sm text-gray-600">Net: </span>
+            <span className="text-sm text-muted-foreground">Net: </span>
             <span
               className={`text-sm font-medium ${
-                net >= 0 ? 'text-green-600' : 'text-red-600'
+                net >= 0 ? 'text-primary' : 'text-destructive'
               }`}
             >
               {formatCurrency(net, currency)}
@@ -132,7 +132,7 @@ export default function FinancialTrendChart({
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             formatter={(value) => (
-              <span className="text-xs text-gray-600">{value}</span>
+              <span className="text-xs text-muted-foreground">{value}</span>
             )}
           />
           <Area

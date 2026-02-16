@@ -268,7 +268,7 @@ function ExportStatusCard({
   return (
     <div
       className={`bg-card rounded-lg border transition-colors ${
-        isSelected ? "border-[#49a034] ring-1 ring-[#49a034]/20" : "border-border"
+        isSelected ? "border-primary ring-1 ring-primary/20" : "border-border"
       }`}
     >
       <div
@@ -529,7 +529,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
       <div className="bg-card rounded-xl border border-border/80 shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-[#49a034]" />
+            <Server className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-medium text-foreground">Bank Response (pain.002)</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -597,7 +597,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               <Button
                 onClick={handlePullFiles}
                 disabled={!selectedSFTPCredentialId || isPulling}
-                className="h-10 bg-[#49a034] hover:bg-[#3d8a2b] btn-press"
+                className="h-10 bg-primary hover:bg-primary/90 btn-press"
               >
                 {isPulling ? (
                   <>
@@ -642,7 +642,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#49a034]" />
+                <FileText className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-medium text-foreground">Available on SFTP</h3>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{pain002Files.length} pain.002 files found</p>
@@ -680,7 +680,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-[#49a034]" />
+              <FileCheck className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-medium text-foreground">Payment Export Status</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -701,7 +701,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
         {exportsLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : uploadedExports.length === 0 ? (
           <div className="text-center py-12">

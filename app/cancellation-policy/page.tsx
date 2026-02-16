@@ -7,11 +7,11 @@ export default function CancellationPolicyPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-card border-b border-border">
         <div className="max-w-3xl mx-auto px-6 py-4">
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <RiArrowLeftLine className="w-4 h-4" />
             Back to Login
@@ -21,32 +21,32 @@ export default function CancellationPolicyPage() {
 
       {/* Content */}
       <main className="max-w-3xl mx-auto px-6 py-12">
-        <div className="bg-white rounded-lg border border-gray-200 p-8 md:p-12">
+        <div className="bg-card rounded-lg border border-border p-8 md:p-12">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">C</span>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Centry</span>
+            <span className="text-xl font-semibold text-foreground">Centry</span>
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-2">
             Cancellation Policy
           </h1>
-          <p className="text-sm text-gray-500 mb-8">
+          <p className="text-sm text-muted-foreground mb-8">
             Last updated: February 7, 2026
           </p>
 
           <div className="prose prose-gray max-w-none">
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 1. Subscription Cancellation
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 You may cancel your Centry subscription at any time. We believe in flexibility
                 and do not lock you into long-term contracts. Here's what you need to know:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>
                   <strong>Monthly Subscriptions:</strong> Cancel anytime before your next billing
                   date. Your access continues until the end of your current billing period.
@@ -60,19 +60,19 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 2. How to Cancel
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 You can cancel your subscription through any of the following methods:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>
                   <strong>Dashboard:</strong> Navigate to Settings → Billing → Cancel Subscription
                 </li>
                 <li>
                   <strong>Email:</strong> Send a cancellation request to{' '}
-                  <a href="mailto:support@getcentry.app" className="text-[#1c252c] hover:underline">
+                  <a href="mailto:support@getcentry.app" className="text-[rgb(var(--brand-dark))] hover:underline">
                     support@getcentry.app
                   </a>
                 </li>
@@ -83,13 +83,13 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 3. What Happens After Cancellation
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Once your subscription is cancelled:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>You will continue to have access until the end of your current billing period</li>
                 <li>No further charges will be made to your payment method</li>
                 <li>Your account data will be retained for 30 days after cancellation</li>
@@ -99,13 +99,13 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 4. Pending Payments
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 If you have pending payments scheduled through Centry at the time of cancellation:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>
                   <strong>Scheduled Payments:</strong> Any payments scheduled before your cancellation
                   effective date will still be processed. You can cancel individual payments before
@@ -123,13 +123,13 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 5. Reactivation
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 You can reactivate your account at any time:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>
                   <strong>Within 30 Days:</strong> All your data and settings will be restored
                   immediately upon reactivation.
@@ -142,31 +142,31 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 6. Account Termination by Centry
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Centry reserves the right to suspend or terminate accounts in the following cases:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>Violation of our Terms of Service</li>
                 <li>Fraudulent or suspicious activity</li>
                 <li>Non-payment after multiple failed attempts and notifications</li>
                 <li>Use of the platform for illegal purposes</li>
               </ul>
-              <p className="text-gray-600 leading-relaxed mt-4">
+              <p className="text-muted-foreground leading-relaxed mt-4">
                 In cases of termination due to policy violations, no refunds will be provided.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 7. Data Export
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Before cancelling, we recommend exporting your data. You can export:
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4 mt-4">
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mt-4">
                 <li>Transaction history (CSV, PDF)</li>
                 <li>Vendor and contact information</li>
                 <li>Payment records and receipts</li>
@@ -175,12 +175,12 @@ export default function CancellationPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-foreground mb-3">
                 8. Contact Us
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 If you have questions about cancellation or need assistance, please contact us at{' '}
-                <a href="mailto:support@getcentry.app" className="text-[#1c252c] hover:underline">
+                <a href="mailto:support@getcentry.app" className="text-[rgb(var(--brand-dark))] hover:underline">
                   support@getcentry.app
                 </a>
               </p>
@@ -190,12 +190,12 @@ export default function CancellationPolicyPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 space-y-3">
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
-            <Link href="/pricing" className="hover:text-gray-700 hover:underline">Pricing</Link>
-            <span className="w-1 h-1 rounded-full bg-gray-300" />
-            <Link href="/refund-policy" className="hover:text-gray-700 hover:underline">Refund Policy</Link>
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <Link href="/pricing" className="hover:text-foreground hover:underline">Pricing</Link>
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+            <Link href="/refund-policy" className="hover:text-foreground hover:underline">Refund Policy</Link>
           </div>
-          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Centry. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Centry. All rights reserved.</p>
         </div>
       </main>
     </div>

@@ -163,7 +163,7 @@ export function TwoFAChallenge({
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
@@ -173,7 +173,7 @@ export function TwoFAChallenge({
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-card rounded-lg flex items-center justify-center">
-              <span className="text-[#1c252c] font-bold text-xl">C</span>
+              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
           </div>
@@ -206,7 +206,7 @@ export function TwoFAChallenge({
         {/* Mobile header */}
         <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
             <span className="text-lg font-semibold text-foreground">Centry</span>
@@ -246,7 +246,7 @@ export function TwoFAChallenge({
                         disabled={isSending}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
                           selectedMethod === method
-                            ? 'border-[#1c252c] bg-[#1c252c]/5 text-[#1c252c]'
+                            ? 'border-[rgb(var(--brand-dark))] bg-[rgb(var(--brand-dark))]/5 text-[rgb(var(--brand-dark))]'
                             : 'border-border hover:border-border text-muted-foreground'
                         }`}
                       >
@@ -294,7 +294,7 @@ export function TwoFAChallenge({
                     <button
                       onClick={() => sendOTP(selectedMethod)}
                       disabled={isSending}
-                      className="text-sm text-[#1c252c] hover:underline disabled:opacity-50"
+                      className="text-sm text-[rgb(var(--brand-dark))] hover:underline disabled:opacity-50"
                     >
                       {isSending ? 'Sending...' : "Didn't receive a code? Resend"}
                     </button>
@@ -305,7 +305,7 @@ export function TwoFAChallenge({
                 <button
                   onClick={verifyOTP}
                   disabled={code.length !== 6 || isLoading}
-                  className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -349,7 +349,7 @@ export function TwoFAChallenge({
                     value={backupCode}
                     onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
                     placeholder="XXXX-XXXX"
-                    className="w-full h-12 px-4 border border-border rounded-lg text-center text-lg tracking-widest font-mono focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c]"
+                    className="w-full h-12 px-4 border border-border rounded-lg text-center text-lg tracking-widest font-mono focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))]"
                     disabled={isLoading}
                   />
                   <p className="mt-2 text-xs text-muted-foreground/60">
@@ -360,7 +360,7 @@ export function TwoFAChallenge({
                 <button
                   onClick={verifyBackupCode}
                   disabled={!backupCode.trim() || isLoading}
-                  className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />

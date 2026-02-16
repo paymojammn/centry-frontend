@@ -123,9 +123,9 @@ export default function LoginPage() {
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
+          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
@@ -133,7 +133,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[#1c252c] font-bold text-xl">C</span>
+              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
           </div>
@@ -162,14 +162,14 @@ export default function LoginPage() {
       </div>
 
       {/* Right - Login Form (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+      <div className="w-full lg:w-[40%] flex flex-col bg-card overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
+        <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Centry</span>
+            <span className="text-lg font-semibold text-foreground">Centry</span>
           </div>
         </div>
 
@@ -177,29 +177,29 @@ export default function LoginPage() {
         <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 xl:px-16 2xl:px-20">
           <div className="w-full">
             <div className="mb-8">
-              <h2 className="text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-2xl xl:text-3xl font-semibold text-foreground mb-2">
                 Sign in
               </h2>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Enter your credentials to continue
               </p>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
             {/* Form */}
             <form onSubmit={handleCredentialsLogin} className="space-y-5">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">
                   Email
                 </label>
                 <div className="relative">
-                  <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type="text"
                     id="username"
@@ -208,7 +208,7 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="username"
-                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-4 border border-border rounded-lg bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="you@company.com"
                   />
                 </div>
@@ -216,15 +216,15 @@ export default function LoginPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="password" className="block text-sm font-medium text-foreground">
                     Password
                   </label>
-                  <Link href="/auth/forgot-password" className="text-sm text-[#1c252c] hover:underline">
+                  <Link href="/auth/forgot-password" className="text-sm text-[rgb(var(--brand-dark))] hover:underline">
                     Forgot?
                   </Link>
                 </div>
                 <div className="relative">
-                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
@@ -233,13 +233,13 @@ export default function LoginPage() {
                     required
                     disabled={isLoading}
                     autoComplete="current-password"
-                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-11 border border-border rounded-lg bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="Enter password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                   >
                     {showPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
                   </button>
@@ -249,7 +249,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading || !username || !password}
-                className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -265,10 +265,10 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 bg-white text-sm text-gray-500">or</span>
+                <span className="px-3 bg-card text-sm text-muted-foreground">or</span>
               </div>
             </div>
 
@@ -277,19 +277,19 @@ export default function LoginPage() {
               onClick={handleXeroLogin}
               disabled={isLoading}
               type="button"
-              className="w-full h-12 flex items-center justify-center gap-2.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+              className="w-full h-12 flex items-center justify-center gap-2.5 border border-border hover:border-border hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" fill="#13B5EA" />
                 <path d="M8.145 8.26l2.19 3.35-2.19 3.35c-.19.29-.06.66.29.66h1.32c.23 0 .44-.12.56-.32l1.69-2.7 1.69 2.7c.12.2.33.32.56.32h1.32c.35 0 .48-.37.29-.66l-2.19-3.35 2.19-3.35c.19-.29.06-.66-.29-.66h-1.32c-.23 0-.44.12-.56.32l-1.69 2.7-1.69-2.7c-.12-.2-.33-.32-.56-.32H8.435c-.35 0-.48.37-.29.66z" fill="white" />
               </svg>
-              <span className="text-gray-700 font-medium">Continue with Xero</span>
+              <span className="text-foreground font-medium">Continue with Xero</span>
             </button>
 
             {/* Footer */}
-            <p className="mt-8 text-center text-sm text-gray-500">
+            <p className="mt-8 text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-[#1c252c] font-medium hover:underline">
+              <Link href="/auth/signup" className="text-[rgb(var(--brand-dark))] font-medium hover:underline">
                 Sign up
               </Link>
             </p>
@@ -297,25 +297,25 @@ export default function LoginPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 shrink-0">
+        <div className="p-6 border-t border-border shrink-0">
           <div className="flex flex-col items-center gap-2">
-            <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
               <span>Protected by 256-bit SSL encryption</span>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link href="/docs/checkout" className="hover:text-gray-700 hover:underline">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <Link href="/docs/checkout" className="hover:text-foreground hover:underline">
                 API Docs
               </Link>
             </div>
-            <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
-              <Link href="/pricing" className="hover:text-gray-600 hover:underline">
+            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground/60">
+              <Link href="/pricing" className="hover:text-muted-foreground hover:underline">
                 Pricing
               </Link>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link href="/refund-policy" className="hover:text-gray-600 hover:underline">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <Link href="/refund-policy" className="hover:text-muted-foreground hover:underline">
                 Refund Policy
               </Link>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link href="/cancellation-policy" className="hover:text-gray-600 hover:underline">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <Link href="/cancellation-policy" className="hover:text-muted-foreground hover:underline">
                 Cancellation Policy
               </Link>
             </div>

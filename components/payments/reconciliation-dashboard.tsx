@@ -91,7 +91,7 @@ export function ReconciliationDashboard() {
             placeholder="Search transactions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#49a034]/20 focus:border-[#49a034]"
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
         </div>
         
@@ -139,14 +139,14 @@ export function ReconciliationDashboard() {
             return (
               <div
                 key={transaction.id}
-                className="group p-6 border border-border rounded-lg hover:border-[#49a034]/30 hover:shadow-md transition-all duration-200 bg-card"
+                className="group p-6 border border-border rounded-lg hover:border-primary/30 hover:shadow-md transition-all duration-200 bg-card"
               >
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: Transaction Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-muted rounded-lg group-hover:bg-[#49a034]/10 transition-colors">
-                        <SourceIcon className="h-4 w-4 text-muted-foreground group-hover:text-[#49a034]" />
+                      <div className="p-2 bg-muted rounded-lg group-hover:bg-primary/10 transition-colors">
+                        <SourceIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground truncate">
@@ -196,7 +196,7 @@ export function ReconciliationDashboard() {
 
                     <Button
                       onClick={() => setSelectedTransaction(transaction)}
-                      className="bg-[#49a034] hover:bg-[#4f7068] text-white shadow-sm"
+                      className="bg-primary hover:bg-primary/80 text-white shadow-sm"
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
                       Match

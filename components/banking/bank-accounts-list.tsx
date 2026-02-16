@@ -234,7 +234,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
                   <Switch
                     checked={account.is_active}
                     onCheckedChange={() => handleToggleActive(account)}
-                    className="data-[state=checked]:bg-[#49a034]"
+                    className="data-[state=checked]:bg-primary"
                   />
                 </td>
                 <td className="px-3 py-3">

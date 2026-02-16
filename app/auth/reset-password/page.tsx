@@ -27,9 +27,9 @@ export default function ResetPasswordPage() {
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
+          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
@@ -37,7 +37,7 @@ export default function ResetPasswordPage() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[#1c252c] font-bold text-xl">C</span>
+              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
           </div>
@@ -66,14 +66,14 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Right - Message (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+      <div className="w-full lg:w-[40%] flex flex-col bg-card overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
+        <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Centry</span>
+            <span className="text-lg font-semibold text-foreground">Centry</span>
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
             {/* Back link */}
             <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
             >
               <RiArrowLeftLine className="w-4 h-4" />
               Back to sign in
@@ -95,20 +95,20 @@ export default function ResetPasswordPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
                 Start fresh
               </h2>
-              <p className="text-gray-500 mb-6">
+              <p className="text-muted-foreground mb-6">
                 This reset link is no longer valid. Our password reset process now uses verification codes sent to your email.
               </p>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-sm text-muted-foreground/60 mb-6">
                 You'll be redirected automatically, or click the button below to start now.
               </p>
             </div>
 
             <button
               onClick={() => router.push('/auth/forgot-password')}
-              className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <span>Reset password</span>
               <RiArrowRightLine className="w-4 h-4" />
@@ -117,8 +117,8 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="p-6 border-t border-border text-center shrink-0">
+          <p className="text-xs text-muted-foreground/60">
             Protected by 256-bit SSL encryption
           </p>
         </div>

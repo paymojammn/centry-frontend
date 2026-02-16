@@ -37,10 +37,10 @@ const STATUS_CONFIG: Record<
     iconBgColor: 'bg-amber-50',
   },
   success: {
-    icon: <CheckCircle2 className="size-8 text-green-600" />,
+    icon: <CheckCircle2 className="size-8 text-primary" />,
     title: 'Payment successful',
     description: 'Your payment has been processed successfully',
-    iconBgColor: 'bg-green-50',
+    iconBgColor: 'bg-primary/5',
   },
   failed: {
     icon: <XCircle className="size-8 text-destructive" />,
@@ -75,8 +75,8 @@ export function PaymentStatus({
 
       {/* Status Text */}
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">{config.title}</h3>
-        <p className="text-sm text-gray-500">{message || config.description}</p>
+        <h3 className="text-xl font-semibold text-foreground">{config.title}</h3>
+        <p className="text-sm text-muted-foreground">{message || config.description}</p>
       </div>
 
       {/* Actions */}
@@ -104,7 +104,7 @@ export function PaymentStatus({
             <div className="size-2 rounded-full bg-primary animate-pulse delay-100" />
             <div className="size-2 rounded-full bg-primary animate-pulse delay-200" />
           </div>
-          <p className="text-xs text-gray-400">Do not close this page</p>
+          <p className="text-xs text-muted-foreground/60">Do not close this page</p>
         </div>
       )}
     </div>

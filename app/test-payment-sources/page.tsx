@@ -37,14 +37,14 @@ export default function PaymentSourcesTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-muted p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Payment Sources API Test</h1>
 
         {/* Token Info */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-card rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Authentication Token</h2>
-          <div className="bg-gray-100 p-3 rounded font-mono text-sm break-all">
+          <div className="bg-muted p-3 rounded font-mono text-sm break-all">
             {token || 'Loading...'}
           </div>
         </div>
@@ -53,27 +53,27 @@ export default function PaymentSourcesTestPage() {
         <button
           onClick={fetchSources}
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold mb-6"
+          className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 disabled:bg-muted-foreground disabled:cursor-not-allowed font-semibold mb-6"
         >
           {loading ? 'Loading...' : 'Fetch Payment Sources'}
         </button>
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-red-900 mb-2">Error</h2>
-            <p className="text-red-700">{error}</p>
+          <div className="bg-destructive/5 border-2 border-destructive/20 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold text-destructive mb-2">Error</h2>
+            <p className="text-destructive">{error}</p>
           </div>
         )}
 
         {/* Success Display */}
         {data && (
-          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-green-900 mb-4">Success! 🎉</h2>
-            
+          <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-primary mb-4">Success! 🎉</h2>
+
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Summary</h3>
+                <h3 className="font-semibold text-foreground mb-2">Summary</h3>
                 <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>Centry Wallets: {data.centry_wallets?.length || 0}</li>
                   <li>Bank Accounts: {data.bank_accounts?.length || 0}</li>
@@ -84,8 +84,8 @@ export default function PaymentSourcesTestPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Full Response</h3>
-                <pre className="bg-white p-4 rounded border overflow-auto text-xs">
+                <h3 className="font-semibold text-foreground mb-2">Full Response</h3>
+                <pre className="bg-card p-4 rounded border overflow-auto text-xs">
                   {JSON.stringify(data, null, 2)}
                 </pre>
               </div>
@@ -94,9 +94,9 @@ export default function PaymentSourcesTestPage() {
         )}
 
         {/* Instructions */}
-        <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-4">Test Instructions</h2>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-blue-900">
+        <div className="mt-8 bg-primary/5 border-2 border-primary/20 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-primary mb-4">Test Instructions</h2>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-primary">
             <li>Make sure you're logged in (check token above)</li>
             <li>Make sure Django backend is running on port 8000</li>
             <li>Click "Fetch Payment Sources" button</li>

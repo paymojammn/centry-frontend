@@ -237,10 +237,10 @@ export default function CheckoutPage() {
             <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="size-8 text-destructive" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-foreground mb-2">
               Session not found
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               This checkout session may have expired or is invalid.
             </p>
           </CheckoutCardContent>
@@ -261,10 +261,10 @@ export default function CheckoutPage() {
             <div className="size-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
               <Clock className="size-8 text-amber-500" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-foreground mb-2">
               Session expired
             </h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               This checkout session has expired. Please start a new checkout.
             </p>
             <Button onClick={handleCancel} variant="outline">
@@ -339,7 +339,7 @@ export default function CheckoutPage() {
           {step === 'select' && (
             <>
               <CheckoutCardHeader>
-                <h2 className="text-base font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-foreground">
                   Select payment method
                 </h2>
               </CheckoutCardHeader>
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                 {/* Country Selector */}
                 {checkoutInfo.countries.length > 1 && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-foreground">
                       Country
                     </label>
                     <CountrySelector
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
                 {/* Payment Methods */}
                 {selectedCountry && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-foreground">
                       Payment method
                     </label>
                     <PaymentMethodList
@@ -403,11 +403,11 @@ export default function CheckoutPage() {
               <CheckoutCardHeader className="flex items-center gap-3">
                 <button
                   onClick={handleBack}
-                  className="p-1 -ml-1 rounded-md hover:bg-gray-100 transition-colors"
+                  className="p-1 -ml-1 rounded-md hover:bg-muted transition-colors"
                 >
-                  <ArrowLeft className="size-5 text-gray-500" />
+                  <ArrowLeft className="size-5 text-muted-foreground" />
                 </button>
-                <h2 className="text-base font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-foreground">
                   Enter your details
                 </h2>
               </CheckoutCardHeader>

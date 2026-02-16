@@ -225,27 +225,27 @@ export default function ForgotPasswordPage() {
   const renderEmailStep = () => (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           Reset password
         </h2>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Enter your email to receive a verification code
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
 
       <form onSubmit={handleEmailSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
             Email address
           </label>
           <div className="relative">
-            <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
             <input
               type="email"
               id="email"
@@ -254,7 +254,7 @@ export default function ForgotPasswordPage() {
               required
               disabled={isLoading}
               autoComplete="email"
-              className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full h-12 pl-10 pr-4 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
               placeholder="you@company.com"
             />
           </div>
@@ -263,7 +263,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={isLoading || !email}
-          className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -281,23 +281,23 @@ export default function ForgotPasswordPage() {
   const renderOtpStep = () => (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           Enter verification code
         </h2>
-        <p className="text-gray-500">
-          We sent a 6-digit code to <span className="font-medium text-gray-900">{email}</span>
+        <p className="text-muted-foreground">
+          We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
 
       <form onSubmit={handleOtpSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-foreground mb-3">
             Verification code
           </label>
           <div className="flex gap-2 justify-between">
@@ -312,7 +312,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleOtpKeyDown(index, e)}
                 disabled={isLoading}
-                className="w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                className="w-12 h-14 text-center text-xl font-semibold border border-border rounded-lg text-foreground focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
               />
             ))}
           </div>
@@ -321,7 +321,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={isLoading || otp.join('').length !== 6}
-          className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -334,15 +334,15 @@ export default function ForgotPasswordPage() {
         </button>
 
         <div className="text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Didn't receive the code?{' '}
             {resendDisabled ? (
-              <span className="text-gray-400">Resend in {countdown}s</span>
+              <span className="text-muted-foreground/60">Resend in {countdown}s</span>
             ) : (
               <button
                 type="button"
                 onClick={handleResendOtp}
-                className="text-[#1c252c] font-medium hover:underline"
+                className="text-[rgb(var(--brand-dark))] font-medium hover:underline"
               >
                 Resend code
               </button>
@@ -357,7 +357,7 @@ export default function ForgotPasswordPage() {
             setOtp(['', '', '', '', '', '']);
             setError('');
           }}
-          className="w-full text-sm text-gray-500 hover:text-gray-900"
+          className="w-full text-sm text-muted-foreground hover:text-foreground"
         >
           Use a different email
         </button>
@@ -368,27 +368,27 @@ export default function ForgotPasswordPage() {
   const renderPasswordStep = () => (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           Set new password
         </h2>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Create a strong password for your account
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
 
       <form onSubmit={handlePasswordSubmit} className="space-y-4">
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
             New password
           </label>
           <div className="relative">
-            <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
@@ -397,26 +397,26 @@ export default function ForgotPasswordPage() {
               required
               disabled={isLoading}
               autoComplete="new-password"
-              className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full h-12 pl-10 pr-11 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
               placeholder="Enter new password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
             >
               {showPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
             </button>
           </div>
-          <p className="mt-1.5 text-xs text-gray-400">Minimum 8 characters</p>
+          <p className="mt-1.5 text-xs text-muted-foreground/60">Minimum 8 characters</p>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
             Confirm password
           </label>
           <div className="relative">
-            <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
@@ -425,13 +425,13 @@ export default function ForgotPasswordPage() {
               required
               disabled={isLoading}
               autoComplete="new-password"
-              className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full h-12 pl-10 pr-11 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
               placeholder="Confirm new password"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
             >
               {showConfirmPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
             </button>
@@ -441,7 +441,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={isLoading || !password || !confirmPassword}
-          className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -458,18 +458,18 @@ export default function ForgotPasswordPage() {
 
   const renderSuccessStep = () => (
     <div>
-      <div className="w-12 h-12 rounded-full bg-[#49a034]/10 flex items-center justify-center mb-6">
-        <RiCheckLine className="w-6 h-6 text-[#49a034]" />
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+        <RiCheckLine className="w-6 h-6 text-primary" />
       </div>
-      <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+      <h2 className="text-2xl font-semibold text-foreground mb-2">
         Password updated
       </h2>
-      <p className="text-gray-500 mb-6">
+      <p className="text-muted-foreground mb-6">
         Your password has been reset successfully. You can now sign in with your new password.
       </p>
       <button
         onClick={() => router.push('/auth/login')}
-        className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+        className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         <span>Sign in</span>
         <RiArrowRightLine className="w-4 h-4" />
@@ -520,9 +520,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
+          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
@@ -530,7 +530,7 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[#1c252c] font-bold text-xl">C</span>
+              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
           </div>
@@ -557,14 +557,14 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Right - Form (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+      <div className="w-full lg:w-[40%] flex flex-col bg-card overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
+        <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Centry</span>
+            <span className="text-lg font-semibold text-foreground">Centry</span>
           </div>
         </div>
 
@@ -574,7 +574,7 @@ export default function ForgotPasswordPage() {
             {/* Back link */}
             <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
             >
               <RiArrowLeftLine className="w-4 h-4" />
               Back to sign in
@@ -585,8 +585,8 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 text-center shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="p-6 border-t border-border text-center shrink-0">
+          <p className="text-xs text-muted-foreground/60">
             Protected by 256-bit SSL encryption
           </p>
         </div>

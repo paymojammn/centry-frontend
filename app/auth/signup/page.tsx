@@ -86,9 +86,9 @@ export default function SignupPage() {
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[#1c252c] relative">
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-[#49a034]/5" />
+          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
         </div>
 
@@ -96,7 +96,7 @@ export default function SignupPage() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[#1c252c] font-bold text-xl">C</span>
+              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
             </div>
             <span className="text-xl font-semibold text-white">Centry</span>
           </div>
@@ -125,14 +125,14 @@ export default function SignupPage() {
       </div>
 
       {/* Right - Form (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+      <div className="w-full lg:w-[40%] flex flex-col bg-card overflow-y-auto">
         {/* Mobile header */}
-        <div className="lg:hidden p-6 border-b border-gray-100 shrink-0">
+        <div className="lg:hidden p-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#1c252c] rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">C</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Centry</span>
+            <span className="text-lg font-semibold text-foreground">Centry</span>
           </div>
         </div>
 
@@ -140,18 +140,18 @@ export default function SignupPage() {
         <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 xl:px-16 2xl:px-20">
           <div className="w-full">
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
                 Create account
               </h2>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Get started with your free account
               </p>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mb-6 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
@@ -160,11 +160,11 @@ export default function SignupPage() {
               {/* Name fields */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-1.5">
                     First name
                   </label>
                   <div className="relative">
-                    <RiUserLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <RiUserLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                     <input
                       type="text"
                       id="firstName"
@@ -173,13 +173,13 @@ export default function SignupPage() {
                       required
                       disabled={isLoading}
                       autoComplete="given-name"
-                      className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                      className="w-full h-12 pl-10 pr-4 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                       placeholder="John"
                     />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-1.5">
                     Last name
                   </label>
                   <input
@@ -190,18 +190,18 @@ export default function SignupPage() {
                     required
                     disabled={isLoading}
                     autoComplete="family-name"
-                    className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 px-4 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="Doe"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
                   Work email
                 </label>
                 <div className="relative">
-                  <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type="email"
                     id="email"
@@ -210,18 +210,18 @@ export default function SignupPage() {
                     required
                     disabled={isLoading}
                     autoComplete="email"
-                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-4 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="you@company.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="company" className="block text-sm font-medium text-foreground mb-1.5">
                   Company name
                 </label>
                 <div className="relative">
-                  <RiBuildingLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiBuildingLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type="text"
                     id="company"
@@ -230,18 +230,18 @@ export default function SignupPage() {
                     required
                     disabled={isLoading}
                     autoComplete="organization"
-                    className="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-4 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="Acme Inc."
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
                   Password
                 </label>
                 <div className="relative">
-                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
@@ -250,26 +250,26 @@ export default function SignupPage() {
                     required
                     disabled={isLoading}
                     autoComplete="new-password"
-                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-11 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="Create password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                   >
                     {showPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-gray-400">Minimum 8 characters</p>
+                <p className="mt-1 text-xs text-muted-foreground/60">Minimum 8 characters</p>
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
                   Confirm password
                 </label>
                 <div className="relative">
-                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
@@ -278,13 +278,13 @@ export default function SignupPage() {
                     required
                     disabled={isLoading}
                     autoComplete="new-password"
-                    className="w-full h-12 pl-10 pr-11 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1c252c] focus:ring-1 focus:ring-[#1c252c] transition-colors disabled:opacity-50 disabled:bg-gray-50"
+                    className="w-full h-12 pl-10 pr-11 border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[rgb(var(--brand-dark))] focus:ring-1 focus:ring-[rgb(var(--brand-dark))] transition-colors disabled:opacity-50 disabled:bg-muted"
                     placeholder="Confirm password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
                   >
                     {showConfirmPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
                   </button>
@@ -294,7 +294,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isLoading || !formData.firstName || !formData.lastName || !formData.email || !formData.company || !formData.password || !formData.confirmPassword}
-                className="w-full h-12 bg-[#1c252c] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-12 bg-[rgb(var(--brand-dark))] hover:bg-[#2d3a44] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -306,18 +306,18 @@ export default function SignupPage() {
                 )}
               </button>
 
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-muted-foreground/60 text-center">
                 By creating an account, you agree to our{' '}
-                <a href="#" className="text-[#1c252c] hover:underline">Terms of Service</a>
+                <a href="#" className="text-[rgb(var(--brand-dark))] hover:underline">Terms of Service</a>
                 {' '}and{' '}
-                <a href="#" className="text-[#1c252c] hover:underline">Privacy Policy</a>
+                <a href="#" className="text-[rgb(var(--brand-dark))] hover:underline">Privacy Policy</a>
               </p>
             </form>
 
             {/* Footer */}
-            <p className="mt-8 text-center text-sm text-gray-400">
+            <p className="mt-8 text-center text-sm text-muted-foreground/60">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-[#1c252c] font-medium hover:underline">
+              <Link href="/auth/login" className="text-[rgb(var(--brand-dark))] font-medium hover:underline">
                 Sign in
               </Link>
             </p>
@@ -325,21 +325,21 @@ export default function SignupPage() {
         </div>
 
         {/* Security footer */}
-        <div className="p-6 border-t border-gray-100 shrink-0">
+        <div className="p-6 border-t border-border shrink-0">
           <div className="flex flex-col items-center gap-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Protected by 256-bit SSL encryption
             </p>
-            <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
-              <Link href="/pricing" className="hover:text-gray-600 hover:underline">
+            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground/60">
+              <Link href="/pricing" className="hover:text-muted-foreground hover:underline">
                 Pricing
               </Link>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link href="/refund-policy" className="hover:text-gray-600 hover:underline">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <Link href="/refund-policy" className="hover:text-muted-foreground hover:underline">
                 Refund Policy
               </Link>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <Link href="/cancellation-policy" className="hover:text-gray-600 hover:underline">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <Link href="/cancellation-policy" className="hover:text-muted-foreground hover:underline">
                 Cancellation Policy
               </Link>
             </div>

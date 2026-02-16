@@ -113,7 +113,7 @@ export function SyncHistory() {
                     {/* Match Details */}
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                       <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                        <FileText className="h-4 w-4 text-[#49a034]" />
+                        <FileText className="h-4 w-4 text-primary" />
                         <span className="font-medium text-foreground">
                           {transaction.matched_to_reference}
                         </span>
@@ -123,7 +123,7 @@ export function SyncHistory() {
                       </div>
 
                       {transaction.erp_payment_id && (
-                        <button className="flex items-center gap-1.5 text-[#49a034] hover:text-[#4f7068] transition-colors">
+                        <button className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors">
                           <ExternalLink className="h-3.5 w-3.5" />
                           <span className="text-xs font-medium">
                             View in ERP

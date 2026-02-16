@@ -156,8 +156,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
       <Card className="border border-border/80 shadow-sm rounded-xl overflow-hidden">
         <CardHeader className="bg-muted/50 border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
-              <ArrowLeftRight className="h-5 w-5 text-[#49a034]" />
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <ArrowLeftRight className="h-5 w-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-xl font-semibold text-foreground">ERP Connection</CardTitle>
@@ -170,7 +170,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
         <CardContent className="p-6">
           {connectionsLoading ? (
             <div className="flex items-center justify-center py-8 bg-muted rounded-xl">
-              <Loader2 className="h-6 w-6 animate-spin text-[#49a034]" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : connections.length === 0 ? (
             <div className="text-center py-8">
@@ -178,7 +178,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 <AlertCircle className="h-8 w-8 text-[#D4B35A]" />
               </div>
               <p className="text-sm font-medium text-muted-foreground">No ERP connections found</p>
-              <Button variant="outline" size="sm" className="mt-3 rounded-lg border-border hover:border-[#49a034] hover:text-[#49a034]">
+              <Button variant="outline" size="sm" className="mt-3 rounded-lg border-border hover:border-primary hover:text-primary">
                 Connect Xero
               </Button>
             </div>
@@ -217,8 +217,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
       <Card className="border border-border/80 shadow-sm rounded-xl overflow-hidden">
         <CardHeader className="bg-muted/50 border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#49a034]/10 rounded-xl">
-              <ArrowUpRight className="h-5 w-5 text-[#49a034]" />
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <ArrowUpRight className="h-5 w-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-xl font-semibold text-foreground">Sync Operations</CardTitle>
@@ -230,7 +230,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
         </CardHeader>
         <CardContent className="space-y-4 p-6">
           {/* Sync to Xero */}
-          <div className="border border-border rounded-xl p-4 transition-all hover:border-[#49a034]/30 bg-card">
+          <div className="border border-border rounded-xl p-4 transition-all hover:border-primary/30 bg-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 bg-[#6B8FB8]/10 rounded-lg">
                 <ArrowUpRight className="h-4 w-4 text-[#6B8FB8]" />
@@ -253,13 +253,13 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 placeholder="Account code"
                 value={bankAccountCode}
                 onChange={(e) => setBankAccountCode(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm bg-muted border border-border rounded-lg transition-all focus:bg-card focus:border-[#49a034] focus:outline-none"
+                className="flex-1 px-3 py-2 text-sm bg-muted border border-border rounded-lg transition-all focus:bg-card focus:border-primary focus:outline-none"
               />
               <Button
                 size="sm"
                 onClick={handleSyncToXero}
                 disabled={!selectedImportId || syncToXero.isPending}
-                className="bg-[#49a034] hover:bg-[#3d8a2b] rounded-lg px-4 btn-press"
+                className="bg-primary hover:bg-primary/90 rounded-lg px-4 btn-press"
               >
                 {syncToXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -274,7 +274,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
               variant="ghost"
               onClick={handleExportForXero}
               disabled={!selectedImportId}
-              className="w-full mt-3 text-muted-foreground hover:text-[#49a034] hover:bg-[#49a034]/5 rounded-lg"
+              className="w-full mt-3 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg"
             >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -282,7 +282,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
           </div>
 
           {/* Sync from Xero */}
-          <div className="border border-border rounded-xl p-5 transition-all hover:border-[#49a034]/30 hover:shadow-md bg-gradient-to-r from-gray-50/50 to-white">
+          <div className="border border-border rounded-xl p-5 transition-all hover:border-primary/30 hover:shadow-md bg-gradient-to-r from-muted/50 to-card">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg">
@@ -311,7 +311,7 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
                 size="sm"
                 onClick={handleSyncFromXero}
                 disabled={!selectedConnection || syncFromXero.isPending}
-                className="bg-[#49a034] hover:bg-[#3d8a2b] rounded-xl px-5 shadow-sm btn-press"
+                className="bg-primary hover:bg-primary/90 rounded-xl px-5 shadow-sm btn-press"
               >
                 {syncFromXero.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

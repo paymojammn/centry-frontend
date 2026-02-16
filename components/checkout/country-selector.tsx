@@ -43,11 +43,11 @@ export function CountrySelector({
   if (countries.length === 1) {
     const country = countries[0];
     return (
-      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
         <span className="text-2xl">{COUNTRY_FLAGS[country.code] || ''}</span>
         <div>
-          <p className="text-sm font-medium text-gray-900">{country.name}</p>
-          <p className="text-xs text-gray-500">Currency: {country.currency}</p>
+          <p className="text-sm font-medium text-foreground">{country.name}</p>
+          <p className="text-xs text-muted-foreground">Currency: {country.currency}</p>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export function CountrySelector({
               <span>{selected.name}</span>
             </span>
           ) : (
-            <span className="flex items-center gap-2 text-gray-500">
+            <span className="flex items-center gap-2 text-muted-foreground">
               <Globe className="size-4" />
               <span>Select your country</span>
             </span>
@@ -88,14 +88,14 @@ export function CountrySelector({
               }}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-                'hover:bg-gray-100',
-                selectedCountry === country.code && 'bg-gray-100'
+                'hover:bg-muted',
+                selectedCountry === country.code && 'bg-muted'
               )}
             >
               <span className="text-xl">{COUNTRY_FLAGS[country.code] || ''}</span>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900">{country.name}</p>
-                <p className="text-xs text-gray-500">{country.currency}</p>
+                <p className="font-medium text-foreground">{country.name}</p>
+                <p className="text-xs text-muted-foreground">{country.currency}</p>
               </div>
               {selectedCountry === country.code && (
                 <Check className="size-4 text-primary" />

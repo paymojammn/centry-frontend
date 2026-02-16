@@ -84,7 +84,7 @@ export function CustomerForm({
           {errors.customer_phone && (
             <p className="text-xs text-destructive">{errors.customer_phone.message}</p>
           )}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             You will receive a payment prompt on this number
           </p>
         </div>
@@ -93,7 +93,7 @@ export function CustomerForm({
       {/* Name (optional) */}
       <div className="space-y-2">
         <Label htmlFor="customer_name">
-          Name <span className="text-gray-400">(optional)</span>
+          Name <span className="text-muted-foreground/60">(optional)</span>
         </Label>
         <Input
           id="customer_name"
