@@ -97,6 +97,69 @@ export interface ExportStats {
   recent_exports: BankPaymentExport[];
 }
 
+// ===========================================
+// Payment Pipeline Stats
+// ===========================================
+
+export interface PaymentPipelineStats {
+  total: number;
+  pending_approval: number;
+  processing: number;
+  pending: number;
+  sent: number;
+  success: number;
+  failed: number;
+  rejected: number;
+  total_amount_pending_approval: string;
+  total_amount_processing: string;
+  total_amount_pending: string;
+  total_amount_sent: string;
+  synced_count: number;
+  not_synced_count: number;
+}
+
+export interface BankResponseStats {
+  total_reports: number;
+  total_transactions: number;
+  successful_transactions: number;
+  rejected_transactions: number;
+  pending_transactions: number;
+  by_group_status: Array<{ group_status: string; count: number }>;
+  by_report_type: Array<{ report_type: string; count: number }>;
+}
+
+/**
+ * Get payment pipeline statistics (payment events by status)
+ */
+export function usePaymentPipelineStats(organizationId?: string) {
+  const params = new URLSearchParams();
+  if (organizationId) params.append('organization', organizationId);
+  const queryString = params.toString();
+
+  return useQuery<PaymentPipelineStats>({
+    queryKey: ['payment-pipeline-stats', organizationId],
+    queryFn: () => get(`/api/v1/xero/payments/stats/${queryString ? `?${queryString}` : ''}`),
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Get bank response statistics (pain.002 export status summaries)
+ */
+export function useBankResponseStats(organizationId?: string) {
+  const params = new URLSearchParams();
+  if (organizationId) params.append('organization', organizationId);
+  const queryString = params.toString();
+
+  return useQuery<BankResponseStats>({
+    queryKey: ['bank-response-stats', organizationId],
+    queryFn: () => get(`/api/v1/banking/export-statuses/stats/${queryString ? `?${queryString}` : ''}`),
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 // API Hooks
 
 /**

@@ -2,7 +2,21 @@
 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { reportsApi } from "@/lib/reports-api";
-import type { ReportFilters, ExportParams } from "@/types/reports";
+import type { ReportFilters, ExportParams, PaymentTransactionFilters } from "@/types/reports";
+
+// CEO Dashboard
+export function useCEODashboard(
+  organizationId: string | undefined,
+  startDate?: string,
+  endDate?: string
+) {
+  return useQuery({
+    queryKey: ["reports", "ceo-dashboard", organizationId, startDate, endDate],
+    queryFn: () => reportsApi.getCEODashboard(organizationId!, startDate, endDate),
+    enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
 
 // Dashboard
 export function useReportsDashboard(organizationId: string | undefined) {
@@ -60,6 +74,30 @@ export function useTransactionReport(filters: ReportFilters | undefined) {
   return useQuery({
     queryKey: ["reports", "transactions", filters],
     queryFn: () => reportsApi.getTransactionReport(filters!),
+    enabled: !!filters?.organization,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// Payment Transactions
+export function usePaymentTransactions(
+  organizationId: string | undefined,
+  startDate?: string,
+  endDate?: string
+) {
+  return useQuery({
+    queryKey: ["reports", "payment-transactions", organizationId, startDate, endDate],
+    queryFn: () => reportsApi.getPaymentTransactions(organizationId!, startDate, endDate),
+    enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// Payment Transaction List (individual records with filters)
+export function usePaymentTransactionList(filters: PaymentTransactionFilters | undefined) {
+  return useQuery({
+    queryKey: ["reports", "payment-transaction-list", filters],
+    queryFn: () => reportsApi.getPaymentTransactionList(filters!),
     enabled: !!filters?.organization,
     staleTime: 1000 * 60 * 5,
   });

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
 import { Calendar, DollarSign, FileText, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,15 +13,27 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useExpenseReport } from "@/hooks/use-reports";
-import { useOrganization } from "@/hooks/use-organization";
+import { useOrganizations } from "@/hooks/use-organization";
+import { PageHeader } from "@/components/layout/page-header";
 import { ExpensePieChart } from "@/components/reports/charts/ExpensePieChart";
 import { ExportButton } from "@/components/reports/export/ExportButton";
 
 export default function ExpenseReportsPage() {
-  const { currentOrganization } = useOrganization();
-  const organizationId = currentOrganization?.id;
-  
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [months, setMonths] = useState("3");
+
+  const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+  const organizations = Array.isArray(organizationsResponse)
+    ? organizationsResponse
+    : (organizationsResponse as any)?.results || [];
+
+  useEffect(() => {
+    if (!selectedOrganizationId && organizations?.length > 0) {
+      setSelectedOrganizationId(organizations[0].id);
+    }
+  }, [organizations, selectedOrganizationId]);
+
+  const organizationId = selectedOrganizationId || undefined;
   
   const startDate = format(subMonths(new Date(), parseInt(months)), "yyyy-MM-dd");
   const endDate = format(new Date(), "yyyy-MM-dd");
@@ -40,47 +51,43 @@ export default function ExpenseReportsPage() {
     }).format(value);
   };
 
-  if (!organizationId) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Please select an organization to view reports.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Expense Analytics</h1>
-          <p className="text-muted-foreground">
-            Detailed breakdown of your expenses
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Select value={months} onValueChange={setMonths}>
-            <SelectTrigger className="w-[180px]">
-              <Calendar className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Last month</SelectItem>
-              <SelectItem value="3">Last 3 months</SelectItem>
-              <SelectItem value="6">Last 6 months</SelectItem>
-              <SelectItem value="12">Last year</SelectItem>
-            </SelectContent>
-          </Select>
-          <ExportButton 
-            organizationId={organizationId} 
+    <div className="space-y-6">
+      <PageHeader
+        title="Expense Analytics"
+        subtitle="Detailed breakdown of your expenses"
+        breadcrumbs={[
+          { label: "Reports", href: "/reports" },
+          { label: "Expense Analytics" },
+        ]}
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      >
+        <Select value={months} onValueChange={setMonths}>
+          <SelectTrigger className="w-[160px] h-9">
+            <Calendar className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">Last month</SelectItem>
+            <SelectItem value="3">Last 3 months</SelectItem>
+            <SelectItem value="6">Last 6 months</SelectItem>
+            <SelectItem value="12">Last year</SelectItem>
+          </SelectContent>
+        </Select>
+        {organizationId && (
+          <ExportButton
+            organizationId={organizationId}
             reportType="expenses"
             startDate={startDate}
             endDate={endDate}
           />
-        </div>
-      </div>
+        )}
+      </PageHeader>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -217,6 +224,7 @@ export default function ExpenseReportsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

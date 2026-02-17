@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { usePayables, usePayableStats } from '@/hooks/use-purchases';
-import { useImportStats, useExportStats } from '@/hooks/use-banking';
+import { useImportStats, useExportStats, usePaymentPipelineStats } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
   Receipt,
@@ -36,7 +36,7 @@ import {
 } from '@/components/layout/content-card';
 import { LoadingState } from '@/components/layout/loading-state';
 import { StatusBadge } from '@/components/layout/status-badge';
-import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS } from '@/lib/theme';
 
 // Helper to safely format currency
 function formatCurrency(amount: string | number, currencyCode: string): string {
@@ -71,9 +71,10 @@ export default function DashboardPage() {
     status: 'awaiting_payment',
     organization: selectedOrganizationId || undefined,
   });
-  const { data: stats, isLoading: loadingStats } = usePayableStats(selectedOrganizationId || undefined);
+  const { isLoading: loadingStats } = usePayableStats(selectedOrganizationId || undefined);
   const { data: importStats, isLoading: loadingImports } = useImportStats({ organizationId: selectedOrganizationId || undefined });
   const { data: exportStats, isLoading: loadingExports } = useExportStats({ organizationId: selectedOrganizationId || undefined });
+  const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined);
 
   // Set greeting based on time of day
   useEffect(() => {
@@ -131,33 +132,13 @@ export default function DashboardPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Use currency-converted UGX value (includes both awaiting payment + overdue)
-  // Fallback to raw amounts if UGX fields not available (backwards compatibility)
-  const totalOpenAmount = stats?.total_open_ugx
-    ? parseFloat(stats.total_open_ugx)
-    : (stats?.total_open_amount ? parseFloat(stats.total_open_amount) : 0);
-  const overdueAmount = stats?.overdue_ugx
-    ? parseFloat(stats.overdue_ugx)
-    : (stats?.overdue_amount ? parseFloat(stats.overdue_amount) : 0);
-
-  const dueThisWeek = openBills.filter((b: Payable) => {
-    if (!b.due_date) return false;
-    const dueDate = new Date(b.due_date);
-    const today = new Date();
-    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return dueDate >= today && dueDate <= weekFromNow;
-  }).length;
-
-  // Get organization currency
-  const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
-  const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
-
+  const failedRejected = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
   const statsBarData = [
-    { label: 'Total Payable', value: `${organizationCurrency} ${formatCompactNumber(totalOpenAmount)}`, color: STATUS_COLORS.awaiting_payment.bg },
-    { label: 'Open Bills', value: stats?.total_open || 0, color: STATUS_COLORS.draft.bg },
-    { label: 'Overdue', value: stats?.overdue_count || 0, variant: (stats?.overdue_count || 0) > 0 ? 'danger' as const : 'default' as const },
-    { label: 'Due This Week', value: dueThisWeek, variant: 'warning' as const },
-    { label: 'Paid', value: stats?.total_paid || 0, color: STATUS_COLORS.paid.bg },
+    { label: 'Pending Approval', value: pipelineStats?.pending_approval || 0, color: STATUS_COLORS.awaiting_approval.bg },
+    { label: 'Ready for Export', value: pipelineStats?.processing || 0, color: STATUS_COLORS.draft.bg },
+    { label: 'Sent to Bank', value: (pipelineStats?.pending || 0) + (pipelineStats?.sent || 0), color: STATUS_COLORS.awaiting_payment.bg },
+    { label: 'Completed', value: pipelineStats?.success || 0, color: STATUS_COLORS.paid.bg },
+    { label: 'Failed', value: failedRejected, variant: failedRejected > 0 ? 'danger' as const : 'default' as const },
   ];
 
   return (

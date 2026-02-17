@@ -22,13 +22,25 @@ import {
 } from "@/components/layout/content-card";
 import { PageHeader } from "@/components/layout/page-header";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Search,
   RefreshCw,
   ArrowUpFromLine,
   X,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // ============================================================
 // Types
@@ -158,6 +170,34 @@ export default function BankTransactionsPage() {
     return true;
   });
 
+  // Export
+  const exportColumns: ExportColumn[] = [
+    { header: "Date", accessor: (r) => format(new Date(r.created_at as string), "dd MMM yyyy"), width: 14 },
+    { header: "Recipient", accessor: (r) => (r.vendor_name as string) || (r.account_name as string) || "", width: 30 },
+    { header: "Bill #", accessor: "bill_number", width: 14 },
+    { header: "Account", accessor: (r) => (r.source_bank_account_name as string) || (r.bank_name_display as string) || "", width: 24 },
+    { header: "Amount", accessor: (r) => formatCurrency(parseFloat(r.amount as string), r.currency as string), width: 18 },
+    { header: "Currency", accessor: "currency", width: 8 },
+    { header: "Status", accessor: (r) => STATUS_LABELS[r.provider_status as string] || (r.status_display as string) || "", width: 16 },
+    { header: "Created By", accessor: "created_by_name", width: 20 },
+    { header: "Approved By", accessor: (r) => (r.approved_by_name as string) || "", width: 20 },
+  ];
+
+  const handleExport = (fmt: ExportFormat) => {
+    if (filteredPayments.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    const dateSuffix = format(new Date(), "yyyy-MM-dd");
+    exportData(
+      filteredPayments as unknown as Record<string, unknown>[],
+      exportColumns,
+      `Transactions_${dateSuffix}`,
+      fmt
+    );
+    if (fmt !== "pdf") toast.success(`Exported ${filteredPayments.length} transactions as ${fmt.toUpperCase()}`);
+  };
+
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
@@ -172,17 +212,41 @@ export default function BankTransactionsPage() {
         onOrganizationChange={setSelectedOrganizationId}
         isLoadingOrgs={orgsLoading}
       >
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            queryClient.invalidateQueries({ queryKey: ["outgoing-payments"] })
-          }
-          className="h-9"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileText className="mr-2 h-4 w-4" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print / PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["outgoing-payments"] })
+            }
+            className="h-9"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-5">

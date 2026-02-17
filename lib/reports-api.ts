@@ -2,12 +2,16 @@
 
 import { get, post } from "./api";
 import type {
+  CEODashboard,
   DashboardStats,
   FinancialOverview,
   BalanceTrend,
   ExpenseReport,
   TransactionReport,
   AccountBalances,
+  PaymentTransactionsReport,
+  PaymentTransactionListResponse,
+  PaymentTransactionFilters,
   ReportFilters,
   ExportParams,
 } from "@/types/reports";
@@ -15,6 +19,21 @@ import type {
 const BASE_URL = "/api/v1/reports";
 
 export const reportsApi = {
+  // CEO Dashboard
+  getCEODashboard: async (
+    organizationId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<CEODashboard> => {
+    return get<CEODashboard>(`${BASE_URL}/ceo-dashboard/`, {
+      params: {
+        organization: organizationId,
+        ...(startDate && { start_date: startDate }),
+        ...(endDate && { end_date: endDate }),
+      },
+    });
+  },
+
   // Dashboard
   getDashboard: async (organizationId: string): Promise<DashboardStats> => {
     return get<DashboardStats>(`${BASE_URL}/dashboard/`, {
@@ -98,6 +117,36 @@ export const reportsApi = {
         },
       }
     );
+  },
+
+  // Payment Transactions
+  getPaymentTransactions: async (
+    organizationId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<PaymentTransactionsReport> => {
+    return get<PaymentTransactionsReport>(`${BASE_URL}/payment-transactions/`, {
+      params: {
+        organization: organizationId,
+        ...(startDate && { start_date: startDate }),
+        ...(endDate && { end_date: endDate }),
+      },
+    });
+  },
+
+  // Payment Transaction List (individual records)
+  getPaymentTransactionList: async (
+    filters: PaymentTransactionFilters
+  ): Promise<PaymentTransactionListResponse> => {
+    return get<PaymentTransactionListResponse>(`${BASE_URL}/payment-transactions/list/`, {
+      params: {
+        organization: filters.organization,
+        ...(filters.start_date && { start_date: filters.start_date }),
+        ...(filters.end_date && { end_date: filters.end_date }),
+        ...(filters.status && { status: filters.status }),
+        ...(filters.method && { method: filters.method }),
+      },
+    });
   },
 
   // Account Balances

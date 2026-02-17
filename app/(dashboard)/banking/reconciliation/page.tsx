@@ -22,6 +22,12 @@ import {
 } from "@/components/layout/content-card";
 import { PageHeader } from "@/components/layout/page-header";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Search,
   RefreshCw,
   Upload,
@@ -32,8 +38,13 @@ import {
   XCircle,
   Clock,
   FileCheck,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -249,6 +260,43 @@ export default function BankReconciliationPage() {
     endDate !== "" ||
     search !== "";
 
+  // Export
+  const STATUS_LABELS: Record<string, string> = {
+    ACSP: "Accepted",
+    ACWC: "Accepted (warnings)",
+    RJCT: "Rejected",
+    PDNG: "Pending",
+  };
+
+  const exportColumns: ExportColumn[] = [
+    { header: "Date", accessor: (r) => format(new Date(r.created_at as string), "dd MMM yyyy"), width: 14 },
+    { header: "Vendor", accessor: (r) => (r.vendor_name as string) || (r.creditor_name as string) || "", width: 30 },
+    { header: "Bill #", accessor: "invoice_number", width: 14 },
+    { header: "Reference", accessor: "bill_reference", width: 16 },
+    { header: "Bank Account", accessor: "source_bank_account_name", width: 24 },
+    { header: "Amount", accessor: (r) => formatCurrency(parseFloat(r.original_amount as string), r.original_currency as string), width: 18 },
+    { header: "Currency", accessor: "original_currency", width: 8 },
+    { header: "Bank Status", accessor: (r) => STATUS_LABELS[r.status as string] || (r.status as string) || "", width: 14 },
+    { header: "Status Code", accessor: "status_code", width: 12 },
+    { header: "Reason", accessor: "status_description", width: 36 },
+    { header: "Synced to ERP", accessor: (r) => (r.synced_to_xero as boolean) ? "Yes" : "No", width: 12 },
+  ];
+
+  const handleExport = (fmt: ExportFormat) => {
+    if (filtered.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    const dateSuffix = format(new Date(), "yyyy-MM-dd");
+    exportData(
+      filtered as unknown as Record<string, unknown>[],
+      exportColumns,
+      `Reconciliation_${dateSuffix}`,
+      fmt
+    );
+    if (fmt !== "pdf") toast.success(`Exported ${filtered.length} records as ${fmt.toUpperCase()}`);
+  };
+
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
@@ -263,19 +311,43 @@ export default function BankReconciliationPage() {
         onOrganizationChange={setSelectedOrganizationId}
         isLoadingOrgs={orgsLoading}
       >
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            queryClient.invalidateQueries({
-              queryKey: ["bank-response-transactions"],
-            })
-          }
-          className="h-9"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileText className="mr-2 h-4 w-4" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print / PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              queryClient.invalidateQueries({
+                queryKey: ["bank-response-transactions"],
+              })
+            }
+            className="h-9"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-5">
@@ -441,136 +513,169 @@ export default function BankReconciliationPage() {
               </p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
-                <div className="col-span-1" />
-                <div className="col-span-1">Date</div>
-                <div className="col-span-2">Vendor</div>
-                <div className="col-span-2">Bill</div>
-                <div className="col-span-2 text-right">Amount</div>
-                <div className="col-span-1">Status</div>
-                <div className="col-span-2">Reason</div>
-                <div className="col-span-1 text-right">Action</div>
-              </div>
-              <div className="divide-y divide-border/50 max-h-[calc(100vh-380px)] overflow-y-auto">
-                {filtered.map((txn) => {
-                  const cfg = STATUS_CONFIG[txn.status];
-                  const Icon = cfg?.icon;
-                  const isAccepted =
-                    txn.status === "ACSP" || txn.status === "ACWC";
-                  const isRejected = txn.status === "RJCT";
-                  const isSynced = txn.synced_to_xero;
-                  const isSelectable = isAccepted && !isSynced;
-                  const isSelected = selected.includes(txn.id);
+            <div className="overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="w-10 px-4 py-2.5" />
+                    <th className="w-[88px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Vendor
+                    </th>
+                    <th className="w-[140px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Bill
+                    </th>
+                    <th className="w-[130px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="w-[90px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Reason
+                    </th>
+                    <th className="w-[100px] px-3 py-2.5 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider pr-6">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+              </table>
+              <div className="max-h-[calc(100vh-380px)] overflow-y-auto">
+                <table className="w-full">
+                  <colgroup>
+                    <col className="w-10" />
+                    <col className="w-[88px]" />
+                    <col />
+                    <col className="w-[140px]" />
+                    <col className="w-[130px]" />
+                    <col className="w-[90px]" />
+                    <col />
+                    <col className="w-[100px]" />
+                  </colgroup>
+                  <tbody className="divide-y divide-border/50">
+                    {filtered.map((txn) => {
+                      const cfg = STATUS_CONFIG[txn.status];
+                      const Icon = cfg?.icon;
+                      const isAccepted =
+                        txn.status === "ACSP" || txn.status === "ACWC";
+                      const isRejected = txn.status === "RJCT";
+                      const isSynced = txn.synced_to_xero;
+                      const isSelectable = isAccepted && !isSynced;
+                      const isSelected = selected.includes(txn.id);
 
-                  return (
-                    <div
-                      key={txn.id}
-                      className={`grid grid-cols-12 gap-3 px-6 py-3 items-center text-sm transition-colors ${
-                        isSelected
-                          ? "bg-primary/5"
-                          : "hover:bg-muted/30"
-                      }`}
-                    >
-                      {/* Checkbox */}
-                      <div className="col-span-1">
-                        {isSelectable && (
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => toggle(txn.id)}
-                          />
-                        )}
-                      </div>
-
-                      {/* Date */}
-                      <div className="col-span-1 text-muted-foreground text-xs">
-                        {format(new Date(txn.created_at), "dd MMM yyyy")}
-                      </div>
-
-                      {/* Vendor */}
-                      <div className="col-span-2 min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {txn.vendor_name || txn.creditor_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {txn.source_bank_account_name || txn.creditor_name}
-                        </p>
-                      </div>
-
-                      {/* Bill */}
-                      <div className="col-span-2 min-w-0">
-                        <p className="text-sm text-foreground truncate">
-                          {txn.invoice_number}
-                        </p>
-                        {txn.bill_reference && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {txn.bill_reference}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Amount */}
-                      <div className="col-span-2 text-right">
-                        <span className="font-semibold tabular-nums text-foreground">
-                          {formatCurrency(
-                            parseFloat(txn.original_amount),
-                            txn.original_currency
-                          )}
-                        </span>
-                      </div>
-
-                      {/* Status */}
-                      <div className="col-span-1">
-                        <span
-                          className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border ${
-                            cfg?.className ||
-                            "bg-muted text-muted-foreground border-border"
+                      return (
+                        <tr
+                          key={txn.id}
+                          className={`transition-colors ${
+                            isSelected
+                              ? "bg-primary/5"
+                              : "hover:bg-muted/30"
                           }`}
                         >
-                          {Icon && <Icon className="h-3 w-3" />}
-                          {cfg?.label || txn.status}
-                        </span>
-                      </div>
+                          {/* Checkbox */}
+                          <td className="px-4 py-3 align-middle">
+                            {isSelectable && (
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggle(txn.id)}
+                              />
+                            )}
+                          </td>
 
-                      {/* Reason */}
-                      <div className="col-span-2 min-w-0">
-                        {txn.status_code && (
-                          <p className="text-xs font-mono text-muted-foreground">
-                            {txn.status_code}
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground truncate">
-                          {txn.status_description || "—"}
-                        </p>
-                      </div>
+                          {/* Date */}
+                          <td className="px-3 py-3 align-middle text-xs text-muted-foreground whitespace-nowrap">
+                            {format(new Date(txn.created_at), "dd MMM yy")}
+                          </td>
 
-                      {/* Action */}
-                      <div className="col-span-1 text-right">
-                        {isSynced && (
-                          <span className="text-xs text-emerald-600 font-medium">
-                            Synced to ERP
-                          </span>
-                        )}
-                        {isRejected && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() =>
-                              requeueMutation.mutate(txn.payment_event_id)
-                            }
-                            disabled={requeueMutation.isPending}
-                          >
-                            <RotateCcw className="h-3 w-3 mr-1" />
-                            Re-queue
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                          {/* Vendor */}
+                          <td className="px-3 py-3 align-middle max-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {txn.vendor_name || txn.creditor_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {txn.source_bank_account_name}
+                            </p>
+                          </td>
+
+                          {/* Bill */}
+                          <td className="px-3 py-3 align-middle">
+                            <p className="text-sm text-foreground truncate">
+                              {txn.invoice_number}
+                            </p>
+                            {txn.bill_reference && (
+                              <p className="text-xs text-muted-foreground truncate">
+                                {txn.bill_reference}
+                              </p>
+                            )}
+                          </td>
+
+                          {/* Amount */}
+                          <td className="px-3 py-3 align-middle">
+                            <span className="text-sm font-semibold tabular-nums text-foreground">
+                              {formatCurrency(
+                                parseFloat(txn.original_amount),
+                                txn.original_currency
+                              )}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-3 py-3 align-middle">
+                            <span
+                              className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap ${
+                                cfg?.className ||
+                                "bg-muted text-muted-foreground border-border"
+                              }`}
+                            >
+                              {Icon && <Icon className="h-3 w-3 shrink-0" />}
+                              {cfg?.label || txn.status}
+                            </span>
+                          </td>
+
+                          {/* Reason */}
+                          <td className="px-3 py-3 align-middle max-w-0">
+                            <p className="text-xs text-muted-foreground truncate">
+                              {txn.status_description || "—"}
+                            </p>
+                            {txn.status_code && txn.status_code !== "NARR" && (
+                              <p className="text-[11px] font-mono text-muted-foreground/60 truncate">
+                                {txn.status_code}
+                              </p>
+                            )}
+                          </td>
+
+                          {/* Action */}
+                          <td className="px-3 py-3 align-middle text-right pr-6">
+                            {isSynced && (
+                              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Synced
+                              </span>
+                            )}
+                            {isRejected && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() =>
+                                  requeueMutation.mutate(txn.payment_event_id)
+                                }
+                                disabled={requeueMutation.isPending}
+                              >
+                                <RotateCcw className="h-3 w-3 mr-1" />
+                                Re-queue
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            </>
+            </div>
           )}
         </ContentCard>
       </div>

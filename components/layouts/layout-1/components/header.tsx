@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
   Bell,
-  LayoutGrid,
   Menu,
-  MessageCircleMore,
   Search,
 } from 'lucide-react';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { useCurrentUser } from '@/hooks/use-user';
+import { getInitials } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -19,8 +19,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { SearchDialog } from '@/components/layouts/layout-1/shared/dialogs/search/search-dialog';
-import { AppsDropdownMenu } from '@/components/layouts/layout-1/shared/topbar/apps-dropdown-menu';
-import { ChatSheet } from '@/components/layouts/layout-1/shared/topbar/chat-sheet';
 import { NotificationsSheet } from '@/components/layouts/layout-1/shared/topbar/notifications-sheet';
 import { UserDropdownMenu } from '@/components/layouts/layout-1/shared/topbar/user-dropdown-menu';
 import { SidebarMenu } from './sidebar-menu';
@@ -32,6 +30,7 @@ export function Header() {
 
   const pathname = usePathname();
   const mobileMode = useIsMobile();
+  const { data: user } = useCurrentUser();
 
   const scrollPosition = useScrollPosition();
   const headerSticky: boolean = scrollPosition > 0;
@@ -40,6 +39,8 @@ export function Header() {
   useEffect(() => {
     setIsSidebarSheetOpen(false);
   }, [pathname]);
+
+  const initials = getInitials(user?.full_name || user?.username);
 
   return (
     <header
@@ -112,37 +113,13 @@ export function Header() {
               </Button>
             }
           />
-          <ChatSheet
-            trigger={
-              <Button
-                variant="ghost"
-                mode="icon"
-                shape="circle"
-                className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-              >
-                <MessageCircleMore className="size-4.5!" />
-              </Button>
-            }
-          />
-          <AppsDropdownMenu
-            trigger={
-              <Button
-                variant="ghost"
-                mode="icon"
-                shape="circle"
-                className="size-9 hover:bg-primary/10 hover:[&_svg]:text-primary"
-              >
-                <LayoutGrid className="size-4.5!" />
-              </Button>
-            }
-          />
           <UserDropdownMenu
             trigger={
-              <img
-                className="size-9 rounded-full border-2 border-primary shrink-0 cursor-pointer"
-                src={toAbsoluteUrl('/media/avatars/300-2.png')}
-                alt="User Avatar"
-              />
+              <div className="size-9 rounded-full border-2 border-primary shrink-0 cursor-pointer bg-primary/10 flex items-center justify-center">
+                <span className="text-xs font-semibold text-primary">
+                  {initials}
+                </span>
+              </div>
             }
           />
         </div>

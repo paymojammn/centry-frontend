@@ -15,9 +15,11 @@ import { toast } from "sonner";
 
 interface ExportButtonProps {
   organizationId: string;
-  reportType: "expenses" | "transactions" | "financial";
+  reportType: "expenses" | "transactions" | "financial" | "payment-transactions";
   startDate?: string;
   endDate?: string;
+  status?: string;
+  method?: string;
 }
 
 export function ExportButton({
@@ -25,19 +27,23 @@ export function ExportButton({
   reportType,
   startDate,
   endDate,
+  status,
+  method,
 }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
   const exportMutation = useExportReport();
 
   const handleExport = async (format: "csv" | "excel" | "pdf") => {
     setIsExporting(true);
-    
+
     const params: ExportParams = {
       organization: organizationId,
       report_type: reportType,
       format,
       start_date: startDate,
       end_date: endDate,
+      ...(status && { status }),
+      ...(method && { method }),
     };
 
     try {

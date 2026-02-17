@@ -1,18 +1,20 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import {
-  Badge,
-  Bolt,
-  Captions,
-  CircleUserRound,
-  Home,
-  IdCard,
+  CreditCard,
+  FileText,
+  BarChart3,
+  Building2,
+  ArrowRightLeft,
+  FileDown,
+  FileUp,
   Search,
+  Shield,
   Settings,
-  SquareCode,
-  UserRoundPen,
-  UserRoundPlus,
+  User,
+  Wallet,
+  Users,
+  Receipt,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,
@@ -24,293 +26,115 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DropdownMenu4 } from '@/components/layouts/layout-1/shared/dropdown-menu/dropdown-menu-4';
-import {
-  SearchDocs,
-  SearchDocsItem,
-  SearchEmpty,
-  SearchIntegrations,
-  SearchIntegrationsItem,
-  SearchMixed,
-  SearchNoResults,
-  SearchSettings,
-  SearchSettingsItem,
-  SearchUsers,
-  SearchUsersItem,
-} from './';
+import Link from 'next/link';
+
+interface NavItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  keywords: string[];
+  section: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  // Main
+  { icon: BarChart3, label: 'Dashboard', path: '/dashboard', keywords: ['home', 'overview', 'stats'], section: 'Main' },
+  { icon: FileText, label: 'Bills', path: '/bills', keywords: ['invoices', 'payables', 'vendor'], section: 'Main' },
+  { icon: CreditCard, label: 'Payments', path: '/payments', keywords: ['pay', 'transfer', 'send'], section: 'Main' },
+  { icon: Receipt, label: 'Expenses', path: '/expenses', keywords: ['spend', 'cost', 'claims'], section: 'Main' },
+  { icon: Users, label: 'Vendors', path: '/vendors', keywords: ['suppliers', 'contacts'], section: 'Main' },
+  { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main' },
+  // Banking
+  { icon: FileUp, label: 'Export Payments', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },
+  { icon: ArrowRightLeft, label: 'Transactions', path: '/banking/transactions', keywords: ['payments', 'history'], section: 'Banking' },
+  { icon: FileDown, label: 'Reconciliation', path: '/banking/reconciliation', keywords: ['pain.002', 'bank response', 'sync'], section: 'Banking' },
+  { icon: Building2, label: 'Bank Accounts', path: '/banking/accounts', keywords: ['accounts', 'iban'], section: 'Banking' },
+  // Reports
+  { icon: BarChart3, label: 'Reports', path: '/reports', keywords: ['analytics', 'pipeline', 'charts'], section: 'Reports' },
+  { icon: ArrowRightLeft, label: 'Transaction Reports', path: '/reports/transactions', keywords: ['history', 'export'], section: 'Reports' },
+  // Settings
+  { icon: User, label: 'My Profile', path: '/account/profile', keywords: ['account', 'name', 'email'], section: 'Settings' },
+  { icon: Shield, label: 'Security', path: '/account/security', keywords: ['password', '2fa', 'two-factor'], section: 'Settings' },
+  { icon: Building2, label: 'Organizations', path: '/organizations', keywords: ['org', 'company', 'team'], section: 'Settings' },
+  { icon: Settings, label: 'Integrations', path: '/integrations', keywords: ['xero', 'erp', 'connect'], section: 'Settings' },
+];
 
 export function SearchDialog({ trigger }: { trigger: ReactNode }) {
   const [searchInput, setSearchInput] = useState('');
 
-  const mixedSettingsItems: SearchSettingsItem[] = [
-    { icon: IdCard, info: 'Public Profile' },
-    { icon: Settings, info: 'My Account' },
-    { icon: SquareCode, info: 'Devs Forum' },
-  ];
+  const filtered = useMemo(() => {
+    const query = searchInput.toLowerCase().trim();
+    if (!query) return NAV_ITEMS;
+    return NAV_ITEMS.filter(
+      (item) =>
+        item.label.toLowerCase().includes(query) ||
+        item.keywords.some((kw) => kw.includes(query)) ||
+        item.section.toLowerCase().includes(query)
+    );
+  }, [searchInput]);
 
-  const mixedUsersItems: SearchUsersItem[] = [
-    {
-      avatar: '300-3.png',
-      name: 'Tyler Hero',
-      email: 'tyler.hero@gmail.com',
-      label: 'In Office',
-      color: 'success',
-    },
-    {
-      avatar: '300-1.png',
-      name: 'Esther Howard',
-      email: 'esther.howard@gmail.com',
-      label: 'On Leave',
-      color: 'destructive',
-    },
-  ];
-
-  const mixedIntegrationsItems: SearchIntegrationsItem[] = [
-    {
-      logo: 'jira.svg',
-      name: 'Jira',
-      description: 'Project management',
-      team: [
-        { filename: '300-4.png', variant: 'size-6' },
-        { filename: '300-1.png', variant: 'size-6' },
-        { filename: '300-2.png', variant: 'size-6' },
-        {
-          fallback: '+3',
-          variant: 'text-white size-6 ring-background bg-green-500',
-        },
-      ],
-    },
-    {
-      logo: 'inferno.svg',
-      name: 'Inferno',
-      description: 'Real-time photo sharing app',
-      team: [
-        { filename: '300-14.png', variant: 'size-6' },
-        { filename: '300-12.png', variant: 'size-6' },
-        { filename: '300-9.png', variant: 'size-6' },
-      ],
-    },
-  ];
-
-  const docsItems: SearchDocsItem[] = [
-    {
-      image: 'pdf.svg',
-      desc: 'Project-pitch.pdf',
-      date: '4.7 MB 26 Sep 2024 3:20 PM',
-    },
-    {
-      image: 'doc.svg',
-      desc: 'Report-v1.docx',
-      date: '2.3 MB 1 Oct 2024 12:00 PM',
-    },
-    {
-      image: 'javascript.svg',
-      desc: 'Framework-App.js',
-      date: '0.8 MB 17 Oct 2024 6:46 PM',
-    },
-    {
-      image: 'ai.svg',
-      desc: 'Framework-App.js',
-      date: '0.8 MB 17 Oct 2024 6:46 PM',
-    },
-    {
-      image: 'php.svg',
-      desc: 'appController.js',
-      date: '0.1 MB 21 Nov 2024 3:20 PM',
-    },
-  ];
-
-  const settingsItems = [
-    {
-      title: 'Shortcuts',
-      children: [
-        { icon: Home, info: 'Go to Dashboard' },
-        { icon: Badge, info: 'Public Profile' },
-        { icon: CircleUserRound, info: 'My Profile' },
-        { icon: Settings, info: 'My Account' },
-        { icon: SquareCode, info: 'Devs Forum' },
-      ],
-    },
-    {
-      title: 'Actions',
-      children: [
-        { icon: UserRoundPlus, info: 'Create User' },
-        { icon: UserRoundPen, info: 'Create Team' },
-        { icon: Captions, info: 'Change Plan' },
-        { icon: Bolt, info: 'Setup Branding' },
-      ],
-    },
-  ];
-
-  const integrationsItems = [
-    {
-      logo: 'jira.svg',
-      name: 'Jira',
-      description: 'Project management',
-      team: [
-        { filename: '300-4.png', variant: 'size-6' },
-        { filename: '300-1.png', variant: 'size-6' },
-        { filename: '300-2.png', variant: 'size-6' },
-        {
-          fallback: '+3',
-          variant: 'text-white size-6 ring-background bg-green-500',
-        },
-      ],
-    },
-    {
-      logo: 'inferno.svg',
-      name: 'Inferno',
-      description: 'Real-time photo sharing app',
-      team: [
-        { filename: '300-14.png', variant: 'size-6' },
-        { filename: '300-12.png', variant: 'size-6' },
-        { filename: '300-9.png', variant: 'size-6' },
-      ],
-    },
-    {
-      logo: 'evernote.svg',
-      name: 'Evernote',
-      description: 'Notes management app',
-      team: [
-        { filename: '300-6.png', variant: 'size-6' },
-        { filename: '300-3.png', variant: 'size-6' },
-        { filename: '300-1.png', variant: 'size-6' },
-        { filename: '300-8.png', variant: 'size-6' },
-      ],
-    },
-    {
-      logo: 'gitlab.svg',
-      name: 'Gitlab',
-      description: 'Version control and CI/CD platform',
-      team: [
-        { filename: '300-18.png', variant: 'size-6' },
-        { filename: '300-17.png', variant: 'size-6' },
-      ],
-    },
-    {
-      logo: 'google-webdev.svg',
-      name: 'Google Webdev',
-      description: 'Building web experiences',
-      team: [
-        { filename: '300-14.png', variant: 'size-6' },
-        { filename: '300-20.png', variant: 'size-6' },
-        { filename: '300-21.png', variant: 'size-6' },
-      ],
-    },
-  ];
-
-  const usersItems: SearchUsersItem[] = [
-    {
-      avatar: '300-3.png',
-      name: 'Tyler Hero',
-      email: 'tyler.hero@gmail.com',
-      label: 'In Office',
-      color: 'success',
-    },
-    {
-      avatar: '300-1.png',
-      name: 'Esther Howard',
-      email: 'esther.howard@gmail.com',
-      label: 'On Leave',
-      color: 'destructive',
-    },
-    {
-      avatar: '300-11.png',
-      name: 'Jacob Jones',
-      email: 'jacob.jones@gmail.com',
-      label: 'Remote',
-      color: 'primary',
-    },
-    {
-      avatar: '300-5.png',
-      name: 'Leslie Alexander',
-      email: 'leslie.alexander@gmail.com',
-      label: 'In Office',
-      color: 'success',
-    },
-    {
-      avatar: '300-2.png',
-      name: 'Cody Fisher',
-      email: 'cody.fisher@gmail.com',
-      label: 'Remote',
-      color: 'primary',
-    },
-  ];
+  const grouped = useMemo(() => {
+    const sections: Record<string, NavItem[]> = {};
+    for (const item of filtered) {
+      if (!sections[item.section]) sections[item.section] = [];
+      sections[item.section].push(item);
+    }
+    return sections;
+  }, [filtered]);
 
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="lg:max-w-[600px] lg:top-[15%] lg:translate-y-0 p-0 [&_[data-slot=dialog-close]]:top-5.5 [&_[data-slot=dialog-close]]:end-5.5">
+      <DialogContent className="lg:max-w-[480px] lg:top-[15%] lg:translate-y-0 p-0 [&_[data-slot=dialog-close]]:top-5.5 [&_[data-slot=dialog-close]]:end-5.5">
         <DialogHeader className="px-4 py-1 mb-1">
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
           <div className="relative">
-            <Search className="absolute top-1/2 -translate-y-1/2 size-4" />
+            <Search className="absolute top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               type="text"
               name="query"
               value={searchInput}
               className="ps-6 outline-none! ring-0! shadow-none! border-0"
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search..."
+              placeholder="Search pages..."
             />
           </div>
         </DialogHeader>
-        <DialogBody className="p-0 pb-5">
-          <Tabs defaultValue="1">
-            <TabsList className="justify-between px-5 mb-2.5" variant="line">
-              <div className="flex items-center gap-5">
-                <TabsTrigger value="1">Mixed</TabsTrigger>
-                <TabsTrigger value="2">Settings</TabsTrigger>
-                <TabsTrigger value="3">Integrations</TabsTrigger>
-                <TabsTrigger value="4">Users</TabsTrigger>
-                <TabsTrigger value="5">Docs</TabsTrigger>
-                <TabsTrigger value="6">Empty</TabsTrigger>
-                <TabsTrigger value="7">No Results</TabsTrigger>
+        <DialogBody className="p-0 pb-4">
+          <ScrollArea className="h-[380px]">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 px-6">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                  <Search className="h-5 w-5 text-muted-foreground/50" />
+                </div>
+                <p className="text-sm font-medium text-foreground">No results</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Try a different search term
+                </p>
               </div>
-
-              <DropdownMenu4
-                trigger={
-                  <Button
-                    variant="ghost"
-                    mode="icon"
-                    size="sm"
-                    className="mb-1.5 -me-2"
-                  >
-                    <Settings />
-                  </Button>
-                }
-              />
-            </TabsList>
-            <ScrollArea className="h-[480px]">
-              <TabsContent value="1">
-                <SearchMixed
-                  settings={mixedSettingsItems}
-                  integrations={mixedIntegrationsItems}
-                  users={mixedUsersItems}
-                />
-              </TabsContent>
-              <TabsContent value="2">
-                <SearchSettings items={settingsItems} />
-              </TabsContent>
-              <TabsContent value="3">
-                <SearchIntegrations items={integrationsItems} more={true} />
-              </TabsContent>
-              <TabsContent value="4">
-                <SearchUsers items={usersItems} more={true} />
-              </TabsContent>
-              <TabsContent value="5">
-                <SearchDocs items={docsItems} />
-              </TabsContent>
-              <TabsContent value="6">
-                <SearchEmpty />
-              </TabsContent>
-              <TabsContent value="7">
-                <SearchNoResults />
-              </TabsContent>
-            </ScrollArea>
-          </Tabs>
+            ) : (
+              Object.entries(grouped).map(([section, items]) => (
+                <div key={section}>
+                  <div className="px-5 py-2">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {section}
+                    </span>
+                  </div>
+                  {items.map((item) => (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      <item.icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              ))
+            )}
+          </ScrollArea>
         </DialogBody>
       </DialogContent>
     </Dialog>

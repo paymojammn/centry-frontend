@@ -24,10 +24,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { clearAuthToken } from '@/lib/api';
+import { useCurrentUser } from '@/hooks/use-user';
+import { getInitials } from '@/lib/theme';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const { data: user } = useCurrentUser();
 
   const handleThemeToggle = (checked: boolean) => {
     setTheme(checked ? 'dark' : 'light');
@@ -38,34 +41,40 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
     router.push('/auth/login');
   };
 
+  const displayName = user?.full_name || user?.username || 'User';
+  const displayRole = user?.role
+    ? user.role.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    : 'Member';
+  const initials = getInitials(displayName);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 border-[rgb(var(--divider-warm))]" side="bottom" align="end">
+      <DropdownMenuContent className="w-64 border-border" side="bottom" align="end">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-[rgb(var(--divider-light))]">
+        <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="size-9 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
-              <UserCircle className="h-6 w-6 text-primary" />
+              <span className="text-xs font-semibold text-primary">{initials}</span>
             </div>
             <div className="flex flex-col">
               <Link
                 href="/account/profile"
                 className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
               >
-                Admin
+                {displayName}
               </Link>
               <span className="text-xs text-muted-foreground">
-                Administrator
+                {displayRole}
               </span>
             </div>
           </div>
         </div>
 
-        <DropdownMenuSeparator className="bg-[rgb(var(--divider-light))]" />
+        <DropdownMenuSeparator />
 
         {/* Menu Items */}
-        <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
+        <DropdownMenuItem asChild>
           <Link
             href="/account/profile"
             className="flex items-center gap-2 text-foreground hover:text-primary"
@@ -74,7 +83,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             My Profile
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
+        <DropdownMenuItem asChild>
           <Link
             href="/organizations"
             className="flex items-center gap-2 text-foreground hover:text-primary"
@@ -86,12 +95,12 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
 
         {/* Account Settings Submenu */}
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="flex items-center gap-2 hover:bg-[var(--hover-row)] text-foreground hover:text-primary">
+          <DropdownMenuSubTrigger className="flex items-center gap-2 text-foreground hover:text-primary">
             <Settings className="text-primary" />
             Settings
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-48 border-[rgb(var(--divider-warm))]">
-            <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
+          <DropdownMenuSubContent className="w-48">
+            <DropdownMenuItem asChild>
               <Link
                 href="/account/security"
                 className="flex items-center gap-2 text-foreground hover:text-primary"
@@ -100,7 +109,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
                 Security
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]">
+            <DropdownMenuItem asChild>
               <Link
                 href="/integrations"
                 className="flex items-center gap-2 text-foreground hover:text-primary"
@@ -112,11 +121,10 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
-        <DropdownMenuSeparator className="bg-[rgb(var(--divider-light))]" />
+        <DropdownMenuSeparator />
 
         {/* Footer */}
         <DropdownMenuItem
-          className="flex items-center gap-2 hover:bg-[var(--hover-row)] focus:bg-[var(--hover-row)]"
           onSelect={(event) => event.preventDefault()}
         >
           <Moon className="text-primary" />
@@ -129,12 +137,12 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             />
           </div>
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-[rgb(var(--divider-light))]" />
+        <DropdownMenuSeparator />
         <div className="p-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full border-[rgb(var(--divider-warm))] hover:bg-primary hover:text-white hover:border-primary transition-colors" 
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full hover:bg-primary hover:text-white hover:border-primary transition-colors"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />

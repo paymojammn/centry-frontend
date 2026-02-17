@@ -7,7 +7,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -22,39 +22,14 @@ import {
   Save,
   X,
   CheckCircle,
-  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/layout/loading-state";
 import { EmptyState } from "@/components/layout/empty-state";
 import { getInitials } from "@/lib/theme";
-
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  role: string;
-  phone_number: string;
-  profile_image: string;
-  is_organization_user: boolean;
-  erp_provider: string;
-  organizations_count: number;
-  date_joined: string;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
-  primary_organization: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-}
+import { useCurrentUser } from "@/hooks/use-user";
+import type { UserProfile } from "@/hooks/use-user";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -69,13 +44,7 @@ export default function ProfilePage() {
 
   const queryClient = useQueryClient();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: async () => {
-      const data = await api.get<UserProfile>("/api/v1/users/me/");
-      return data;
-    },
-  });
+  const { data: profile, isLoading } = useCurrentUser();
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<UserProfile>) =>

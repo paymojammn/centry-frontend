@@ -63,8 +63,6 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: BarChart3,
     children: [
       { title: "Dashboard", path: "/reports" },
-      { title: "Financial Overview", path: "/reports/financial" },
-      // { title: "Expense Analytics", path: "/reports/expenses" },
       { title: "Transactions", path: "/reports/transactions" },
     ],
   },

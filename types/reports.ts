@@ -123,10 +123,145 @@ export interface ReportFilters {
   granularity?: "day" | "week" | "month";
 }
 
+// CEO Dashboard Types
+
+export interface BillsSummary {
+  total_paid: number;
+  paid_count: number;
+  change: number;
+  total_pending: number;
+  pending_count: number;
+  overdue_amount: number;
+  overdue_count: number;
+}
+
+export interface PaymentChannel {
+  channel: string;
+  amount: number;
+  count: number;
+}
+
+export interface PendingBill {
+  id: string;
+  invoice_number: string;
+  vendor_name: string;
+  amount: number;
+  amount_due: number;
+  currency: string;
+  due_date: string | null;
+  is_overdue: boolean;
+}
+
+export interface TopVendor {
+  vendor_name: string;
+  total_paid: number;
+  bill_count: number;
+}
+
+export interface CEODashboard {
+  bills_summary: BillsSummary;
+  payment_channels: PaymentChannel[];
+  pending_bills: PendingBill[];
+  top_vendors: TopVendor[];
+  pending_approvals: number;
+}
+
+// Payment Transactions Report Types
+
+export interface PaymentOverview {
+  total_submitted: { amount: number; count: number };
+  successful: { amount: number; count: number };
+  failed: { amount: number; count: number };
+  processing: { amount: number; count: number };
+  change: number;
+}
+
+export interface ChannelBreakdown {
+  channel: string;
+  method: string;
+  total_amount: number;
+  total_count: number;
+  successful: { amount: number; count: number };
+  failed: { amount: number; count: number };
+  pending: { amount: number; count: number };
+}
+
+export interface PaymentFile {
+  id: string;
+  filename: string;
+  created_at: string;
+  uploaded_at: string | null;
+  payment_count: number;
+  total_amount: number;
+  currency: string;
+  status: string;
+  bank_account_name: string;
+  successful_count: number;
+  failed_count: number;
+  pending_count: number;
+  bank_status: string;
+}
+
+export interface StatusDistribution {
+  status: string;
+  count: number;
+  amount: number;
+}
+
+export interface PaymentTransactionsReport {
+  overview: PaymentOverview;
+  by_channel: ChannelBreakdown[];
+  recent_files: PaymentFile[];
+  status_distribution: StatusDistribution[];
+}
+
+// Individual Payment Transaction (from list endpoint)
+
+export interface UserInfo {
+  name: string;
+  email: string;
+}
+
+export interface RejectedByInfo extends UserInfo {
+  reason: string;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  date: string;
+  method: string;
+  channel: string;
+  amount: number;
+  currency: string;
+  status: string;
+  status_label: string;
+  recipient: string;
+  reference: string;
+  note: string;
+  initiated_by: UserInfo | null;
+  approved_by: UserInfo | null;
+  rejected_by: RejectedByInfo | null;
+}
+
+export interface PaymentTransactionListResponse {
+  transactions: PaymentTransaction[];
+  total_count: number;
+}
+
+export interface PaymentTransactionFilters {
+  organization: string;
+  start_date?: string;
+  end_date?: string;
+  status?: string;
+  method?: string;
+}
+
 export interface ExportParams {
   organization: string;
-  report_type: "expenses" | "transactions" | "financial";
+  report_type: "expenses" | "transactions" | "financial" | "payment-transactions";
   format: "csv" | "excel" | "pdf";
   start_date?: string;
   end_date?: string;
+  status?: string;
+  method?: string;
 }
