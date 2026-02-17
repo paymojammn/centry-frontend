@@ -1,20 +1,80 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatsOverview } from "@/components/banking/stats-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
-import { ExportTransactionList } from "@/components/banking/export-transaction-list";
 import { Pain002Status } from "@/components/banking/pain002-status";
 import { useOrganizations } from "@/hooks/use-organization";
-import { Building2, BarChart3, Upload, FileText, FileCheck } from "lucide-react";
+import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
+import {
+  ContentCard,
+  ContentCardHeader,
+} from "@/components/layout/content-card";
+import {
+  Building2,
+  BarChart3,
+  Upload,
+  FileCheck,
+  FolderOpen,
+  Search,
+  Download,
+  X,
+} from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { format } from "date-fns";
+import { api } from "@/lib/api";
+
+// ============================================================
+// Status styles for export files
+// ============================================================
+
+const FILE_STATUS_STYLES: Record<string, string> = {
+  pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  generated: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  uploaded: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  processed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  failed: "bg-red-500/10 text-red-700 border-red-500/20",
+};
+
+const FILE_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  generated: "Generated",
+  uploaded: "Uploaded",
+  processed: "Processed",
+  failed: "Failed",
+};
+
+// ============================================================
+// Page
+// ============================================================
 
 export default function BankingExportPage() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [selectedExportId, setSelectedExportId] = useState<number | undefined>();
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+    string | null
+  >(null);
+  const [selectedExportId, setSelectedExportId] = useState<
+    number | undefined
+  >();
 
-  const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+  // Files tab filters
+  const [fileSearch, setFileSearch] = useState("");
+  const [fileStatusFilter, setFileStatusFilter] = useState("all");
+  const [fileAccountFilter, setFileAccountFilter] = useState("all");
+
+  const { data: organizationsResponse, isLoading: orgsLoading } =
+    useOrganizations();
 
   const organizations = Array.isArray(organizationsResponse)
     ? organizationsResponse
@@ -26,20 +86,73 @@ export default function BankingExportPage() {
     }
   }, [organizations, selectedOrganizationId]);
 
+  const { data: bankAccountsData } = useBankAccounts(
+    selectedOrganizationId || undefined
+  );
+  const bankAccounts = (bankAccountsData as any)?.results || [];
+
+  const { data: exportsData, isLoading: exportsLoading } =
+    useBankPaymentExports({
+      organizationId: selectedOrganizationId || undefined,
+      status: fileStatusFilter !== "all" ? fileStatusFilter : undefined,
+      bankAccountId:
+        fileAccountFilter !== "all" ? Number(fileAccountFilter) : undefined,
+    });
+
+  const exports = exportsData?.results || [];
+
+  // Client-side search filter
+  const filteredExports = exports.filter((e) => {
+    if (!fileSearch) return true;
+    const q = fileSearch.toLowerCase();
+    return (
+      (e.file_name || "").toLowerCase().includes(q) ||
+      (e.bank_account?.account_name || "").toLowerCase().includes(q) ||
+      (e.currency || "").toLowerCase().includes(q)
+    );
+  });
+
+  const hasFileFilters =
+    fileSearch !== "" ||
+    fileStatusFilter !== "all" ||
+    fileAccountFilter !== "all";
+
+  const clearFileFilters = () => {
+    setFileSearch("");
+    setFileStatusFilter("all");
+    setFileAccountFilter("all");
+  };
+
   const handleExportComplete = () => {
     setActiveTab("overview");
   };
 
   const handleSelectExport = (exportId: number) => {
     setSelectedExportId(exportId);
-    setActiveTab("transactions");
+  };
+
+  const handleDownload = async (exportId: number, filename: string) => {
+    try {
+      const blob = await api.get<Blob>(
+        `/api/v1/banking/exports/files/${exportId}/`,
+        { responseType: "blob" }
+      );
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      // Silently handle
+    }
   };
 
   const tabs = [
     { value: "overview", label: "Overview", icon: BarChart3 },
-    { value: "sftp-export", label: "SFTP Export", icon: Upload },
-    { value: "bank-status", label: "Bank Status", icon: FileCheck },
-    { value: "transactions", label: "Payments", icon: FileText },
+    { value: "sftp-export", label: "Pay", icon: Upload },
+    { value: "bank-status", label: "Reconcile", icon: FileCheck },
+    { value: "files", label: "Files", icon: FolderOpen },
   ];
 
   return (
@@ -64,7 +177,7 @@ export default function BankingExportPage() {
                     <SelectItem key={org.id} value={org.id}>
                       <div className="flex items-center gap-2">
                         <span>{org.name}</span>
-                        {org.external_id?.startsWith('xero_') && (
+                        {org.external_id?.startsWith("xero_") && (
                           <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                             Xero
                           </span>
@@ -127,11 +240,181 @@ export default function BankingExportPage() {
             selectedExportId={selectedExportId}
           />
         )}
-        {activeTab === "transactions" && (
-          <ExportTransactionList
-            exportId={selectedExportId}
-            organizationId={selectedOrganizationId || undefined}
-          />
+        {activeTab === "files" && (
+          <div className="space-y-5">
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative flex-1 min-w-[180px] max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search files..."
+                  value={fileSearch}
+                  onChange={(e) => setFileSearch(e.target.value)}
+                  className="pl-10 h-9"
+                />
+              </div>
+
+              <Select
+                value={fileAccountFilter}
+                onValueChange={setFileAccountFilter}
+              >
+                <SelectTrigger className="w-[160px] h-9">
+                  <SelectValue placeholder="All accounts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All accounts</SelectItem>
+                  {bankAccounts.map((a: any) => (
+                    <SelectItem key={a.id} value={a.id.toString()}>
+                      {a.account_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={fileStatusFilter}
+                onValueChange={setFileStatusFilter}
+              >
+                <SelectTrigger className="w-[150px] h-9">
+                  <SelectValue placeholder="All status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="uploaded">Uploaded</SelectItem>
+                  <SelectItem value="processed">Processed</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {hasFileFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFileFilters}
+                  className="h-9 text-muted-foreground"
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Table */}
+            <ContentCard noPadding>
+              <ContentCardHeader>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Export Files
+                  </h3>
+                  {!exportsLoading && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filteredExports.length}
+                    </Badge>
+                  )}
+                </div>
+              </ContentCardHeader>
+
+              {exportsLoading ? (
+                <div className="p-6 space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-11 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : filteredExports.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
+                    <FolderOpen className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    No export files found
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {hasFileFilters
+                      ? "Try adjusting your filters"
+                      : "No payment files have been generated yet"}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                    <div className="col-span-2">Date</div>
+                    <div className="col-span-3">Filename</div>
+                    <div className="col-span-2">Account</div>
+                    <div className="col-span-1 text-center">Payments</div>
+                    <div className="col-span-2 text-right">Amount</div>
+                    <div className="col-span-1">Status</div>
+                    <div className="col-span-1"></div>
+                  </div>
+                  <div className="divide-y divide-border/50 max-h-[calc(100vh-350px)] overflow-y-auto">
+                    {filteredExports.map((e) => (
+                      <div
+                        key={e.id}
+                        className="grid grid-cols-12 gap-3 px-6 py-3 items-center text-sm hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="col-span-2 text-muted-foreground">
+                          {format(new Date(e.created_at), "dd MMM yyyy")}
+                          <p className="text-xs text-muted-foreground/60">
+                            {format(new Date(e.created_at), "HH:mm")}
+                          </p>
+                        </div>
+                        <div className="col-span-3 min-w-0">
+                          <p className="font-medium text-foreground truncate">
+                            {e.file_name || "—"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {e.file_size
+                              ? `${(e.file_size / 1024).toFixed(1)} KB`
+                              : "—"}
+                          </p>
+                        </div>
+                        <div className="col-span-2 min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">
+                            {e.bank_account?.account_name || "—"}
+                          </p>
+                        </div>
+                        <div className="col-span-1 text-center">
+                          <span className="text-sm tabular-nums text-foreground">
+                            {e.payment_count}
+                          </span>
+                        </div>
+                        <div className="col-span-2 text-right">
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {formatCurrency(
+                              parseFloat(e.total_amount),
+                              e.currency
+                            )}
+                          </span>
+                        </div>
+                        <div className="col-span-1">
+                          <span
+                            className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium border ${
+                              FILE_STATUS_STYLES[e.status] ||
+                              "bg-muted text-muted-foreground border-border"
+                            }`}
+                          >
+                            {FILE_STATUS_LABELS[e.status] || e.status}
+                          </span>
+                        </div>
+                        <div className="col-span-1 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() =>
+                              handleDownload(e.id, e.file_name || "export.xml")
+                            }
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </ContentCard>
+          </div>
         )}
       </div>
     </div>

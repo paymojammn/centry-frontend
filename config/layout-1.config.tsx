@@ -19,21 +19,21 @@ export const MENU_SIDEBAR: MenuConfig = [
     path: "/dashboard",
   },
   { heading: "Financial Management" },
-  {
-    title: "Wallet",
-    icon: Wallet,
-    path: "/wallet",
-  },
+  // {
+  //   title: "Wallet",
+  //   icon: Wallet,
+  //   path: "/wallet",
+  // },
   {
     title: "Bills",
     icon: FileText,
     path: "/bills",
   },
-  {
-    title: "Expenses",
-    icon: TrendingUp,
-    path: "/expenses",
-  },
+  // {
+  //   title: "Expenses",
+  //   icon: TrendingUp,
+  //   path: "/expenses",
+  // },
   {
     title: "Contacts",
     icon: Users,
@@ -52,7 +52,6 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: "Banking",
     icon: Building,
     children: [
-      { title: "Import", path: "/banking" },
       { title: "Export", path: "/banking/export" },
       { title: "Transactions", path: "/banking/transactions" },
       { title: "Reconciliation", path: "/banking/reconciliation" },
@@ -65,7 +64,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "Dashboard", path: "/reports" },
       { title: "Financial Overview", path: "/reports/financial" },
-      { title: "Expense Analytics", path: "/reports/expenses" },
+      // { title: "Expense Analytics", path: "/reports/expenses" },
       { title: "Transactions", path: "/reports/transactions" },
     ],
   },
