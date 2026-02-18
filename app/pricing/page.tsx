@@ -163,7 +163,7 @@ export default function PricingPage() {
                 Sign In
               </Link>
               <Link
-                href="/auth/signup"
+                href="/auth/login"
                 className="bg-white text-[rgb(var(--brand-dark))] px-4 py-2 rounded-lg font-medium hover:bg-muted transition-colors"
               >
                 Get Started
@@ -442,7 +442,7 @@ export default function PricingPage() {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
-              href="/auth/signup"
+              href="/auth/login"
               className="bg-white text-[rgb(var(--brand-dark))] px-8 py-3 rounded-lg font-medium hover:bg-muted transition-colors"
             >
               Start Free Trial
