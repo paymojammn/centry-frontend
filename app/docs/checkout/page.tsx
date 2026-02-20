@@ -38,7 +38,7 @@ export default function CheckoutDocsPage() {
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
             Centry Checkout is a payment orchestration platform that allows you to accept
-            payments via multiple providers including Paystack, Netcash, MTN MoMo, and Airtel Money.
+            payments via multiple payment providers across Africa.
             One integration, all payment methods.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function CheckoutDocsPage() {
     "currency": "NGN",
     "status": "completed",
     "payment": {
-      "provider": "paystack",
+      "provider": "provider_name",
       "method": "card",
       "provider_reference": "PAY_xyz123"
     }
@@ -357,7 +357,7 @@ CentryCheckout.open({
                   { name: 'customer_phone', type: 'string', required: false, description: 'Pre-fill customer phone' },
                   { name: 'customer_name', type: 'string', required: false, description: 'Pre-fill customer name' },
                   { name: 'allowed_countries', type: 'array', required: false, description: 'Restrict to specific countries (e.g., ["NG", "GH"])' },
-                  { name: 'allowed_providers', type: 'array', required: false, description: 'Restrict to specific providers (e.g., ["paystack"])' },
+                  { name: 'allowed_providers', type: 'array', required: false, description: 'Restrict to specific providers (optional)' },
                   { name: 'metadata', type: 'object', required: false, description: 'Custom metadata (returned in webhooks)' },
                 ]}
               />
@@ -435,7 +435,7 @@ CentryCheckout.open({
   "status": "completed",
   "payment": {
     "id": "pay_abc123",
-    "provider": "paystack",
+    "provider": "provider_name",
     "method": "card",
     "status": "success",
     "provider_reference": "PAY_xyz789"
@@ -521,61 +521,16 @@ def handle_webhook(request):
           title="Supported Countries"
           description="Available countries and payment methods"
         >
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted border-b border-border">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Country</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Currency</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Providers</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Methods</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <td className="px-4 py-3 font-medium">Nigeria (NG)</td>
-                  <td className="px-4 py-3">NGN</td>
-                  <td className="px-4 py-3">Paystack</td>
-                  <td className="px-4 py-3">Card, Bank Transfer, USSD</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Ghana (GH)</td>
-                  <td className="px-4 py-3">GHS</td>
-                  <td className="px-4 py-3">Paystack</td>
-                  <td className="px-4 py-3">Card, Mobile Money</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">South Africa (ZA)</td>
-                  <td className="px-4 py-3">ZAR</td>
-                  <td className="px-4 py-3">Paystack, Netcash</td>
-                  <td className="px-4 py-3">Card, Instant EFT</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Kenya (KE)</td>
-                  <td className="px-4 py-3">KES</td>
-                  <td className="px-4 py-3">Airtel, Paystack</td>
-                  <td className="px-4 py-3">Mobile Money, Card</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Uganda (UG)</td>
-                  <td className="px-4 py-3">UGX</td>
-                  <td className="px-4 py-3">MTN, Airtel</td>
-                  <td className="px-4 py-3">Mobile Money</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Tanzania (TZ)</td>
-                  <td className="px-4 py-3">TZS</td>
-                  <td className="px-4 py-3">Airtel</td>
-                  <td className="px-4 py-3">Mobile Money</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Rwanda (RW)</td>
-                  <td className="px-4 py-3">RWF</td>
-                  <td className="px-4 py-3">MTN</td>
-                  <td className="px-4 py-3">Mobile Money</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Centry supports payment collection across multiple African countries including
+              Nigeria, Ghana, South Africa, Kenya, Uganda, Tanzania, and Rwanda.
+            </p>
+            <p className="text-muted-foreground">
+              Available payment methods vary by country and include cards, bank transfers,
+              mobile money, and instant EFT. Contact sales for specific country and payment
+              method availability.
+            </p>
           </div>
         </DocsSection>
 

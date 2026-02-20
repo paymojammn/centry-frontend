@@ -96,7 +96,7 @@ const transactionFees = [
   },
   {
     type: 'Mobile Money',
-    description: 'M-Pesa, MTN MoMo, Airtel Money',
+    description: 'Mobile money providers',
     fee: '1.5%',
     min: '$0.25',
     max: '$15',
@@ -113,7 +113,7 @@ const transactionFees = [
 const faqs = [
   {
     question: 'What payment methods are supported?',
-    answer: 'Centry supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money (M-Pesa, MTN MoMo, Airtel Money), and various local payment rails across Africa and globally.',
+    answer: 'Centry supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money, and various local payment rails across Africa and globally.',
   },
   {
     question: 'How does the 14-day free trial work?',
