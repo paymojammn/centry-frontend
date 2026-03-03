@@ -35,6 +35,8 @@ import {
   Plus,
   Pencil,
   Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -71,6 +73,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { clearOrganizationData, resyncOrganizationData } from '@/lib/organization-api';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -87,6 +101,11 @@ export default function OrganizationDetailsPage() {
   const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [isClearDataOpen, setIsClearDataOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
+  const [isResyncOpen, setIsResyncOpen] = useState(false);
+  const [isResyncing, setIsResyncing] = useState(false);
   const [isDepartmentModalOpen, setIsDepartmentModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [departmentForm, setDepartmentForm] = useState({
@@ -174,6 +193,82 @@ export default function OrganizationDetailsPage() {
   const handleDeleteDepartment = (deptId: string) => {
     if (confirm('Are you sure you want to delete this department?')) {
       deleteDepartment(deptId);
+    }
+  };
+
+  const DATA_CATEGORIES = [
+    { key: 'members', label: 'Members & Invitations' },
+    { key: 'departments', label: 'Departments' },
+    { key: 'payments', label: 'Payments' },
+    { key: 'banking', label: 'Banking Data' },
+    { key: 'expenses', label: 'Expenses' },
+    { key: 'reports', label: 'Reports' },
+    { key: 'wallet', label: 'Wallet' },
+    { key: 'purchases', label: 'Purchases' },
+    { key: 'integrations', label: 'ERP Connections' },
+    { key: 'checkout', label: 'Checkout' },
+    { key: 'approvals', label: 'Approvals' },
+  ];
+
+  const allCategoryKeys = DATA_CATEGORIES.map((c) => c.key);
+  const allSelected = selectedCategories.length === allCategoryKeys.length;
+
+  const toggleCategory = (key: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const toggleAll = () => {
+    setSelectedCategories(allSelected ? [] : [...allCategoryKeys]);
+  };
+
+  const handleClearData = async () => {
+    if (selectedCategories.length === 0) return;
+    setIsClearing(true);
+    try {
+      const result = await clearOrganizationData(organizationId, selectedCategories);
+      const total = Object.values(result.cleared).reduce((sum, n) => sum + n, 0);
+      toast.success(`Cleared ${total} records`, {
+        description: Object.entries(result.cleared)
+          .filter(([, count]) => count > 0)
+          .map(([cat, count]) => `${cat}: ${count}`)
+          .join(', ') || 'No records found in selected categories',
+      });
+      setIsClearDataOpen(false);
+      setSelectedCategories([]);
+    } catch (err: any) {
+      toast.error('Failed to clear data', {
+        description: err.message || 'An error occurred',
+      });
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
+  const handleResync = async () => {
+    setIsResyncing(true);
+    try {
+      const result = await resyncOrganizationData(organizationId);
+      const syncedItems = Object.entries(result.results)
+        .filter(([, val]) => typeof val === 'number' && val > 0)
+        .map(([key, val]) => `${key}: ${val}`)
+        .join(', ');
+      toast.success(`Synced from ${result.connections_synced} connection(s)`, {
+        description: syncedItems || 'No new data found',
+      });
+      if (result.errors && result.errors.length > 0) {
+        toast.warning('Some connections had errors', {
+          description: result.errors.map((e) => e.error).join('; '),
+        });
+      }
+      setIsResyncOpen(false);
+    } catch (err: any) {
+      toast.error('Re-sync failed', {
+        description: err.message || 'An error occurred',
+      });
+    } finally {
+      setIsResyncing(false);
     }
   };
 
@@ -340,28 +435,31 @@ export default function OrganizationDetailsPage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-card border border-border rounded-lg shadow-sm">
-              <div className="p-6 border-b border-border">
-                <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
-                <p className="text-sm text-muted-foreground">Common tasks and operations</p>
+            {/* Danger Zone */}
+            <div className="bg-card border border-destructive/30 rounded-lg shadow-sm">
+              <div className="p-6 border-b border-destructive/30">
+                <h3 className="text-lg font-semibold text-foreground">Danger Zone</h3>
+                <p className="text-sm text-muted-foreground">Irreversible data operations</p>
               </div>
-              <div className="p-6 space-y-2">
-                <Button variant="outline" className="w-full justify-start" type="button">
-                  <Mail className="h-4 w-4 text-primary" />
-                  Invite New Member
+              <div className="p-6 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  type="button"
+                  onClick={() => setIsResyncOpen(true)}
+                  disabled={isResyncing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isResyncing ? 'animate-spin' : ''}`} />
+                  {isResyncing ? 'Re-syncing...' : 'Re-sync from ERP'}
                 </Button>
-                <Button variant="outline" className="w-full justify-start" type="button">
-                  <Globe className="h-4 w-4 text-primary" />
-                  Connect ERP System
-                </Button>
-                <Button variant="outline" className="w-full justify-start" type="button">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  Import Bank Statement
-                </Button>
-                <Button variant="outline" className="w-full justify-start" type="button">
-                  <Settings className="h-4 w-4 text-primary" />
-                  Organization Settings
+                <Button
+                  variant="destructive"
+                  className="w-full justify-start"
+                  type="button"
+                  onClick={() => setIsClearDataOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear Organization Data
                 </Button>
               </div>
             </div>
@@ -722,6 +820,83 @@ export default function OrganizationDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Re-sync from ERP Dialog */}
+      <AlertDialog open={isResyncOpen} onOpenChange={setIsResyncOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              Re-sync from ERP
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will pull the latest data from your connected ERP systems and override local data.
+              Existing records will be updated with fresh data from the ERP.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResyncing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResync}
+              disabled={isResyncing}
+            >
+              {isResyncing ? 'Syncing...' : 'Re-sync Now'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear Organization Data Dialog */}
+      <AlertDialog open={isClearDataOpen} onOpenChange={(open) => {
+        setIsClearDataOpen(open);
+        if (!open) setSelectedCategories([]);
+      }}>
+        <AlertDialogContent className="sm:max-w-[480px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Clear Organization Data
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Select the data categories you want to permanently delete. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-3 max-h-[340px] overflow-y-auto">
+            <div className="flex items-center space-x-2 pb-2 border-b border-border">
+              <Checkbox
+                id="select-all"
+                checked={allSelected}
+                onCheckedChange={toggleAll}
+              />
+              <label htmlFor="select-all" className="text-sm font-semibold cursor-pointer">
+                Select All
+              </label>
+            </div>
+            {DATA_CATEGORIES.map((cat) => (
+              <div key={cat.key} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`cat-${cat.key}`}
+                  checked={selectedCategories.includes(cat.key)}
+                  onCheckedChange={() => toggleCategory(cat.key)}
+                />
+                <label htmlFor={`cat-${cat.key}`} className="text-sm cursor-pointer">
+                  {cat.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClearing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearData}
+              disabled={selectedCategories.length === 0 || isClearing}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isClearing ? 'Clearing...' : `Clear Selected Data (${selectedCategories.length})`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

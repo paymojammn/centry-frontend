@@ -57,6 +57,32 @@ export async function deleteOrganization(id: string): Promise<void> {
 }
 
 /**
+ * Clear selected data categories for an organization
+ */
+export async function clearOrganizationData(
+  id: string,
+  categories: string[]
+): Promise<{ cleared: Record<string, number> }> {
+  return post<{ cleared: Record<string, number> }>(
+    `/api/v1/erp/organizations/${id}/clear_data/`,
+    { categories }
+  );
+}
+
+/**
+ * Re-sync organization data from connected ERP systems
+ */
+export async function resyncOrganizationData(
+  id: string
+): Promise<{
+  connections_synced: number;
+  results: Record<string, number | string>;
+  errors?: Array<{ connection: string; error: string }>;
+}> {
+  return post(`/api/v1/erp/organizations/${id}/resync/`);
+}
+
+/**
  * Get organization members
  */
 export async function getOrganizationMembers(
@@ -161,6 +187,8 @@ export default {
   createOrganization,
   updateOrganization,
   deleteOrganization,
+  clearOrganizationData,
+  resyncOrganizationData,
   getOrganizationMembers,
   getOrganizationStats,
   getMemberships,
