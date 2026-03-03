@@ -11,6 +11,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Prevent Next.js from stripping trailing slashes on API routes
+  // Django requires trailing slashes (APPEND_SLASH = False)
+  skipTrailingSlashRedirect: true,
+
   // Environment variables - ensure API URL is available
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',

@@ -75,10 +75,9 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
         return;
       }
 
-      // Verify token by calling profile endpoint
+      // Verify token by calling profile endpoint (through proxy)
       try {
-        const apiUrl = getApiUrl();
-        const response = await fetch(`${apiUrl}/api/auth/profile/`, {
+        const response = await fetch('/api/auth/profile/', {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,

@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 async function proxyRequest(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-  const search = request.nextUrl.search;
+  // Use the raw URL to preserve trailing slashes (Django requires them)
+  const url = new URL(request.url);
+  const path = url.pathname;
+  const search = url.search;
   const targetUrl = `${BACKEND_URL}${path}${search}`;
 
   const headers = new Headers();
