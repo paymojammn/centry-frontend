@@ -101,11 +101,10 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(
-        `${API_URL}/api/v1/banking/imports/${selectedImportId}/export-for-xero-import/`,
+        `/api/v1/banking/imports/${selectedImportId}/export-for-xero-import/`,
         {
           method: 'POST',
           headers: {

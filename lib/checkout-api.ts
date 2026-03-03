@@ -5,7 +5,8 @@
  * These endpoints use session tokens for authentication, not user auth tokens.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use relative URLs — Next.js rewrites proxy /api/* to the backend
+const API_BASE_URL = '';
 
 // Types
 export interface CheckoutSession {

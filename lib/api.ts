@@ -3,7 +3,8 @@
  * Base URL and authentication configuration
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use relative URLs — Next.js rewrites proxy /api/* to the backend
+const API_BASE_URL = '';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
@@ -48,14 +49,10 @@ export async function apiRequest<T>(
     ? localStorage.getItem('auth_token') 
     : null;
 
-  // Get CSRF token for non-GET requests
-  const csrfToken = getCsrfToken();
-
   // Determine if we should set Content-Type header
   const isFormData = body instanceof FormData;
   const defaultHeaders: Record<string, string> = {
     ...(token && { Authorization: `Bearer ${token}` }),
-    ...(csrfToken && fetchOptions.method !== 'GET' && { 'X-CSRFToken': csrfToken }),
   };
   
   // Only set Content-Type for non-FormData requests
@@ -66,7 +63,7 @@ export async function apiRequest<T>(
   const response = await fetch(url, {
     ...fetchOptions,
     body,
-    credentials: 'include', // Include cookies for session auth (Xero OAuth, etc.)
+    credentials: 'omit', // Using Bearer token auth, no cookies needed
     headers: {
       ...defaultHeaders,
       ...headers,

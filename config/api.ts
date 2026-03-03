@@ -14,7 +14,8 @@ declare global {
   }
 }
 
-// Runtime API URL getter
+// Runtime API URL getter — returns the real backend URL
+// Used for direct browser redirects (e.g., Xero OAuth), NOT for fetch calls
 export function getApiUrl(): string {
   if (typeof window !== 'undefined' && window.__ENV__?.NEXT_PUBLIC_API_URL) {
     return window.__ENV__.NEXT_PUBLIC_API_URL;
