@@ -44,17 +44,23 @@ export default function LoginPage() {
               simplified.
             </h1>
             <p className="text-lg xl:text-xl text-white/60 leading-relaxed">
-              Automate your accounts payable, sync with your accounting software, and gain real-time visibility into your cash flow.
+              One platform to manage payables, sync with your accounting software, and control your cash flow in real time.
             </p>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-8 text-white/40 text-sm">
-            <span>500+ companies</span>
+          <div className="flex items-center gap-8 text-white/40 text-sm flex-wrap">
+            <a href="#" className="hover:text-white/60 transition-colors">Status Page</a>
             <span className="w-1 h-1 rounded-full bg-white/20" />
-            <span>$50M+ processed</span>
+            <a href="#" className="hover:text-white/60 transition-colors">Security Noticeboard</a>
             <span className="w-1 h-1 rounded-full bg-white/20" />
-            <span>99.9% uptime</span>
+            <a href="#" className="hover:text-white/60 transition-colors">Terms of Use</a>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <a href="#" className="hover:text-white/60 transition-colors">Help Centre</a>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <a href="https://getcentry.app/auth/login" className="hover:text-white/60 transition-colors">Sign Up</a>
           </div>
         </div>
       </div>
