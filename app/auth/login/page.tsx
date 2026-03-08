@@ -50,17 +50,13 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="flex items-center gap-8 text-white/40 text-sm flex-wrap">
-            <a href="#" className="hover:text-white/60 transition-colors">Status Page</a>
+            <a href="/terms-of-service" className="hover:text-white/60 transition-colors">Terms of Use</a>
             <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="#" className="hover:text-white/60 transition-colors">Security Noticeboard</a>
+            <a href="/privacy-policy" className="hover:text-white/60 transition-colors">Privacy</a>
             <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="#" className="hover:text-white/60 transition-colors">Terms of Use</a>
+            <a href="/help-centre" className="hover:text-white/60 transition-colors">Help Centre</a>
             <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="#" className="hover:text-white/60 transition-colors">Help Centre</a>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="https://getcentry.app/auth/login" className="hover:text-white/60 transition-colors">Sign Up</a>
+            <a href="/docs/checkout" className="hover:text-white/60 transition-colors">API Docs</a>
           </div>
         </div>
       </div>
