@@ -1,21 +1,96 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getApiUrl } from '@/config/api';
 
-export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
+// Provider branding config — add new providers here
+const PROVIDER_BRANDING: Record<string, {
+  label: string;
+  bg: string;
+  hover: string;
+  icon: React.ReactNode;
+}> = {
+  xero: {
+    label: 'Xero',
+    bg: 'bg-[#13B5EA]',
+    hover: 'hover:bg-[#0fa0d1]',
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" fill="white" fillOpacity="0.2" />
+        <path d="M8.145 8.26l2.19 3.35-2.19 3.35c-.19.29-.06.66.29.66h1.32c.23 0 .44-.12.56-.32l1.69-2.7 1.69 2.7c.12.2.33.32.56.32h1.32c.35 0 .48-.37.29-.66l-2.19-3.35 2.19-3.35c.19-.29.06-.66-.29-.66h-1.32c-.23 0-.44.12-.56.32l-1.69 2.7-1.69-2.7c-.12-.2-.33-.32-.56-.32H8.435c-.35 0-.48.37-.29.66z" fill="white" />
+      </svg>
+    ),
+  },
+  qbo: {
+    label: 'QuickBooks',
+    bg: 'bg-[#2CA01C]',
+    hover: 'hover:bg-[#249117]',
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="12" fill="white" fillOpacity="0.2" />
+        <path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14.4c-3.53 0-6.4-2.87-6.4-6.4S8.47 5.6 12 5.6s6.4 2.87 6.4 6.4-2.87 6.4-6.4 6.4zm-1.6-9.6h3.2c.88 0 1.6.72 1.6 1.6v3.2c0 .88-.72 1.6-1.6 1.6h-3.2c-.88 0-1.6-.72-1.6-1.6v-3.2c0-.88.72-1.6 1.6-1.6z" fill="white" />
+      </svg>
+    ),
+  },
+  sage: {
+    label: 'Sage',
+    bg: 'bg-[#00DC00]',
+    hover: 'hover:bg-[#00c400]',
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="12" fill="white" fillOpacity="0.2" />
+        <path d="M7 12.5l3.5 3.5 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+};
 
-  const handleXeroLogin = () => {
-    setIsLoading(true);
+// Fallback branding for unknown providers
+const DEFAULT_BRANDING = {
+  label: '',
+  bg: 'bg-gray-700',
+  hover: 'hover:bg-gray-600',
+  icon: (
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="12" fill="white" fillOpacity="0.2" />
+      <path d="M12 6v12M6 12h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
+};
+
+interface Provider {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export default function LoginPage() {
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
+
+  useEffect(() => {
+    const apiUrl = getApiUrl();
+    fetch(`${apiUrl}/api/v1/erp/providers/available/`)
+      .then((res) => res.json())
+      .then((data) => setProviders(data))
+      .catch(() => {
+        // Fallback: show Xero and QuickBooks if API is unreachable
+        setProviders([
+          { id: '1', code: 'xero', name: 'Xero' },
+          { id: '2', code: 'qbo', name: 'QuickBooks Online' },
+        ]);
+      });
+  }, []);
+
+  const handleProviderLogin = (code: string) => {
+    setLoadingProvider(code);
 
     const apiUrl = getApiUrl();
     const frontendUrl = window.location.origin;
     const redirectUrl = `${frontendUrl}/dashboard`;
 
-    const xeroAuthUrl = `${apiUrl}/api/auth/xero/signin/?redirect_url=${encodeURIComponent(redirectUrl)}`;
-
-    window.location.href = xeroAuthUrl;
+    const authUrl = `${apiUrl}/api/auth/${code}/signin/?redirect_url=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = authUrl;
   };
 
   return (
@@ -81,32 +156,50 @@ export default function LoginPage() {
                 Welcome to Centry
               </h2>
               <p className="text-muted-foreground">
-                Sign in with your accounting software to get started
+                Sign in with your accounting software
               </p>
             </div>
 
-            {/* Xero Login Button */}
-            <button
-              onClick={handleXeroLogin}
-              disabled={isLoading}
-              type="button"
-              className="w-full h-14 flex items-center justify-center gap-3 bg-[#13B5EA] hover:bg-[#0fa0d1] text-white font-medium rounded-xl transition-colors disabled:opacity-50"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" fill="white" fillOpacity="0.2" />
-                    <path d="M8.145 8.26l2.19 3.35-2.19 3.35c-.19.29-.06.66.29.66h1.32c.23 0 .44-.12.56-.32l1.69-2.7 1.69 2.7c.12.2.33.32.56.32h1.32c.35 0 .48-.37.29-.66l-2.19-3.35 2.19-3.35c.19-.29.06-.66-.29-.66h-1.32c-.23 0-.44.12-.56.32l-1.69 2.7-1.69-2.7c-.12-.2-.33-.32-.56-.32H8.435c-.35 0-.48.37-.29.66z" fill="white" />
-                  </svg>
-                  <span>Continue with Xero</span>
-                </>
-              )}
-            </button>
+            {/* Provider Buttons */}
+            <div className="space-y-3">
+              {providers.map((provider, index) => {
+                const branding = PROVIDER_BRANDING[provider.code] || {
+                  ...DEFAULT_BRANDING,
+                  label: provider.name,
+                };
+                const isLoading = loadingProvider === provider.code;
+
+                return (
+                  <div key={provider.id}>
+                    {index > 0 && (
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-xs text-muted-foreground">or</span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleProviderLogin(provider.code)}
+                      disabled={loadingProvider !== null}
+                      type="button"
+                      className={`w-full h-14 flex items-center justify-center gap-3 ${branding.bg} ${branding.hover} text-white font-medium rounded-xl transition-colors disabled:opacity-50`}
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          {branding.icon}
+                          <span>Continue with {branding.label || provider.name}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Connect your Xero account to manage bills, payments, and banking — all in one place.
+              Connect your accounting software to manage bills, payments, and banking — all in one place.
             </p>
           </div>
         </div>
