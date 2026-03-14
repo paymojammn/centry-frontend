@@ -56,6 +56,7 @@ export default function BankAccountsPage() {
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [activeProviderName, setActiveProviderName] = useState<string>('ERP');
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
   const { data: erpConnectionsResponse } = useERPConnections();
@@ -96,6 +97,7 @@ export default function BankAccountsPage() {
     );
 
     setActiveConnectionId(orgConnection?.id || null);
+    setActiveProviderName(orgConnection?.provider_app?.provider?.name || 'ERP');
   }, [selectedOrganizationId, erpConnections]);
 
   // Calculate stats
@@ -172,7 +174,7 @@ export default function BankAccountsPage() {
                   className="h-9"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : 'Sync from Xero'}
+                  {isSyncing ? 'Syncing...' : `Sync from ${activeProviderName}`}
                 </Button>
               )}
               <Button

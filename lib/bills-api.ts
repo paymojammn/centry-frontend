@@ -23,7 +23,8 @@ import type {
   DenyPaymentsResponse,
 } from '@/types/bill';
 
-const BILLS_BASE_URL = '/api/v1/xero/bills';
+const BILLS_BASE_URL = '/api/v1/erp/bills';
+const XERO_BILLS_BASE_URL = '/api/v1/xero/bills';
 const PAYMENTS_BASE_URL = '/api/v1/xero/payments';
 const BANK_EXPORT_BASE_URL = '/api/v1/banking/exports/';
 
@@ -44,14 +45,15 @@ export const billsApi = {
 
     const queryString = params.toString();
     const url = queryString ? `${BILLS_BASE_URL}/?${queryString}` : `${BILLS_BASE_URL}/`;
-    return await api.get<Bill[]>(url);
+    const res = await api.get<{ results: Bill[] } | Bill[]>(url);
+    return Array.isArray(res) ? res : (res as any).results ?? res;
   },
 
   /**
    * Get a single bill by ID
    */
   async getBill(id: number): Promise<Bill> {
-    return await api.get<Bill>(`${BILLS_BASE_URL}/${id}/`);
+    return await api.get<Bill>(`${XERO_BILLS_BASE_URL}/${id}/`);
   },
 
   /**
@@ -63,8 +65,8 @@ export const billsApi = {
     const queryString = params.toString();
 
     const url = queryString
-      ? `${BILLS_BASE_URL}/stats/?${queryString}`
-      : `${BILLS_BASE_URL}/stats/`;
+      ? `${XERO_BILLS_BASE_URL}/stats/?${queryString}`
+      : `${XERO_BILLS_BASE_URL}/stats/`;
 
     return await api.get<BillStats>(url);
   },
@@ -74,7 +76,7 @@ export const billsApi = {
    */
   async getPaymentProviders(countryCode: string = 'UG'): Promise<PaymentProviders> {
     return await api.get<PaymentProviders>(
-      `${BILLS_BASE_URL}/payment_providers/?country=${countryCode}`
+      `${XERO_BILLS_BASE_URL}/payment_providers/?country=${countryCode}`
     );
   },
 
@@ -86,7 +88,7 @@ export const billsApi = {
     currency: string = 'UGX'
   ): Promise<WalletBalanceCheck> {
     return await api.post<WalletBalanceCheck>(
-      `${BILLS_BASE_URL}/check_wallet_balance/`,
+      `${XERO_BILLS_BASE_URL}/check_wallet_balance/`,
       { bills, currency }
     );
   },
@@ -96,7 +98,7 @@ export const billsApi = {
    */
   async payBills(payload: BillPaymentPayload): Promise<BillPaymentResponse> {
     return await api.post<BillPaymentResponse>(
-      `${BILLS_BASE_URL}/pay/`,
+      `${XERO_BILLS_BASE_URL}/pay/`,
       payload
     );
   },

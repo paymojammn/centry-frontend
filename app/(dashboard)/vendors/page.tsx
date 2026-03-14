@@ -44,6 +44,7 @@ import { getInitials } from '@/lib/theme';
 export default function VendorsPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [activeProviderName, setActiveProviderName] = useState<string>('ERP');
   const [filters, setFilters] = useState<ContactsFilters>({
     search: '',
   });
@@ -75,6 +76,7 @@ export default function VendorsPage() {
     );
 
     setActiveConnectionId(orgConnection?.id || null);
+    setActiveProviderName(orgConnection?.provider_app?.provider?.name || 'ERP');
   }, [selectedOrganizationId, erpConnections]);
 
   const queryFilters = {
@@ -149,7 +151,7 @@ export default function VendorsPage() {
           className="h-8 text-muted-foreground hover:text-foreground btn-press"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Syncing...' : 'Sync from Xero'}
+          {isSyncing ? 'Syncing...' : `Sync from ${activeProviderName}`}
         </Button>
       </PageHeader>
 
