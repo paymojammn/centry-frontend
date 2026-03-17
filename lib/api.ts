@@ -108,7 +108,7 @@ export async function apiRequest<T>(
       return error as T;
     }
 
-    throw new Error(error.detail || error.message || 'API request failed');
+    throw new Error(error.detail || error.error || error.message || 'API request failed');
   }
 
   // Return the appropriate response type
