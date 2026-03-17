@@ -148,14 +148,16 @@ export default function BankReconciliationPage() {
       statusFilter,
       selectedOrganizationId,
     ],
-    queryFn: () => {
+    queryFn: async () => {
       const p = new URLSearchParams();
       if (selectedOrganizationId)
         p.append("organization", selectedOrganizationId);
       if (statusFilter !== "all") p.append("status", statusFilter);
-      return api.get(
+      const result = await api.get(
         `/api/v1/banking/export-statuses/all-transactions/?${p.toString()}`
       );
+      console.log("[Recon] Fetched transactions:", result);
+      return result;
     },
     enabled: !!selectedOrganizationId,
   });
@@ -230,12 +232,14 @@ export default function BankReconciliationPage() {
       const txn = transactions.find((t) => t.id === id);
       if (!txn?.payment_event_id) continue;
       try {
-        await api.post(
+        console.log("[BulkPost] Posting payment event", txn.payment_event_id, "for txn", txn.id, txn);
+        const res = await api.post(
           `/api/v1/xero/payments/${txn.payment_event_id}/sync-to-xero/`
         );
+        console.log("[BulkPost] Success:", res);
         ok++;
-      } catch {
-        // continue
+      } catch (err: any) {
+        console.error("[BulkPost] Failed for payment event", txn.payment_event_id, ":", err?.response?.data || err?.message || err);
       }
     }
     setBulkPosting(false);
@@ -248,15 +252,22 @@ export default function BankReconciliationPage() {
 
   // Post single payment to ERP
   const postToErpMutation = useMutation({
-    mutationFn: async (paymentEventId: number) =>
-      api.post(`/api/v1/xero/payments/${paymentEventId}/sync-to-xero/`),
+    mutationFn: async (paymentEventId: number) => {
+      console.log("[PostToERP] Posting payment event", paymentEventId);
+      const res = await api.post(`/api/v1/xero/payments/${paymentEventId}/sync-to-xero/`);
+      console.log("[PostToERP] Success:", res);
+      return res;
+    },
     onSuccess: () => {
       toast.success("Payment posted to ERP");
       queryClient.invalidateQueries({
         queryKey: ["bank-response-transactions"],
       });
     },
-    onError: () => toast.error("Failed to post payment to ERP"),
+    onError: (err: any) => {
+      console.error("[PostToERP] Error:", err?.response?.data || err?.message || err);
+      toast.error(err?.response?.data?.error || "Failed to post payment to ERP");
+    },
   });
 
   // Re-queue a failed payment
@@ -274,19 +285,27 @@ export default function BankReconciliationPage() {
 
   // Re-link unlinked payment records
   const relinkMutation = useMutation({
-    mutationFn: async () =>
-      api.post("/api/v1/banking/export-statuses/relink-payments/", {
+    mutationFn: async () => {
+      console.log("[Relink] Starting relink for org", selectedOrganizationId);
+      const res = await api.post("/api/v1/banking/export-statuses/relink-payments/", {
         organization: selectedOrganizationId,
-      }),
+      });
+      console.log("[Relink] Response:", res);
+      return res;
+    },
     onSuccess: (data: any) => {
       const msg =
         data?.data?.message || data?.message || "Payments re-linked";
+      console.log("[Relink] Success:", data);
       toast.success(msg);
       queryClient.invalidateQueries({
         queryKey: ["bank-response-transactions"],
       });
     },
-    onError: () => toast.error("Failed to re-link payments"),
+    onError: (err: any) => {
+      console.error("[Relink] Error:", err?.response?.data || err?.message || err);
+      toast.error("Failed to re-link payments");
+    },
   });
 
   const hasFilters =
