@@ -62,7 +62,12 @@ interface TransactionStatus {
   vendor_name: string;
   invoice_number: string;
   bill_reference: string;
+  bill_total: string | null;
+  bill_amount_due: string | null;
+  bill_date: string | null;
+  bill_due_date: string | null;
   source_bank_account_name: string;
+  payment_method: string | null;
   synced_to_xero: boolean;
   status: "ACSP" | "PDNG" | "RJCT" | "ACWC";
   status_display: string;
@@ -240,6 +245,19 @@ export default function BankReconciliationPage() {
     });
   };
 
+  // Post single payment to ERP
+  const postToErpMutation = useMutation({
+    mutationFn: async (paymentEventId: number) =>
+      api.post(`/api/v1/xero/payments/${paymentEventId}/sync-to-xero/`),
+    onSuccess: () => {
+      toast.success("Payment posted to ERP");
+      queryClient.invalidateQueries({
+        queryKey: ["bank-response-transactions"],
+      });
+    },
+    onError: () => toast.error("Failed to post payment to ERP"),
+  });
+
   // Re-queue a failed payment
   const requeueMutation = useMutation({
     mutationFn: async (paymentEventId: number) =>
@@ -273,6 +291,9 @@ export default function BankReconciliationPage() {
     { header: "Vendor", accessor: (r) => (r.vendor_name as string) || (r.creditor_name as string) || "", width: 30 },
     { header: "Bill #", accessor: "invoice_number", width: 14 },
     { header: "Reference", accessor: "bill_reference", width: 16 },
+    { header: "Bill Total", accessor: (r) => r.bill_total ? formatCurrency(parseFloat(r.bill_total as string), r.original_currency as string) : "", width: 16 },
+    { header: "Due Date", accessor: (r) => r.bill_due_date ? format(new Date(r.bill_due_date as string), "dd MMM yyyy") : "", width: 14 },
+    { header: "Payment Method", accessor: "payment_method", width: 16 },
     { header: "Bank Account", accessor: "source_bank_account_name", width: 24 },
     { header: "Amount", accessor: (r) => formatCurrency(parseFloat(r.original_amount as string), r.original_currency as string), width: 18 },
     { header: "Currency", accessor: "original_currency", width: 8 },
@@ -592,21 +613,28 @@ export default function BankReconciliationPage() {
                           {/* Vendor */}
                           <td className="px-3 py-3 align-middle max-w-0">
                             <p className="text-sm font-medium text-foreground truncate">
-                              {txn.vendor_name || txn.creditor_name}
+                              {txn.vendor_name || txn.creditor_name || "—"}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
-                              {txn.source_bank_account_name}
+                              {[txn.payment_method, txn.source_bank_account_name]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           </td>
 
                           {/* Bill */}
                           <td className="px-3 py-3 align-middle">
                             <p className="text-sm text-foreground truncate">
-                              {txn.invoice_number}
+                              {txn.invoice_number || "—"}
                             </p>
                             {txn.bill_reference && (
                               <p className="text-xs text-muted-foreground truncate">
                                 {txn.bill_reference}
+                              </p>
+                            )}
+                            {txn.bill_due_date && (
+                              <p className="text-[11px] text-muted-foreground/60">
+                                Due {format(new Date(txn.bill_due_date), "dd MMM yy")}
                               </p>
                             )}
                           </td>
@@ -654,7 +682,25 @@ export default function BankReconciliationPage() {
                                 Synced
                               </span>
                             )}
-                            {isRejected && (
+                            {isAccepted && !isSynced && txn.payment_event_id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() =>
+                                  postToErpMutation.mutate(txn.payment_event_id)
+                                }
+                                disabled={postToErpMutation.isPending}
+                              >
+                                {postToErpMutation.isPending ? (
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Upload className="h-3 w-3 mr-1" />
+                                )}
+                                Post to ERP
+                              </Button>
+                            )}
+                            {isRejected && txn.payment_event_id && (
                               <Button
                                 variant="outline"
                                 size="sm"
