@@ -98,7 +98,7 @@ export function PageHeader({
           <div className="flex items-center gap-3">
             {showOrgSelector && (
               <Select
-                value={selectedOrganizationId || undefined}
+                value={selectedOrganizationId ?? ""}
                 onValueChange={onOrganizationChange}
                 disabled={isLoadingOrgs || !organizations?.length}
               >
