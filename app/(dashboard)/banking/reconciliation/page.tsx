@@ -42,6 +42,7 @@ import {
   FileText,
   FileSpreadsheet,
   Printer,
+  Link,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
@@ -271,6 +272,23 @@ export default function BankReconciliationPage() {
     onError: () => toast.error("Failed to re-queue payment"),
   });
 
+  // Re-link unlinked payment records
+  const relinkMutation = useMutation({
+    mutationFn: async () =>
+      api.post("/api/v1/banking/export-statuses/relink-payments/", {
+        organization: selectedOrganizationId,
+      }),
+    onSuccess: (data: any) => {
+      const msg =
+        data?.data?.message || data?.message || "Payments re-linked";
+      toast.success(msg);
+      queryClient.invalidateQueries({
+        queryKey: ["bank-response-transactions"],
+      });
+    },
+    onError: () => toast.error("Failed to re-link payments"),
+  });
+
   const hasFilters =
     statusFilter !== "all" ||
     syncedFilter !== "all" ||
@@ -355,6 +373,20 @@ export default function BankReconciliationPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => relinkMutation.mutate()}
+            disabled={relinkMutation.isPending || !selectedOrganizationId}
+            className="h-9"
+          >
+            {relinkMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Link className="h-4 w-4 mr-2" />
+            )}
+            Re-link Payments
+          </Button>
           <Button
             variant="outline"
             size="sm"
