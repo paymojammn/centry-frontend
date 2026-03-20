@@ -124,15 +124,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-8 text-white/40 text-sm flex-wrap">
-            <a href="/terms-of-service" className="hover:text-white/60 transition-colors">Terms of Use</a>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="/privacy-policy" className="hover:text-white/60 transition-colors">Privacy</a>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="/help-centre" className="hover:text-white/60 transition-colors">Help Centre</a>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="/docs/checkout" className="hover:text-white/60 transition-colors">API Docs</a>
-          </div>
+          <div />
         </div>
       </div>
 
@@ -204,11 +196,22 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Security footer */}
+        {/* Footer */}
         <div className="p-6 border-t border-border shrink-0">
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
               <span>Protected by 256-bit SSL encryption</span>
+            </div>
+            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-wrap">
+              <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Use</a>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+              <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</a>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+              <a href="/help-centre" className="hover:text-foreground transition-colors">Help Centre</a>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+              <a href="/docs/checkout" className="hover:text-foreground transition-colors">API Docs</a>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+              <a href={`${getApiUrl()}/admin/`} className="hover:text-foreground transition-colors">Admin</a>
             </div>
           </div>
         </div>
