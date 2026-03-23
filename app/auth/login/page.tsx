@@ -199,9 +199,6 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="p-6 border-t border-border shrink-0">
           <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <span>Protected by 256-bit SSL encryption</span>
-            </div>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-wrap">
               <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Use</a>
               <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
