@@ -164,4 +164,24 @@ export const reportsApi = {
       responseType: "blob",
     });
   },
+
+  // Dashboard widgets
+  getPayablesAging: async (organizationId: string) => {
+    return get<{
+      buckets: Array<{ label: string; days: string; count: number; amount: string; percentage: number }>;
+      total: string;
+      bill_count: number;
+    }>(`${BASE_URL}/payables-aging/`, {
+      params: { organization: organizationId },
+    });
+  },
+
+  getCurrencyExposure: async (organizationId: string) => {
+    return get<{
+      currencies: Array<{ code: string; count: number; amount: string; ugx_amount: string; rate: string; percentage: number }>;
+      total_ugx: string;
+    }>(`${BASE_URL}/currency-exposure/`, {
+      params: { organization: organizationId },
+    });
+  },
 };

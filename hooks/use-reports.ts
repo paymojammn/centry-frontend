@@ -112,6 +112,26 @@ export function useCashFlow(filters: ReportFilters | undefined) {
   });
 }
 
+// Payables Aging
+export function usePayablesAging(organizationId: string | undefined) {
+  return useQuery({
+    queryKey: ["reports", "payables-aging", organizationId],
+    queryFn: () => reportsApi.getPayablesAging(organizationId!),
+    enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// Currency Exposure
+export function useCurrencyExposure(organizationId: string | undefined) {
+  return useQuery({
+    queryKey: ["reports", "currency-exposure", organizationId],
+    queryFn: () => reportsApi.getCurrencyExposure(organizationId!),
+    enabled: !!organizationId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 // Account Balances
 export function useAccountBalances(organizationId: string | undefined) {
   return useQuery({
