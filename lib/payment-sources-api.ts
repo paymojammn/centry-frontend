@@ -56,6 +56,15 @@ export const paymentSourcesApi = {
   },
 
   /**
+   * Get list of countries that have banks in the system
+   */
+  async getBankCountries(): Promise<{ countries: { id: number; code: string; name: string }[] }> {
+    const url = `${BANKING_BASE_URL}/bank-countries/`;
+    const response = await api.get<{ countries: { id: number; code: string; name: string }[] }>(url);
+    return response;
+  },
+
+  /**
    * Get list of banks for dropdown selection
    * @param country - Optional country code filter (e.g., 'UG', 'KE')
    * @param search - Optional search query

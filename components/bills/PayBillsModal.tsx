@@ -42,7 +42,7 @@ interface PaymentResult {
 
 interface RecipientDetails {
   bill_id: number;
-  recipient_type: 'mobile' | 'bank';
+  recipient_type: 'bank' | 'international';
   phone_number?: string;
   contact_id?: number;
   contact_name?: string;
@@ -51,6 +51,17 @@ interface RecipientDetails {
   swift_code?: string;
   account_number?: string;
   account_name?: string;
+  // International remittance fields
+  iban?: string;
+  intermediary_bank_id?: number;
+  beneficiary_street?: string;
+  beneficiary_city?: string;
+  beneficiary_country?: string;
+  purpose_code?: string;
+  charges_bearer?: string;
+  regulatory_code?: string;
+  regulatory_info?: string;
+  transfer_currency?: string;
 }
 
 const STEPS = [
@@ -121,11 +132,16 @@ export default function PayBillsModal({
         note: note || undefined
       };
 
+      // Determine if any recipient is international
+      const hasInternational = Array.from(recipients.values()).some(
+        r => r.recipient_type === 'international'
+      );
+
       if (selectedSource.type === 'mobile_money') {
         paymentData.payment_method = 'mobile_money';
         paymentData.mobile_money_account_id = selectedSource.id;
       } else if (selectedSource.type === 'bank_account') {
-        paymentData.payment_method = 'bank';
+        paymentData.payment_method = hasInternational ? 'international_remittance' : 'bank';
         paymentData.bank_account_id = selectedSource.id;
         paymentData.account_number = selectedSource.account_number;
         paymentData.bank_name = selectedSource.bank_name;
@@ -141,6 +157,17 @@ export default function PayBillsModal({
           swift_code: recipient.swift_code,
           account_number: recipient.account_number,
           account_name: recipient.account_name,
+          // International remittance fields
+          iban: recipient.iban,
+          intermediary_bank_id: recipient.intermediary_bank_id,
+          beneficiary_street: recipient.beneficiary_street,
+          beneficiary_city: recipient.beneficiary_city,
+          beneficiary_country: recipient.beneficiary_country,
+          purpose_code: recipient.purpose_code,
+          charges_bearer: recipient.charges_bearer,
+          regulatory_code: recipient.regulatory_code,
+          regulatory_info: recipient.regulatory_info,
+          transfer_currency: recipient.transfer_currency,
         }));
       }
 
