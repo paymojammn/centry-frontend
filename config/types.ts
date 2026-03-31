@@ -11,6 +11,7 @@ export interface MenuItem {
   heading?: string;
   children?: MenuConfig;
   disabled?: boolean;
+  requiredRole?: string;
   collapse?: boolean;
   collapseTitle?: string;
   expandTitle?: string;

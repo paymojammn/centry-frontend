@@ -28,6 +28,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: "Bills",
     icon: FileText,
     path: "/bills",
+    requiredRole: "finance",
   },
   // {
   //   title: "Expenses",
@@ -51,6 +52,7 @@ export const MENU_SIDEBAR: MenuConfig = [
   {
     title: "Banking",
     icon: Building,
+    requiredRole: "finance",
     children: [
       { title: "Export", path: "/banking/export" },
       { title: "Transactions", path: "/banking/transactions" },

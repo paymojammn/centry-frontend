@@ -26,11 +26,15 @@ export interface UserProfile {
     id: string;
     name: string;
     slug: string;
+    membership_role: string;
+    permissions: Record<string, Record<string, boolean>>;
   }>;
   primary_organization: {
     id: string;
     name: string;
     slug: string;
+    membership_role: string | null;
+    permissions: Record<string, Record<string, boolean>>;
   } | null;
 }
 

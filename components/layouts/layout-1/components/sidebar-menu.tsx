@@ -1,6 +1,6 @@
 'use client';
 
-import { JSX, useCallback } from 'react';
+import { JSX, useCallback, useMemo } from 'react';
 import { MENU_SIDEBAR } from '@/config/layout-1.config';
 import { MenuConfig, MenuItem } from '@/config/types';
 import { cn } from '@/lib/utils';
@@ -18,9 +18,50 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useCurrentUser } from '@/hooks/use-user';
 
 export function SidebarMenu() {
   const pathname = usePathname();
+  const { data: user } = useCurrentUser();
+
+  // Check if user is finance role or an org owner/admin (bypass)
+  const isFinanceOrAdmin = useMemo(() => {
+    if (!user) return false;
+    if (user.role === 'finance') return true;
+    return user.organizations?.some(
+      (o) => o.membership_role === 'owner' || o.membership_role === 'admin',
+    );
+  }, [user]);
+
+  // Filter menu items based on user role
+  const filteredMenu = useMemo(() => {
+    const items: MenuConfig = [];
+    for (let i = 0; i < MENU_SIDEBAR.length; i++) {
+      const item = MENU_SIDEBAR[i];
+
+      // If item requires a role, check access
+      if (item.requiredRole === 'finance' && !isFinanceOrAdmin) {
+        continue;
+      }
+
+      // If this is a heading, check if the next non-heading items are all filtered out
+      if (item.heading) {
+        let hasVisibleChild = false;
+        for (let j = i + 1; j < MENU_SIDEBAR.length; j++) {
+          const next = MENU_SIDEBAR[j];
+          if (next.heading) break;
+          if (!next.requiredRole || next.requiredRole !== 'finance' || isFinanceOrAdmin) {
+            hasVisibleChild = true;
+            break;
+          }
+        }
+        if (!hasVisibleChild) continue;
+      }
+
+      items.push(item);
+    }
+    return items;
+  }, [isFinanceOrAdmin]);
 
   // Memoize matchPath to prevent unnecessary re-renders
   const matchPath = useCallback(
@@ -221,7 +262,7 @@ export function SidebarMenu() {
         collapsible
         classNames={classNames}
       >
-        {buildMenu(MENU_SIDEBAR)}
+        {buildMenu(filteredMenu)}
       </AccordionMenu>
     </ScrollArea>
   );
