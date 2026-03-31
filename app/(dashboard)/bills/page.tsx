@@ -11,11 +11,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useBills } from '@/hooks/use-bills';
 import { usePayableStats } from '@/hooks/use-purchases';
 import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
+import { useCurrentUser } from '@/hooks/use-user';
 import {
   FileText,
   Search,
@@ -95,6 +96,20 @@ export default function BillsPage() {
   const [activeTab, setActiveTab] = useState<'bills' | 'processing'>('bills');
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+  const { data: user } = useCurrentUser();
+
+  // Check if user has payments.create permission (finance creator, owner, or admin)
+  const canCreatePayment = useMemo(() => {
+    if (!user) return false;
+    // Org owners/admins have all permissions
+    if (user.organizations?.some(
+      (o) => o.membership_role === 'owner' || o.membership_role === 'admin',
+    )) return true;
+    // Check explicit payments.create permission
+    return user.organizations?.some(
+      (o) => o.permissions?.payments?.create === true,
+    );
+  }, [user]);
 
   const billFilters = {
     ...filters,
@@ -268,28 +283,30 @@ export default function BillsPage() {
                 variant={overdueCount > 0 ? 'danger' : 'default'}
               />
 
-              <StatCard
-                label="Selected"
-                value={selectedBills.size}
-                icon={CheckCircle}
-                iconColor={selectedBills.size > 0 ? STATUS_COLORS.paid.bg : undefined}
-                iconBgColor={selectedBills.size > 0 ? STATUS_COLORS.paid.light : undefined}
-                variant={selectedBills.size > 0 ? 'accent' : 'default'}
-              >
-                {selectedBills.size > 0 ? (
-                  <Button
-                    onClick={() => setIsPayModalOpen(true)}
-                    size="sm"
-                    className="w-full text-white btn-press"
-                    style={{ backgroundColor: STATUS_COLORS.paid.bg }}
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Pay Selected
-                  </Button>
-                ) : (
-                  <p className="text-xs text-muted-foreground">Select bills to pay</p>
-                )}
-              </StatCard>
+              {canCreatePayment && (
+                <StatCard
+                  label="Selected"
+                  value={selectedBills.size}
+                  icon={CheckCircle}
+                  iconColor={selectedBills.size > 0 ? STATUS_COLORS.paid.bg : undefined}
+                  iconBgColor={selectedBills.size > 0 ? STATUS_COLORS.paid.light : undefined}
+                  variant={selectedBills.size > 0 ? 'accent' : 'default'}
+                >
+                  {selectedBills.size > 0 ? (
+                    <Button
+                      onClick={() => setIsPayModalOpen(true)}
+                      size="sm"
+                      className="w-full text-white btn-press"
+                      style={{ backgroundColor: STATUS_COLORS.paid.bg }}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pay Selected
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Select bills to pay</p>
+                  )}
+                </StatCard>
+              )}
             </div>
           </>
         )}
@@ -376,6 +393,7 @@ export default function BillsPage() {
                 <BillsTable
                   bills={filteredBills}
                   selectedBills={selectedBills}
+                  canCreatePayment={!!canCreatePayment}
                   onSelectBill={(billId) => {
                     setSelectedBills(prev => {
                       const newSet = new Set(prev);
@@ -420,11 +438,12 @@ export default function BillsPage() {
 interface BillsTableProps {
   bills: Bill[];
   selectedBills: Set<number>;
+  canCreatePayment: boolean;
   onSelectBill: (billId: number) => void;
   onSelectAll: (bills: Bill[]) => void;
 }
 
-function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTableProps) {
+function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSelectAll }: BillsTableProps) {
   const payableBills = bills.filter(bill => bill.status === 'AUTHORISED');
   const allPayableSelected = payableBills.length > 0 && payableBills.every(bill => selectedBills.has(bill.id));
   const somePayableSelected = payableBills.some(bill => selectedBills.has(bill.id)) && !allPayableSelected;
@@ -480,18 +499,20 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
       <table className="w-full table-professional">
         <thead>
           <tr>
-            <th className="py-3 px-4 w-10">
-              <input
-                type="checkbox"
-                checked={allPayableSelected}
-                ref={input => {
-                  if (input) input.indeterminate = somePayableSelected;
-                }}
-                onChange={handleSelectAll}
-                disabled={payableBills.length === 0}
-                className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
-              />
-            </th>
+            {canCreatePayment && (
+              <th className="py-3 px-4 w-10">
+                <input
+                  type="checkbox"
+                  checked={allPayableSelected}
+                  ref={input => {
+                    if (input) input.indeterminate = somePayableSelected;
+                  }}
+                  onChange={handleSelectAll}
+                  disabled={payableBills.length === 0}
+                  className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
+                />
+              </th>
+            )}
             <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Vendor</th>
             <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
             <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
@@ -509,21 +530,23 @@ function BillsTable({ bills, selectedBills, onSelectBill, onSelectAll }: BillsTa
                 key={bill.id}
                 className={`transition-colors ${
                   isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'
-                } ${!canPay ? 'opacity-60' : 'cursor-pointer'}`}
-                onClick={() => canPay && onSelectBill(bill.id)}
+                } ${!canPay || !canCreatePayment ? 'opacity-60' : 'cursor-pointer'}`}
+                onClick={() => canCreatePayment && canPay && onSelectBill(bill.id)}
               >
-                <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                  {canPay ? (
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => onSelectBill(bill.id)}
-                      className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
-                    />
-                  ) : (
-                    <div className="w-4 h-4 rounded border border-border bg-muted" />
-                  )}
-                </td>
+                {canCreatePayment && (
+                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                    {canPay ? (
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onSelectBill(bill.id)}
+                        className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
+                      />
+                    ) : (
+                      <div className="w-4 h-4 rounded border border-border bg-muted" />
+                    )}
+                  </td>
+                )}
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
