@@ -128,33 +128,29 @@ export default function RecipientDetailsStep({
     try {
       const paymentDetails = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
 
-      if (paymentDetails.bank_account_details || paymentDetails.bank_account_number) {
-        let matchedBankId: number | undefined;
-        let matchedBankName: string | undefined;
-
-        if (paymentDetails.bank_account_name && banksData?.banks) {
-          const matchedBank = banksData.banks.find(bank =>
-            bank.name.toLowerCase().includes(paymentDetails.bank_account_name.toLowerCase()) ||
-            paymentDetails.bank_account_name.toLowerCase().includes(bank.name.toLowerCase()) ||
-            (bank.short_name && (
-              bank.short_name.toLowerCase().includes(paymentDetails.bank_account_name.toLowerCase()) ||
-              paymentDetails.bank_account_name.toLowerCase().includes(bank.short_name.toLowerCase())
-            ))
-          );
-
-          if (matchedBank) {
-            matchedBankId = matchedBank.id;
-            matchedBankName = matchedBank.short_name || matchedBank.name;
-          }
-        }
-
-        const updateData = {
+      if (paymentDetails.linked_bank_id || paymentDetails.bank_account_number || paymentDetails.bank_account_details) {
+        const updateData: Partial<RecipientDetails> = {
           recipient_type: recipientType,
           account_number: paymentDetails.bank_account_number || '',
           account_name: paymentDetails.bank_account_name || bill.vendor_name,
-          bank_name: matchedBankName || paymentDetails.bank_account_name || '',
-          recipient_bank_id: matchedBankId
         };
+
+        // Use linked_bank directly from backend (already matched to Bank model)
+        if (paymentDetails.linked_bank_id) {
+          updateData.recipient_bank_id = paymentDetails.linked_bank_id;
+          updateData.bank_name = paymentDetails.linked_bank_name || '';
+        } else if (paymentDetails.bank_account_name && banksData?.banks) {
+          // Fallback: try client-side fuzzy match
+          const matchedBank = banksData.banks.find(bank =>
+            bank.name.toLowerCase().includes(paymentDetails.bank_account_name!.toLowerCase()) ||
+            (bank.short_name && bank.short_name.toLowerCase().includes(paymentDetails.bank_account_name!.toLowerCase()))
+          );
+          if (matchedBank) {
+            updateData.recipient_bank_id = matchedBank.id;
+            updateData.bank_name = matchedBank.short_name || matchedBank.name;
+          }
+        }
+
         handleRecipientUpdate(bill.id, updateData);
       } else {
         alert('No bank account details found for this vendor in ERP');

@@ -112,6 +112,8 @@ export const contactsApi = {
     bank_account_details?: string;
     bank_account_number?: string;
     bank_account_name?: string;
+    linked_bank_id?: number;
+    linked_bank_name?: string;
     accounts_payable_tax_type?: string;
     default_currency?: string;
     phone_numbers?: Array<{
