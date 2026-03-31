@@ -139,6 +139,11 @@ export default function RecipientDetailsStep({
         if (paymentDetails.linked_bank_id) {
           updateData.recipient_bank_id = paymentDetails.linked_bank_id;
           updateData.bank_name = paymentDetails.linked_bank_name || '';
+          // Also set swift_code if we can find the bank in the loaded list
+          const linkedBank = banksData?.banks.find(b => b.id === paymentDetails.linked_bank_id);
+          if (linkedBank) {
+            updateData.swift_code = linkedBank.swift_code || '';
+          }
         } else if (paymentDetails.bank_account_name && banksData?.banks) {
           // Fallback: try client-side fuzzy match
           const matchedBank = banksData.banks.find(bank =>
