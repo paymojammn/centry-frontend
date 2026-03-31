@@ -135,25 +135,37 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const handleApprove = async () => {
     if (!canApprove) return;
     try {
-      await approvePayments.mutateAsync(Array.from(selectedPayments));
+      const result = await approvePayments.mutateAsync(Array.from(selectedPayments));
+      const failed = result.results?.filter((r: { success: boolean; error?: string }) => !r.success) || [];
+      if (failed.length > 0) {
+        const errors = failed.map((f: { error?: string }) => f.error).join('\n');
+        alert(errors);
+        return;
+      }
       setSelectedPayments(new Set());
-    } catch (error) {
-      console.error('Failed to approve payments:', error);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to approve payments. You may not have permission.');
     }
   };
 
   const handleReject = async () => {
     if (!canApprove) return;
     try {
-      await rejectPayments.mutateAsync({
+      const result = await rejectPayments.mutateAsync({
         ids: Array.from(selectedPayments),
         reason: rejectionReason,
       });
+      const failed = result.results?.filter((r: { success: boolean; error?: string }) => !r.success) || [];
+      if (failed.length > 0) {
+        const errors = failed.map((f: { error?: string }) => f.error).join('\n');
+        alert(errors);
+        return;
+      }
       setSelectedPayments(new Set());
       setIsRejectDialogOpen(false);
       setRejectionReason('');
-    } catch (error) {
-      console.error('Failed to reject payments:', error);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to reject payments. You may not have permission.');
     }
   };
 
@@ -168,8 +180,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       setSelectedPayments(new Set());
       setIsGenerateDialogOpen(false);
       alert(`Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}`);
-    } catch (error) {
-      console.error('Failed to generate file:', error);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to generate file. You may not have permission.');
     }
   };
 
@@ -183,8 +195,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       setSelectedPayments(new Set());
       setIsDenyDialogOpen(false);
       setDenyReason('');
-    } catch (error) {
-      console.error('Failed to deny payments:', error);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to deny payments. You may not have permission.');
     }
   };
 
