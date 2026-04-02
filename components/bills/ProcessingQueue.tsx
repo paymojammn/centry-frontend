@@ -91,6 +91,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
   const [selectedFileFormat, setSelectedFileFormat] = useState<'csv' | 'xml'>('xml');
 
+  // Permission checks (must be before data hooks that depend on them)
+  const hasApprovePermission = useHasPermission('payments.approve');
+  const hasExportPermission = useHasPermission('payments.export');
+  const hasAnyActionPermission = hasApprovePermission || hasExportPermission;
+
   const filters = {
     organization: organizationId || undefined,
     direction: 'OUT' as const,
@@ -99,17 +104,15 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
   const { data: paymentsResponse, isLoading, error, refetch } = usePaymentEvents(filters);
   const { data: stats } = usePaymentEventStats(organizationId || undefined);
-  const { data: bankAccountsData } = useBankAccounts(organizationId || undefined);
+  // Only fetch bank accounts if user can generate files (avoids 403 for users without banking.view)
+  const { data: bankAccountsData } = useBankAccounts(
+    hasExportPermission ? (organizationId || undefined) : undefined
+  );
 
   const approvePayments = useApprovePayments();
   const rejectPayments = useRejectPayments();
   const generateFile = useGeneratePaymentFile();
   const denyPayments = useDenyPayments();
-
-  // Permission checks
-  const hasApprovePermission = useHasPermission('payments.approve');
-  const hasExportPermission = useHasPermission('payments.export');
-  const hasAnyActionPermission = hasApprovePermission || hasExportPermission;
 
   const payments = Array.isArray(paymentsResponse)
     ? paymentsResponse
