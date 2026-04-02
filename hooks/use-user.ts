@@ -45,3 +45,21 @@ export function useCurrentUser() {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+/**
+ * Check if the current user has a specific permission (e.g., 'payments.approve').
+ * Owners and admins automatically have all permissions.
+ */
+export function useHasPermission(permissionCode: string): boolean {
+  const { data: user } = useCurrentUser();
+  if (!user) return false;
+
+  const [app, action] = permissionCode.split('.');
+
+  return user.organizations?.some((org) => {
+    // Owners and admins have all permissions
+    if (org.membership_role === 'owner' || org.membership_role === 'admin') return true;
+    // Check explicit permission
+    return org.permissions?.[app]?.[action] === true;
+  }) ?? false;
+}

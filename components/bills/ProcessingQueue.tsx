@@ -27,6 +27,7 @@ import {
   useDenyPayments,
 } from '@/hooks/use-bills';
 import { useBankAccounts } from '@/hooks/use-banking';
+import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
 import {
   Send,
@@ -105,6 +106,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const generateFile = useGeneratePaymentFile();
   const denyPayments = useDenyPayments();
 
+  // Permission checks
+  const hasApprovePermission = useHasPermission('payments.approve');
+  const hasExportPermission = useHasPermission('payments.export');
+  const hasAnyActionPermission = hasApprovePermission || hasExportPermission;
+
   const payments = Array.isArray(paymentsResponse)
     ? paymentsResponse
     : (paymentsResponse as any)?.results || [];
@@ -118,16 +124,16 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     return payments.filter((p: PaymentEvent) => selectedPayments.has(p.id));
   }, [payments, selectedPayments]);
 
-  // Check if all selected are PENDING_APPROVAL
-  const canApprove = selectedPaymentsData.length > 0 &&
+  // Check if all selected are PENDING_APPROVAL + user has approve permission
+  const canApprove = hasApprovePermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) => p.provider_status === 'PENDING_APPROVAL');
 
-  // Check if all selected are PROCESSING
-  const canGenerateFile = selectedPaymentsData.length > 0 &&
+  // Check if all selected are PROCESSING + user has export permission
+  const canGenerateFile = hasExportPermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) => p.provider_status === 'PROCESSING');
 
-  // Check if all selected can be denied (PENDING_APPROVAL or PROCESSING status)
-  const canDeny = selectedPaymentsData.length > 0 &&
+  // Check if all selected can be denied (PENDING_APPROVAL or PROCESSING status) + user has approve permission
+  const canDeny = hasApprovePermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) =>
       p.provider_status === 'PENDING_APPROVAL' || p.provider_status === 'PROCESSING'
     );
@@ -535,20 +541,22 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-3 w-10">
-                  <input
-                    type="checkbox"
-                    checked={payments.length > 0 && selectedPayments.size === payments.length}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedPayments(new Set(payments.map((p: PaymentEvent) => p.id)));
-                      } else {
-                        setSelectedPayments(new Set());
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
-                  />
-                </th>
+                {hasAnyActionPermission && (
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={payments.length > 0 && selectedPayments.size === payments.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedPayments(new Set(payments.map((p: PaymentEvent) => p.id)));
+                        } else {
+                          setSelectedPayments(new Set());
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Vendor</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Bill</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Amount</th>
@@ -561,11 +569,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               {payments.map((payment: PaymentEvent) => (
                 <tr
                   key={payment.id}
-                  className={`transition-colors cursor-pointer ${
+                  className={`transition-colors ${
+                    hasAnyActionPermission ? 'cursor-pointer' : ''
+                  } ${
                     selectedPayments.has(payment.id) ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
-                  onClick={() => togglePaymentSelection(payment.id)}
+                  onClick={() => hasAnyActionPermission && togglePaymentSelection(payment.id)}
                 >
+                  {hasAnyActionPermission && (
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
@@ -574,6 +585,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
                     />
                   </td>
+                  )}
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">

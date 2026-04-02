@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -34,6 +34,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
+import { useHasPermission } from "@/hooks/use-user";
 
 // ============================================================
 // Status styles for export files
@@ -148,12 +149,17 @@ export default function BankingExportPage() {
     }
   };
 
-  const tabs = [
-    { value: "overview", label: "Overview", icon: BarChart3 },
-    { value: "sftp-export", label: "Pay", icon: Upload },
-    { value: "bank-status", label: "Reconcile", icon: FileCheck },
-    { value: "files", label: "Files", icon: FolderOpen },
-  ];
+  const hasBankingExport = useHasPermission("banking.export");
+
+  const tabs = useMemo(() => {
+    const allTabs = [
+      { value: "overview", label: "Overview", icon: BarChart3 },
+      { value: "sftp-export", label: "Pay", icon: Upload, requiresExport: true },
+      { value: "bank-status", label: "Reconcile", icon: FileCheck, requiresExport: true },
+      { value: "files", label: "Files", icon: FolderOpen },
+    ];
+    return allTabs.filter((t) => !t.requiresExport || hasBankingExport);
+  }, [hasBankingExport]);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -396,18 +402,20 @@ export default function BankingExportPage() {
                             {FILE_STATUS_LABELS[e.status] || e.status}
                           </span>
                         </div>
-                        <div className="col-span-1 flex justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() =>
-                              handleDownload(e.id, e.file_name || "export.xml")
-                            }
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
+                        {hasBankingExport && (
+                          <div className="col-span-1 flex justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() =>
+                                handleDownload(e.id, e.file_name || "export.xml")
+                              }
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
