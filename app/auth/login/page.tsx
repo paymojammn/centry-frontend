@@ -109,7 +109,7 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 xl:p-16 2xl:p-20">
           {/* Logo mark */}
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+          <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-lg">
             <img
               src="/media/app/centry-mini-logo.svg"
               alt="Centry"
@@ -117,13 +117,10 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Main message */}
-          <h1 className="text-3xl xl:text-4xl font-medium text-white/80 mb-2">
-            Welcome To
+          {/* Brand name */}
+          <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white tracking-wide">
+            Centry
           </h1>
-          <h2 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white tracking-wide">
-            CENTRY
-          </h2>
         </div>
       </div>
 
