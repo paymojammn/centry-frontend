@@ -1,7 +1,23 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- C shape: thick arc with gap on the right (~60° opening) -->
-  <path d="M36.5 10.5A18 18 0 1 0 36.5 37.5" stroke="#1E6B4F" stroke-width="10" stroke-linecap="round" fill="none"/>
-  <!-- Two horizontal bars cutting through the C -->
-  <line x1="11" y1="21.5" x2="26" y2="21.5" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
-  <line x1="11" y1="27" x2="22" y2="27" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Donut-chart C logo: filled segments with gap on right -->
+  <!-- Outer radius=22, inner radius=12, center=24,24 -->
+
+  <!-- Top-right segment (small, above the C gap) -->
+  <path d="M24 2 A22 22 0 0 1 42.5 13 L33.2 18.3 A12 12 0 0 0 24 12 Z" fill="#1E6B4F"/>
+
+  <!-- Top-left segment -->
+  <path d="M24 2 A22 22 0 0 0 5.5 13 L14.8 18.3 A12 12 0 0 1 24 12 Z" fill="#1E6B4F"/>
+
+  <!-- Left segment -->
+  <path d="M5.5 13 A22 22 0 0 0 5.5 35 L14.8 29.7 A12 12 0 0 1 14.8 18.3 Z" fill="#1E6B4F"/>
+
+  <!-- Bottom-left segment -->
+  <path d="M5.5 35 A22 22 0 0 0 24 46 L24 36 A12 12 0 0 1 14.8 29.7 Z" fill="#1E6B4F"/>
+
+  <!-- Bottom-right segment (small, below the C gap) -->
+  <path d="M24 46 A22 22 0 0 0 42.5 35 L33.2 29.7 A12 12 0 0 1 24 36 Z" fill="#1E6B4F"/>
+
+  <!-- Two horizontal white bars (graph lines inside the C) -->
+  <rect x="9" y="21" width="17" height="2.5" rx="1.25" fill="white"/>
+  <rect x="9" y="25.5" width="12" height="2.5" rx="1.25" fill="white"/>
 </svg>
