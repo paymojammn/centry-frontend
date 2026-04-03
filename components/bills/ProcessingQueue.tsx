@@ -556,7 +556,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                           setSelectedPayments(new Set());
                         }
                       }}
-                      className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                     />
                   </th>
                 )}
@@ -585,7 +585,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       type="checkbox"
                       checked={selectedPayments.has(payment.id)}
                       onChange={() => togglePaymentSelection(payment.id)}
-                      className="w-4 h-4 rounded border-border text-[#1c252c] focus:ring-[#1c252c]"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                     />
                   </td>
                   )}
@@ -748,7 +748,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   onClick={() => setSelectedFileFormat('xml')}
                   className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'xml'
-                      ? 'border-[#1c252c] bg-muted'
+                      ? 'border-primary bg-muted'
                       : 'border-border hover:border-border'
                   }`}
                 >
@@ -760,7 +760,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   onClick={() => setSelectedFileFormat('csv')}
                   className={`p-3 border rounded-lg transition-all text-left ${
                     selectedFileFormat === 'csv'
-                      ? 'border-[#1c252c] bg-muted'
+                      ? 'border-primary bg-muted'
                       : 'border-border hover:border-border'
                   }`}
                 >

@@ -96,35 +96,34 @@ export default function LoginPage() {
   return (
     <div className="fixed inset-0 flex">
       {/* Left - Branding Panel (60%) */}
-      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary/5" />
-          <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-[#4E97D1]/5" />
-        </div>
+      <div className="hidden lg:flex w-[60%] bg-[rgb(var(--brand-dark))] relative overflow-hidden">
+        {/* Wave pattern overlay */}
+        <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 800 600" preserveAspectRatio="none">
+          <path d="M0,200 Q200,150 400,200 T800,180" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="1" />
+          <path d="M0,220 Q200,170 400,220 T800,200" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.8" />
+          <path d="M0,240 Q200,190 400,240 T800,220" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.6" />
+          <path d="M0,400 Q200,350 400,400 T800,380" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="1" />
+          <path d="M0,420 Q200,370 400,420 T800,400" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.8" />
+          <path d="M0,440 Q200,390 400,440 T800,420" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.6" />
+        </svg>
 
-        <div className="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16 2xl:p-20">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
-            </div>
-            <span className="text-xl font-semibold text-white">Centry</span>
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 xl:p-16 2xl:p-20">
+          {/* Logo mark */}
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+            <img
+              src="/media/app/centry-mini-logo.svg"
+              alt="Centry"
+              className="h-14 w-14"
+            />
           </div>
 
           {/* Main message */}
-          <div className="max-w-lg">
-            <h1 className="text-4xl xl:text-5xl 2xl:text-6xl font-semibold text-white leading-tight mb-6">
-              Business payments,
-              <br />
-              simplified.
-            </h1>
-            <p className="text-lg xl:text-xl text-white/60 leading-relaxed">
-              One platform to manage payables, sync with your accounting software, and control your cash flow in real time.
-            </p>
-          </div>
-
-          {/* Footer */}
-          <div />
+          <h1 className="text-3xl xl:text-4xl font-medium text-white/80 mb-2">
+            Welcome To
+          </h1>
+          <h2 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white tracking-wide">
+            CENTRY
+          </h2>
         </div>
       </div>
 
