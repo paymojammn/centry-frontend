@@ -78,8 +78,8 @@ export function Header() {
           </div>
           <Link href="/" className="shrink-0">
             <img
-              src={toAbsoluteUrl('/media/app/centry-mini-logo.svg')}
-              className="h-[25px] w-full"
+              src={toAbsoluteUrl('/media/app/centry-logo.svg')}
+              className="h-[30px]"
               alt="Centry"
             />
           </Link>

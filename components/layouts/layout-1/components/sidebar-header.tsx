@@ -15,14 +15,14 @@ export function SidebarHeader() {
   return (
     <div className="sidebar-header hidden lg:flex items-center relative justify-between px-3 lg:px-6 shrink-0">
       <Link href="/dashboard">
-        {/* Always show white/dark logo since sidebar is now dark */}
+        {/* Full logo (with border) when expanded, mini C mark when collapsed */}
         <img
           src={toAbsoluteUrl('/media/app/centry-logo-dark.svg')}
-          className="default-logo h-[28px] max-w-none"
+          className="default-logo h-[32px] max-w-none"
           alt="Centry"
         />
         <img
-          src={toAbsoluteUrl('/media/app/centry-mini-logo.svg')}
+          src={toAbsoluteUrl('/media/app/centry-mini-logo-dark.svg')}
           className="small-logo h-[28px] max-w-none"
           alt="Centry"
         />
