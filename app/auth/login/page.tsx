@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Loader2, ArrowRight, XCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { getApiUrl } from '@/config/api';
 
 // Provider branding — colors & icons for known ERPs
@@ -28,10 +29,23 @@ interface Provider {
 }
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Handle OAuth error redirects (e.g. user denied consent)
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+    if (error) {
+      setErrorMessage(message || 'Login failed. Please try again.');
+      // Clean error params from URL
+      window.history.replaceState({}, '', '/auth/login');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const apiUrl = getApiUrl();
@@ -141,6 +155,16 @@ export default function LoginPage() {
 
         {/* Provider Grid — scrollable */}
         <div className="flex-1 overflow-y-auto px-8 pb-6 lg:px-12 xl:px-16">
+          {/* Error banner for failed OAuth */}
+          {errorMessage && (
+            <div className="mb-4 flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+              <XCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="flex-1">{errorMessage}</div>
+              <button onClick={() => setErrorMessage(null)} className="shrink-0 text-destructive/60 hover:text-destructive">
+                &times;
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filtered.map((provider) => {
               const branding = PROVIDER_BRANDING[provider.code] || DEFAULT_BRANDING;
