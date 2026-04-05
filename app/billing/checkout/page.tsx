@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getSubscriptionPlans,
+  getAvailablePaymentMethods,
   startCheckout,
   getCheckoutStatus,
   SubscriptionPlan,
+  AvailablePaymentMethod,
   PaymentMethodCode,
   CheckoutSessionResponse,
 } from '@/lib/billing-api';
@@ -21,12 +23,12 @@ import {
   RiHandCoinLine,
 } from '@remixicon/react';
 
-const PAYMENT_METHODS: { code: PaymentMethodCode | 'manual'; name: string; icon: typeof RiSmartphoneLine; description: string; region: string }[] = [
-  { code: 'mtn_momo', name: 'MTN Mobile Money', icon: RiSmartphoneLine, description: 'Pay via USSD prompt on your phone', region: 'Uganda' },
-  { code: 'airtel_money', name: 'Airtel Money', icon: RiPhoneLine, description: 'Pay via USSD prompt on your phone', region: 'Uganda' },
-  { code: 'ozow_eft', name: 'Bank / EFT (Ozow)', icon: RiBankLine, description: 'Instant EFT or bank transfer', region: 'South Africa' },
-  { code: 'manual', name: 'Manual Payment', icon: RiHandCoinLine, description: 'Pay via bank transfer or mobile money merchant code', region: 'All' },
-];
+const METHOD_ICONS: Record<string, typeof RiSmartphoneLine> = {
+  mtn_momo: RiSmartphoneLine,
+  airtel_money: RiPhoneLine,
+  ozow_eft: RiBankLine,
+  manual: RiHandCoinLine,
+};
 
 type CheckoutStep = 'method' | 'phone' | 'processing' | 'success' | 'failed';
 
@@ -37,19 +39,24 @@ export default function CheckoutPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
+  const [methods, setMethods] = useState<AvailablePaymentMethod[]>([]);
   const [step, setStep] = useState<CheckoutStep>('method');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodCode | null>(null);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [session, setSession] = useState<CheckoutSessionResponse | null>(null);
   const [failureReason, setFailureReason] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Load plan
+  // Load plan + available payment methods
   useEffect(() => {
-    getSubscriptionPlans().then((plans) => {
-      const match = plans.find((p) => p.code === planCode);
-      setPlan(match || plans[0] || null);
-    });
+    Promise.all([getSubscriptionPlans(), getAvailablePaymentMethods()]).then(
+      ([plans, availableMethods]) => {
+        setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
+        setMethods(availableMethods);
+        setLoading(false);
+      }
+    );
   }, [planCode]);
 
   // Poll for status when processing
@@ -83,18 +90,17 @@ export default function CheckoutPage() {
 
   const currency = selectedMethod === 'ozow_eft' ? 'ZAR' : 'UGX';
 
-  const handleSelectMethod = (method: PaymentMethodCode | 'manual') => {
-    if (method === 'manual') {
+  const handleSelectMethod = (method: AvailablePaymentMethod) => {
+    if (method.code === 'manual') {
       router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
       return;
     }
-    setSelectedMethod(method);
+    setSelectedMethod(method.code as PaymentMethodCode);
     setError('');
-    if (method === 'ozow_eft') {
-      // Ozow doesn't need a phone number — go straight to processing
-      handlePay(method);
-    } else {
+    if (method.requires_phone) {
       setStep('phone');
+    } else {
+      handlePay(method.code as PaymentMethodCode);
     }
   };
 
@@ -102,7 +108,8 @@ export default function CheckoutPage() {
     const method = methodOverride || selectedMethod;
     if (!method || !plan) return;
 
-    const needsPhone = method !== 'ozow_eft';
+    const methodInfo = methods.find((m) => m.code === method);
+    const needsPhone = methodInfo?.requires_phone ?? false;
     if (needsPhone && !phone.match(/^\d{10,15}$/)) {
       setError('Enter a valid phone number (e.g. 256701234567)');
       return;
@@ -129,7 +136,7 @@ export default function CheckoutPage() {
   const fmtPrice = (p: string) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
-  if (!plan) {
+  if (loading || !plan) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-muted/30">
         <RiLoader4Line className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -175,24 +182,33 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-semibold text-foreground mb-1">Choose payment method</h2>
               <p className="text-sm text-muted-foreground mb-6">Select how you'd like to pay for your subscription.</p>
 
-              <div className="space-y-3">
-                {PAYMENT_METHODS.map((m) => (
-                  <button
-                    key={m.code}
-                    onClick={() => handleSelectMethod(m.code)}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-[rgb(var(--brand-dark))]/40 hover:shadow-sm transition-all text-left"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <m.icon className="w-5 h-5 text-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                      <p className="text-xs text-muted-foreground">{m.description}</p>
-                    </div>
-                    <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full shrink-0">{m.region}</span>
-                  </button>
-                ))}
-              </div>
+              {methods.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No payment methods are available at the moment. Please contact support.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {methods.map((m) => {
+                    const Icon = METHOD_ICONS[m.code] || RiHandCoinLine;
+                    return (
+                      <button
+                        key={m.code}
+                        onClick={() => handleSelectMethod(m)}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-[rgb(var(--brand-dark))]/40 hover:shadow-sm transition-all text-left"
+                      >
+                        <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <Icon className="w-5 h-5 text-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{m.name}</p>
+                          <p className="text-xs text-muted-foreground">{m.description}</p>
+                        </div>
+                        <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full shrink-0">{m.region}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

@@ -104,6 +104,14 @@ export interface CheckoutStatusResponse {
 
 export type PaymentMethodCode = 'mtn_momo' | 'airtel_money' | 'ozow_eft';
 
+export interface AvailablePaymentMethod {
+  code: PaymentMethodCode | 'manual';
+  name: string;
+  description: string;
+  region: string;
+  requires_phone: boolean;
+}
+
 export interface ManualPaymentMethodInfo {
   id: string;
   name: string;
@@ -132,6 +140,13 @@ export interface ManualPaymentMethodInfo {
 /**
  * Get available subscription plans (public endpoint)
  */
+/**
+ * Get available payment methods (only those with configured provider accounts)
+ */
+export async function getAvailablePaymentMethods(): Promise<AvailablePaymentMethod[]> {
+  return get<AvailablePaymentMethod[]>('/api/billing/checkout/methods/');
+}
+
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   const response = await get<{ results: SubscriptionPlan[] }>('/api/billing/plans/');
   return response.results || [];
