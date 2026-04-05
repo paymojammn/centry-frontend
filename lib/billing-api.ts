@@ -16,11 +16,16 @@ export interface SubscriptionPlan {
   annual_price: string;
   currency: string;
   trial_days: number;
+  transaction_fee: string;
   max_users: number | null;
   max_transactions_per_month: number | null;
   max_api_calls_per_day: number | null;
   max_erp_connections: number;
   features: Record<string, boolean>;
+  highlight_features: string[];
+  excluded_features: string[];
+  is_featured: boolean;
+  cta_label: string;
   sort_order: number;
 }
 

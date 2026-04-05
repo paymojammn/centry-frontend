@@ -77,8 +77,18 @@ export default function LoginPage() {
     setLoadingProvider(code);
     const apiUrl = getApiUrl();
     const frontendUrl = window.location.origin;
-    const redirectUrl = `${frontendUrl}/dashboard`;
-    const authUrl = `${apiUrl}/api/auth/${code}/signin/?redirect_url=${encodeURIComponent(redirectUrl)}`;
+
+    // Preserve plan + cycle from pricing page so the backend can assign the right plan
+    const plan = searchParams.get('plan');
+    const cycle = searchParams.get('cycle');
+    const redirectUrl = plan
+      ? `${frontendUrl}/billing/subscribe?plan=${plan}${cycle ? `&cycle=${cycle}` : ''}`
+      : `${frontendUrl}/dashboard`;
+
+    let authUrl = `${apiUrl}/api/auth/${code}/signin/?redirect_url=${encodeURIComponent(redirectUrl)}`;
+    if (plan) authUrl += `&plan=${encodeURIComponent(plan)}`;
+    if (cycle) authUrl += `&cycle=${encodeURIComponent(cycle)}`;
+
     window.location.href = authUrl;
   };
 
