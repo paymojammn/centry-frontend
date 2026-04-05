@@ -126,9 +126,6 @@ export interface ManualPaymentMethodInfo {
   reference_instructions?: string;
 }
 
-export interface BillingPortalResponse {
-  portal_url: string;
-}
 
 // API Functions
 
@@ -203,17 +200,6 @@ export async function submitManualPayment(
 }
 
 /**
- * Create a Stripe billing portal session
- */
-export async function createBillingPortalSession(
-  returnUrl?: string
-): Promise<BillingPortalResponse> {
-  return post<BillingPortalResponse>('/api/billing/portal/', {
-    return_url: returnUrl,
-  });
-}
-
-/**
  * Get payment history
  */
 export async function getPaymentHistory(): Promise<Payment[]> {
@@ -280,18 +266,6 @@ export async function startCheckout(
   return session;
 }
 
-/**
- * Helper to redirect to Stripe billing portal
- */
-export async function redirectToBillingPortal(): Promise<void> {
-  const { portal_url } = await createBillingPortalSession(
-    `${window.location.origin}/billing`
-  );
-
-  // Redirect to Stripe portal
-  window.location.href = portal_url;
-}
-
 export const billingApi = {
   getSubscriptionPlans,
   getSubscriptionStatus,
@@ -299,12 +273,12 @@ export const billingApi = {
   createCheckoutSession,
   getCheckoutStatus,
   startCheckout,
-  createBillingPortalSession,
+  getManualPaymentMethods,
+  submitManualPayment,
   getPaymentHistory,
   getBillingEvents,
   cancelSubscription,
   exchangeAuthCode,
-  redirectToBillingPortal,
 };
 
 export default billingApi;
