@@ -84,8 +84,46 @@ export interface BillingEvent {
 }
 
 export interface CheckoutSessionResponse {
-  checkout_url: string;
   session_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  payment_method: string;
+  amount: string;
+  currency: string;
+  redirect_url: string | null;
+}
+
+export interface CheckoutStatusResponse {
+  session_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  payment_method: string;
+  amount: string;
+  currency: string;
+  failure_reason: string;
+  completed_at: string | null;
+}
+
+export type PaymentMethodCode = 'mtn_momo' | 'airtel_money' | 'ozow_eft';
+
+export interface ManualPaymentMethodInfo {
+  id: string;
+  name: string;
+  method_type: 'mobile_money' | 'bank_account';
+  provider: string;
+  country: string;
+  currency: string;
+  icon_url: string;
+  // Mobile money
+  merchant_code?: string;
+  merchant_name?: string;
+  phone_number?: string;
+  ussd_instructions?: string;
+  // Bank
+  bank_name?: string;
+  account_name?: string;
+  account_number?: string;
+  branch_code?: string;
+  swift_code?: string;
+  reference_instructions?: string;
 }
 
 export interface BillingPortalResponse {
@@ -117,19 +155,50 @@ export async function getSubscriptionDetails(): Promise<OrganizationSubscription
 }
 
 /**
- * Create a Stripe checkout session for subscription
+ * Create a checkout session using Centry's own payment rails
  */
 export async function createCheckoutSession(
   planCode: string,
-  billingCycle: 'monthly' | 'annual' = 'monthly',
-  successUrl?: string,
-  cancelUrl?: string
+  billingCycle: 'monthly' | 'annual',
+  paymentMethod: PaymentMethodCode,
+  payerIdentifier?: string,
 ): Promise<CheckoutSessionResponse> {
   return post<CheckoutSessionResponse>('/api/billing/checkout/', {
     plan_code: planCode,
     billing_cycle: billingCycle,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
+    payment_method: paymentMethod,
+    payer_identifier: payerIdentifier || '',
+  });
+}
+
+/**
+ * Poll checkout session status
+ */
+export async function getCheckoutStatus(sessionId: string): Promise<CheckoutStatusResponse> {
+  return get<CheckoutStatusResponse>(`/api/billing/checkout/${sessionId}/status/`);
+}
+
+/**
+ * Get manual payment methods (merchant codes, bank accounts)
+ */
+export async function getManualPaymentMethods(): Promise<ManualPaymentMethodInfo[]> {
+  return get<ManualPaymentMethodInfo[]>('/api/billing/manual-payment-methods/');
+}
+
+/**
+ * Submit manual payment notification
+ */
+export async function submitManualPayment(
+  planCode: string,
+  billingCycle: 'monthly' | 'annual',
+  paymentMethodId: string,
+  reference: string,
+): Promise<{ session_id: string; status: string; message: string }> {
+  return post('/api/billing/checkout/manual/', {
+    plan_code: planCode,
+    billing_cycle: billingCycle,
+    payment_method_id: paymentMethodId,
+    reference,
   });
 }
 
@@ -193,21 +262,22 @@ export async function exchangeAuthCode(
 }
 
 /**
- * Helper to redirect to Stripe checkout
+ * Start checkout and handle redirect (for Ozow) or return session for polling (MoMo/Airtel)
  */
-export async function redirectToCheckout(
+export async function startCheckout(
   planCode: string,
-  billingCycle: 'monthly' | 'annual' = 'monthly'
-): Promise<void> {
-  const { checkout_url } = await createCheckoutSession(
-    planCode,
-    billingCycle,
-    `${window.location.origin}/billing/success`,
-    `${window.location.origin}/billing/subscribe`
-  );
+  billingCycle: 'monthly' | 'annual',
+  paymentMethod: PaymentMethodCode,
+  payerIdentifier?: string,
+): Promise<CheckoutSessionResponse> {
+  const session = await createCheckoutSession(planCode, billingCycle, paymentMethod, payerIdentifier);
 
-  // Redirect to Stripe checkout
-  window.location.href = checkout_url;
+  // For Ozow, redirect to external payment page
+  if (session.redirect_url && paymentMethod === 'ozow_eft') {
+    window.location.href = session.redirect_url;
+  }
+
+  return session;
 }
 
 /**
@@ -227,12 +297,13 @@ export const billingApi = {
   getSubscriptionStatus,
   getSubscriptionDetails,
   createCheckoutSession,
+  getCheckoutStatus,
+  startCheckout,
   createBillingPortalSession,
   getPaymentHistory,
   getBillingEvents,
   cancelSubscription,
   exchangeAuthCode,
-  redirectToCheckout,
   redirectToBillingPortal,
 };
 
