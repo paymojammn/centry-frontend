@@ -58,19 +58,54 @@ export const invoicesApi = {
       params.append('organization', filters.organization);
     }
     const query = params.toString();
-    const { data } = await api.get(`${INVOICES_BASE_URL}/${query ? `?${query}` : ''}`);
-    return data?.results || data || [];
+    const url = query ? `${INVOICES_BASE_URL}/?${query}` : `${INVOICES_BASE_URL}/`;
+    const res = await api.get<{ results: Invoice[] } | Invoice[]>(url);
+    return Array.isArray(res) ? res : (res as any).results ?? [];
   },
 
   async getInvoice(id: number): Promise<Invoice> {
-    const { data } = await api.get(`${INVOICES_BASE_URL}/${id}/`);
-    return data;
+    return api.get<Invoice>(`${INVOICES_BASE_URL}/${id}/`);
   },
 
   async getInvoiceStats(organizationId?: string): Promise<InvoiceStats> {
     const params = organizationId ? `?organization=${organizationId}` : '';
-    const { data } = await api.get(`${INVOICES_BASE_URL}/stats/${params}`);
-    return data;
+    const res = await api.get<InvoiceStats>(`${INVOICES_BASE_URL}/stats/${params}`);
+    return res ?? {
+      total_outstanding: '0',
+      outstanding_count: 0,
+      overdue_amount: '0',
+      overdue_count: 0,
+      total_paid: '0',
+      total_invoices: 0,
+    };
+  },
+};
+
+  async collectInvoices(payload: {
+    organization_id: string;
+    invoice_ids: number[];
+    amounts: Record<string, string>;
+    method: string;
+    phone_number?: string;
+    account_number?: string;
+    account_name?: string;
+    bank_name?: string;
+    note?: string;
+  }): Promise<{
+    success: boolean;
+    results: { invoice_id: number; success: boolean; payment_event_id: number | null; reference: string; error_message: string }[];
+    summary: { total: number; successful: number; failed: number };
+  }> {
+    return api.post(`${INVOICES_BASE_URL}/collect/`, payload);
+  },
+
+  async getCustomerDetails(invoiceId: number): Promise<{
+    customer: { id: number; name: string; email: string; phones: { type: string; number: string }[] };
+    invoice_amount: string;
+    invoice_currency: string;
+    recommended_phone: string;
+  }> {
+    return api.get(`${INVOICES_BASE_URL}/${invoiceId}/customer-details/`);
   },
 };
 

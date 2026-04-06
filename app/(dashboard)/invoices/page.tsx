@@ -14,7 +14,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInvoices, useInvoiceStats } from '@/hooks/use-invoices';
-import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
+import { useSyncInvoices, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
   Receipt,
@@ -45,6 +45,9 @@ import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
 import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { useCurrentUser } from '@/hooks/use-user';
+import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
+import { CreditCard } from 'lucide-react';
 import type { Invoice, InvoiceFilters } from '@/lib/invoices-api';
 
 const cleanCurrencyCode = (currency: string): string => {
@@ -79,10 +82,23 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<number>>(new Set());
+  const [isCollectModalOpen, setIsCollectModalOpen] = useState(false);
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
+  const { data: user } = useCurrentUser();
+
+  const canCollect = useMemo(() => {
+    if (!user) return false;
+    if (user.organizations?.some(
+      (o: any) => o.membership_role === 'owner' || o.membership_role === 'admin',
+    )) return true;
+    return user.organizations?.some(
+      (o: any) => o.permissions?.payments?.create === true,
+    );
+  }, [user]);
   const { data: erpConnectionsResponse } = useERPConnections();
-  const { mutate: syncSales, isPending: isSyncing } = useSyncBills(); // Same sync trigger
+  const { mutate: syncSales, isPending: isSyncing } = useSyncInvoices();
 
   const invoiceFilters = { ...filters, organization: selectedOrganizationId || undefined };
   const { data: invoicesResponse, isLoading, error } = useInvoices(invoiceFilters);
@@ -113,6 +129,9 @@ export default function InvoicesPage() {
     );
     setActiveConnectionId(conn?.id || null);
   }, [selectedOrganizationId, erpConnections]);
+
+  const selectedInvoicesData = invoices.filter((inv) => selectedInvoices.has(inv.id));
+  const collectableInvoices = invoices.filter((inv) => inv.status === 'AUTHORISED');
 
   const filteredInvoices = invoices.filter((inv) => {
     if (!searchQuery) return true;
@@ -229,14 +248,30 @@ export default function InvoicesPage() {
             icon={AlertTriangle}
             variant={overdueCount > 0 ? 'danger' : 'default'}
           />
-          <StatCard
-            label="Total Paid"
-            value={`${orgCurrency} ${formatCompactNumber(parseFloat(stats?.total_paid || '0'))}`}
-            subtext={`${stats?.total_invoices || 0} total invoices`}
-            icon={CheckCircle}
-            iconColor={STATUS_COLORS.paid.bg}
-            iconBgColor={STATUS_COLORS.paid.light}
-          />
+          {canCollect && (
+            <StatCard
+              label="Selected"
+              value={selectedInvoices.size}
+              icon={CheckCircle}
+              iconColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.bg : undefined}
+              iconBgColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.light : undefined}
+              variant={selectedInvoices.size > 0 ? 'accent' : 'default'}
+            >
+              {selectedInvoices.size > 0 ? (
+                <Button
+                  onClick={() => setIsCollectModalOpen(true)}
+                  size="sm"
+                  className="w-full text-white btn-press"
+                  style={{ backgroundColor: STATUS_COLORS.paid.bg }}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Collect Payment
+                </Button>
+              ) : (
+                <p className="text-xs text-muted-foreground">Select invoices to collect</p>
+              )}
+            </StatCard>
+          )}
         </div>
 
         {/* Content */}
@@ -302,23 +337,76 @@ export default function InvoicesPage() {
               <table className="w-full table-professional">
                 <thead>
                   <tr>
+                    {canCollect && (
+                      <th className="py-3 px-4 w-10">
+                        <input
+                          type="checkbox"
+                          checked={collectableInvoices.length > 0 && collectableInvoices.every((i) => selectedInvoices.has(i.id))}
+                          ref={(input) => {
+                            if (input) input.indeterminate = collectableInvoices.some((i) => selectedInvoices.has(i.id)) && !collectableInvoices.every((i) => selectedInvoices.has(i.id));
+                          }}
+                          onChange={() => {
+                            if (collectableInvoices.every((i) => selectedInvoices.has(i.id))) {
+                              setSelectedInvoices(new Set());
+                            } else {
+                              setSelectedInvoices(new Set(collectableInvoices.map((i) => i.id)));
+                            }
+                          }}
+                          disabled={collectableInvoices.length === 0}
+                          className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
+                        />
+                      </th>
+                    )}
                     <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Customer</th>
                     <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Date</th>
                     <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
                     <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Paid</th>
                     <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
                     <th className="w-8"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredInvoices.map((inv) => (
+                  {filteredInvoices.map((inv) => {
+                    const isCollectable = inv.status === 'AUTHORISED';
+                    const isSelected = selectedInvoices.has(inv.id);
+                    return (
                     <tr
                       key={inv.id}
-                      className="transition-colors hover:bg-muted cursor-pointer"
-                      onClick={() => router.push(`/invoices/${inv.id}`)}
+                      className={`transition-colors ${isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'} ${!isCollectable || !canCollect ? 'opacity-60' : 'cursor-pointer'}`}
+                      onClick={() => {
+                        if (canCollect && isCollectable) {
+                          setSelectedInvoices((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(inv.id)) next.delete(inv.id);
+                            else next.add(inv.id);
+                            return next;
+                          });
+                        } else {
+                          router.push(`/invoices/${inv.id}`);
+                        }
+                      }}
                     >
+                      {canCollect && (
+                        <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                          {isCollectable ? (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {
+                                setSelectedInvoices((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(inv.id)) next.delete(inv.id);
+                                  else next.add(inv.id);
+                                  return next;
+                                });
+                              }}
+                              className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
+                            />
+                          ) : (
+                            <div className="w-4 h-4 rounded border border-border bg-muted" />
+                          )}
+                        </td>
+                      )}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
@@ -336,9 +424,6 @@ export default function InvoicesPage() {
                         <span className="text-sm text-foreground">{inv.invoice_number || '-'}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-muted-foreground">{formatDate(inv.date)}</span>
-                      </td>
-                      <td className="py-3 px-4">
                         <div className="flex items-center gap-1">
                           <span className="text-sm text-muted-foreground">{formatDate(inv.due_date || '')}</span>
                           {getDueBadge(inv)}
@@ -346,14 +431,9 @@ export default function InvoicesPage() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span className="text-sm font-medium text-foreground">
-                          {cleanCurrencyCode(inv.currency)} {parseFloat(inv.total).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm text-muted-foreground">
-                          {parseFloat(inv.amount_paid) > 0
-                            ? `${cleanCurrencyCode(inv.currency)} ${parseFloat(inv.amount_paid).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-                            : '-'}
+                          {cleanCurrencyCode(inv.currency)} {parseFloat(
+                            inv.status === 'PAID' ? inv.total : inv.amount_due
+                          ).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                         </span>
                       </td>
                       <td className="py-3 px-4">{getStatusBadge(inv.status)}</td>
@@ -361,13 +441,24 @@ export default function InvoicesPage() {
                         <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </ContentCard>
       </div>
+
+      <CollectInvoiceModal
+        isOpen={isCollectModalOpen}
+        onClose={() => {
+          setIsCollectModalOpen(false);
+          setSelectedInvoices(new Set());
+        }}
+        invoices={selectedInvoicesData}
+        organizationId={selectedOrganizationId || ''}
+      />
     </div>
   );
 }

@@ -94,6 +94,8 @@ export function useSyncInvoices() {
     mutationFn: (connectionId: string) => erpApi.syncInvoices(connectionId),
     onSuccess: (data: SyncBillsResponse) => {
       toast.success(data.message || `Synced ${data.synced_count} invoices successfully`);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-stats'] });
       // Invalidate bank transactions queries since we're syncing invoices for reconciliation
       queryClient.invalidateQueries({ queryKey: ['bank-transactions-unmatched'] });
       queryClient.invalidateQueries({ queryKey: ['bank-transactions-matched'] });
