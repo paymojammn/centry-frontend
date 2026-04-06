@@ -79,7 +79,6 @@ export const invoicesApi = {
       total_invoices: 0,
     };
   },
-};
 
   async collectInvoices(payload: {
     organization_id: string;

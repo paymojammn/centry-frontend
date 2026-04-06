@@ -90,9 +90,20 @@ export default function CollectInvoiceModal({
     },
     onSuccess: (data) => {
       setResults(data.results);
-      setStep('result');
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['invoice-stats'] });
+
+      // For Ozow: if the reference is a URL, redirect the customer to pay
+      if (selectedMethod === 'ozow_eft' && data.results.length === 1) {
+        const ref = data.results[0]?.reference || '';
+        if (ref.startsWith('http')) {
+          toast.success('Redirecting to payment page...');
+          window.location.href = ref;
+          return;
+        }
+      }
+
+      setStep('result');
       if (data.summary.successful > 0) {
         toast.success(`${data.summary.successful} collection(s) initiated`);
       }

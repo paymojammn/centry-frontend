@@ -90,11 +90,13 @@ export default function InvoicesPage() {
 
   const canCollect = useMemo(() => {
     if (!user) return false;
+    // Org owners/admins have all permissions
     if (user.organizations?.some(
       (o: any) => o.membership_role === 'owner' || o.membership_role === 'admin',
     )) return true;
+    // Check explicit invoices.collect permission
     return user.organizations?.some(
-      (o: any) => o.permissions?.payments?.create === true,
+      (o: any) => o.permissions?.invoices?.collect === true,
     );
   }, [user]);
   const { data: erpConnectionsResponse } = useERPConnections();
