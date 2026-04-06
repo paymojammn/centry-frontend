@@ -47,6 +47,7 @@ import { ContentCard } from '@/components/layout/content-card';
 import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 import { useCurrentUser } from '@/hooks/use-user';
 import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
+import CollectionsQueue from '@/components/invoices/CollectionsQueue';
 import { CreditCard } from 'lucide-react';
 import type { Invoice, InvoiceFilters } from '@/lib/invoices-api';
 
@@ -84,6 +85,7 @@ export default function InvoicesPage() {
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [selectedInvoices, setSelectedInvoices] = useState<Set<number>>(new Set());
   const [isCollectModalOpen, setIsCollectModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'invoices' | 'collections'>('invoices');
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
   const { data: user } = useCurrentUser();
@@ -222,232 +224,270 @@ export default function InvoicesPage() {
         </Button>
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
-          <StatCard
-            label="Outstanding"
-            value={`${orgCurrency} ${formatCompactNumber(totalOutstanding)}`}
-            subtext={`${outstandingCount} open invoices`}
-            icon={Wallet}
-            iconColor={STATUS_COLORS.awaiting_payment.bg}
-            iconBgColor={STATUS_COLORS.awaiting_payment.light}
-            variant="accent"
-          />
-          <StatCard
-            label="Due This Week"
-            value={`${orgCurrency} ${formatCompactNumber(dueThisWeek)}`}
-            subtext="Due within 7 days"
-            icon={Calendar}
-            iconColor="#b08b00"
-            iconBgColor={STATUS_COLORS.awaiting_approval.light}
-            variant="warning"
-          />
-          <StatCard
-            label="Overdue"
-            value={overdueCount}
-            subtext={`${orgCurrency} ${formatCompactNumber(overdueAmount)} overdue`}
-            icon={AlertTriangle}
-            variant={overdueCount > 0 ? 'danger' : 'default'}
-          />
-          {canCollect && (
-            <StatCard
-              label="Selected"
-              value={selectedInvoices.size}
-              icon={CheckCircle}
-              iconColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.bg : undefined}
-              iconBgColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.light : undefined}
-              variant={selectedInvoices.size > 0 ? 'accent' : 'default'}
+      {/* Tabs */}
+      <div className="bg-card border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <nav className="flex gap-8">
+            <button
+              onClick={() => setActiveTab('invoices')}
+              className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
+                activeTab === 'invoices'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
             >
-              {selectedInvoices.size > 0 ? (
-                <Button
-                  onClick={() => setIsCollectModalOpen(true)}
-                  size="sm"
-                  className="w-full text-white btn-press"
-                  style={{ backgroundColor: STATUS_COLORS.paid.bg }}
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Collect Payment
-                </Button>
-              ) : (
-                <p className="text-xs text-muted-foreground">Select invoices to collect</p>
-              )}
-            </StatCard>
-          )}
+              Invoices
+            </button>
+            <button
+              onClick={() => setActiveTab('collections')}
+              className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
+                activeTab === 'collections'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Collections Queue
+            </button>
+          </nav>
         </div>
+      </div>
 
-        {/* Content */}
-        <ContentCard noPadding className="animate-fade-in">
-          {/* Toolbar */}
-          <div className="px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 relative max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                <Input
-                  placeholder="Search customers, invoices..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 bg-card border-border text-sm text-foreground"
-                />
-              </div>
-              <Select value={filters.status || 'all'} onValueChange={(v) => setFilters({ ...filters, status: v })}>
-                <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">
-                    <span className="flex items-center gap-2"><StatusDot status="draft" /> Draft</span>
-                  </SelectItem>
-                  <SelectItem value="sent">
-                    <span className="flex items-center gap-2"><StatusDot status="awaiting_approval" /> Sent</span>
-                  </SelectItem>
-                  <SelectItem value="outstanding">
-                    <span className="flex items-center gap-2"><StatusDot status="awaiting_payment" /> Outstanding</span>
-                  </SelectItem>
-                  <SelectItem value="paid">
-                    <span className="flex items-center gap-2"><StatusDot status="paid" /> Paid</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Table */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-16">
-              <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-3" />
-              <p className="text-sm font-medium text-foreground">Error loading invoices</p>
-              <p className="text-sm text-muted-foreground mt-1">Please try refreshing the page</p>
-            </div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="text-center py-16">
-              <Receipt className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-sm font-medium text-foreground">
-                {searchQuery ? 'No invoices match your search' : 'No invoices found'}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {searchQuery ? 'Try a different search term' : 'Sync with your ERP to get started'}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-professional">
-                <thead>
-                  <tr>
-                    {canCollect && (
-                      <th className="py-3 px-4 w-10">
-                        <input
-                          type="checkbox"
-                          checked={collectableInvoices.length > 0 && collectableInvoices.every((i) => selectedInvoices.has(i.id))}
-                          ref={(input) => {
-                            if (input) input.indeterminate = collectableInvoices.some((i) => selectedInvoices.has(i.id)) && !collectableInvoices.every((i) => selectedInvoices.has(i.id));
-                          }}
-                          onChange={() => {
-                            if (collectableInvoices.every((i) => selectedInvoices.has(i.id))) {
-                              setSelectedInvoices(new Set());
-                            } else {
-                              setSelectedInvoices(new Set(collectableInvoices.map((i) => i.id)));
-                            }
-                          }}
-                          disabled={collectableInvoices.length === 0}
-                          className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
-                        />
-                      </th>
-                    )}
-                    <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Customer</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
-                    <th className="w-8"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredInvoices.map((inv) => {
-                    const isCollectable = inv.status === 'AUTHORISED';
-                    const isSelected = selectedInvoices.has(inv.id);
-                    return (
-                    <tr
-                      key={inv.id}
-                      className={`transition-colors ${isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'} ${!isCollectable || !canCollect ? 'opacity-60' : 'cursor-pointer'}`}
-                      onClick={() => {
-                        if (canCollect && isCollectable) {
-                          setSelectedInvoices((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(inv.id)) next.delete(inv.id);
-                            else next.add(inv.id);
-                            return next;
-                          });
-                        } else {
-                          router.push(`/invoices/${inv.id}`);
-                        }
-                      }}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {activeTab === 'invoices' && (
+          <>
+            {/* Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
+              <StatCard
+                label="Outstanding"
+                value={`${orgCurrency} ${formatCompactNumber(totalOutstanding)}`}
+                subtext={`${outstandingCount} open invoices`}
+                icon={Wallet}
+                iconColor={STATUS_COLORS.awaiting_payment.bg}
+                iconBgColor={STATUS_COLORS.awaiting_payment.light}
+                variant="accent"
+              />
+              <StatCard
+                label="Due This Week"
+                value={`${orgCurrency} ${formatCompactNumber(dueThisWeek)}`}
+                subtext="Due within 7 days"
+                icon={Calendar}
+                iconColor="#b08b00"
+                iconBgColor={STATUS_COLORS.awaiting_approval.light}
+                variant="warning"
+              />
+              <StatCard
+                label="Overdue"
+                value={overdueCount}
+                subtext={`${orgCurrency} ${formatCompactNumber(overdueAmount)} overdue`}
+                icon={AlertTriangle}
+                variant={overdueCount > 0 ? 'danger' : 'default'}
+              />
+              {canCollect && (
+                <StatCard
+                  label="Selected"
+                  value={selectedInvoices.size}
+                  icon={CheckCircle}
+                  iconColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.bg : undefined}
+                  iconBgColor={selectedInvoices.size > 0 ? STATUS_COLORS.paid.light : undefined}
+                  variant={selectedInvoices.size > 0 ? 'accent' : 'default'}
+                >
+                  {selectedInvoices.size > 0 ? (
+                    <Button
+                      onClick={() => setIsCollectModalOpen(true)}
+                      size="sm"
+                      className="w-full text-white btn-press"
+                      style={{ backgroundColor: STATUS_COLORS.paid.bg }}
                     >
-                      {canCollect && (
-                        <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                          {isCollectable ? (
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Collect Payment
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Select invoices to collect</p>
+                  )}
+                </StatCard>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Content Card — wraps both tabs like bills page */}
+        <ContentCard noPadding className="animate-fade-in">
+          {activeTab === 'invoices' ? (
+            <div>
+              {/* Toolbar */}
+              <div className="px-4 py-3 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                    <Input
+                      placeholder="Search customers, invoices..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+                    />
+                  </div>
+                  <Select value={filters.status || 'all'} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+                    <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="draft">
+                        <span className="flex items-center gap-2"><StatusDot status="draft" /> Draft</span>
+                      </SelectItem>
+                      <SelectItem value="sent">
+                        <span className="flex items-center gap-2"><StatusDot status="awaiting_approval" /> Sent</span>
+                      </SelectItem>
+                      <SelectItem value="outstanding">
+                        <span className="flex items-center gap-2"><StatusDot status="awaiting_payment" /> Outstanding</span>
+                      </SelectItem>
+                      <SelectItem value="paid">
+                        <span className="flex items-center gap-2"><StatusDot status="paid" /> Paid</span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Table */}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
+                </div>
+              ) : error ? (
+                <div className="text-center py-16">
+                  <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-3" />
+                  <p className="text-sm font-medium text-foreground">Error loading invoices</p>
+                  <p className="text-sm text-muted-foreground mt-1">Please try refreshing the page</p>
+                </div>
+              ) : filteredInvoices.length === 0 ? (
+                <div className="text-center py-16">
+                  <Receipt className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-foreground">
+                    {searchQuery ? 'No invoices match your search' : 'No invoices found'}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {searchQuery ? 'Try a different search term' : 'Sync with your ERP to get started'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full table-professional">
+                    <thead>
+                      <tr>
+                        {canCollect && (
+                          <th className="py-3 px-4 w-10">
                             <input
                               type="checkbox"
-                              checked={isSelected}
+                              checked={collectableInvoices.length > 0 && collectableInvoices.every((i) => selectedInvoices.has(i.id))}
+                              ref={(input) => {
+                                if (input) input.indeterminate = collectableInvoices.some((i) => selectedInvoices.has(i.id)) && !collectableInvoices.every((i) => selectedInvoices.has(i.id));
+                              }}
                               onChange={() => {
+                                if (collectableInvoices.every((i) => selectedInvoices.has(i.id))) {
+                                  setSelectedInvoices(new Set());
+                                } else {
+                                  setSelectedInvoices(new Set(collectableInvoices.map((i) => i.id)));
+                                }
+                              }}
+                              disabled={collectableInvoices.length === 0}
+                              className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
+                            />
+                          </th>
+                        )}
+                        <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Customer</th>
+                        <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
+                        <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
+                        <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
+                        <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
+                        <th className="w-8"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredInvoices.map((inv) => {
+                        const isCollectable = inv.status === 'AUTHORISED';
+                        const isSelected = selectedInvoices.has(inv.id);
+                        return (
+                          <tr
+                            key={inv.id}
+                            className={`transition-colors ${isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'} ${!isCollectable || !canCollect ? 'opacity-60' : 'cursor-pointer'}`}
+                            onClick={() => {
+                              if (canCollect && isCollectable) {
                                 setSelectedInvoices((prev) => {
                                   const next = new Set(prev);
                                   if (next.has(inv.id)) next.delete(inv.id);
                                   else next.add(inv.id);
                                   return next;
                                 });
-                              }}
-                              className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
-                            />
-                          ) : (
-                            <div className="w-4 h-4 rounded border border-border bg-muted" />
-                          )}
-                        </td>
-                      )}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
-                            {getCustomerInitials(inv.customer_name || '')}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-foreground">{inv.customer_name}</div>
-                            {inv.reference && (
-                              <div className="text-xs text-muted-foreground">{inv.reference}</div>
+                              } else {
+                                router.push(`/invoices/${inv.id}`);
+                              }
+                            }}
+                          >
+                            {canCollect && (
+                              <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                                {isCollectable ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {
+                                      setSelectedInvoices((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(inv.id)) next.delete(inv.id);
+                                        else next.add(inv.id);
+                                        return next;
+                                      });
+                                    }}
+                                    className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
+                                  />
+                                ) : (
+                                  <div className="w-4 h-4 rounded border border-border bg-muted" />
+                                )}
+                              </td>
                             )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-foreground">{inv.invoice_number || '-'}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-muted-foreground">{formatDate(inv.due_date || '')}</span>
-                          {getDueBadge(inv)}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-medium text-foreground">
-                          {cleanCurrencyCode(inv.currency)} {parseFloat(
-                            inv.status === 'PAID' ? inv.total : inv.amount_due
-                          ).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">{getStatusBadge(inv.status)}</td>
-                      <td className="py-3 px-4">
-                        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
+                                  {getCustomerInitials(inv.customer_name || '')}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-foreground">{inv.customer_name}</div>
+                                  {inv.reference && (
+                                    <div className="text-xs text-muted-foreground">{inv.reference}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-foreground">{inv.invoice_number || '-'}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-muted-foreground">{formatDate(inv.due_date || '')}</span>
+                                {getDueBadge(inv)}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-sm font-medium text-foreground">
+                                {cleanCurrencyCode(inv.currency)} {parseFloat(
+                                  inv.status === 'PAID' ? inv.total : inv.amount_due
+                                ).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">{getStatusBadge(inv.status)}</td>
+                            <td className="py-3 px-4">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
+          ) : (
+            <CollectionsQueue organizationId={selectedOrganizationId} />
           )}
         </ContentCard>
       </div>

@@ -106,6 +106,15 @@ export const invoicesApi = {
   }> {
     return api.get(`${INVOICES_BASE_URL}/${invoiceId}/customer-details/`);
   },
+  async getCollectionEvents(filters?: { organization?: string; status?: string }): Promise<any[]> {
+    const params = new URLSearchParams();
+    params.append('direction', 'IN');
+    if (filters?.organization) params.append('organization', filters.organization);
+    if (filters?.status) params.append('status', filters.status);
+    const query = params.toString();
+    const res = await api.get<{ results: any[] } | any[]>(`/api/v1/xero/payments/?${query}`);
+    return Array.isArray(res) ? res : (res as any).results ?? [];
+  },
 };
 
 export default invoicesApi;

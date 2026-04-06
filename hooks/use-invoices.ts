@@ -5,6 +5,17 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { invoicesApi, Invoice, InvoiceStats, InvoiceFilters } from '@/lib/invoices-api';
 
+export function useCollectionEvents(organizationId?: string): UseQueryResult<any[], Error> {
+  return useQuery({
+    queryKey: ['collection-events', organizationId],
+    queryFn: async () => {
+      const result = await invoicesApi.getCollectionEvents({ organization: organizationId });
+      return result ?? [];
+    },
+    refetchInterval: 15000, // Poll every 15s for status updates
+  });
+}
+
 export function useInvoices(filters?: InvoiceFilters): UseQueryResult<Invoice[], Error> {
   return useQuery({
     queryKey: ['invoices', filters],
