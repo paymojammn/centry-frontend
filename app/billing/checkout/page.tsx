@@ -1,36 +1,40 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getSubscriptionPlans,
-  getAvailablePaymentMethods,
   startCheckout,
   getCheckoutStatus,
   SubscriptionPlan,
-  AvailablePaymentMethod,
   PaymentMethodCode,
   CheckoutSessionResponse,
 } from '@/lib/billing-api';
+import { paymentSourcesApi } from '@/lib/payment-sources-api';
+import type { PaymentSource } from '@/types/payment-sources';
+import PaymentSourcePicker from '@/components/shared/PaymentSourcePicker';
 import {
-  RiSmartphoneLine,
-  RiBankLine,
   RiCheckLine,
   RiCloseLine,
   RiLoader4Line,
   RiArrowLeftLine,
-  RiPhoneLine,
-  RiHandCoinLine,
 } from '@remixicon/react';
-
-const METHOD_ICONS: Record<string, typeof RiSmartphoneLine> = {
-  mtn_momo: RiSmartphoneLine,
-  airtel_money: RiPhoneLine,
-  ozow_eft: RiBankLine,
-  manual: RiHandCoinLine,
-};
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 type CheckoutStep = 'method' | 'phone' | 'processing' | 'success' | 'failed';
+
+/**
+ * Map a unified PaymentSource to the billing checkout PaymentMethodCode.
+ */
+function sourceToMethodCode(source: PaymentSource): PaymentMethodCode {
+  if (source.type === 'mobile_money') {
+    return source.provider === 'airtel' ? 'airtel_money' : 'mtn_momo';
+  }
+  if (source.type === 'ozow') return 'ozow_eft';
+  // bank_account, paystack, netcash — fall back to manual for now
+  return 'mtn_momo'; // should not happen if source picker filters correctly
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -39,78 +43,71 @@ export default function CheckoutPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [methods, setMethods] = useState<AvailablePaymentMethod[]>([]);
+  const [sources, setSources] = useState<PaymentSource[]>([]);
   const [step, setStep] = useState<CheckoutStep>('method');
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodCode | null>(null);
+  const [selectedSource, setSelectedSource] = useState<PaymentSource | null>(null);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [session, setSession] = useState<CheckoutSessionResponse | null>(null);
   const [failureReason, setFailureReason] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Load plan + available payment methods
+  // Load plan + Centry's payment sources (from BILLING_ORGANIZATION_ID org)
   useEffect(() => {
-    Promise.all([getSubscriptionPlans(), getAvailablePaymentMethods()]).then(
-      ([plans, availableMethods]) => {
-        setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
-        setMethods(availableMethods);
-        setLoading(false);
-      }
-    );
+    Promise.all([
+      getSubscriptionPlans(),
+      paymentSourcesApi.getPaymentSources(), // No org param = Centry's default / user's org
+    ]).then(([plans, sourcesResp]) => {
+      setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
+      setSources(sourcesResp.sources || []);
+      setLoading(false);
+    });
   }, [planCode]);
 
   // Poll for status when processing
   useEffect(() => {
     if (step !== 'processing' || !session) return;
-
     const interval = setInterval(async () => {
       try {
         const status = await getCheckoutStatus(session.session_id);
-        if (status.status === 'completed') {
-          setStep('success');
-          clearInterval(interval);
-        } else if (status.status === 'failed' || status.status === 'expired') {
+        if (status.status === 'completed') { setStep('success'); clearInterval(interval); }
+        else if (status.status === 'failed' || status.status === 'expired') {
           setFailureReason(status.failure_reason || 'Payment was not completed');
           setStep('failed');
           clearInterval(interval);
         }
-      } catch {
-        // Keep polling on network errors
-      }
+      } catch { /* keep polling */ }
     }, 3000);
-
     return () => clearInterval(interval);
   }, [step, session]);
 
   const price = plan
-    ? billingCycle === 'annual'
-      ? plan.annual_price
-      : plan.monthly_price
+    ? billingCycle === 'annual' ? plan.annual_price : plan.monthly_price
     : '0';
 
-  const currency = selectedMethod === 'ozow_eft' ? 'ZAR' : 'UGX';
+  const fmtPrice = (p: string) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
-  const handleSelectMethod = (method: AvailablePaymentMethod) => {
-    if (method.code === 'manual') {
+  const handleSourceSelect = (source: PaymentSource) => {
+    setSelectedSource(source);
+    setError('');
+    if (source.type === 'bank_account') {
+      // Bank account = manual payment (show bank details page)
       router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
       return;
     }
-    setSelectedMethod(method.code as PaymentMethodCode);
-    setError('');
-    if (method.requires_phone) {
+    if (source.requires_phone) {
       setStep('phone');
     } else {
-      handlePay(method.code as PaymentMethodCode);
+      handlePay(source);
     }
   };
 
-  const handlePay = async (methodOverride?: PaymentMethodCode) => {
-    const method = methodOverride || selectedMethod;
-    if (!method || !plan) return;
+  const handlePay = async (sourceOverride?: PaymentSource) => {
+    const source = sourceOverride || selectedSource;
+    if (!source || !plan) return;
 
-    const methodInfo = methods.find((m) => m.code === method);
-    const needsPhone = methodInfo?.requires_phone ?? false;
-    if (needsPhone && !phone.match(/^\d{10,15}$/)) {
+    if (source.requires_phone && !phone.match(/^\d{10,15}$/)) {
       setError('Enter a valid phone number (e.g. 256701234567)');
       return;
     }
@@ -119,10 +116,17 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      const result = await startCheckout(plan.code, billingCycle, method, needsPhone ? phone : undefined);
+      const methodCode = sourceToMethodCode(source);
+      const result = await startCheckout(
+        plan.code, billingCycle, methodCode,
+        source.requires_phone ? phone : undefined
+      );
       setSession(result);
 
-      // Ozow redirects externally — startCheckout handles that
+      if (result.redirect_url) {
+        window.location.href = result.redirect_url;
+        return;
+      }
       if (result.status === 'failed') {
         setFailureReason('Failed to initiate payment. Please try again.');
         setStep('failed');
@@ -132,9 +136,6 @@ export default function CheckoutPage() {
       setStep('failed');
     }
   };
-
-  const fmtPrice = (p: string) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
   if (loading || !plan) {
     return (
@@ -163,8 +164,7 @@ export default function CheckoutPage() {
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
-
-          {/* Order summary — always visible */}
+          {/* Order summary */}
           <div className="bg-card border border-border rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-semibold tracking-widest uppercase text-primary">{plan.name}</p>
@@ -176,69 +176,42 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Step: Choose payment method */}
+          {/* Step: Choose payment source */}
           {step === 'method' && (
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-foreground mb-1">Choose payment method</h2>
               <p className="text-sm text-muted-foreground mb-6">Select how you'd like to pay for your subscription.</p>
-
-              {methods.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No payment methods are available at the moment. Please contact support.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {methods.map((m) => {
-                    const Icon = METHOD_ICONS[m.code] || RiHandCoinLine;
-                    return (
-                      <button
-                        key={m.code}
-                        onClick={() => handleSelectMethod(m)}
-                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-[rgb(var(--brand-dark))]/40 hover:shadow-sm transition-all text-left"
-                      >
-                        <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                          <Icon className="w-5 h-5 text-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                          <p className="text-xs text-muted-foreground">{m.description}</p>
-                        </div>
-                        <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full shrink-0">{m.region}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <PaymentSourcePicker
+                sources={sources}
+                mode="collection"
+                onSelect={handleSourceSelect}
+                emptyMessage="No payment methods available. Please contact support."
+              />
             </div>
           )}
 
-          {/* Step: Enter phone number (MoMo / Airtel) */}
+          {/* Step: Phone number */}
           {step === 'phone' && (
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-foreground mb-1">Enter your phone number</h2>
               <p className="text-sm text-muted-foreground mb-6">
-                You'll receive a USSD prompt on your {selectedMethod === 'mtn_momo' ? 'MTN' : 'Airtel'} phone to approve the payment.
+                You'll receive a USSD prompt on your {selectedSource?.provider === 'mtn' ? 'MTN' : 'Airtel'} phone.
               </p>
-
               <div className="mb-4">
                 <label className="block text-sm font-medium text-foreground mb-2">Phone number</label>
-                <input
-                  type="tel"
-                  value={phone}
+                <Input
+                  type="tel" value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="256701234567"
-                  className="w-full h-12 px-4 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                  autoFocus
+                  className="h-12" autoFocus
                 />
-                <p className="mt-1.5 text-xs text-muted-foreground">Include country code (e.g. 256 for Uganda)</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">Include country code</p>
               </div>
-
               {error && (
                 <div className="mb-4 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
                   <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
-
               <div className="flex gap-3">
                 <button
                   onClick={() => { setStep('method'); setError(''); }}
@@ -246,34 +219,31 @@ export default function CheckoutPage() {
                 >
                   Back
                 </button>
-                <button
-                  onClick={() => handlePay()}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
-                >
+                <Button onClick={() => handlePay()} className="flex-1 py-3">
                   Pay {fmtPrice(price)}
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
-          {/* Step: Processing — waiting for payment */}
+          {/* Step: Processing */}
           {step === 'processing' && (
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
                 <RiLoader4Line className="w-8 h-8 text-primary animate-spin" />
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-2">Waiting for payment</h2>
-              {selectedMethod === 'ozow_eft' ? (
-                <p className="text-sm text-muted-foreground">Redirecting to Ozow for bank payment...</p>
+              {selectedSource?.type === 'ozow' ? (
+                <p className="text-sm text-muted-foreground">Redirecting to payment page...</p>
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Check your <strong>{selectedMethod === 'mtn_momo' ? 'MTN' : 'Airtel'}</strong> phone for the USSD prompt.
+                    Check your <strong>{selectedSource?.name}</strong> phone for the USSD prompt.
                   </p>
-                  <p className="text-sm text-muted-foreground">Approve the payment of <strong>{fmtPrice(price)}</strong> to continue.</p>
+                  <p className="text-sm text-muted-foreground">Approve the payment of <strong>{fmtPrice(price)}</strong>.</p>
                 </>
               )}
-              <p className="mt-6 text-xs text-muted-foreground">This page will update automatically when payment is confirmed.</p>
+              <p className="mt-6 text-xs text-muted-foreground">This page updates automatically.</p>
             </div>
           )}
 
@@ -284,15 +254,8 @@ export default function CheckoutPage() {
                 <RiCheckLine className="w-8 h-8 text-primary" />
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">Payment successful!</h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Your <strong>{plan.name}</strong> subscription is now active. Welcome to Centry.
-              </p>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-8 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
-              >
-                Go to Dashboard
-              </button>
+              <p className="text-sm text-muted-foreground mb-6">Your <strong>{plan.name}</strong> subscription is now active.</p>
+              <Button onClick={() => router.push('/dashboard')} className="px-8">Go to Dashboard</Button>
             </div>
           )}
 
@@ -303,7 +266,7 @@ export default function CheckoutPage() {
                 <RiCloseLine className="w-8 h-8 text-destructive" />
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">Payment failed</h2>
-              <p className="text-sm text-muted-foreground mb-6">{failureReason || 'The payment could not be completed.'}</p>
+              <p className="text-sm text-muted-foreground mb-6">{failureReason}</p>
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => { setStep('method'); setSession(null); setFailureReason(''); }}
@@ -311,16 +274,10 @@ export default function CheckoutPage() {
                 >
                   Try Again
                 </button>
-                <button
-                  onClick={() => router.push('/billing/subscribe')}
-                  className="px-6 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
-                >
-                  Change Plan
-                </button>
+                <Button onClick={() => router.push('/billing/subscribe')}>Change Plan</Button>
               </div>
             </div>
           )}
-
         </div>
       </main>
     </div>

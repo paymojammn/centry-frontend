@@ -104,14 +104,6 @@ export interface CheckoutStatusResponse {
 
 export type PaymentMethodCode = 'mtn_momo' | 'airtel_money' | 'ozow_eft';
 
-export interface AvailablePaymentMethod {
-  code: PaymentMethodCode | 'manual';
-  name: string;
-  description: string;
-  region: string;
-  requires_phone: boolean;
-}
-
 export interface ManualPaymentMethodInfo {
   id: string;
   name: string;
@@ -140,13 +132,6 @@ export interface ManualPaymentMethodInfo {
 /**
  * Get available subscription plans (public endpoint)
  */
-/**
- * Get available payment methods (only those with configured provider accounts)
- */
-export async function getAvailablePaymentMethods(): Promise<AvailablePaymentMethod[]> {
-  return get<AvailablePaymentMethod[]>('/api/billing/checkout/methods/');
-}
-
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   const response = await get<{ results: SubscriptionPlan[] }>('/api/billing/plans/');
   return response.results || [];
@@ -188,13 +173,6 @@ export async function createCheckoutSession(
  */
 export async function getCheckoutStatus(sessionId: string): Promise<CheckoutStatusResponse> {
   return get<CheckoutStatusResponse>(`/api/billing/checkout/${sessionId}/status/`);
-}
-
-/**
- * Get manual payment methods (merchant codes, bank accounts)
- */
-export async function getManualPaymentMethods(): Promise<ManualPaymentMethodInfo[]> {
-  return get<ManualPaymentMethodInfo[]>('/api/billing/manual-payment-methods/');
 }
 
 /**
@@ -288,7 +266,6 @@ export const billingApi = {
   createCheckoutSession,
   getCheckoutStatus,
   startCheckout,
-  getManualPaymentMethods,
   submitManualPayment,
   getPaymentHistory,
   getBillingEvents,

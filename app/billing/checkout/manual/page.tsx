@@ -4,20 +4,25 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getSubscriptionPlans,
-  getManualPaymentMethods,
-  submitManualPayment,
   SubscriptionPlan,
-  ManualPaymentMethodInfo,
 } from '@/lib/billing-api';
+import { paymentSourcesApi } from '@/lib/payment-sources-api';
+import type { PaymentSource } from '@/types/payment-sources';
 import {
-  RiSmartphoneLine,
-  RiBankLine,
   RiCheckLine,
   RiArrowLeftLine,
   RiFileCopyLine,
   RiLoader4Line,
+  RiSmartphoneLine,
+  RiBankLine,
 } from '@remixicon/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
+/**
+ * Manual payment page — shows Centry's bank accounts and mobile money details
+ * for customers to pay manually. Uses the same unified payment sources API.
+ */
 export default function ManualPaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,22 +30,23 @@ export default function ManualPaymentPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [methods, setMethods] = useState<ManualPaymentMethodInfo[]>([]);
+  const [sources, setSources] = useState<PaymentSource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMethod, setSelectedMethod] = useState<ManualPaymentMethodInfo | null>(null);
+  const [selectedSource, setSelectedSource] = useState<PaymentSource | null>(null);
   const [reference, setReference] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState('');
 
   useEffect(() => {
-    Promise.all([getSubscriptionPlans(), getManualPaymentMethods()]).then(
-      ([plans, paymentMethods]) => {
-        setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
-        setMethods(paymentMethods);
-        setLoading(false);
-      }
-    );
+    Promise.all([
+      getSubscriptionPlans(),
+      paymentSourcesApi.getPaymentSources(), // Centry's org sources
+    ]).then(([plans, resp]) => {
+      setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
+      // Show bank accounts and mobile money as manual deposit options
+      setSources(resp.sources?.filter((s) => s.type === 'bank_account' || s.type === 'mobile_money') || []);
+      setLoading(false);
+    });
   }, [planCode]);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -50,22 +56,33 @@ export default function ManualPaymentPage() {
   };
 
   const handleSubmit = async () => {
-    if (!plan || !selectedMethod) return;
-    setSubmitting(true);
+    if (!plan || !selectedSource) return;
+    // Submit manual payment notification via billing API
     try {
-      await submitManualPayment(plan.code, billingCycle, selectedMethod.id, reference);
+      const { submitManualPayment } = await import('@/lib/billing-api');
+      await submitManualPayment(plan.code, billingCycle, selectedSource.id, reference);
       setSubmitted(true);
-    } catch {
-      // Error handling
-    } finally {
-      setSubmitting(false);
-    }
+    } catch { /* */ }
   };
 
   const fmtPrice = (p: string) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
   const price = plan ? (billingCycle === 'annual' ? plan.annual_price : plan.monthly_price) : '0';
+
+  const CopyRow = ({ label, value }: { label: string; value: string }) => (
+    <div className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium text-foreground">{value}</p>
+      </div>
+      <button onClick={() => copyToClipboard(value, label)} className="p-2 rounded-lg hover:bg-muted transition-colors" title="Copy">
+        {copied === label
+          ? <RiCheckLine className="w-4 h-4 text-primary" />
+          : <RiFileCopyLine className="w-4 h-4 text-muted-foreground" />}
+      </button>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -75,33 +92,11 @@ export default function ManualPaymentPage() {
     );
   }
 
-  const mobileMoneyMethods = methods.filter((m) => m.method_type === 'mobile_money');
-  const bankMethods = methods.filter((m) => m.method_type === 'bank_account');
-
-  // CopyRow helper
-  const CopyRow = ({ label, value }: { label: string; value: string }) => (
-    <div className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground">{value}</p>
-      </div>
-      <button
-        onClick={() => copyToClipboard(value, label)}
-        className="p-2 rounded-lg hover:bg-muted transition-colors"
-        title="Copy"
-      >
-        {copied === label ? (
-          <RiCheckLine className="w-4 h-4 text-primary" />
-        ) : (
-          <RiFileCopyLine className="w-4 h-4 text-muted-foreground" />
-        )}
-      </button>
-    </div>
-  );
+  const bankSources = sources.filter((s) => s.type === 'bank_account');
+  const mobileSources = sources.filter((s) => s.type === 'mobile_money');
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-muted/30">
-      {/* Header */}
       <header className="bg-[rgb(var(--brand-dark))] text-white shrink-0">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -118,27 +113,16 @@ export default function ManualPaymentPage() {
 
       <main className="flex-1 flex items-start justify-center px-6 py-12">
         <div className="w-full max-w-2xl">
-
-          {/* Success state */}
           {submitted ? (
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
                 <RiCheckLine className="w-8 h-8 text-primary" />
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">Payment notification received</h2>
-              <p className="text-sm text-muted-foreground mb-2">
-                We've recorded your payment. Our team will verify it and activate your
-                <strong> {plan?.name}</strong> subscription shortly.
-              </p>
               <p className="text-sm text-muted-foreground mb-6">
-                You'll receive an email once your subscription is active.
+                We'll verify and activate your <strong>{plan?.name}</strong> subscription shortly.
               </p>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-8 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
-              >
-                Go to Dashboard
-              </button>
+              <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
             </div>
           ) : (
             <>
@@ -157,115 +141,86 @@ export default function ManualPaymentPage() {
               <div className="bg-card border border-border rounded-2xl p-6 mb-6">
                 <h2 className="text-lg font-semibold text-foreground mb-1">Manual payment</h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Send payment using any of the methods below, then click "I've made payment" to notify us.
+                  Send payment to any of the accounts below, then confirm.
                 </p>
 
-                {/* Mobile Money Methods */}
-                {mobileMoneyMethods.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
-                      <RiSmartphoneLine className="w-4 h-4" /> Mobile Money
-                    </h3>
-                    <div className="space-y-3">
-                      {mobileMoneyMethods.map((m) => (
-                        <div
-                          key={m.id}
-                          onClick={() => setSelectedMethod(m)}
-                          className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                            selectedMethod?.id === m.id
-                              ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
-                              : 'border-border hover:border-[rgb(var(--brand-dark))]/40'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="font-semibold text-foreground text-sm">{m.name}</p>
-                            <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">{m.country}</span>
-                          </div>
-                          {m.merchant_code && <CopyRow label="Merchant Code" value={m.merchant_code} />}
-                          {m.merchant_name && <CopyRow label="Merchant Name" value={m.merchant_name} />}
-                          {m.phone_number && <CopyRow label="Phone Number" value={m.phone_number} />}
-                          {m.ussd_instructions && (
-                            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs font-semibold text-muted-foreground mb-1">How to pay:</p>
-                              <p className="text-xs text-foreground whitespace-pre-line">{m.ussd_instructions}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Bank Methods */}
-                {bankMethods.length > 0 && (
+                {/* Bank accounts */}
+                {bankSources.length > 0 && (
                   <div className="mb-6">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                       <RiBankLine className="w-4 h-4" /> Bank Transfer
                     </h3>
                     <div className="space-y-3">
-                      {bankMethods.map((m) => (
+                      {bankSources.map((s) => (
                         <div
-                          key={m.id}
-                          onClick={() => setSelectedMethod(m)}
+                          key={s.id}
+                          onClick={() => setSelectedSource(s)}
                           className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                            selectedMethod?.id === m.id
+                            selectedSource?.id === s.id
                               ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
                               : 'border-border hover:border-[rgb(var(--brand-dark))]/40'
                           }`}
                         >
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="font-semibold text-foreground text-sm">{m.name}</p>
-                            <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">{m.country}</span>
-                          </div>
-                          {m.bank_name && <CopyRow label="Bank" value={m.bank_name} />}
-                          {m.account_name && <CopyRow label="Account Name" value={m.account_name} />}
-                          {m.account_number && <CopyRow label="Account Number" value={m.account_number} />}
-                          {m.branch_code && <CopyRow label="Branch Code" value={m.branch_code} />}
-                          {m.swift_code && <CopyRow label="SWIFT Code" value={m.swift_code} />}
-                          {m.reference_instructions && (
-                            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs font-semibold text-muted-foreground mb-1">Payment reference:</p>
-                              <p className="text-xs text-foreground">{m.reference_instructions}</p>
-                            </div>
-                          )}
+                          <p className="font-semibold text-foreground text-sm mb-2">{s.bank_name || s.name}</p>
+                          {s.name && <CopyRow label="Account Name" value={s.name} />}
+                          {s.account_number && <CopyRow label="Account Number" value={s.account_number} />}
+                          {s.swift_code && <CopyRow label="SWIFT Code" value={s.swift_code} />}
+                          <CopyRow label="Currency" value={s.currency} />
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {methods.length === 0 && (
+                {/* Mobile money */}
+                {mobileSources.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
+                      <RiSmartphoneLine className="w-4 h-4" /> Mobile Money
+                    </h3>
+                    <div className="space-y-3">
+                      {mobileSources.map((s) => (
+                        <div
+                          key={s.id}
+                          onClick={() => setSelectedSource(s)}
+                          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                            selectedSource?.id === s.id
+                              ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
+                              : 'border-border hover:border-[rgb(var(--brand-dark))]/40'
+                          }`}
+                        >
+                          <p className="font-semibold text-foreground text-sm mb-2">{s.name}</p>
+                          {s.phone_number && <CopyRow label="Phone Number" value={s.phone_number} />}
+                          <CopyRow label="Provider" value={s.provider_name || s.provider} />
+                          <CopyRow label="Currency" value={s.currency} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {sources.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No manual payment methods configured yet. Please contact support.
+                    No payment accounts configured. Please contact support.
                   </p>
                 )}
               </div>
 
-              {/* Confirmation */}
-              {selectedMethod && (
+              {selectedSource && (
                 <div className="bg-card border border-border rounded-2xl p-6">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Confirm your payment</h3>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Payment reference / transaction ID <span className="text-muted-foreground">(optional)</span>
+                      Payment reference <span className="text-muted-foreground">(optional)</span>
                     </label>
-                    <input
-                      type="text"
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      placeholder="e.g. TXN-12345 or your phone number"
-                      className="w-full h-11 px-4 bg-muted/50 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    <Input
+                      value={reference} onChange={(e) => setReference(e.target.value)}
+                      placeholder="e.g. TXN-12345" className="h-11"
                     />
                   </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="w-full py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 disabled:opacity-50 transition-all"
-                  >
-                    {submitting ? 'Submitting...' : "I've made payment"}
-                  </button>
+                  <Button onClick={handleSubmit} className="w-full">I've made payment</Button>
                   <p className="mt-3 text-xs text-center text-muted-foreground">
-                    Our team will verify your payment and activate your subscription within 24 hours.
+                    We'll verify and activate your subscription within 24 hours.
                   </p>
                 </div>
               )}

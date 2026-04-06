@@ -1,39 +1,43 @@
 /**
- * Payment Source Types
- * 
- * Types for payment sources (Mobile Money Accounts and Bank Accounts)
+ * Unified Payment Source Types
+ *
+ * Every provider account linked to an organization produces a PaymentSource.
+ * Each source declares what it supports (collection, disbursement) so the UI
+ * can show the right options for invoices (payins), bills (payouts), and
+ * subscription checkout.
  */
 
-export type PaymentSourceType = 'mobile_money' | 'bank_account';
+export type PaymentSourceType = 'mobile_money' | 'bank_account' | 'ozow' | 'paystack' | 'netcash';
 
-export interface MobileMoneySource {
+export interface PaymentSource {
   id: string;
-  type: 'mobile_money';
+  type: PaymentSourceType;
   name: string;
-  provider: string;  // e.g., 'mtn', 'airtel'
-  provider_name: string;  // e.g., 'MTN Uganda Sandbox'
-  phone_number: string;
+  provider: string;             // e.g. 'mtn', 'airtel', 'ozow', 'stanbic'
+  provider_name?: string;       // e.g. 'MTN Uganda Production'
   currency: string;
-  balance: string;
+  balance?: string;
+  phone_number?: string;        // for mobile money
+  account_number?: string;      // for bank accounts
+  bank_name?: string;
+  bank_code?: string;
+  swift_code?: string;
   is_default: boolean;
-  environment: 'sandbox' | 'production';
+  environment?: string;         // 'sandbox' | 'production'
+  region?: string;              // 'Uganda', 'South Africa', etc.
+  supports_collection: boolean;
+  supports_disbursement: boolean;
+  requires_phone: boolean;
+  // Currency conversion (when source currency differs from org default)
+  conversion_rate?: number;
+  conversion_to?: string;
+  conversion_provider?: string;
 }
-
-export interface BankAccountSource {
-  id: string;
-  type: 'bank_account';
-  name: string;
-  bank_name: string;
-  account_number: string;
-  currency: string;
-  balance: string;
-  is_default: boolean;
-}
-
-export type PaymentSource = MobileMoneySource | BankAccountSource;
 
 export interface PaymentSourcesResponse {
-  mobile_money_accounts: MobileMoneySource[];
-  bank_accounts: BankAccountSource[];
+  sources: PaymentSource[];
+  // Legacy format (backwards compat)
+  mobile_money_accounts: PaymentSource[];
+  bank_accounts: PaymentSource[];
   total_sources: number;
 }
