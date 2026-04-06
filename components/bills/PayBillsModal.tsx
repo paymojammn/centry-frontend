@@ -82,6 +82,11 @@ export default function PayBillsModal({
   const { data: sourcesData, isLoading: sourcesLoading, error: sourcesError } = usePaymentSources(organizationId);
   const allSources = useMemo(() => {
     if (!sourcesData) return [];
+    // Use unified sources array (includes Ozow, Paystack, Netcash + mobile money + bank)
+    if (sourcesData.sources?.length) {
+      return sourcesData.sources.filter((s: any) => s.supports_disbursement !== false);
+    }
+    // Fallback to legacy format
     return [
       ...(sourcesData.mobile_money_accounts || []),
       ...(sourcesData.bank_accounts || [])

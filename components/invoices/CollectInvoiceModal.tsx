@@ -88,16 +88,7 @@ export default function CollectInvoiceModal({
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['invoice-stats'] });
 
-      // Ozow: redirect to payment page
-      if (selectedSource?.type === 'ozow' && data.results.length === 1) {
-        const ref = data.results[0]?.reference || '';
-        if (ref.startsWith('http')) {
-          toast.success('Redirecting to payment page...');
-          window.location.href = ref;
-          return;
-        }
-      }
-
+      // Show results with payment links (Ozow sends link to customer, not redirect)
       setResults(data.results);
       setStep('result');
       if (data.summary.successful > 0) toast.success(`${data.summary.successful} collection(s) initiated`);
@@ -231,13 +222,49 @@ export default function CollectInvoiceModal({
             <div className="space-y-4">
               {results.map((r) => {
                 const inv = invoices.find((i) => i.id === r.invoice_id);
+                const hasPaymentLink = r.payment_link && r.payment_link.startsWith('http');
                 return (
-                  <div key={r.invoice_id} className="flex items-center gap-3 p-3 rounded-lg border border-border">
-                    {r.success ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : <AlertCircle className="h-5 w-5 text-destructive shrink-0" />}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{inv?.customer_name || `#${r.invoice_id}`}</p>
-                      <p className="text-xs text-muted-foreground">{r.success ? `Ref: ${r.reference}` : r.error_message}</p>
+                  <div key={r.invoice_id} className="p-4 rounded-lg border border-border space-y-3">
+                    <div className="flex items-center gap-3">
+                      {r.success ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : <AlertCircle className="h-5 w-5 text-destructive shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{inv?.customer_name || `#${r.invoice_id}`}</p>
+                        <p className="text-xs text-muted-foreground">{r.success ? `Ref: ${r.reference}` : r.error_message}</p>
+                      </div>
                     </div>
+                    {/* Ozow payment link — copy or send to customer */}
+                    {hasPaymentLink && (
+                      <div className="bg-muted rounded-lg p-3 space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground">Payment link — send to customer</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text" readOnly value={r.payment_link}
+                            className="flex-1 text-xs bg-card border border-border rounded px-2 py-1.5 text-foreground truncate"
+                          />
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(r.payment_link); }}
+                            className="px-3 py-1.5 text-xs font-medium bg-card border border-border rounded hover:bg-muted transition-colors shrink-0"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <a
+                            href={`mailto:${inv?.customer_name || ''}?subject=Payment for Invoice ${inv?.invoice_number || ''}&body=Please complete your payment using this link: ${r.payment_link}`}
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            Send via Email
+                          </a>
+                          <span className="text-muted-foreground">|</span>
+                          <a
+                            href={r.payment_link} target="_blank" rel="noopener noreferrer"
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            Open link
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
