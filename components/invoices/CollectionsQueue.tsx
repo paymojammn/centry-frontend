@@ -8,7 +8,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollectionEvents } from '@/hooks/use-invoices';
+import { api } from '@/lib/api';
 import {
   Loader2,
   ExternalLink,
@@ -49,9 +51,27 @@ interface CollectionsQueueProps {
 }
 
 export default function CollectionsQueue({ organizationId }: CollectionsQueueProps) {
+  const queryClient = useQueryClient();
   const { data: events, isLoading } = useCollectionEvents(organizationId || undefined);
   const [statusFilter, setStatusFilter] = useState('all');
   const [copied, setCopied] = useState('');
+  const [generatingId, setGeneratingId] = useState<number | null>(null);
+
+  const generateLinkMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      setGeneratingId(eventId);
+      return api.post<{ success: boolean; payment_link: string }>(`/api/v1/xero/payments/${eventId}/generate-link/`, {});
+    },
+    onSuccess: (data, eventId) => {
+      if (data.payment_link) {
+        navigator.clipboard.writeText(data.payment_link);
+        setCopied(String(eventId));
+        setTimeout(() => setCopied(''), 3000);
+      }
+      queryClient.invalidateQueries({ queryKey: ['collection-events'] });
+    },
+    onSettled: () => setGeneratingId(null),
+  });
 
   const collections = events || [];
 
@@ -246,7 +266,17 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         </a>
                       </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
+                      <button
+                        onClick={() => generateLinkMutation.mutate(e.id)}
+                        disabled={generatingId === e.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                      >
+                        {generatingId === e.id ? (
+                          <><Loader2 className="h-3 w-3 animate-spin" /> Generating...</>
+                        ) : (
+                          <><ExternalLink className="h-3 w-3" /> Generate Link</>
+                        )}
+                      </button>
                     )}
                   </td>
 
