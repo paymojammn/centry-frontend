@@ -21,10 +21,10 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  DRAFT: { color: '#4E97D1', bg: '#4E97D1/10', label: 'Draft' },
+  DRAFT: { color: '#6B8FB8', bg: '#6B8FB8/10', label: 'Draft' },
   SUBMITTED: { color: '#b08b00', bg: '#fed652/10', label: 'Sent' },
   AUTHORISED: { color: '#f77f00', bg: '#f77f00/10', label: 'Outstanding' },
-  PAID: { color: '#49a034', bg: '#49a034/10', label: 'Paid' },
+  PAID: { color: '#5C8A65', bg: '#5C8A65/10', label: 'Paid' },
   VOIDED: { color: '#bec3c6', bg: '#bec3c6/10', label: 'Voided' },
 };
 

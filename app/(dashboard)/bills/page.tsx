@@ -2,10 +2,10 @@
  * Bills Page - Accounts Payable Invoices
  *
  * Color Scheme:
- * - #4E97D1 Blue - Draft
+ * - #6B8FB8 Blue - Draft
  * - #fed652 Mustard – Awaiting Approval
  * - #f77f00 Orange – Awaiting Payment
- * - #49a034 Green – Paid
+ * - #5C8A65 Green – Paid
  * - #bec3c6 Grey - Repeating
  */
 

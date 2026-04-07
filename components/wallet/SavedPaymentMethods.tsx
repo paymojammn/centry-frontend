@@ -7,7 +7,7 @@ import type { SavedPaymentMethod } from '@/types/wallet';
 import SavePaymentMethodModal from './SavePaymentMethodModal';
 
 // Card gradient configurations for different providers using brand colors
-// #4E97D1 Blue, #fed652 Mustard, #f77f00 Orange, #49a034 Green, #bec3c6 Grey
+// #6B8FB8 Blue, #fed652 Mustard, #f77f00 Orange, #5C8A65 Green, #bec3c6 Grey
 const cardStyles: Record<string, { gradient: string; accent: string; pattern: string }> = {
   mtn: {
     gradient: 'from-[#fed652] via-[#f5c842] to-[#f77f00]',
@@ -20,14 +20,14 @@ const cardStyles: Record<string, { gradient: string; accent: string; pattern: st
     pattern: 'bg-gradient-to-br from-[#f77f00]/20 to-transparent',
   },
   mpesa: {
-    gradient: 'from-primary via-[#3d8a2a] to-[#2d6b1f]',
+    gradient: 'from-primary via-[#4A7252] to-[#3A5B42]',
     accent: 'bg-primary/40',
     pattern: 'bg-gradient-to-br from-primary/20 to-transparent',
   },
   bank: {
-    gradient: 'from-[#4E97D1] via-[#3d7ab3] to-[#2c5d8a]',
-    accent: 'bg-[#4E97D1]/40',
-    pattern: 'bg-gradient-to-br from-[#4E97D1]/20 to-transparent',
+    gradient: 'from-[#6B8FB8] via-[#567A9E] to-[#3F5D7A]',
+    accent: 'bg-[#6B8FB8]/40',
+    pattern: 'bg-gradient-to-br from-[#6B8FB8]/20 to-transparent',
   },
   default: {
     gradient: 'from-[#bec3c6] via-[#9ca3a8] to-[#6b7280]',

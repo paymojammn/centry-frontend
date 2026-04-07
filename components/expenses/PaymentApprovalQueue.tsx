@@ -56,9 +56,9 @@ interface PaymentApprovalQueueProps {
 // Status colors matching expenses page
 const PAYMENT_STATUS_COLORS = {
   pending: { bg: '#fed652', text: '#7a5c00' },
-  approved: { bg: '#4E97D1', text: '#ffffff' },
+  approved: { bg: '#6B8FB8', text: '#ffffff' },
   processing: { bg: '#9b59b6', text: '#ffffff' },
-  completed: { bg: '#49a034', text: '#ffffff' },
+  completed: { bg: '#5C8A65', text: '#ffffff' },
   failed: { bg: '#dc2626', text: '#ffffff' },
   rejected: { bg: '#bec3c6', text: '#4a5568' },
 } as const;
@@ -376,7 +376,7 @@ export default function PaymentApprovalQueue({
                             size="sm"
                             onClick={() => handleProcess(request)}
                             disabled={isProcessing}
-                            className="h-7 px-3 bg-[#4E97D1] hover:bg-[#3d7ab0] text-white"
+                            className="h-7 px-3 bg-[#6B8FB8] hover:bg-[#567A9E] text-white"
                           >
                             <Play className="h-3 w-3 mr-1" />
                             Pay

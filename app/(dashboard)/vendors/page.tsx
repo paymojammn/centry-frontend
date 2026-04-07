@@ -127,7 +127,7 @@ export default function VendorsPage() {
   // Stats bar data
   const statsBarData = [
     { label: 'Total', value: stats.total, color: 'rgb(var(--brand-primary))' },
-    { label: 'Suppliers', value: stats.suppliers, color: '#4E97D1' },
+    { label: 'Suppliers', value: stats.suppliers, color: '#6B8FB8' },
     { label: 'Customers', value: stats.customers, color: 'rgb(var(--brand-primary))' },
     { label: 'Active', value: stats.active, color: '#fed652' },
   ];

@@ -31,9 +31,9 @@ import { StatusDot } from '@/components/ui/status-badge';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   PENDING_APPROVAL: { label: 'Pending', color: '#b08b00', bg: '#fed652' },
-  PROCESSING: { label: 'Processing', color: '#4E97D1', bg: '#4E97D1' },
+  PROCESSING: { label: 'Processing', color: '#6B8FB8', bg: '#6B8FB8' },
   SENT_PAYMENT: { label: 'Sent', color: '#f77f00', bg: '#f77f00' },
-  SUCCESS_PAYMENT: { label: 'Paid', color: '#49a034', bg: '#49a034' },
+  SUCCESS_PAYMENT: { label: 'Paid', color: '#5C8A65', bg: '#5C8A65' },
   FAILED_PAYMENT: { label: 'Failed', color: '#dc2626', bg: '#dc2626' },
   ERROR_PAYMENT: { label: 'Failed', color: '#dc2626', bg: '#dc2626' },
   REJECTED: { label: 'Rejected', color: '#dc2626', bg: '#dc2626' },

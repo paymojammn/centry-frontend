@@ -271,7 +271,7 @@ export default function PricingPage() {
                     href={ctaHref}
                     className={`mt-6 w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                       tier.highlighted
-                        ? 'bg-[rgb(var(--brand-dark))] text-white hover:bg-[#2d3a44]'
+                        ? 'bg-[rgb(var(--brand-dark))] text-white hover:bg-[#2C2C2E]'
                         : 'bg-muted text-foreground hover:bg-muted'
                     }`}
                   >

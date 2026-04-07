@@ -8,10 +8,10 @@
  * - SENT_PAYMENT/SUCCESS_PAYMENT/FAILED_PAYMENT: Final states
  *
  * Color Scheme:
- * - #4E97D1 Blue - Draft
+ * - #6B8FB8 Blue - Draft
  * - #fed652 Mustard – Awaiting Approval
  * - #f77f00 Orange – Awaiting Payment
- * - #49a034 Green – Paid
+ * - #5C8A65 Green – Paid
  * - #bec3c6 Grey - Repeating
  */
 
@@ -69,10 +69,10 @@ import { Textarea } from '@/components/ui/textarea';
 // Status color constants (matching bills page)
 const STATUS_COLORS = {
   pending_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
-  processing: { bg: '#4E97D1', text: '#ffffff', light: '#E8F2FA' },
+  processing: { bg: '#6B8FB8', text: '#ffffff', light: '#E8F2FA' },
   pending: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
   sent: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5' },
-  success: { bg: '#49a034', text: '#ffffff', light: '#E8F5E5' },
+  success: { bg: '#5C8A65', text: '#ffffff', light: '#E8F5E5' },
   failed: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
 } as const;
 
