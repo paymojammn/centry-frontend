@@ -21,26 +21,25 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
   
-  /** Brand Colors - Deep Forest Green **/
-  --brand-primary: 45 90 71; /* #2D5A47 - Deep green */
-  --brand-primary-light: 60 110 88; /* #3C6E58 - Lighter green */
-  --brand-primary-dark: 30 58 47; /* #1E3A2F - Darkest green */
-  --brand-dark: 30 58 47; /* #1E3A2F - Deep forest (sidebar/headers) */
-  --brand-dark-light: 40 72 58; /* #28483A - Lighter forest */
-  --brand-black: 30 58 47; /* Deep forest, not pure black */
+  /** Brand Colors - Muted Sage / European Fintech **/
+  --brand-primary: 92 138 101; /* #5C8A65 - Muted Sage Green */
+  --brand-primary-light: 120 160 128; /* #78A080 - Lighter sage */
+  --brand-primary-dark: 72 118 81; /* #487651 - Darker sage */
+  --brand-dark: 28 28 30; /* #1C1C1E - Charcoal */
+  --brand-dark-light: 44 44 46; /* #2C2C2E - Lighter charcoal */
+  --brand-black: 28 28 30; /* Charcoal, not pure black */
   --brand-white: 255 255 255;
-  --brand-gray-light: 250 246 240; /* #FAF6F0 - Cream */
+  --brand-gray-light: 248 248 247; /* #F8F8F7 - Soft off-white */
   --brand-gray: 107 107 111; /* #6B6B6F - Warm grey */
   --brand-gray-dark: 92 92 96; /* #5C5C60 - Subtle graphite */
-  --brand-accent: 197 232 108; /* #C5E86C - Lime accent for CTAs */
 
   /** Accent Colors **/
   --accent-sand: 176 162 138; /* #B0A28A - Deep sand */
   --accent-graphite: 92 92 96; /* #5C5C60 - Subtle graphite */
 
   /** Page-level tokens **/
-  --page-bg: 250 246 240; /* #FAF6F0 - Cream */
-  --page-bg-subtle: 244 240 234; /* #F4F0EA - Slightly deeper cream */
+  --page-bg: 248 248 247; /* #F8F8F7 - Soft off-white */
+  --page-bg-subtle: 242 242 240; /* #F2F2F0 - Slightly deeper */
 
   /** Semantic Status Colors **/
   --warning: 196 163 64; /* #C4A340 - Warm amber */
@@ -49,12 +48,12 @@
   /** Border & Divider Colors **/
   --divider-light: 235 235 234; /* #EBEBEA - Very subtle hairline */
   --divider-warm: 220 220 218; /* #DCDCDA - Warm neutral grey */
-  --divider-teal: rgba(45, 90, 71, 0.12); /* Green accent border */
-  --hover-row: rgba(45, 90, 71, 0.05); /* Very subtle green hover */
+  --divider-teal: rgba(92, 138, 101, 0.12); /* Sage accent border */
+  --hover-row: rgba(92, 138, 101, 0.05); /* Very subtle sage hover */
 
-  --background: rgb(var(--brand-gray-light)); /* Cream background */
-  --foreground: rgb(var(--brand-dark)); /* Deep forest #1E3A2F */
-  --card: rgb(var(--brand-white)); /* White cards on cream */
+  --background: rgb(var(--brand-white));
+  --foreground: rgb(var(--brand-dark)); /* Charcoal #1C1C1E */
+  --card: rgb(var(--brand-white));
   --card-foreground: rgb(var(--brand-dark));
   --popover: rgb(var(--brand-white));
   --popover-foreground: rgb(var(--brand-dark));
@@ -83,7 +82,7 @@
 
 .dark {
   --page-bg: var(--brand-dark);
-  --page-bg-subtle: 40 72 58;
+  --page-bg-subtle: 44 44 46;
 
   --background: rgb(var(--brand-dark));
   --foreground: rgb(220 220 218);
@@ -93,19 +92,19 @@
   --popover-foreground: rgb(220 220 218);
   --primary: rgb(var(--brand-primary));
   --primary-foreground: rgb(var(--brand-white));
-  --secondary: rgb(40 72 58);
+  --secondary: rgb(44 44 46);
   --secondary-foreground: rgb(200 200 198);
-  --muted: rgb(40 72 58);
-  --muted-foreground: rgb(140 160 150);
-  --accent: rgb(var(--brand-accent));
-  --accent-foreground: rgb(var(--brand-dark));
+  --muted: rgb(44 44 46);
+  --muted-foreground: rgb(140 140 144);
+  --accent: rgb(var(--brand-primary-light));
+  --accent-foreground: rgb(var(--brand-white));
   --destructive: 184 92 92;
   --destructive-foreground: rgb(var(--brand-white));
-  --border: rgb(50 85 68);
-  --input: rgb(50 85 68);
+  --border: rgb(60 60 64);
+  --input: rgb(60 60 64);
   --ring: rgb(var(--brand-primary));
-  --divider-teal: rgba(45, 90, 71, 0.2);
-  --hover-row: rgba(45, 90, 71, 0.08);
+  --divider-teal: rgba(92, 138, 101, 0.2);
+  --hover-row: rgba(92, 138, 101, 0.08);
 
   --chart-1: rgb(var(--brand-primary));
   --chart-2: rgb(var(--brand-primary-light));
@@ -144,7 +143,6 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: rgb(var(--destructive));
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-accent-lime: rgb(var(--brand-accent));
 
   /** Base Styles **/
   --color-border: var(--border);
