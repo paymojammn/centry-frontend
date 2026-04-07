@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   getSubscriptionDetails,
   getPaymentHistory,
-  redirectToBillingPortal,
   cancelSubscription,
   OrganizationSubscription,
   Payment,
@@ -44,13 +43,8 @@ export default function BillingPage() {
     loadBillingData();
   }, [router]);
 
-  const handleManagePayment = async () => {
-    try {
-      await redirectToBillingPortal();
-    } catch (err) {
-      console.error('Failed to open billing portal:', err);
-      setError('Failed to open billing portal');
-    }
+  const handleManagePayment = () => {
+    router.push('/billing/manage');
   };
 
   const handleCancelSubscription = async () => {
