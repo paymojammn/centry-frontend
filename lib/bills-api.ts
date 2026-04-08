@@ -245,6 +245,16 @@ export const paymentEventsApi = {
   },
 
   /**
+   * Send provider payout (Ozow, Paystack, etc.) for PROCESSING payments
+   */
+  async sendProviderPayout(paymentEventIds: number[]): Promise<any> {
+    return await api.post<any>(
+      `${PAYMENTS_BASE_URL}/send-provider-payout/`,
+      { payment_event_ids: paymentEventIds }
+    );
+  },
+
+  /**
    * Deny payments - cancels payment and restores bill to payable status
    */
   async denyPayments(paymentEventIds: number[], reason?: string): Promise<DenyPaymentsResponse> {

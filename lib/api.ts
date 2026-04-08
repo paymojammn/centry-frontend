@@ -75,13 +75,32 @@ export async function apiRequest<T>(
       detail: 'An error occurred',
     }));
 
-    // Handle authentication errors - redirect to login
+    // Handle authentication errors — try refresh before logging out
     if (response.status === 401) {
-      // Clear auth token and redirect to login
       if (typeof window !== 'undefined') {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          try {
+            const refreshResp = await fetch('/api/v1/users/token/refresh/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh: refreshToken }),
+            });
+            if (refreshResp.ok) {
+              const data = await refreshResp.json();
+              localStorage.setItem('auth_token', data.access || data.access_token);
+              if (data.refresh || data.refresh_token) {
+                localStorage.setItem('refresh_token', data.refresh || data.refresh_token);
+              }
+              // Retry the original request with the new token
+              return apiRequest<T>(endpoint, options);
+            }
+          } catch {
+            // Refresh failed — fall through to logout
+          }
+        }
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
-        // Redirect to login page
         window.location.href = '/auth/login';
       }
       throw new Error('Session expired. Please log in again.');

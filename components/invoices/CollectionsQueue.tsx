@@ -44,6 +44,7 @@ const METHOD_ICONS: Record<string, typeof Smartphone> = {
   mtn_momo: Smartphone,
   airtel_momo: Phone,
   bank_transfer: Building2,
+  ozow_eft: CreditCard,
 };
 
 interface CollectionsQueueProps {

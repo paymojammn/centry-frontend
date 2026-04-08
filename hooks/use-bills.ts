@@ -150,6 +150,21 @@ export function useGeneratePaymentFile() {
 }
 
 /**
+ * Hook to send provider payout (Ozow, Paystack, etc.)
+ */
+export function useSendProviderPayout() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, number[]>({
+    mutationFn: (paymentEventIds) => paymentEventsApi.sendProviderPayout(paymentEventIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+    },
+  });
+}
+
+/**
  * Hook to deny payments (cancel and restore bill to payable)
  */
 export function useDenyPayments() {

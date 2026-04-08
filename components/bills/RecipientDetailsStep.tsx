@@ -1,22 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
-import { User, Building2, Globe, Search, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Building2, Globe, ChevronDown, Download, Check, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
+import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import type { Bill } from '@/types/bill';
 
 interface RecipientDetails {
   bill_id: number;
   recipient_type: 'bank' | 'international';
-  // For local bank account
   recipient_bank_id?: number;
   bank_name?: string;
   swift_code?: string;
   account_number?: string;
   account_name?: string;
-  // For international remittance
   iban?: string;
   intermediary_bank_id?: number;
   beneficiary_street?: string;
@@ -34,6 +46,8 @@ interface RecipientDetailsStepProps {
   recipients: Map<number, RecipientDetails>;
   onRecipientsChange: (recipients: Map<number, RecipientDetails>) => void;
   paymentMethod: 'mobile_money' | 'bank_account';
+  /** ISO country codes the selected provider supports, e.g. ['ZA'] for Ozow. */
+  sourceCountryCodes?: string[];
 }
 
 const PURPOSE_CODES = [
@@ -55,531 +69,404 @@ const CHARGES_BEARER_OPTIONS = [
   { value: 'CRED', label: 'Beneficiary (CRED)' },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  Searchable Combobox                                                */
+/* ------------------------------------------------------------------ */
+function SearchableSelect({
+  label,
+  placeholder,
+  value,
+  displayValue,
+  onSelect,
+  options,
+  loading,
+  optional,
+}: {
+  label: string;
+  placeholder: string;
+  value: string | number;
+  displayValue: string;
+  onSelect: (value: string) => void;
+  options: { value: string; label: string; hint?: string }[];
+  loading?: boolean;
+  optional?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+        {label}{optional && <span className="text-muted-foreground/40 ml-1">(optional)</span>}
+      </label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="w-full h-10 px-3 pr-9 border border-border rounded-lg text-sm bg-card text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors relative"
+          >
+            <span className={displayValue ? 'text-foreground truncate' : 'text-muted-foreground'}>
+              {displayValue || placeholder}
+            </span>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start" sideOffset={4}>
+          <Command>
+            <CommandInput placeholder={`Search ${label.toLowerCase()}...`} className="h-9" />
+            <CommandList className="max-h-52">
+              <CommandEmpty>
+                {loading ? 'Loading...' : 'No results found.'}
+              </CommandEmpty>
+              <CommandGroup>
+                {options.map((opt) => (
+                  <CommandItem
+                    key={opt.value}
+                    value={opt.label}
+                    onSelect={() => {
+                      onSelect(opt.value);
+                      setOpen(false);
+                    }}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm truncate">{opt.label}</span>
+                      {opt.hint && (
+                        <span className="ml-2 text-xs text-muted-foreground">{opt.hint}</span>
+                      )}
+                    </div>
+                    {String(value) === opt.value && (
+                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Simple Select (for small lists like Purpose, Charges)              */
+/* ------------------------------------------------------------------ */
+function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+  optional,
+}: {
+  label: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: React.ReactNode;
+  optional?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+        {label}{optional && <span className="text-muted-foreground/40 ml-1">(optional)</span>}
+      </label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={onChange}
+          className="w-full h-10 px-3 pr-9 border border-border rounded-lg text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary appearance-none transition-colors"
+        >
+          {children}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Text Field                                                         */
+/* ------------------------------------------------------------------ */
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  optional,
+  hint,
+  maxLength,
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  optional?: boolean;
+  hint?: string;
+  maxLength?: number;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+        {label}{optional && <span className="text-muted-foreground/40 ml-1">(optional)</span>}
+      </label>
+      <Input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        className="h-10"
+      />
+      {hint && <p className="text-[10px] text-muted-foreground mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Component                                                     */
+/* ------------------------------------------------------------------ */
 export default function RecipientDetailsStep({
   bills,
   recipients,
   onRecipientsChange,
-  paymentMethod
+  paymentMethod,
+  sourceCountryCodes,
 }: RecipientDetailsStepProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBillId, setSelectedBillId] = useState<number | null>(null);
   const [recipientType, setRecipientType] = useState<'bank' | 'international'>('bank');
-  const [bankSearchQuery, setBankSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [loadingErp, setLoadingErp] = useState<number | null>(null);
 
-  // Handle recipient type change - clear incompatible fields
+  const defaultLocalCountry = sourceCountryCodes?.[0] || 'UG';
+
   const handleRecipientTypeChange = (newType: 'bank' | 'international') => {
     setRecipientType(newType);
-
-    const newRecipients = new Map(recipients);
-    newRecipients.forEach((recipient, billId) => {
-      if (newType === 'bank') {
-        newRecipients.set(billId, {
-          bill_id: billId,
-          recipient_type: 'bank',
-          recipient_bank_id: recipient.recipient_bank_id,
-          bank_name: recipient.bank_name,
-          swift_code: recipient.swift_code,
-          account_number: recipient.account_number,
-          account_name: recipient.account_name,
-        });
-      } else {
-        newRecipients.set(billId, {
-          bill_id: billId,
-          recipient_type: 'international',
-          recipient_bank_id: recipient.recipient_bank_id,
-          bank_name: recipient.bank_name,
-          swift_code: recipient.swift_code,
-          account_number: recipient.account_number,
-          account_name: recipient.account_name,
-          iban: recipient.iban,
-          beneficiary_street: recipient.beneficiary_street,
-          beneficiary_city: recipient.beneficiary_city,
-          beneficiary_country: recipient.beneficiary_country,
-          purpose_code: recipient.purpose_code,
-          charges_bearer: recipient.charges_bearer,
-          transfer_currency: recipient.transfer_currency,
-        });
-      }
+    const updated = new Map(recipients);
+    updated.forEach((r, billId) => {
+      updated.set(billId, { ...r, recipient_type: newType });
     });
-    onRecipientsChange(newRecipients);
+    onRecipientsChange(updated);
   };
 
-  // Fetch banks — use selected country for international, UG for local
-  const bankCountry = recipientType === 'international' ? selectedCountry : 'UG';
+  const bankCountry = recipientType === 'international' ? selectedCountry : defaultLocalCountry;
   const { data: banksData, isLoading: banksLoading } = useQuery({
-    queryKey: ['banks', bankCountry, bankSearchQuery],
-    queryFn: () => paymentSourcesApi.getBanks(bankCountry, bankSearchQuery),
+    queryKey: ['banks', bankCountry],
+    queryFn: () => paymentSourcesApi.getBanks(bankCountry, ''),
     enabled: !!bankCountry,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch countries that have banks in the system
   const { data: countriesData } = useQuery({
     queryKey: ['bank-countries'],
     queryFn: () => paymentSourcesApi.getBankCountries(),
     staleTime: 30 * 60 * 1000,
   });
 
-  // Fetch vendor payment details when switching to bank payment
-  const fetchVendorPaymentDetails = async (bill: Bill) => {
+  // Build searchable option lists
+  const bankOptions = useMemo(() => {
+    if (!banksData?.banks) return [];
+    return banksData.banks.map((bank: any) => ({
+      value: String(bank.id),
+      label: bank.short_name || bank.name,
+      hint: bank.swift_code || undefined,
+    }));
+  }, [banksData]);
+
+  const countryOptions = useMemo(() => {
+    if (!countriesData?.countries) return [];
+    return countriesData.countries.map((c: any) => ({
+      value: c.code,
+      label: c.name,
+    }));
+  }, [countriesData]);
+
+  const update = (billId: number, fields: Partial<RecipientDetails>) => {
+    const updated = new Map(recipients);
+    const existing = updated.get(billId) || { bill_id: billId, recipient_type: recipientType };
+    updated.set(billId, { ...existing, ...fields });
+    onRecipientsChange(updated);
+  };
+
+  const loadFromErp = async (bill: Bill) => {
     if (!bill.contact_id) return;
-
+    setLoadingErp(bill.id);
     try {
-      const paymentDetails = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
-
-      if (paymentDetails.linked_bank_id || paymentDetails.bank_account_number || paymentDetails.bank_account_details) {
-        const updateData: Partial<RecipientDetails> = {
+      const details = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
+      if (details.linked_bank_id || details.bank_account_number || details.bank_account_details) {
+        const fields: Partial<RecipientDetails> = {
           recipient_type: recipientType,
-          account_number: paymentDetails.bank_account_number || '',
-          account_name: paymentDetails.bank_account_name || bill.vendor_name,
+          account_number: details.bank_account_number || '',
+          account_name: details.bank_account_name || bill.vendor_name,
         };
-
-        // Use linked_bank directly from backend (already matched to Bank model)
-        if (paymentDetails.linked_bank_id) {
-          updateData.recipient_bank_id = paymentDetails.linked_bank_id;
-          updateData.bank_name = paymentDetails.linked_bank_name || '';
-          // Also set swift_code if we can find the bank in the loaded list
-          const linkedBank = banksData?.banks.find(b => b.id === paymentDetails.linked_bank_id);
-          if (linkedBank) {
-            updateData.swift_code = linkedBank.swift_code || '';
-          }
-        } else if (paymentDetails.bank_account_name && banksData?.banks) {
-          // Fallback: try client-side fuzzy match
-          const matchedBank = banksData.banks.find(bank =>
-            bank.name.toLowerCase().includes(paymentDetails.bank_account_name!.toLowerCase()) ||
-            (bank.short_name && bank.short_name.toLowerCase().includes(paymentDetails.bank_account_name!.toLowerCase()))
-          );
-          if (matchedBank) {
-            updateData.recipient_bank_id = matchedBank.id;
-            updateData.bank_name = matchedBank.short_name || matchedBank.name;
-          }
+        if (details.linked_bank_id) {
+          fields.recipient_bank_id = details.linked_bank_id;
+          fields.bank_name = details.linked_bank_name || '';
+          const bank = banksData?.banks.find((b: any) => b.id === details.linked_bank_id);
+          if (bank) fields.swift_code = bank.swift_code || '';
         }
-
-        handleRecipientUpdate(bill.id, updateData);
-      } else {
-        alert('No bank account details found for this vendor in ERP');
+        update(bill.id, fields);
       }
-    } catch {
-      alert('Failed to load bank details from ERP. Please enter manually.');
-    }
+    } catch { /* silently fail */ }
+    setLoadingErp(null);
   };
 
-  const handleRecipientUpdate = (billId: number, details: Partial<RecipientDetails>) => {
-    const newRecipients = new Map(recipients);
-    const existing = newRecipients.get(billId) || { bill_id: billId, recipient_type: recipientType };
-    newRecipients.set(billId, { ...existing, ...details });
-    onRecipientsChange(newRecipients);
+  const isComplete = (billId: number) => {
+    const r = recipients.get(billId);
+    if (!r) return false;
+    return !!(r.recipient_bank_id && r.account_number && r.account_name);
   };
 
-  const handleBankDetailsChange = (billId: number, field: string, value: string | number | undefined) => {
-    handleRecipientUpdate(billId, {
-      recipient_type: recipientType,
-      [field]: value
-    });
+  const getBankDisplay = (r?: RecipientDetails) => {
+    if (!r?.recipient_bank_id) return '';
+    const bank = banksData?.banks.find((b: any) => b.id === r.recipient_bank_id);
+    if (!bank) return r.bank_name || '';
+    return `${bank.short_name || bank.name}${bank.swift_code ? ` (${bank.swift_code})` : ''}`;
+  };
+
+  const getCountryDisplay = (code?: string) => {
+    if (!code) return '';
+    const c = countriesData?.countries?.find((c: any) => c.code === code);
+    return c?.name || code;
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Recipient Details
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          {paymentMethod === 'mobile_money'
-            ? 'Enter mobile money details for each bill recipient'
-            : 'Choose how to send payments: Local Bank Transfer or International Remittance'
-          }
-        </p>
-      </div>
-
-      {/* Payment Method Toggle for Bank Accounts */}
-      {paymentMethod === 'bank_account' && (
-        <div className="bg-muted rounded-xl p-4">
-          <label className="block text-sm font-medium text-foreground mb-3">
-            Send payments via
-          </label>
-          <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-4">
+      {/* Transfer type toggle — hide for single-country providers (e.g. Ozow = ZA only) */}
+      {paymentMethod === 'bank_account' && (!sourceCountryCodes || sourceCountryCodes.length !== 1) && (
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            { key: 'bank' as const, icon: Building2, label: 'Local Transfer' },
+            { key: 'international' as const, icon: Globe, label: 'International' },
+          ]).map(({ key, icon: Icon, label }) => (
             <button
-              onClick={() => handleRecipientTypeChange('bank')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                recipientType === 'bank'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border bg-card hover:border-border'
+              key={key}
+              onClick={() => handleRecipientTypeChange(key)}
+              className={`flex items-center gap-2.5 p-3 rounded-lg border text-left transition-all ${
+                recipientType === key
+                  ? 'border-foreground bg-foreground text-card'
+                  : 'border-border hover:border-foreground/20'
               }`}
             >
-              <Building2 className={`w-6 h-6 mx-auto mb-2 ${recipientType === 'bank' ? 'text-primary' : 'text-muted-foreground/60'}`} />
-              <div className="font-semibold text-sm">Local Transfer</div>
-              <div className="text-xs text-muted-foreground mt-1">Domestic bank transfer</div>
+              <Icon className={`w-4 h-4 ${recipientType === key ? 'text-card' : 'text-muted-foreground'}`} />
+              <span className="text-sm font-medium">{label}</span>
             </button>
-            <button
-              onClick={() => handleRecipientTypeChange('international')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                recipientType === 'international'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border bg-card hover:border-border'
-              }`}
-            >
-              <Globe className={`w-6 h-6 mx-auto mb-2 ${recipientType === 'international' ? 'text-primary' : 'text-muted-foreground/60'}`} />
-              <div className="font-semibold text-sm">International Remittance</div>
-              <div className="text-xs text-muted-foreground mt-1">Cross-border payment</div>
-            </button>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* Recipients List */}
-      <div className="space-y-4">
-        {bills.map((bill) => {
-          const recipient = recipients.get(bill.id);
-          const currentRecipientType = recipient?.recipient_type || recipientType;
+      {/* Per-bill recipient forms */}
+      {bills.map((bill) => {
+        const r = recipients.get(bill.id);
+        const done = isComplete(bill.id);
 
-          return (
-            <div key={bill.id} className="border-2 border-border rounded-xl p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="font-semibold text-foreground">{bill.vendor_name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Invoice: {bill.invoice_number || 'N/A'} • {String(bill.currency_code).split('.').pop()} {parseFloat(bill.amount_due).toLocaleString()}
-                  </div>
-                </div>
+        return (
+          <div key={bill.id} className="border border-border rounded-lg overflow-hidden">
+            {/* Bill header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b border-border">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{bill.vendor_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {bill.invoice_number || 'N/A'} &middot; {String(bill.currency_code).split('.').pop()} {parseFloat(bill.amount_due).toLocaleString()}
+                </p>
               </div>
-
-              {/* International Remittance Recipient */}
-              {currentRecipientType === 'international' && (
-                <div className="space-y-3">
-                  {/* Country */}
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Beneficiary Country
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={recipient?.beneficiary_country || selectedCountry}
-                        onChange={(e) => {
-                          setSelectedCountry(e.target.value);
-                          handleRecipientUpdate(bill.id, {
-                            recipient_type: 'international',
-                            beneficiary_country: e.target.value,
-                            recipient_bank_id: undefined,
-                            bank_name: undefined,
-                            swift_code: undefined,
-                          });
-                        }}
-                        className="w-full px-4 py-2.5 pr-10 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-card"
-                      >
-                        <option value="">Select country...</option>
-                        {countriesData?.countries?.map((country) => (
-                          <option key={country.code} value={country.code}>
-                            {country.name}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Bank */}
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Beneficiary Bank
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={recipient?.recipient_bank_id || ''}
-                        onChange={(e) => {
-                          const bankId = e.target.value ? parseInt(e.target.value) : undefined;
-                          const selectedBank = banksData?.banks.find(b => b.id === bankId);
-                          handleRecipientUpdate(bill.id, {
-                            recipient_type: 'international',
-                            recipient_bank_id: bankId,
-                            bank_name: selectedBank ? (selectedBank.short_name || selectedBank.name) : undefined,
-                            swift_code: selectedBank?.swift_code || '',
-                          });
-                        }}
-                        className="w-full px-4 py-2.5 pr-10 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-card"
-                      >
-                        <option value="">Select a bank...</option>
-                        {banksLoading ? (
-                          <option disabled>Loading banks...</option>
-                        ) : (
-                          banksData?.banks.map((bank) => (
-                            <option key={bank.id} value={bank.id}>
-                              {bank.short_name || bank.name} {bank.swift_code ? `(${bank.swift_code})` : ''}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 pointer-events-none" />
-                    </div>
-                    {recipient?.swift_code && (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        SWIFT/BIC: {recipient.swift_code}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* IBAN / Account Number */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        IBAN
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.iban || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'iban', e.target.value)}
-                        placeholder="e.g., AO06004400006729503010102"
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Account Number
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.account_number || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'account_number', e.target.value)}
-                        placeholder="If no IBAN"
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Account Name */}
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Beneficiary Name
-                    </label>
-                    <input
-                      type="text"
-                      value={recipient?.account_name || ''}
-                      onChange={(e) => handleBankDetailsChange(bill.id, 'account_name', e.target.value)}
-                      placeholder="Full name of account holder"
-                      className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Beneficiary Address */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Street Address
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.beneficiary_street || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'beneficiary_street', e.target.value)}
-                        placeholder="Street address"
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.beneficiary_city || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'beneficiary_city', e.target.value)}
-                        placeholder="City"
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Purpose Code & Charges Bearer */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Payment Purpose
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={recipient?.purpose_code || ''}
-                          onChange={(e) => handleBankDetailsChange(bill.id, 'purpose_code', e.target.value)}
-                          className="w-full px-4 py-2.5 pr-10 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-card"
-                        >
-                          <option value="">Select purpose...</option>
-                          {PURPOSE_CODES.map((p) => (
-                            <option key={p.value} value={p.value}>{p.label}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 pointer-events-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Charges Bearer
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={recipient?.charges_bearer || 'SHAR'}
-                          onChange={(e) => handleBankDetailsChange(bill.id, 'charges_bearer', e.target.value)}
-                          className="w-full px-4 py-2.5 pr-10 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-card"
-                        >
-                          {CHARGES_BEARER_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Transfer Currency & Regulatory Info */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Transfer Currency <span className="text-muted-foreground/50">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.transfer_currency || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'transfer_currency', e.target.value.toUpperCase())}
-                        placeholder="e.g., USD"
-                        maxLength={3}
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        Regulatory Info <span className="text-muted-foreground/50">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient?.regulatory_info || ''}
-                        onChange={(e) => handleBankDetailsChange(bill.id, 'regulatory_info', e.target.value)}
-                        placeholder="Payment description"
-                        className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Local Bank Account Recipient */}
-              {currentRecipientType === 'bank' && (
-                <div className="space-y-3">
-                  {/* Auto-load from ERP button */}
-                  {!recipient?.account_number && (
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
-                      <button
-                        onClick={() => fetchVendorPaymentDetails(bill)}
-                        disabled={!bill.contact_id}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/80 disabled:bg-muted disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
-                      >
-                        <Building2 className="w-4 h-4" />
-                        {bill.contact_id ? 'Load bank details from ERP' : 'No ERP contact linked'}
-                      </button>
-                      {bill.contact_id && (
-                        <p className="text-xs text-primary/80 mt-2 text-center">
-                          Click to auto-fill from Xero contact
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Bank Name
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={recipient?.recipient_bank_id || ''}
-                        onChange={(e) => {
-                          const bankId = e.target.value ? parseInt(e.target.value) : undefined;
-                          const selectedBank = banksData?.banks.find(b => b.id === bankId);
-
-                          handleRecipientUpdate(bill.id, {
-                            recipient_type: 'bank',
-                            recipient_bank_id: bankId,
-                            bank_name: selectedBank ? (selectedBank.short_name || selectedBank.name) : undefined,
-                            swift_code: selectedBank?.swift_code || ''
-                          });
-                        }}
-                        className="w-full px-4 py-2.5 pr-10 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-card"
-                      >
-                        <option value="">Select a bank...</option>
-                        {banksLoading ? (
-                          <option disabled>Loading banks...</option>
-                        ) : (
-                          banksData?.banks.map((bank) => (
-                            <option key={bank.id} value={bank.id}>
-                              {bank.short_name || bank.name} {bank.swift_code ? `(${bank.swift_code})` : ''}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 pointer-events-none" />
-                    </div>
-                    {recipient?.swift_code && (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        SWIFT: {recipient.swift_code}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Account Number
-                      {recipient?.account_number && bill.contact_id && (
-                        <span className="ml-2 text-primary text-xs">From ERP</span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      value={recipient?.account_number || ''}
-                      onChange={(e) => handleBankDetailsChange(bill.id, 'account_number', e.target.value)}
-                      placeholder="e.g., 1234567890"
-                      className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                      Account Name
-                    </label>
-                    <input
-                      type="text"
-                      value={recipient?.account_name || ''}
-                      onChange={(e) => handleBankDetailsChange(bill.id, 'account_name', e.target.value)}
-                      placeholder="e.g., John Doe"
-                      className="w-full px-4 py-2.5 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
+              {done && (
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0 ml-2">
+                  <Check className="w-3 h-3 text-white" />
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
 
-      {/* Contact Selection Modal (placeholder) */}
-      {selectedBillId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20">
-          <div className="bg-card rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold mb-4">Select Contact</h3>
-            <div className="mb-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search contacts..."
-                className="w-full px-4 py-2 border-2 border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            <div className="p-4 space-y-3">
+              {/* Load from ERP */}
+              {!r?.account_number && bill.contact_id && (
+                <button
+                  onClick={() => loadFromErp(bill)}
+                  disabled={loadingErp === bill.id}
+                  className="w-full flex items-center justify-center gap-2 h-9 text-xs font-medium text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {loadingErp === bill.id ? 'Loading...' : 'Load from ERP'}
+                </button>
+              )}
+
+              {/* International: country selector */}
+              {recipientType === 'international' && (
+                <SearchableSelect
+                  label="Country"
+                  placeholder="Search country..."
+                  value={r?.beneficiary_country || selectedCountry}
+                  displayValue={getCountryDisplay(r?.beneficiary_country || selectedCountry)}
+                  options={countryOptions}
+                  onSelect={(code) => {
+                    setSelectedCountry(code);
+                    update(bill.id, {
+                      recipient_type: 'international',
+                      beneficiary_country: code,
+                      recipient_bank_id: undefined,
+                      bank_name: undefined,
+                      swift_code: undefined,
+                    });
+                  }}
+                />
+              )}
+
+              {/* Bank selector */}
+              <SearchableSelect
+                label="Bank"
+                placeholder="Search bank..."
+                value={r?.recipient_bank_id ? String(r.recipient_bank_id) : ''}
+                displayValue={getBankDisplay(r)}
+                options={bankOptions}
+                loading={banksLoading}
+                onSelect={(val) => {
+                  const bankId = val ? parseInt(val) : undefined;
+                  const bank = banksData?.banks.find((b: any) => b.id === bankId);
+                  update(bill.id, {
+                    recipient_type: recipientType,
+                    recipient_bank_id: bankId,
+                    bank_name: bank ? (bank.short_name || bank.name) : undefined,
+                    swift_code: bank?.swift_code || '',
+                  });
+                }}
               />
+              {r?.swift_code && (
+                <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
+              )}
+
+              {/* Account fields */}
+              {recipientType === 'international' ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextField label="IBAN" value={r?.iban || ''} onChange={(v) => update(bill.id, { iban: v })} placeholder="IBAN" />
+                    <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="If no IBAN" />
+                  </div>
+                  <TextField label="Beneficiary Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Full name" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextField label="Street" value={r?.beneficiary_street || ''} onChange={(v) => update(bill.id, { beneficiary_street: v })} placeholder="Street" optional />
+                    <TextField label="City" value={r?.beneficiary_city || ''} onChange={(v) => update(bill.id, { beneficiary_city: v })} placeholder="City" optional />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <SelectField label="Purpose" value={r?.purpose_code || ''} onChange={(e) => update(bill.id, { purpose_code: e.target.value })}>
+                      <option value="">Select...</option>
+                      {PURPOSE_CODES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </SelectField>
+                    <SelectField label="Charges" value={r?.charges_bearer || 'SHAR'} onChange={(e) => update(bill.id, { charges_bearer: e.target.value })}>
+                      {CHARGES_BEARER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </SelectField>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextField label="Transfer Currency" value={r?.transfer_currency || ''} onChange={(v) => update(bill.id, { transfer_currency: v.toUpperCase() })} placeholder="USD" optional maxLength={3} />
+                    <TextField label="Regulatory Info" value={r?.regulatory_info || ''} onChange={(v) => update(bill.id, { regulatory_info: v })} placeholder="Description" optional />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined} />
+                  <TextField label="Account Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Account holder name" />
+                </>
+              )}
             </div>
-            <div className="text-center py-8 text-muted-foreground">
-              <User className="w-12 h-12 mx-auto mb-2 text-muted-foreground/40" />
-              <p>Contact integration coming soon</p>
-            </div>
-            <button
-              onClick={() => setSelectedBillId(null)}
-              className="w-full mt-4 px-4 py-2 bg-muted hover:bg-muted rounded-lg font-medium"
-            >
-              Close
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }

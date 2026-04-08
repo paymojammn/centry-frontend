@@ -25,6 +25,7 @@ export interface PaymentSource {
   is_default: boolean;
   environment?: string;         // 'sandbox' | 'production'
   region?: string;              // 'Uganda', 'South Africa', etc.
+  country_codes?: string[];     // ISO codes the provider supports, e.g. ['ZA']
   supports_collection: boolean;
   supports_disbursement: boolean;
   requires_phone: boolean;

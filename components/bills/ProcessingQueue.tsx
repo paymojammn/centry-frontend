@@ -24,6 +24,7 @@ import {
   useApprovePayments,
   useRejectPayments,
   useGeneratePaymentFile,
+  useSendProviderPayout,
   useDenyPayments,
 } from '@/hooks/use-bills';
 import { useBankAccounts } from '@/hooks/use-banking';
@@ -112,6 +113,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const approvePayments = useApprovePayments();
   const rejectPayments = useRejectPayments();
   const generateFile = useGeneratePaymentFile();
+  const sendProviderPayout = useSendProviderPayout();
   const denyPayments = useDenyPayments();
 
   const payments = Array.isArray(paymentsResponse)
@@ -134,6 +136,12 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   // Check if all selected are PROCESSING + user has export permission
   const canGenerateFile = hasExportPermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) => p.provider_status === 'PROCESSING');
+
+  // Check if selected PROCESSING payments are provider payouts (Ozow, Paystack, etc.)
+  const isProviderPayout = canGenerateFile &&
+    selectedPaymentsData.every((p: PaymentEvent) =>
+      p.method?.endsWith('_payout') || ['ozow_payout', 'paystack_payout', 'netcash_payout'].includes(p.method || '')
+    );
 
   // Check if all selected can be denied (PENDING_APPROVAL or PROCESSING status) + user has approve permission
   const canDeny = hasApprovePermission && selectedPaymentsData.length > 0 &&
@@ -191,6 +199,23 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       alert(`Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}`);
     } catch (error: any) {
       alert(error?.message || 'Failed to generate file. You may not have permission.');
+    }
+  };
+
+  const handleSendProviderPayout = async () => {
+    if (!isProviderPayout) return;
+    try {
+      const result = await sendProviderPayout.mutateAsync(Array.from(selectedPayments));
+      const failed = result.results?.filter((r: any) => !r.success) || [];
+      if (failed.length > 0) {
+        const errors = failed.map((f: any) => f.error).join('\n');
+        alert(`Some payouts failed:\n${errors}`);
+      } else {
+        alert(`${result.summary.successful} payout(s) sent successfully`);
+      }
+      setSelectedPayments(new Set());
+    } catch (error: any) {
+      alert(error?.message || 'Failed to send payout');
     }
   };
 
@@ -279,6 +304,10 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         return <Phone className="h-4 w-4" />;
       case 'bank_transfer':
         return <Building2 className="h-4 w-4" />;
+      case 'ozow_payout':
+      case 'paystack_payout':
+      case 'netcash_payout':
+        return <CreditCard className="h-4 w-4" />;
       case 'card':
         return <CreditCard className="h-4 w-4" />;
       default:
@@ -490,7 +519,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </>
           )}
 
-          {canGenerateFile && (
+          {canGenerateFile && !isProviderPayout && (
             <Button
               onClick={() => setIsGenerateDialogOpen(true)}
               size="sm"
@@ -499,6 +528,22 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             >
               <FileDown className="h-4 w-4 mr-1.5" />
               Generate File
+            </Button>
+          )}
+
+          {isProviderPayout && (
+            <Button
+              onClick={handleSendProviderPayout}
+              disabled={sendProviderPayout.isPending}
+              size="sm"
+              className="h-8 text-white"
+              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+            >
+              {sendProviderPayout.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending...</>
+              ) : (
+                <><Send className="h-4 w-4 mr-1.5" /> Send Payment</>
+              )}
             </Button>
           )}
 
