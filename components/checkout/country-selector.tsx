@@ -39,16 +39,17 @@ export function CountrySelector({
 
   const selected = countries.find((c) => c.code === selectedCountry);
 
-  // If only one country, show it without dropdown
+  // If only one country, show it as a quiet badge
   if (countries.length === 1) {
     const country = countries[0];
     return (
-      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-        <span className="text-2xl">{COUNTRY_FLAGS[country.code] || ''}</span>
-        <div>
-          <p className="text-sm font-medium text-foreground">{country.name}</p>
-          <p className="text-xs text-muted-foreground">Currency: {country.currency}</p>
+      <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+        <span className="text-xl">{COUNTRY_FLAGS[country.code] || ''}</span>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-700">{country.name}</p>
+          <p className="text-[11px] text-slate-400">{country.currency}</p>
         </div>
+        <Check className="size-4 text-emerald-500" />
       </div>
     );
   }
@@ -61,24 +62,24 @@ export function CountrySelector({
           mode="input"
           size="lg"
           disabled={disabled}
-          className="w-full justify-between"
+          className="w-full justify-between rounded-xl border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
         >
           {selected ? (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2.5">
               <span className="text-xl">{COUNTRY_FLAGS[selected.code] || ''}</span>
-              <span>{selected.name}</span>
+              <span className="font-medium text-slate-700">{selected.name}</span>
             </span>
           ) : (
-            <span className="flex items-center gap-2 text-muted-foreground">
+            <span className="flex items-center gap-2.5 text-slate-400">
               <Globe className="size-4" />
               <span>Select your country</span>
             </span>
           )}
-          <ChevronDown className="size-4 opacity-50" />
+          <ChevronDown className="size-4 text-slate-400" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-        <div className="flex flex-col">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1.5" align="start">
+        <div className="flex flex-col gap-0.5">
           {countries.map((country) => (
             <button
               key={country.code}
@@ -87,15 +88,15 @@ export function CountrySelector({
                 setOpen(false);
               }}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-                'hover:bg-muted',
-                selectedCountry === country.code && 'bg-muted'
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+                'hover:bg-slate-50',
+                selectedCountry === country.code && 'bg-slate-50'
               )}
             >
               <span className="text-xl">{COUNTRY_FLAGS[country.code] || ''}</span>
               <div className="flex-1 text-left">
-                <p className="font-medium text-foreground">{country.name}</p>
-                <p className="text-xs text-muted-foreground">{country.currency}</p>
+                <p className="font-medium text-slate-700">{country.name}</p>
+                <p className="text-[11px] text-slate-400">{country.currency}</p>
               </div>
               {selectedCountry === country.code && (
                 <Check className="size-4 text-primary" />

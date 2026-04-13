@@ -2,55 +2,34 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Check, CreditCard, Smartphone, Building2, QrCode } from 'lucide-react';
+import { Check, CreditCard, Smartphone, Building2, QrCode, Ticket } from 'lucide-react';
 import { PaymentProvider, PaymentMethod } from '@/lib/checkout-api';
-
-// Provider icons
-const PROVIDER_ICONS: Record<string, React.ReactNode> = {
-  paystack: (
-    <svg viewBox="0 0 24 24" className="size-6" fill="currentColor">
-      <path d="M4.5 12h15M4.5 6h15M4.5 18h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-  netcash: (
-    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="M6 12h.01M10 12h.01" />
-    </svg>
-  ),
-  mtn: (
-    <div className="size-6 rounded-full bg-yellow-400 flex items-center justify-center">
-      <span className="text-[10px] font-bold text-black">MTN</span>
-    </div>
-  ),
-  airtel: (
-    <div className="size-6 rounded-full bg-red-600 flex items-center justify-center">
-      <span className="text-[8px] font-bold text-white">AIR</span>
-    </div>
-  ),
-};
 
 // Method icons based on code
 function getMethodIcon(code: string) {
   switch (code) {
     case 'card':
     case 'credit_card':
-      return <CreditCard className="size-5" />;
+      return <CreditCard className="size-[18px]" />;
     case 'momo':
     case 'mobile_money':
-      return <Smartphone className="size-5" />;
+      return <Smartphone className="size-[18px]" />;
     case 'bank_transfer':
     case 'instant_eft':
-      return <Building2 className="size-5" />;
+    case 'eft':
+      return <Building2 className="size-[18px]" />;
     case 'qr':
     case 'qr_code':
-      return <QrCode className="size-5" />;
+    case 'crypto_qr':
+      return <QrCode className="size-[18px]" />;
     case 'ussd':
-      return (
-        <span className="text-xs font-bold tracking-tight">*#</span>
-      );
+      return <span className="text-[11px] font-bold tracking-tight">*#</span>;
+    case 'ott_voucher':
+    case 'bluvoucher':
+    case 'onevoucher':
+      return <Ticket className="size-[18px]" />;
     default:
-      return <CreditCard className="size-5" />;
+      return <CreditCard className="size-[18px]" />;
   }
 }
 
@@ -71,11 +50,11 @@ export function PaymentMethodList({
 }: PaymentMethodListProps) {
   if (loading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-16 rounded-lg bg-muted animate-pulse"
+            className="h-[60px] rounded-xl bg-slate-100 animate-pulse"
           />
         ))}
       </div>
@@ -84,85 +63,88 @@ export function PaymentMethodList({
 
   if (providers.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-sm text-muted-foreground">
+      <div className="text-center py-10">
+        <p className="text-sm text-slate-400">
           No payment methods available for this country.
         </p>
       </div>
     );
   }
 
+  // Flatten all methods across providers into a single list for cleaner display
+  const allMethods = providers.flatMap((provider) =>
+    provider.methods.map((method) => ({
+      ...method,
+      provider: provider.provider,
+      providerName: provider.name,
+      providerColor: provider.color,
+    }))
+  );
+
   return (
-    <div className="space-y-4">
-      {providers.map((provider) => (
-        <div key={provider.provider} className="space-y-2">
-          {/* Provider Header */}
-          <div className="flex items-center gap-2 px-1">
-            <div style={{ color: provider.color }}>
-              {PROVIDER_ICONS[provider.provider] || <CreditCard className="size-5" />}
+    <div className="space-y-2">
+      {allMethods.map((method) => {
+        const isSelected =
+          selectedProvider === method.provider &&
+          selectedMethod === method.code;
+
+        return (
+          <button
+            key={`${method.provider}-${method.code}`}
+            onClick={() => onSelect(method.provider, method.code)}
+            className={cn(
+              'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl border transition-all duration-150',
+              isSelected
+                ? 'border-primary bg-primary/[0.04] ring-1 ring-primary/50'
+                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+            )}
+          >
+            {/* Method Icon */}
+            <div
+              className={cn(
+                'size-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                isSelected
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-slate-100 text-slate-500'
+              )}
+            >
+              {getMethodIcon(method.code)}
             </div>
-            <span className="text-sm font-medium text-foreground">{provider.name}</span>
-          </div>
 
-          {/* Payment Methods */}
-          <div className="space-y-2">
-            {provider.methods.map((method) => {
-              const isSelected =
-                selectedProvider === provider.provider &&
-                selectedMethod === method.code;
+            {/* Method Details */}
+            <div className="flex-1 text-left min-w-0">
+              <p
+                className={cn(
+                  'text-sm font-medium leading-tight',
+                  isSelected ? 'text-primary' : 'text-slate-700'
+                )}
+              >
+                {method.name}
+              </p>
+              <p className="text-[11px] text-slate-400 leading-tight mt-0.5 truncate">
+                {method.description}
+              </p>
+            </div>
 
-              return (
-                <button
-                  key={`${provider.provider}-${method.code}`}
-                  onClick={() => onSelect(provider.provider, method.code)}
-                  className={cn(
-                    'w-full flex items-center gap-4 p-4 rounded-lg border transition-all',
-                    'hover:border-border hover:bg-muted',
-                    isSelected
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border bg-card'
-                  )}
-                >
-                  {/* Method Icon */}
-                  <div
-                    className={cn(
-                      'size-10 rounded-full flex items-center justify-center',
-                      isSelected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {getMethodIcon(method.code)}
-                  </div>
+            {/* Provider badge */}
+            <span className="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full shrink-0 border border-slate-100">
+              {method.providerName}
+            </span>
 
-                  {/* Method Details */}
-                  <div className="flex-1 text-left">
-                    <p
-                      className={cn(
-                        'font-medium',
-                        isSelected ? 'text-primary' : 'text-foreground'
-                      )}
-                    >
-                      {method.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{method.description}</p>
-                  </div>
-
-                  {/* Selection Indicator */}
-                  <div
-                    className={cn(
-                      'size-5 rounded-full border-2 flex items-center justify-center transition-colors',
-                      isSelected
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground/40 bg-card'
-                    )}
-                  >
-                    {isSelected && <Check className="size-3 text-white" />}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+            {/* Selection Indicator */}
+            <div
+              className={cn(
+                'size-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
+                isSelected
+                  ? 'border-primary bg-primary scale-100'
+                  : 'border-slate-300 bg-white scale-90'
+              )}
+            >
+              {isSelected && <Check className="size-2.5 text-white" strokeWidth={3} />}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }

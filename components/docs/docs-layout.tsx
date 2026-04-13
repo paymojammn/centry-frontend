@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import {
   Book,
+  Banknote,
   Code2,
   CreditCard,
   Globe,
@@ -44,21 +45,13 @@ const navigation: NavItem[] = [
   },
   {
     title: 'Integration',
-    href: '/docs/checkout#integration',
+    href: '/docs/checkout#hosted-checkout',
     icon: <Code2 className="size-4" />,
     items: [
       { title: 'Hosted Checkout', href: '/docs/checkout#hosted-checkout' },
+      { title: 'Headless / Embedded', href: '/docs/checkout#headless' },
       { title: 'Embedded Widget', href: '/docs/checkout#embedded-widget' },
-    ],
-  },
-  {
-    title: 'SDKs & Libraries',
-    href: '/docs/checkout#sdks',
-    icon: <Package className="size-4" />,
-    items: [
-      { title: 'Python', href: '/docs/checkout#sdk-python' },
-      { title: 'Node.js', href: '/docs/checkout#sdk-node' },
-      { title: 'PHP', href: '/docs/checkout#sdk-php' },
+      { title: 'SDKs & Libraries', href: '/docs/checkout#sdks' },
     ],
   },
   {
@@ -68,7 +61,15 @@ const navigation: NavItem[] = [
     items: [
       { title: 'Create Session', href: '/docs/checkout#create-session' },
       { title: 'Get Session', href: '/docs/checkout#get-session' },
+      { title: 'Payment Methods', href: '/docs/checkout#payment-methods' },
+      { title: 'Initiate Payment', href: '/docs/checkout#initiate-payment' },
+      { title: 'Check Status', href: '/docs/checkout#check-status' },
     ],
+  },
+  {
+    title: 'Providers & Countries',
+    href: '/docs/checkout#providers',
+    icon: <Globe className="size-4" />,
   },
   {
     title: 'Webhooks',
@@ -78,6 +79,11 @@ const navigation: NavItem[] = [
       { title: 'Events', href: '/docs/checkout#webhook-events' },
       { title: 'Verification', href: '/docs/checkout#webhook-verification' },
     ],
+  },
+  {
+    title: 'Payouts API',
+    href: '/docs/checkout#payouts',
+    icon: <Banknote className="size-4" />,
   },
   {
     title: 'Error Codes',
@@ -93,11 +99,6 @@ const navigation: NavItem[] = [
     title: 'Testing & Sandbox',
     href: '/docs/checkout#testing',
     icon: <TestTube className="size-4" />,
-  },
-  {
-    title: 'Countries & Currencies',
-    href: '/docs/checkout#countries',
-    icon: <Globe className="size-4" />,
   },
 ];
 
