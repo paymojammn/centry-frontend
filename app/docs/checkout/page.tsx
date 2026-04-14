@@ -119,7 +119,7 @@ export default function CheckoutDocsPage() {
                   {
                     label: 'cURL',
                     language: 'bash',
-                    code: `curl -X POST https://api.centry.io/api/v1/checkout/sessions/ \\
+                    code: `curl -X POST https://api.getcentry.io/api/v1/checkout/sessions/ \\
   -H "Authorization: Api-Key cen_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -186,7 +186,7 @@ console.log(session.checkoutUrl); // Redirect customer here`,
   "session": {
     "id": "cs_abc123",
     "session_token": "tok_xyz789",
-    "checkout_url": "https://checkout.centry.io/checkout/tok_xyz789",
+    "checkout_url": "https://checkout.getcentry.io/checkout/tok_xyz789",
     "status": "pending",
     "expires_at": "2024-01-15T12:00:00Z"
   }
@@ -326,7 +326,7 @@ const { session } = await response.json();
               <CodeBlock
                 language="javascript"
                 filename="Your frontend (React, Vue, vanilla JS, etc.)"
-                code={`const API = "https://api.centry.io";  // CORS-enabled, no API key needed
+                code={`const API = "https://api.getcentry.io";  // CORS-enabled, no API key needed
 
 // Fetch session info
 const info = await fetch(API + "/api/v1/checkout/" + sessionToken + "/");
@@ -411,7 +411,7 @@ if (payment.requires_redirect) {
             <CodeBlock
               language="html"
               filename="index.html"
-              code={`<script src="https://checkout.centry.io/widget/centry-checkout.js"></script>
+              code={`<script src="https://checkout.getcentry.io/widget/centry-checkout.js"></script>
 
 <script>
   CentryCheckout.open({
@@ -451,7 +451,7 @@ if (payment.requires_redirect) {
         {/* API Reference */}
         <DocsSection id="api-reference" title="API Reference" description="Complete endpoint documentation">
           <p className="text-muted-foreground text-sm mb-4">
-            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.centry.io</code>
+            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.getcentry.io</code>
           </p>
           <div className="overflow-x-auto rounded-xl border border-border mb-4">
             <table className="w-full text-sm">
@@ -565,15 +565,6 @@ if (payment.requires_redirect) {
         {"code": "instant_eft", "name": "Instant EFT (Ozow)", "description": "Pay via instant bank transfer"}
       ]
     },
-    {
-      "provider": "paystack",
-      "name": "Paystack",
-      "icon": "paystack.svg",
-      "methods": [
-        {"code": "card", "name": "Card Payment"},
-        {"code": "bank_transfer", "name": "Bank Transfer"}
-      ]
-    }
   ]
 }`}
             />
@@ -587,7 +578,7 @@ if (payment.requires_redirect) {
             <ParamTable
               params={[
                 { name: 'country', type: 'string', required: true, description: 'ISO country code (e.g., "ZA", "NG")' },
-                { name: 'provider', type: 'string', required: true, description: 'Provider code (e.g., "onegate", "paystack", "ozow")' },
+                { name: 'provider', type: 'string', required: true, description: 'Provider code (e.g., "onegate", "ozow_legacy")' },
                 { name: 'payment_method', type: 'string', required: true, description: 'Method code from the methods endpoint (e.g., "credit_card", "eft", "card")' },
                 { name: 'customer', type: 'object', required: false, description: '{email, phone} — email required for card payments' },
               ]}
@@ -658,9 +649,6 @@ if (payment.requires_redirect) {
                 providers: [
                   { name: 'OneGate', methods: 'Cards (3D Secure), Instant EFT, OTT Vouchers, BluVoucher' },
                   { name: 'Ozow', methods: 'Instant EFT' },
-                  { name: 'Paystack', methods: 'Cards, Bank Transfer' },
-                  { name: 'Netcash', methods: 'Credit Card, Instant EFT, QR Code' },
-                  { name: 'VALR', methods: 'Crypto (QR)' },
                 ],
               },
               {
@@ -869,12 +857,7 @@ app.post('/webhooks/centry', (req, res) => {
                     <td className="px-4 py-3 text-muted-foreground">RTC, SVSS (bank-to-bank)</td>
                     <td className="px-4 py-3 font-mono text-muted-foreground">POST /payments/api/ozow/payouts/create/</td>
                   </tr>
-                  <tr className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium text-foreground">Paystack</td>
-                    <td className="px-4 py-3 text-muted-foreground">NG, GH, ZA, KE</td>
-                    <td className="px-4 py-3 text-muted-foreground">Bank transfers</td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">POST /payments/api/paystack/transfers/</td>
-                  </tr>
+                  {/* Paystack transfers — coming soon */}
                 </tbody>
               </table>
             </div>
@@ -883,7 +866,7 @@ app.post('/webhooks/centry', (req, res) => {
               <h4 className="font-semibold text-foreground mb-3">OneGate payout example</h4>
               <CodeBlock
                 language="bash"
-                code={`curl -X POST https://api.centry.io/payments/api/onegate/payouts/create/ \\
+                code={`curl -X POST https://api.getcentry.io/payments/api/onegate/payouts/create/ \\
   -H "Authorization: Api-Key cen_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -899,6 +882,51 @@ app.post('/webhooks/centry', (req, res) => {
     "country_of_issue": "ZA"
   }'`}
               />
+            </div>
+          </div>
+        </DocsSection>
+
+        {/* OpenAPI / Swagger */}
+        <DocsSection id="openapi" title="OpenAPI / Swagger" description="Interactive API reference with try-it-out">
+          <div className="space-y-4">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              The full API schema is available as OpenAPI 3.0. Use Swagger UI to explore
+              endpoints, view request/response schemas, and test API calls directly from the browser.
+            </p>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <a
+                href={(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api/docs/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
+              >
+                <div className="size-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3">
+                  <Zap className="size-5" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-1">Swagger UI</h3>
+                <p className="text-sm text-muted-foreground">Interactive explorer with try-it-out</p>
+                <code className="text-xs text-muted-foreground font-mono mt-2 block">/api/docs/</code>
+              </a>
+
+              <a
+                href={(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api/redoc/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
+              >
+                <div className="size-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3">
+                  <Code2 className="size-5" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-1">ReDoc</h3>
+                <p className="text-sm text-muted-foreground">Clean, readable API reference</p>
+                <code className="text-xs text-muted-foreground font-mono mt-2 block">/api/redoc/</code>
+              </a>
+            </div>
+
+            <div className="bg-muted/50 border border-border rounded-xl p-4 text-sm text-muted-foreground">
+              <strong>Tags in Swagger:</strong> Checkout, Checkout (Public), OneGate, Ozow, Banking, Payments, Wallet, ERP, and more.
+              Each tag groups related endpoints with descriptions and examples.
             </div>
           </div>
         </DocsSection>
@@ -975,11 +1003,11 @@ app.post('/webhooks/centry', (req, res) => {
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox</div>
-                <code className="text-xs font-mono text-foreground">https://sandbox.centry.io</code>
+                <code className="text-xs font-mono text-foreground">https://sandbox.getcentry.io</code>
               </div>
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Production</div>
-                <code className="text-xs font-mono text-foreground">https://api.centry.io</code>
+                <code className="text-xs font-mono text-foreground">https://api.getcentry.io</code>
               </div>
             </div>
 

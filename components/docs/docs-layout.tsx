@@ -64,6 +64,7 @@ const navigation: NavItem[] = [
       { title: 'Payment Methods', href: '/docs/checkout#payment-methods' },
       { title: 'Initiate Payment', href: '/docs/checkout#initiate-payment' },
       { title: 'Check Status', href: '/docs/checkout#check-status' },
+      { title: 'OpenAPI / Swagger', href: '/docs/checkout#openapi' },
     ],
   },
   {
