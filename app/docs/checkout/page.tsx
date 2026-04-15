@@ -268,30 +268,46 @@ console.log(session.checkout_url); // Redirect customer here`,
           <TabbedCodeBlock
             tabs={[
               {
-                label: 'Node.js',
+                label: 'Node.js (fetch)',
                 language: 'javascript',
-                code: `// Express.js example
+                code: `// Express — no official Node SDK yet, so hit the HTTPS endpoint directly.
 app.post('/create-checkout', async (req, res) => {
-  const session = await centry.checkout.create({
-    amount: req.body.amount,
-    currency: req.body.currency, // "NGN", "ZAR", "KES", etc.
-    reference: 'ORDER-' + req.body.orderId,
-    successUrl: 'https://yoursite.com/success?order=' + req.body.orderId,
-    cancelUrl: 'https://yoursite.com/cart',
-    webhookUrl: 'https://yoursite.com/webhooks/centry',
-    customer: { email: req.body.email },
-    // Optional: restrict to specific countries/providers
-    allowedCountries: ['NG', 'ZA'],
-    allowedProviders: ['paystack', 'onegate'],
+  const r = await fetch('https://api.getcentry.io/api/v1/checkout/sessions/', {
+    method: 'POST',
+    headers: {
+      Authorization: \`Api-Key \${process.env.CENTRY_API_KEY}\`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      amount: req.body.amount,
+      currency: req.body.currency,           // "NGN", "ZAR", "KES", ...
+      reference: 'ORDER-' + req.body.orderId,
+      success_url: 'https://yoursite.com/success?order=' + req.body.orderId,
+      cancel_url: 'https://yoursite.com/cart',
+      webhook_url: 'https://yoursite.com/webhooks/centry',
+      customer: { email: req.body.email },
+      // Optional: restrict to specific countries/providers
+      allowed_countries: ['NG', 'ZA'],
+      allowed_providers: ['paystack', 'onegate'],
+    }),
   });
 
-  res.redirect(session.checkoutUrl);
+  if (!r.ok) return res.status(502).send(await r.text());
+  const { session } = await r.json();
+  res.redirect(session.checkout_url);
 });`,
               },
               {
-                label: 'Python',
+                label: 'Python (pycentry)',
                 language: 'python',
-                code: `# Django example
+                code: `# Django — using the official (beta) pycentry SDK:
+#   pip install 'pycentry==0.1.1'
+import os
+from centry import Client
+from django.shortcuts import redirect
+
+client = Client(api_key=os.environ["CENTRY_API_KEY"])
+
 def create_checkout(request):
     session = client.checkout.create(
         amount=request.POST["amount"],
@@ -305,6 +321,33 @@ def create_checkout(request):
         allowed_countries=["NG", "ZA"],
     )
     return redirect(session.checkout_url)`,
+              },
+              {
+                label: 'Python (requests)',
+                language: 'python',
+                code: `# Django — no-dependency version, same behavior:
+import os
+import requests
+from django.shortcuts import redirect
+
+def create_checkout(request):
+    r = requests.post(
+        "https://api.getcentry.io/api/v1/checkout/sessions/",
+        headers={"Authorization": f"Api-Key {os.environ['CENTRY_API_KEY']}"},
+        json={
+            "amount": request.POST["amount"],
+            "currency": request.POST["currency"],
+            "reference": f"ORDER-{request.POST['order_id']}",
+            "success_url": f"https://yoursite.com/success?order={request.POST['order_id']}",
+            "cancel_url": "https://yoursite.com/cart",
+            "webhook_url": "https://yoursite.com/webhooks/centry",
+            "customer": {"email": request.POST["email"]},
+            "allowed_countries": ["NG", "ZA"],
+        },
+        timeout=15,
+    )
+    r.raise_for_status()
+    return redirect(r.json()["session"]["checkout_url"])`,
               },
             ]}
           />
