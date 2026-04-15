@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Highlight, themes, type Language } from 'prism-react-renderer';
 import { cn } from '@/lib/utils';
 import { Check, Copy } from 'lucide-react';
 
@@ -17,57 +18,41 @@ interface TabbedCodeBlockProps {
   className?: string;
 }
 
-const highlightCode = (code: string, language: string) => {
-  let highlighted = code
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  if (language === 'json') {
-    highlighted = highlighted
-      .replace(/"([^"]+)":/g, '<span class="text-purple-400">"$1"</span>:')
-      .replace(/: "([^"]+)"/g, ': <span class="text-green-400">"$1"</span>')
-      .replace(/: (\d+)/g, ': <span class="text-amber-400">$1</span>')
-      .replace(/: (true|false|null)/g, ': <span class="text-blue-400">$1</span>');
-  } else if (language === 'bash' || language === 'shell') {
-    highlighted = highlighted
-      .replace(/^(\$|#)/gm, '<span class="text-gray-500">$1</span>')
-      .replace(/(curl|wget|npm|pip|python|node|php|composer)/g, '<span class="text-green-400">$1</span>')
-      .replace(/(-[a-zA-Z]+|--[a-zA-Z-]+)/g, '<span class="text-blue-400">$1</span>')
-      .replace(/"([^"]+)"/g, '<span class="text-amber-400">"$1"</span>')
-      .replace(/'([^']+)'/g, '<span class="text-amber-400">\'$1\'</span>');
-  } else if (['javascript', 'js', 'typescript', 'ts'].includes(language)) {
-    highlighted = highlighted
-      .replace(/\b(const|let|var|function|async|await|return|if|else|try|catch|throw|new|class|import|export|from|default|require)\b/g, '<span class="text-purple-400">$1</span>')
-      .replace(/\b(true|false|null|undefined)\b/g, '<span class="text-blue-400">$1</span>')
-      .replace(/"([^"]+)"/g, '<span class="text-green-400">"$1"</span>')
-      .replace(/'([^']+)'/g, '<span class="text-green-400">\'$1\'</span>')
-      .replace(/`([^`]+)`/g, '<span class="text-green-400">`$1`</span>')
-      .replace(/\/\/(.*)$/gm, '<span class="text-gray-500">//$1</span>')
-      .replace(/\b(\d+)\b/g, '<span class="text-amber-400">$1</span>');
-  } else if (language === 'python') {
-    highlighted = highlighted
-      .replace(/\b(def|class|import|from|return|if|elif|else|try|except|raise|async|await|with|as|for|in|while|True|False|None|self)\b/g, '<span class="text-purple-400">$1</span>')
-      .replace(/(f?)"([^"]+)"/g, '$1<span class="text-green-400">"$2"</span>')
-      .replace(/(f?)'([^']+)'/g, '$1<span class="text-green-400">\'$2\'</span>')
-      .replace(/#(.*)$/gm, '<span class="text-gray-500">#$1</span>')
-      .replace(/\b(\d+)\b/g, '<span class="text-amber-400">$1</span>');
-  } else if (language === 'php') {
-    highlighted = highlighted
-      .replace(/\b(function|class|return|if|else|try|catch|throw|new|use|namespace|public|private|protected|static|echo|require|include)\b/g, '<span class="text-purple-400">$1</span>')
-      .replace(/(\$\w+)/g, '<span class="text-blue-400">$1</span>')
-      .replace(/"([^"]+)"/g, '<span class="text-green-400">"$1"</span>')
-      .replace(/'([^']+)'/g, '<span class="text-green-400">\'$1\'</span>')
-      .replace(/\/\/(.*)$/gm, '<span class="text-gray-500">//$1</span>');
-  } else if (language === 'html') {
-    highlighted = highlighted
-      .replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="text-pink-400">$2</span>')
-      .replace(/([\w-]+)=/g, '<span class="text-purple-400">$1</span>=')
-      .replace(/"([^"]+)"/g, '<span class="text-green-400">"$1"</span>');
-  }
-
-  return highlighted;
+const LANGUAGE_MAP: Record<string, Language> = {
+  js: 'javascript',
+  ts: 'typescript',
+  sh: 'bash',
+  shell: 'bash',
+  py: 'python',
 };
+
+function normalizeLanguage(lang: string): Language {
+  const key = lang.toLowerCase();
+  return (LANGUAGE_MAP[key] ?? key) as Language;
+}
+
+function Highlighted({ code, language }: { code: string; language: string }) {
+  const lang = normalizeLanguage(language);
+  return (
+    <Highlight code={code.trimEnd()} language={lang} theme={themes.vsDark}>
+      {({ tokens, getLineProps, getTokenProps }) => (
+        <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto bg-[#0d1117] font-mono">
+          {tokens.map((line, i) => {
+            const lineProps = getLineProps({ line });
+            return (
+              <div key={i} {...lineProps}>
+                {line.map((token, key) => {
+                  const tokenProps = getTokenProps({ token });
+                  return <span key={key} {...tokenProps} />;
+                })}
+              </div>
+            );
+          })}
+        </pre>
+      )}
+    </Highlight>
+  );
+}
 
 export function CodeBlock({ code, language = 'javascript', filename, className }: CodeBlockProps) {
   const [copied, setCopied] = React.useState(false);
@@ -78,8 +63,6 @@ export function CodeBlock({ code, language = 'javascript', filename, className }
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const highlightedCode = highlightCode(code, language);
-
   return (
     <div className={cn('group relative rounded-xl overflow-hidden border border-gray-800', className)}>
       {filename && (
@@ -89,18 +72,15 @@ export function CodeBlock({ code, language = 'javascript', filename, className }
         </div>
       )}
 
-      <div className="relative bg-[#0d1117] overflow-x-auto">
+      <div className="relative">
         <button
           onClick={handleCopy}
-          className="absolute top-3 right-3 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
           aria-label="Copy code"
         >
           {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
         </button>
-
-        <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto">
-          <code className="font-mono text-gray-300" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
-        </pre>
+        <Highlighted code={code} language={language} />
       </div>
     </div>
   );
@@ -109,18 +89,16 @@ export function CodeBlock({ code, language = 'javascript', filename, className }
 export function TabbedCodeBlock({ tabs, className }: TabbedCodeBlockProps) {
   const [activeTab, setActiveTab] = React.useState(0);
   const [copied, setCopied] = React.useState(false);
+  const current = tabs[activeTab]!;
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(tabs[activeTab].code);
+    await navigator.clipboard.writeText(current.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const highlightedCode = highlightCode(tabs[activeTab].code, tabs[activeTab].language);
-
   return (
     <div className={cn('group relative rounded-xl overflow-hidden border border-gray-800', className)}>
-      {/* Language tabs */}
       <div className="flex items-center gap-0 bg-gray-800/80 border-b border-gray-700/50 overflow-x-auto">
         {tabs.map((tab, i) => (
           <button
@@ -138,18 +116,15 @@ export function TabbedCodeBlock({ tabs, className }: TabbedCodeBlockProps) {
         ))}
       </div>
 
-      <div className="relative bg-[#0d1117] overflow-x-auto">
+      <div className="relative">
         <button
           onClick={handleCopy}
-          className="absolute top-3 right-3 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
           aria-label="Copy code"
         >
           {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
         </button>
-
-        <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto">
-          <code className="font-mono text-gray-300" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
-        </pre>
+        <Highlighted code={current.code} language={current.language} />
       </div>
     </div>
   );

@@ -203,12 +203,52 @@ console.log(session.checkoutUrl); // Redirect customer here`,
               All API requests require your API key in the Authorization header.
             </p>
             <CodeBlock language="bash" code={`Authorization: Api-Key cen_your_api_key`} />
+
+            <div id="ip-whitelisting">
+              <h4 className="font-semibold text-foreground text-sm mb-2">IP whitelisting</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                You can lock a key to specific source IPs or CIDR ranges. Calls from outside the
+                list are rejected with{' '}
+                <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">403 ip_not_whitelisted</code>{' '}
+                and the response body echoes the IP we observed — so your team can self-diagnose
+                misconfigured deploys without guessing.
+              </p>
+              <CodeBlock
+                language="json"
+                filename="403 response body"
+                code={`{
+  "code": "ip_not_whitelisted",
+  "detail": "Request IP not in API key whitelist",
+  "client_ip": "203.0.113.42"
+}`}
+              />
+              <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-1 mt-3">
+                <li>
+                  Entries are bare IPs or CIDR (IPv4 or IPv6):{' '}
+                  <code className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">203.0.113.4</code>,{' '}
+                  <code className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">198.51.100.0/24</code>,{' '}
+                  <code className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">2001:db8::/32</code>.
+                </li>
+                <li>
+                  We honor{' '}
+                  <code className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">X-Forwarded-For</code>{' '}
+                  only when the immediate peer is in our trusted-proxy list. Spoofed XFF
+                  headers are ignored.
+                </li>
+                <li>
+                  Empty whitelist = allow any source. Strongly discouraged for production keys.
+                </li>
+              </ul>
+            </div>
+
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
               <Shield className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h4 className="font-medium text-amber-700 text-sm">Keep your API key secure</h4>
                 <p className="text-xs text-amber-600 mt-1">
-                  Never expose your API key in client-side code. Use environment variables on your server.
+                  Never expose your API key in client-side code. Use environment variables on
+                  your server, rotate compromised keys immediately, and pair production keys
+                  with an IP whitelist.
                 </p>
               </div>
             </div>
@@ -478,6 +518,18 @@ if (payment.requires_redirect) {
         <DocsSection id="create-session" title="Create Session" description="Create a new checkout session for payment collection">
           <div className="space-y-6">
             <Endpoint method="POST" path="/api/v1/checkout/sessions/" description="Create a new checkout session. Requires API key authentication." />
+
+            <div className="p-4 rounded-md bg-primary/5 border border-primary/10">
+              <h4 className="text-sm font-semibold text-foreground mb-1">Send an Idempotency-Key</h4>
+              <p className="text-xs text-muted-foreground">
+                Add{' '}
+                <code className="px-1 py-0.5 bg-muted rounded font-mono">Idempotency-Key: &lt;uuid&gt;</code>{' '}
+                on every create-session call. If the same key reaches us twice (network retry,
+                lambda re-invocation), we replay the original response instead of opening a
+                second session. UUIDv4 is the safe default.
+              </p>
+            </div>
+
             <ParamTable
               params={[
                 { name: 'amount', type: 'string', required: true, description: 'Payment amount (e.g., "5000.00")' },
@@ -733,13 +785,15 @@ if (payment.requires_redirect) {
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-3">Webhook payload</h4>
+              <h4 className="font-semibold text-foreground mb-3">Webhook envelope</h4>
               <CodeBlock
                 language="json"
                 filename="POST to your webhook_url"
                 code={`{
+  "id": "evt_550e8400-...",
   "event": "session.completed",
-  "timestamp": "2024-01-15T12:05:00Z",
+  "created": 1713090900,
+  "livemode": true,
   "data": {
     "session": {
       "id": "cs_abc123",
@@ -759,64 +813,111 @@ if (payment.requires_redirect) {
               />
             </div>
 
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">
-                <strong>Headers:</strong> <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Signature</code> (HMAC-SHA256), <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Event</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Timestamp</code>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>
+                <strong>Headers:</strong>{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">Centry-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>{' '}
+                (HMAC-SHA256 with replay window),{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Event</code>
               </p>
               <p>
-                <strong>Retries:</strong> 1 min, 5 min, 30 min, 2 hours, 24 hours (max 5 attempts)
+                <strong>Retries:</strong> on non-2xx or timeout we retry at <strong>+1m, +5m,
+                +30m, +2h, +24h</strong> (6 attempts total). Centry expects a 2xx within ~10s —
+                process async if your handler is slow.
+              </p>
+              <p>
+                <strong>URL safety:</strong> webhook URLs that resolve to private (RFC1918),
+                loopback, link-local, or cloud-metadata IPs (e.g.{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">169.254.169.254</code>)
+                are rejected at write time and re-checked at send time. Use https in production.
+              </p>
+              <p>
+                <strong>Replay + test:</strong> send a{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">webhook.test</code> event
+                from the merchant dashboard before going live, and replay any past delivery
+                from its Webhooks tab.
               </p>
             </div>
 
             <div id="webhook-verification">
               <h4 className="font-semibold text-foreground mb-3">Signature verification</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Three checks, in order: parse the header, reject if{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">t</code> is more than 5
+                minutes off (replay guard), then constant-time compare your recomputed HMAC to{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">v1</code>. Use the{' '}
+                <strong>raw request body bytes</strong> — re-encoding the JSON will break the
+                signature.
+              </p>
               <TabbedCodeBlock
                 tabs={[
                   {
                     label: 'Python',
                     language: 'python',
-                    code: `import hmac, hashlib
+                    code: `import hmac, hashlib, time
 
-def verify_webhook(payload, signature, secret):
+def verify_centry_webhook(raw_body: bytes, header_value: str, secret: str,
+                          tolerance: int = 300) -> bool:
+    parts = dict(p.split("=", 1) for p in header_value.split(",") if "=" in p)
+    try:
+        ts = int(parts.get("t", ""))
+    except ValueError:
+        return False
+    if abs(time.time() - ts) > tolerance:
+        return False
     expected = hmac.new(
-        secret.encode(), payload.encode(), hashlib.sha256
+        secret.encode(),
+        f"{ts}.".encode() + raw_body,
+        hashlib.sha256,
     ).hexdigest()
-    return hmac.compare_digest(f"sha256={expected}", signature)
+    return hmac.compare_digest(expected, parts.get("v1", ""))
 
-# In your webhook handler
-signature = request.headers.get('X-Centry-Signature')
-if not verify_webhook(request.body, signature, WEBHOOK_SECRET):
-    return Response(status=401)
+# Django / Flask handler
+body = request.body  # raw bytes — never request.json before verifying
+header = request.headers.get("Centry-Signature", "")
+if not verify_centry_webhook(body, header, WEBHOOK_SECRET):
+    return HttpResponseBadRequest("invalid signature")
 
-event = request.json()
-if event['event'] == 'session.completed':
-    fulfill_order(event['data']['session']['reference'])`,
+event = json.loads(body)
+if event["event"] == "session.completed":
+    fulfill_order(event["data"]["session"]["reference"])`,
                   },
                   {
                     label: 'Node.js',
                     language: 'javascript',
                     code: `const crypto = require('crypto');
 
-function verifyWebhook(payload, signature, secret) {
-  const expected = 'sha256=' + crypto
+function verifyCentryWebhook(rawBody, headerValue, secret, toleranceSec = 300) {
+  const parts = Object.fromEntries(
+    headerValue.split(',').map(p => p.split('=').map(s => s.trim()))
+  );
+  const t = parseInt(parts.t, 10);
+  if (!t || Math.abs(Date.now() / 1000 - t) > toleranceSec) return false;
+
+  const expected = crypto
     .createHmac('sha256', secret)
-    .update(payload)
+    .update(\`\${t}.\${rawBody}\`)
     .digest('hex');
+
   return crypto.timingSafeEqual(
-    Buffer.from(expected), Buffer.from(signature)
+    Buffer.from(expected, 'hex'),
+    Buffer.from(parts.v1 || '', 'hex'),
   );
 }
 
-app.post('/webhooks/centry', (req, res) => {
-  const sig = req.headers['x-centry-signature'];
-  if (!verifyWebhook(JSON.stringify(req.body), sig, WEBHOOK_SECRET)) {
-    return res.status(401).send('Invalid signature');
+// IMPORTANT: use express.raw so req.body stays as a Buffer
+app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, res) => {
+  const ok = verifyCentryWebhook(
+    req.body.toString('utf8'),
+    req.get('Centry-Signature'),
+    process.env.CENTRY_WEBHOOK_SECRET,
+  );
+  if (!ok) return res.status(400).send('invalid signature');
+  const event = JSON.parse(req.body.toString('utf8'));
+  if (event.event === 'session.completed') {
+    fulfillOrder(event.data.session.reference);
   }
-  const { event, data } = req.body;
-  if (event === 'session.completed') {
-    fulfillOrder(data.session.reference);
-  }
-  res.json({ received: true });
+  res.status(200).send();
 });`,
                   },
                 ]}
