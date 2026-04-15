@@ -1080,16 +1080,16 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
         </DocsSection>
 
         {/* OpenAPI / Swagger */}
-        <DocsSection id="openapi" title="OpenAPI / Swagger" description="Interactive API reference with try-it-out">
+        <DocsSection id="openapi" title="OpenAPI / Swagger" description="Interactive API reference with Try it out">
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm leading-relaxed">
-              The full API schema is available as OpenAPI 3.0. Use Swagger UI to explore
-              endpoints, view request/response schemas, and test API calls directly from the browser.
+              The public API schema is published as OpenAPI 3.0 and rendered in Swagger UI +
+              ReDoc. Both are served unauthenticated so you can browse without a session.
             </p>
 
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api/docs/'}
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/docs/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1098,12 +1098,14 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                   <Zap className="size-5" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">Swagger UI</h3>
-                <p className="text-sm text-muted-foreground">Interactive explorer with try-it-out</p>
+                <p className="text-sm text-muted-foreground">
+                  Interactive explorer with <strong>Try it out</strong> — paste a key, fire a request.
+                </p>
                 <code className="text-xs text-muted-foreground font-mono mt-2 block">/api/docs/</code>
               </a>
 
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api/redoc/'}
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/redoc/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1112,14 +1114,66 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                   <Code2 className="size-5" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">ReDoc</h3>
-                <p className="text-sm text-muted-foreground">Clean, readable API reference</p>
+                <p className="text-sm text-muted-foreground">
+                  Clean three-column reference. No Try-it-out; better for reading.
+                </p>
                 <code className="text-xs text-muted-foreground font-mono mt-2 block">/api/redoc/</code>
+              </a>
+
+              <a
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/schema/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
+              >
+                <div className="size-10 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center mb-3">
+                  <Code2 className="size-5" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-1">Raw schema</h3>
+                <p className="text-sm text-muted-foreground">
+                  OpenAPI 3.0 YAML — feed it to Postman, Insomnia, or your code generator.
+                </p>
+                <code className="text-xs text-muted-foreground font-mono mt-2 block">/api/schema/</code>
               </a>
             </div>
 
-            <div className="bg-muted/50 border border-border rounded-xl p-4 text-sm text-muted-foreground">
-              <strong>Tags in Swagger:</strong> Checkout, Checkout (Public), OneGate, Ozow, Banking, Payments, Wallet, ERP, and more.
-              Each tag groups related endpoints with descriptions and examples.
+            <div className="rounded-xl border border-border p-4 text-sm space-y-3">
+              <div>
+                <strong className="text-foreground">What&apos;s in the public schema:</strong>{' '}
+                the endpoints clients integrate against —{' '}
+                <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">/v1/*</code>{' '}
+                (merchant API, <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">mk_test_/mk_live_</code>),{' '}
+                <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">/api/v1/checkout/*</code>{' '}
+                (hosted checkout, <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">cen_xxx</code>),
+                and <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">/api/v1/merchants/*</code>{' '}
+                (merchant management, dashboard JWT). Internal admin surfaces are deliberately
+                out of scope.
+              </div>
+              <div>
+                <strong className="text-foreground">Try it out in Swagger:</strong> click{' '}
+                <strong>Authorize</strong> (top right). You&apos;ll see four entries — pick the one
+                that matches the endpoint you&apos;re testing:
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-xs text-muted-foreground">
+                  <li>
+                    <strong className="text-foreground">CentryApiKey</strong> — paste{' '}
+                    <code className="px-1 py-0.5 bg-muted rounded font-mono">Api-Key cen_xxx_…</code>{' '}
+                    (hosted checkout).
+                  </li>
+                  <li>
+                    <strong className="text-foreground">CentryMerchantKey</strong> — paste{' '}
+                    <code className="px-1 py-0.5 bg-muted rounded font-mono">Merchant-Key mk_test_…</code>{' '}
+                    (merchant API). Use a sandbox key here, not live.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">CentrySession</strong> — dashboard cookie;
+                    only relevant if you&apos;re logged into the admin in the same browser.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">CentryJWT</strong> — Supabase bearer token
+                    for dashboard-authenticated endpoints.
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </DocsSection>
