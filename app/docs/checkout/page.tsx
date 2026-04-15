@@ -578,12 +578,6 @@ if (payment.requires_redirect) {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Until the Node and PHP SDKs ship, every endpoint is a plain HTTPS call with a{' '}
-            <code className="px-1 py-0.5 bg-muted rounded font-mono">Authorization: Api-Key …</code>{' '}
-            header — see the API Reference below. The Python SDK is currently{' '}
-            <strong className="text-foreground">beta</strong>; pin the version in production.
-          </p>
         </DocsSection>
 
         {/* API Reference */}
