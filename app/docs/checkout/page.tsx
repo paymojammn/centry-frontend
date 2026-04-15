@@ -136,11 +136,12 @@ export default function CheckoutDocsPage() {
   }'`,
                   },
                   {
-                    label: 'Python',
+                    label: 'Python (pycentry)',
                     language: 'python',
-                    code: `import centry
+                    code: `# pip install 'pycentry==0.1.1'   # beta — pin the version
+from centry import Client
 
-client = centry.Client(api_key="cen_your_api_key")
+client = Client(api_key="cen_your_api_key")
 
 session = client.checkout.create(
     amount="5000.00",
@@ -155,22 +156,29 @@ session = client.checkout.create(
 print(session.checkout_url)  # Redirect customer here`,
                   },
                   {
-                    label: 'Node.js',
+                    label: 'Node.js (fetch)',
                     language: 'javascript',
-                    code: `const Centry = require('@centry/node');
-const centry = new Centry('cen_your_api_key');
-
-const session = await centry.checkout.create({
-  amount: '5000.00',
-  currency: 'NGN',
-  reference: 'ORDER-12345',
-  successUrl: 'https://yoursite.com/success',
-  cancelUrl: 'https://yoursite.com/cancel',
-  webhookUrl: 'https://yoursite.com/webhooks/centry',
-  customer: { email: 'customer@example.com' },
+                    code: `// No official Node SDK yet — call the HTTPS endpoint directly.
+const res = await fetch('https://api.getcentry.io/api/v1/checkout/sessions/', {
+  method: 'POST',
+  headers: {
+    Authorization: 'Api-Key cen_your_api_key',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    amount: '5000.00',
+    currency: 'NGN',
+    reference: 'ORDER-12345',
+    success_url: 'https://yoursite.com/success',
+    cancel_url: 'https://yoursite.com/cancel',
+    webhook_url: 'https://yoursite.com/webhooks/centry',
+    customer: { email: 'customer@example.com' },
+  }),
 });
 
-console.log(session.checkoutUrl); // Redirect customer here`,
+if (!res.ok) throw new Error(\`Centry \${res.status}: \${await res.text()}\`);
+const { session } = await res.json();
+console.log(session.checkout_url); // Redirect customer here`,
                   },
                 ]}
               />
@@ -472,20 +480,67 @@ if (payment.requires_redirect) {
         </DocsSection>
 
         {/* SDKs */}
-        <DocsSection id="sdks" title="SDKs & Libraries" description="Official client libraries">
-          <div className="grid sm:grid-cols-3 gap-3 mb-6">
+        <DocsSection id="sdks" title="SDKs & Libraries" description="Client libraries">
+          <div className="grid sm:grid-cols-3 gap-3 mb-3">
             {[
-              { id: 'sdk-python', name: 'Python', install: 'pip install centry', version: '1.0.0' },
-              { id: 'sdk-node', name: 'Node.js', install: 'npm install @centry/node', version: '1.0.0' },
-              { id: 'sdk-php', name: 'PHP', install: 'composer require centry/centry-php', version: '1.0.0' },
+              {
+                id: 'sdk-python',
+                name: 'Python',
+                install: 'pip install pycentry',
+                version: '0.1.1',
+                status: 'beta' as const,
+                note: 'Published on PyPI. Imports as `centry`.',
+              },
+              {
+                id: 'sdk-node',
+                name: 'Node.js',
+                install: '—',
+                version: null,
+                status: 'planned' as const,
+                note: 'Not yet published. Use raw fetch/axios for now.',
+              },
+              {
+                id: 'sdk-php',
+                name: 'PHP',
+                install: '—',
+                version: null,
+                status: 'planned' as const,
+                note: 'Not yet published. Use Guzzle for now.',
+              },
             ].map((sdk) => (
-              <div key={sdk.id} id={sdk.id} className="p-4 rounded-xl border border-border bg-card">
-                <div className="font-semibold text-foreground text-sm mb-1">{sdk.name}</div>
-                <code className="text-xs text-muted-foreground font-mono">{sdk.install}</code>
-                <div className="text-[10px] text-muted-foreground/60 mt-2">v{sdk.version}</div>
+              <div
+                key={sdk.id}
+                id={sdk.id}
+                className="p-4 rounded-xl border border-border bg-card"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-semibold text-foreground text-sm">{sdk.name}</div>
+                  <span
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded uppercase ${
+                      sdk.status === 'beta'
+                        ? 'bg-[#D4B35A]/10 text-[#D4B35A]'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {sdk.status}
+                  </span>
+                </div>
+                <code className="text-xs text-muted-foreground font-mono block truncate">
+                  {sdk.install}
+                </code>
+                {sdk.version && (
+                  <div className="text-[10px] text-muted-foreground/60 mt-2">v{sdk.version}</div>
+                )}
+                <p className="text-[11px] text-muted-foreground mt-2">{sdk.note}</p>
               </div>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground">
+            Until the Node and PHP SDKs ship, every endpoint is a plain HTTPS call with a{' '}
+            <code className="px-1 py-0.5 bg-muted rounded font-mono">Authorization: Api-Key …</code>{' '}
+            header — see the API Reference below. The Python SDK is currently{' '}
+            <strong className="text-foreground">beta</strong>; pin the version in production.
+          </p>
         </DocsSection>
 
         {/* API Reference */}
