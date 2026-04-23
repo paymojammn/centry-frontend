@@ -229,6 +229,7 @@ export interface PaymentEvent {
   fx_source_amount: string | null;
   fx_provider: string;
   fx_fetched_at: string | null;
+  fx_manual: boolean;
 }
 
 export interface PaymentEventStats {

@@ -98,6 +98,9 @@ export default function PayBillsModal({
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
   const [fxConfirmed, setFxConfirmed] = useState(false);
+  // Manual-rate override
+  const [fxMode, setFxMode] = useState<'auto' | 'manual'>('auto');
+  const [fxManualRate, setFxManualRate] = useState<string>('');
 
   const currency = bills[0]?.currency_code
     ? String(bills[0].currency_code).split('.').pop() || 'UGX'
@@ -149,6 +152,8 @@ export default function PayBillsModal({
       setFxLoading(false);
       setFxError(null);
       setFxConfirmed(false);
+      setFxMode('auto');
+      setFxManualRate('');
     }
   }, [isOpen]);
 
@@ -211,14 +216,21 @@ export default function PayBillsModal({
         idempotency_key: key,
       };
 
-      // If an FX quote was fetched, pin it in the payload. Backend will accept
-      // the rate as long as it's still within its 5-minute freshness window.
-      if (fxQuote) {
-        paymentData.fx = {
-          rate: fxQuote.rate,
-          provider: fxQuote.provider,
-          fetched_at: fxQuote.fetched_at,
-        };
+      // Pin FX in the payload. Manual rates bypass the freshness window; auto
+      // rates are re-validated by the backend within the 5-minute TTL.
+      if (needsFx) {
+        if (fxMode === 'manual') {
+          paymentData.fx = {
+            manual: true,
+            rate: fxManualRate,
+          };
+        } else if (fxQuote) {
+          paymentData.fx = {
+            rate: fxQuote.rate,
+            provider: fxQuote.provider,
+            fetched_at: fxQuote.fetched_at,
+          };
+        }
       }
 
       // Routing by backend source model. `source_model` distinguishes BankAccount
@@ -438,54 +450,113 @@ export default function PayBillsModal({
               </div>
 
               {/* FX Quote — only shown when source currency differs from bill currency */}
-              {needsFx && (
-                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
-                    <AlertCircle className="h-4 w-4" />
-                    Currency conversion required
-                  </div>
-                  {fxLoading && (
-                    <div className="flex items-center gap-2 text-xs text-amber-800">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Fetching rate...
-                    </div>
-                  )}
-                  {fxError && (
-                    <div className="text-xs text-destructive">
-                      {fxError} — cannot proceed without a rate. Try again or switch source account.
-                    </div>
-                  )}
-                  {fxQuote && !fxLoading && (
-                    <>
-                      <div className="text-xs text-amber-900 space-y-0.5">
-                        <div>
-                          Bill: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                        </div>
-                        <div>
-                          Will debit: <span className="font-medium">
-                            {selectedSource!.currency} {parseFloat(fxQuote.converted_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-amber-700">
-                          Rate: 1 {currency} = {parseFloat(fxQuote.rate).toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
-                          {' '}&middot; via {fxQuote.provider}
-                        </div>
+              {needsFx && (() => {
+                const manualRateNum = parseFloat(fxManualRate);
+                const manualRateValid = Number.isFinite(manualRateNum) && manualRateNum > 0;
+                const manualConverted = manualRateValid ? totalAmount * manualRateNum : 0;
+                const autoRateNum = fxQuote ? parseFloat(fxQuote.rate) : null;
+                const deviationPct = (manualRateValid && autoRateNum && autoRateNum > 0)
+                  ? Math.abs((manualRateNum - autoRateNum) / autoRateNum) * 100
+                  : 0;
+                const deviationWarn = deviationPct > 5;
+                const activeRate = fxMode === 'manual' ? (manualRateValid ? manualRateNum : null) : autoRateNum;
+                const activeConverted = fxMode === 'manual' ? manualConverted : (fxQuote ? parseFloat(fxQuote.converted_amount) : 0);
+                return (
+                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                        <AlertCircle className="h-4 w-4" />
+                        Currency conversion required
                       </div>
-                      <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fxConfirmed}
-                          onChange={(e) => setFxConfirmed(e.target.checked)}
-                          className="mt-0.5"
+                      <div className="inline-flex rounded-md border border-amber-200 bg-white overflow-hidden text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => { setFxMode('auto'); setFxConfirmed(false); }}
+                          className={`px-2 py-1 ${fxMode === 'auto' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                        >
+                          Auto rate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setFxMode('manual'); setFxConfirmed(false); }}
+                          className={`px-2 py-1 border-l border-amber-200 ${fxMode === 'manual' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                        >
+                          My own rate
+                        </button>
+                      </div>
+                    </div>
+
+                    {fxMode === 'auto' && fxLoading && (
+                      <div className="flex items-center gap-2 text-xs text-amber-800">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Fetching rate...
+                      </div>
+                    )}
+                    {fxMode === 'auto' && fxError && (
+                      <div className="text-xs text-destructive">
+                        {fxError} — switch to "My own rate" or pick a different source account.
+                      </div>
+                    )}
+
+                    {fxMode === 'manual' && (
+                      <div className="space-y-1">
+                        <label className="block text-[11px] text-amber-900">
+                          Rate (1 {currency} = ? {selectedSource!.currency})
+                        </label>
+                        <Input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={fxManualRate}
+                          onChange={(e) => { setFxManualRate(e.target.value); setFxConfirmed(false); }}
+                          placeholder={autoRateNum ? String(autoRateNum) : 'Enter rate'}
+                          className="h-8 text-sm"
                         />
-                        <span>
-                          I confirm this rate and understand the source account will be debited in {selectedSource!.currency}.
-                        </span>
-                      </label>
-                    </>
-                  )}
-                </div>
-              )}
+                        {!manualRateValid && fxManualRate && (
+                          <p className="text-[11px] text-destructive">Rate must be a positive number.</p>
+                        )}
+                        {deviationWarn && (
+                          <p className="text-[11px] text-amber-700">
+                            Your rate differs from the market quote
+                            {autoRateNum ? ` (${autoRateNum.toLocaleString(undefined, { maximumFractionDigits: 4 })})` : ''}
+                            {' '}by {deviationPct.toFixed(1)}%. Double-check before confirming.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {activeRate !== null && activeRate > 0 && (
+                      <>
+                        <div className="text-xs text-amber-900 space-y-0.5">
+                          <div>
+                            Bill: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div>
+                            Will debit: <span className="font-medium">
+                              {selectedSource!.currency} {activeConverted.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-amber-700">
+                            Rate: 1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
+                            {' '}&middot; {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                          </div>
+                        </div>
+                        <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={fxConfirmed}
+                            onChange={(e) => setFxConfirmed(e.target.checked)}
+                            className="mt-0.5"
+                          />
+                          <span>
+                            I confirm this rate and understand the source account will be debited in {selectedSource!.currency}.
+                          </span>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Note */}
               <div>
@@ -502,7 +573,14 @@ export default function PayBillsModal({
                 disabled={
                   payBillsMutation.isPending
                   || totalAmount <= 0
-                  || (needsFx && (!fxQuote || !fxConfirmed || fxLoading || !!fxError))
+                  || (
+                    needsFx
+                    && (
+                      !fxConfirmed
+                      || (fxMode === 'auto' && (!fxQuote || fxLoading || !!fxError))
+                      || (fxMode === 'manual' && !(parseFloat(fxManualRate) > 0))
+                    )
+                  )
                 }
                 className="w-full"
               >
