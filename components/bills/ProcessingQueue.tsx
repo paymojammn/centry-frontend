@@ -26,6 +26,7 @@ import {
   useGeneratePaymentFile,
   useSendProviderPayout,
   useDenyPayments,
+  useReversePayment,
 } from '@/hooks/use-bills';
 import { useBankAccounts } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
@@ -48,6 +49,8 @@ import {
   ShieldCheck,
   FileText,
   Ban,
+  ThumbsDown,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -87,8 +90,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [isDenyDialogOpen, setIsDenyDialogOpen] = useState(false);
+  const [isReverseDialogOpen, setIsReverseDialogOpen] = useState(false);
+  const [reverseTarget, setReverseTarget] = useState<PaymentEvent | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [denyReason, setDenyReason] = useState('');
+  const [reverseReason, setReverseReason] = useState('');
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
   const [selectedFileFormat, setSelectedFileFormat] = useState<'csv' | 'xml'>('xml');
 
@@ -115,6 +121,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const generateFile = useGeneratePaymentFile();
   const sendProviderPayout = useSendProviderPayout();
   const denyPayments = useDenyPayments();
+  const reversePayment = useReversePayment();
 
   const payments = Array.isArray(paymentsResponse)
     ? paymentsResponse
@@ -234,6 +241,30 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     }
   };
 
+  const openReverseDialog = (payment: PaymentEvent) => {
+    setReverseTarget(payment);
+    setReverseReason('');
+    setIsReverseDialogOpen(true);
+  };
+
+  const handleReverse = async () => {
+    if (!reverseTarget || !reverseReason.trim()) return;
+    try {
+      await reversePayment.mutateAsync({
+        id: reverseTarget.id,
+        reason: reverseReason.trim(),
+      });
+      setIsReverseDialogOpen(false);
+      setReverseTarget(null);
+      setReverseReason('');
+    } catch (error: any) {
+      alert(
+        error?.message
+          || 'Failed to reverse payment. You may not have permission, or the payment cannot be reversed from its current state.'
+      );
+    }
+  };
+
   const togglePaymentSelection = (id: number) => {
     setSelectedPayments(prev => {
       const newSet = new Set(prev);
@@ -268,6 +299,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         return <XCircle className="h-4 w-4 text-destructive" />;
       case 'REJECTED':
         return <ThumbsDown className="h-4 w-4 text-destructive" />;
+      case 'REVERSED':
+        return <RotateCcw className="h-4 w-4 text-muted-foreground" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
@@ -283,6 +316,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       FAILED_PAYMENT: { ...STATUS_COLORS.failed, label: 'Failed' },
       ERROR_PAYMENT: { ...STATUS_COLORS.failed, label: 'Error' },
       REJECTED: { ...STATUS_COLORS.failed, label: 'Rejected' },
+      REVERSED: { ...STATUS_COLORS.pending, label: 'Reversed' },
     };
 
     const config = statusMap[status] || { ...STATUS_COLORS.pending, label: status };
@@ -477,6 +511,12 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   Rejected
                 </span>
               </SelectItem>
+              <SelectItem value="REVERSED">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending.bg }} />
+                  Reversed
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -611,6 +651,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Method</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Created</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -690,6 +731,22 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                         {payment.rejection_reason}
                       </div>
                     )}
+                    {payment.bank_status_description && (
+                      <div className="text-xs text-muted-foreground mt-1 max-w-[120px] truncate" title={payment.bank_status_description}>
+                        {payment.bank_status_code ? `${payment.bank_status_code}: ` : ''}
+                        {payment.bank_status_description}
+                      </div>
+                    )}
+                    {payment.retry_of && (
+                      <div className="text-xs text-amber-600 mt-1">
+                        Retry #{payment.retry_count} of #{payment.retry_of}
+                      </div>
+                    )}
+                    {payment.reversal_reason && (
+                      <div className="text-xs text-muted-foreground mt-1 max-w-[120px] truncate" title={payment.reversal_reason}>
+                        Reversed: {payment.reversal_reason}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-muted-foreground">{formatDate(payment.created_at)}</div>
@@ -700,6 +757,27 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       <div className="text-xs" style={{ color: STATUS_COLORS.success.bg }}>
                         Approved by {payment.approved_by_name}
                       </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-right">
+                    {hasApprovePermission && payment.provider_status !== 'REVERSED' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openReverseDialog(payment);
+                        }}
+                        className="h-7 px-2 text-xs"
+                        title="Reverse this payment — restores the bill to payable status"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reverse
+                      </Button>
+                    )}
+                    {payment.provider_status === 'REVERSED' && (
+                      <span className="text-[11px] text-muted-foreground">Reversed</span>
                     )}
                   </td>
                 </tr>
@@ -875,6 +953,65 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <Ban className="h-4 w-4 mr-1.5" />
               )}
               Deny
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reverse Dialog */}
+      <Dialog open={isReverseDialogOpen} onOpenChange={setIsReverseDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reverse Payment</DialogTitle>
+            <DialogDescription>
+              Restore the bill to payable status and mark this payment event as reversed.
+              The bill will re-sync to Xero without this payment.
+            </DialogDescription>
+          </DialogHeader>
+          {reverseTarget && (
+            <div className="py-2 space-y-3">
+              <div className="rounded-md bg-muted px-3 py-2 text-sm">
+                <div className="font-medium text-foreground">
+                  {reverseTarget.vendor_name || 'Payment'} &middot; {reverseTarget.currency}{' '}
+                  {parseFloat(reverseTarget.amount).toLocaleString()}
+                </div>
+                {reverseTarget.bill_number && (
+                  <div className="text-xs text-muted-foreground">
+                    Bill {reverseTarget.bill_number}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Reason (required)
+                </label>
+                <Textarea
+                  value={reverseReason}
+                  onChange={(e) => setReverseReason(e.target.value)}
+                  placeholder="e.g. Duplicate payment, paid vendor twice, wrong amount..."
+                  rows={3}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setIsReverseDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleReverse}
+              disabled={reversePayment.isPending || !reverseReason.trim()}
+              className="text-white"
+              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
+            >
+              {reversePayment.isPending ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+              )}
+              Reverse Payment
             </Button>
           </DialogFooter>
         </DialogContent>

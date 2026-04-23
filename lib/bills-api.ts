@@ -94,6 +94,29 @@ export const billsApi = {
   },
 
   /**
+   * Get an FX quote. Use when the source account's currency differs from
+   * the bill's currency. The quote has a 5-minute freshness window — the
+   * pay endpoint will re-quote if submission happens after expiry.
+   */
+  async getFxQuote(from: string, to: string, amount: string | number): Promise<{
+    from_currency: string;
+    to_currency: string;
+    amount: string;
+    converted_amount: string;
+    rate: string;
+    provider: string;
+    fetched_at: string;
+    expires_at: string;
+  }> {
+    const params = new URLSearchParams({
+      from,
+      to,
+      amount: String(amount),
+    });
+    return await api.get(`${XERO_BILLS_BASE_URL}/fx-quote/?${params.toString()}`);
+  },
+
+  /**
    * Process bill payment(s)
    */
   async payBills(payload: BillPaymentPayload): Promise<BillPaymentResponse> {
@@ -262,5 +285,19 @@ export const paymentEventsApi = {
       `${PAYMENTS_BASE_URL}/deny/`,
       { payment_event_ids: paymentEventIds, reason }
     );
+  },
+
+  /**
+   * Reverse a completed payment. Restores the bill (amount_due/amount_paid,
+   * status), marks the event REVERSED, flags synced_to_xero=False so Xero
+   * re-syncs. Only valid from SUCCESS_PAYMENT / SENT_PAYMENT / ERROR_PAYMENT.
+   */
+  async reversePayment(paymentEventId: number, reason: string): Promise<{
+    success: boolean;
+    payment_event_id: number;
+    status: string;
+    bill_restored: boolean;
+  }> {
+    return await api.post(`${PAYMENTS_BASE_URL}/${paymentEventId}/reverse/`, { reason });
   },
 };

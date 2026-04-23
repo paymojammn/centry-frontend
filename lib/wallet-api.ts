@@ -296,23 +296,10 @@ export const walletApi = {
     currency?: string;
     monthly_budget?: string;
     initial_balance?: string;
-    linked_mobile_money_account_id?: string;
+    linked_provider_account_id?: string;
     linked_bank_account_id?: string;
     fee_percentage?: string;
     flat_fee?: string;
-    // For creating new accounts along with wallet
-    new_mobile_money_account?: {
-      account_name: string;
-      phone_number: string;
-      provider: string;
-      currency: string;
-    };
-    new_bank_account?: {
-      account_name: string;
-      account_number: string;
-      bank_name: string;
-      currency: string;
-    };
   }): Promise<DepartmentWallet & { initial_transaction_id?: string }> {
     const response = await api.post<DepartmentWallet>(
       `${WALLET_BASE_URL}/departments/`,

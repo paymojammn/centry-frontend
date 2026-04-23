@@ -311,7 +311,18 @@ export default function RecipientDetailsStep({
   const isComplete = (billId: number) => {
     const r = recipients.get(billId);
     if (!r) return false;
-    return !!(r.recipient_bank_id && r.account_number && r.account_name);
+    const baseOk = !!(r.recipient_bank_id && (r.account_number || r.iban) && r.account_name);
+    if (!baseOk) return false;
+    if (r.recipient_type === 'international') {
+      // ISO 20022 SWIFT transfers require beneficiary address + purpose code.
+      return !!(
+        r.beneficiary_street?.trim() &&
+        r.beneficiary_city?.trim() &&
+        r.beneficiary_country?.trim() &&
+        r.purpose_code?.trim()
+      );
+    }
+    return true;
   };
 
   const getBankDisplay = (r?: RecipientDetails) => {
@@ -439,9 +450,10 @@ export default function RecipientDetailsStep({
                     <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="If no IBAN" />
                   </div>
                   <TextField label="Beneficiary Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Full name" />
+                  <p className="text-[10px] text-muted-foreground -mt-1">Required by SWIFT: beneficiary address + purpose code.</p>
                   <div className="grid grid-cols-2 gap-3">
-                    <TextField label="Street" value={r?.beneficiary_street || ''} onChange={(v) => update(bill.id, { beneficiary_street: v })} placeholder="Street" optional />
-                    <TextField label="City" value={r?.beneficiary_city || ''} onChange={(v) => update(bill.id, { beneficiary_city: v })} placeholder="City" optional />
+                    <TextField label="Street" value={r?.beneficiary_street || ''} onChange={(v) => update(bill.id, { beneficiary_street: v })} placeholder="Street" />
+                    <TextField label="City" value={r?.beneficiary_city || ''} onChange={(v) => update(bill.id, { beneficiary_city: v })} placeholder="City" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <SelectField label="Purpose" value={r?.purpose_code || ''} onChange={(e) => update(bill.id, { purpose_code: e.target.value })}>

@@ -86,6 +86,7 @@ export interface BillPaymentPayload {
   organization_id: number;
   note?: string;
   use_wallet?: boolean;
+  idempotency_key?: string;
 }
 
 export interface BillPaymentResult {
@@ -94,6 +95,7 @@ export interface BillPaymentResult {
   reference?: string;
   payment_event_id?: number;
   error_message?: string;
+  idempotent_replay?: boolean;
 }
 
 export interface BillPaymentResponse {
@@ -150,7 +152,8 @@ export type PaymentEventStatus =
   | 'ERROR_PAYMENT'
   | 'SUCCESS_PAYMENT'
   | 'FAILED_PAYMENT'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'REVERSED';
 
 export type PaymentMethod =
   | 'mtn_momo'
@@ -208,6 +211,24 @@ export interface PaymentEvent {
   rejection_reason: string;
   source_bank_account: number | null;
   source_bank_account_name: string | null;
+  // Bank reconciliation (pain.002)
+  bank_status: string;
+  bank_status_code: string;
+  bank_status_description: string;
+  bank_status_updated_at: string | null;
+  // Reversal
+  reversed_by: number | null;
+  reversed_at: string | null;
+  reversal_reason: string;
+  // Retry chain
+  retry_of: number | null;
+  retry_count: number;
+  // FX
+  fx_rate: string | null;
+  fx_source_currency: string;
+  fx_source_amount: string | null;
+  fx_provider: string;
+  fx_fetched_at: string | null;
 }
 
 export interface PaymentEventStats {

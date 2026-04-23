@@ -9,8 +9,16 @@
 
 export type PaymentSourceType = 'mobile_money' | 'bank_account' | 'ozow' | 'paystack' | 'netcash';
 
+/**
+ * Which backend model backs this source. Determines which ID field to send
+ * when paying: `provider_account_id` (unified ProviderAccount) or
+ * `bank_account_id` (BankAccount).
+ */
+export type PaymentSourceModel = 'provider_account' | 'bank_account';
+
 export interface PaymentSource {
   id: string;
+  source_model?: PaymentSourceModel;
   type: PaymentSourceType;
   name: string;
   provider: string;             // e.g. 'mtn', 'airtel', 'ozow', 'stanbic'

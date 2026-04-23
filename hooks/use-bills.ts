@@ -179,3 +179,25 @@ export function useDenyPayments() {
     },
   });
 }
+
+/**
+ * Hook to reverse a completed payment. Restores the bill to payable,
+ * marks the event REVERSED, triggers Xero re-sync.
+ */
+export function useReversePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { success: boolean; payment_event_id: number; status: string; bill_restored: boolean },
+    Error,
+    { id: number; reason: string }
+  >({
+    mutationFn: ({ id, reason }) => paymentEventsApi.reversePayment(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['bills'] });
+      queryClient.invalidateQueries({ queryKey: ['bill-stats'] });
+    },
+  });
+}

@@ -284,8 +284,8 @@ export interface CreatePaymentRequestPayload {
   amount?: string;
   // For wallet payments
   source_wallet_id?: string;
-  // For mobile money payments
-  source_mobile_money_account_id?: string;
+  // For mobile money payments (ProviderAccount with provider=mtn/airtel/safaricom)
+  source_provider_account_id?: string;
   destination_phone?: string;
   // For bank payments
   source_bank_account_id?: string;

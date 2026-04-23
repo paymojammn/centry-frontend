@@ -187,7 +187,7 @@ export default function CreateWalletModal({
         currency: organizationCurrency,
         monthly_budget: monthlyBudget || undefined,
         initial_balance: initialBalance || undefined,
-        linked_mobile_money_account_id: selectedAccountType === 'mobile_money' ? selectedAccountId! : undefined,
+        linked_provider_account_id: selectedAccountType === 'mobile_money' ? selectedAccountId! : undefined,
         linked_bank_account_id: selectedAccountType === 'bank' ? selectedAccountId! : undefined,
       });
 

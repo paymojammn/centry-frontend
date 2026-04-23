@@ -87,7 +87,6 @@ export interface DepartmentWalletTransaction {
 export interface AvailableMobileMoneyAccount {
   id: string;
   account_name: string;
-  phone_number: string;
   provider: string | null;
   provider_name: string | null;
   balance: string;
@@ -115,7 +114,7 @@ export interface LinkedAccountsResponse {
   available_mobile_money_accounts: AvailableMobileMoneyAccount[];
   available_bank_accounts: AvailableBankAccount[];
   admin_links: {
-    add_mobile_money_account: string;
+    add_provider_account: string;
     add_bank_account: string;
   };
 }

@@ -83,6 +83,21 @@ export default function PayBillsModal({
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [note, setNote] = useState('');
   const [results, setResults] = useState<PaymentResult[]>([]);
+  // Generated once per submit-click so retries (network timeouts, 5xx) reuse the
+  // same key and the backend can dedupe. Cleared in onSuccess/on-close.
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+
+  // FX quote (set when source currency differs from bill currency)
+  const [fxQuote, setFxQuote] = useState<{
+    rate: string;
+    provider: string;
+    fetched_at: string;
+    expires_at: string;
+    converted_amount: string;
+  } | null>(null);
+  const [fxLoading, setFxLoading] = useState(false);
+  const [fxError, setFxError] = useState<string | null>(null);
+  const [fxConfirmed, setFxConfirmed] = useState(false);
 
   const currency = bills[0]?.currency_code
     ? String(bills[0].currency_code).split('.').pop() || 'UGX'
@@ -94,6 +109,22 @@ export default function PayBillsModal({
       return sum + (custom ? parseFloat(custom) : parseFloat(bill.amount_due));
     }, 0);
   }, [bills, amounts]);
+
+  const allRecipientsComplete = useMemo(() => {
+    if (recipients.size !== bills.length) return false;
+    for (const r of recipients.values()) {
+      if (!r.recipient_bank_id || !(r.account_number || r.iban) || !r.account_name) return false;
+      if (r.recipient_type === 'international') {
+        if (
+          !r.beneficiary_street?.trim() ||
+          !r.beneficiary_city?.trim() ||
+          !r.beneficiary_country?.trim() ||
+          !r.purpose_code?.trim()
+        ) return false;
+      }
+    }
+    return true;
+  }, [recipients, bills.length]);
 
   // Initialize amounts
   useEffect(() => {
@@ -113,8 +144,47 @@ export default function PayBillsModal({
       setAmounts({});
       setNote('');
       setResults([]);
+      setIdempotencyKey(null);
+      setFxQuote(null);
+      setFxLoading(false);
+      setFxError(null);
+      setFxConfirmed(false);
     }
   }, [isOpen]);
+
+  // Fetch an FX quote whenever currencies differ + amount changes.
+  const needsFx = Boolean(selectedSource && selectedSource.currency && selectedSource.currency !== currency);
+  useEffect(() => {
+    let cancelled = false;
+    if (!needsFx || step !== 'confirm' || totalAmount <= 0) {
+      setFxQuote(null);
+      setFxError(null);
+      return;
+    }
+    setFxLoading(true);
+    setFxError(null);
+    setFxConfirmed(false);
+    billsApi
+      .getFxQuote(currency, selectedSource!.currency, totalAmount)
+      .then((q) => {
+        if (cancelled) return;
+        setFxQuote({
+          rate: q.rate,
+          provider: q.provider,
+          fetched_at: q.fetched_at,
+          expires_at: q.expires_at,
+          converted_amount: q.converted_amount,
+        });
+      })
+      .catch((err: Error) => {
+        if (cancelled) return;
+        setFxError(err.message || 'Failed to fetch FX rate');
+      })
+      .finally(() => {
+        if (!cancelled) setFxLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [needsFx, step, currency, selectedSource, totalAmount]);
 
   const payBillsMutation = useMutation({
     mutationFn: async () => {
@@ -124,6 +194,12 @@ export default function PayBillsModal({
         (r) => r.recipient_type === 'international',
       );
 
+      // Reuse key across retries of this submit-click; only cleared on success/close.
+      const key = idempotencyKey ?? (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      if (!idempotencyKey) setIdempotencyKey(key);
+
       const paymentData: any = {
         organization_id: organizationId,
         bill_ids: bills.map((b) => b.id),
@@ -132,19 +208,29 @@ export default function PayBillsModal({
         ),
         currency_code: currency,
         note: note || undefined,
+        idempotency_key: key,
       };
 
-      if (selectedSource.type === 'mobile_money') {
-        paymentData.payment_method = 'mobile_money';
-        paymentData.mobile_money_account_id = selectedSource.id;
-      } else if (selectedSource.type === 'bank_account') {
+      // If an FX quote was fetched, pin it in the payload. Backend will accept
+      // the rate as long as it's still within its 5-minute freshness window.
+      if (fxQuote) {
+        paymentData.fx = {
+          rate: fxQuote.rate,
+          provider: fxQuote.provider,
+          fetched_at: fxQuote.fetched_at,
+        };
+      }
+
+      // Routing by backend source model. `source_model` distinguishes BankAccount
+      // (bank_account_id) from ProviderAccount (provider_account_id).
+      if (selectedSource.source_model === 'bank_account' || selectedSource.type === 'bank_account') {
         paymentData.payment_method = hasInternational ? 'international_remittance' : 'bank';
         paymentData.bank_account_id = selectedSource.id;
         paymentData.account_number = selectedSource.account_number;
         paymentData.bank_name = selectedSource.bank_name;
       } else {
-        // Provider accounts (ozow, paystack, netcash, etc.)
-        paymentData.payment_method = 'bank';
+        // ProviderAccount: MTN/Airtel/Safaricom → mobile_money, Ozow/Paystack/Netcash/VALR/Onegate → bank.
+        paymentData.payment_method = selectedSource.type === 'mobile_money' ? 'mobile_money' : 'bank';
         paymentData.provider_account_id = selectedSource.id;
         paymentData.provider = selectedSource.provider;
       }
@@ -288,7 +374,7 @@ export default function PayBillsModal({
               />
               <Button
                 onClick={() => setStep('confirm')}
-                disabled={recipients.size !== bills.length}
+                disabled={!allRecipientsComplete}
                 className="w-full"
               >
                 Continue to Review
@@ -351,6 +437,56 @@ export default function PayBillsModal({
                 </span>
               </div>
 
+              {/* FX Quote — only shown when source currency differs from bill currency */}
+              {needsFx && (
+                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                    <AlertCircle className="h-4 w-4" />
+                    Currency conversion required
+                  </div>
+                  {fxLoading && (
+                    <div className="flex items-center gap-2 text-xs text-amber-800">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Fetching rate...
+                    </div>
+                  )}
+                  {fxError && (
+                    <div className="text-xs text-destructive">
+                      {fxError} — cannot proceed without a rate. Try again or switch source account.
+                    </div>
+                  )}
+                  {fxQuote && !fxLoading && (
+                    <>
+                      <div className="text-xs text-amber-900 space-y-0.5">
+                        <div>
+                          Bill: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div>
+                          Will debit: <span className="font-medium">
+                            {selectedSource!.currency} {parseFloat(fxQuote.converted_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-amber-700">
+                          Rate: 1 {currency} = {parseFloat(fxQuote.rate).toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
+                          {' '}&middot; via {fxQuote.provider}
+                        </div>
+                      </div>
+                      <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fxConfirmed}
+                          onChange={(e) => setFxConfirmed(e.target.checked)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          I confirm this rate and understand the source account will be debited in {selectedSource!.currency}.
+                        </span>
+                      </label>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* Note */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Note (optional)</label>
@@ -363,11 +499,17 @@ export default function PayBillsModal({
 
               <Button
                 onClick={() => payBillsMutation.mutate()}
-                disabled={payBillsMutation.isPending || totalAmount <= 0}
+                disabled={
+                  payBillsMutation.isPending
+                  || totalAmount <= 0
+                  || (needsFx && (!fxQuote || !fxConfirmed || fxLoading || !!fxError))
+                }
                 className="w-full"
               >
                 {payBillsMutation.isPending ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
+                ) : needsFx && !fxConfirmed ? (
+                  'Confirm conversion to continue'
                 ) : (
                   `Submit ${currency} ${totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} for Approval`
                 )}
