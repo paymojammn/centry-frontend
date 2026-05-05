@@ -58,6 +58,7 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Reconciliation", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
       { title: "Provider Accounts", path: "/banking/provider-accounts" },
+      { title: "Approvals", path: "/banking/approvals" },
     ],
   },
   {
