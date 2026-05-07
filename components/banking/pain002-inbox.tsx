@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -12,13 +15,22 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
+  ContentCard,
+  ContentCardHeader,
+} from "@/components/layout/content-card";
+import {
   Download,
   RefreshCw,
   FileText,
   Server,
   Loader2,
   AlertCircle,
+  Inbox as InboxIcon,
+  Search,
+  X,
 } from "lucide-react";
+import { format } from "date-fns";
+import { api } from "@/lib/api";
 import {
   useBankAccounts,
   usePain002RemoteFiles,
@@ -45,6 +57,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [isPulling, setIsPulling] = useState(false);
   const [pullTaskId, setPullTaskId] = useState<string | undefined>();
+  const [fileSearch, setFileSearch] = useState("");
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
@@ -97,6 +110,33 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
   const pain002Files = remoteFiles.filter(
     (f) => f.name.toLowerCase().includes("pain") || f.name.toLowerCase().includes(".002")
   );
+
+  const filteredFiles = useMemo(() => {
+    if (!fileSearch) return pain002Files;
+    const q = fileSearch.toLowerCase();
+    return pain002Files.filter((f) => f.name.toLowerCase().includes(q));
+  }, [pain002Files, fileSearch]);
+
+  const hasFileFilters = fileSearch !== "";
+
+  const handleDownload = async (filename: string) => {
+    if (!selectedAccountId) return;
+    try {
+      const url = `/api/v1/banking/pain002/files/${selectedAccountId}/${encodeURIComponent(filename)}/download/${
+        selectedSFTPCredentialId ? `?sftp_credential_id=${selectedSFTPCredentialId}` : ""
+      }`;
+      const blob = await api.get<Blob>(url, { responseType: "blob" });
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Download failed";
+      toast.error(message);
+    }
+  };
 
   const handlePullFiles = async () => {
     if (!selectedSFTPCredentialId) return;
@@ -230,60 +270,121 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
         </div>
       </div>
 
-      {/* Remote files listing */}
+      {/* Remote files listing — mirrors the Outbox table */}
       {selectedAccountId ? (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium text-foreground">Available on SFTP</h3>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {remoteFilesLoading
-                  ? "Loading files..."
-                  : `${pain002Files.length} pain.002 file${pain002Files.length === 1 ? "" : "s"} found`}
-              </p>
+        <div className="space-y-5">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[180px] max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search files..."
+                value={fileSearch}
+                onChange={(e) => setFileSearch(e.target.value)}
+                className="pl-10 h-9"
+              />
             </div>
+            {hasFileFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFileSearch("")}
+                className="h-9 text-muted-foreground"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Clear
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetchRemoteFiles()}
               disabled={remoteFilesLoading}
-              className="h-8 btn-press"
+              className="h-9 btn-press ml-auto"
             >
-              <RefreshCw className={`h-3 w-3 mr-1.5 ${remoteFilesLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${remoteFilesLoading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
           </div>
-          <div className="p-4">
-            {remoteFilesLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
+
+          {/* Table */}
+          <ContentCard noPadding>
+            <ContentCardHeader>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground">Inbox</h3>
+                {!remoteFilesLoading && (
+                  <Badge variant="secondary" className="text-xs">
+                    {filteredFiles.length}
+                  </Badge>
+                )}
               </div>
-            ) : pain002Files.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No pain.002 files on SFTP</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">
-                  Run "Pull Bank Responses" to fetch and process them
+            </ContentCardHeader>
+
+            {remoteFilesLoading ? (
+              <div className="p-6 space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-11 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : filteredFiles.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
+                  <InboxIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">
+                  {hasFileFilters ? "No files match your filters" : "Inbox is empty"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {hasFileFilters
+                    ? "Try adjusting your search"
+                    : "Pull bank responses from SFTP to see files here"}
                 </p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {pain002Files.map((file) => (
-                  <div
-                    key={file.name}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded border border-border text-sm"
-                  >
-                    <FileText className="h-3 w-3 text-muted-foreground/60" />
-                    <span className="text-foreground">{file.name}</span>
-                    <span className="text-muted-foreground/60">{formatFileSize(file.size)}</span>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                  <div className="col-span-3">Modified</div>
+                  <div className="col-span-7">Filename</div>
+                  <div className="col-span-1 text-right">Size</div>
+                  <div className="col-span-1"></div>
+                </div>
+                <div className="divide-y divide-border/50 max-h-[calc(100vh-450px)] overflow-y-auto">
+                  {filteredFiles.map((file) => (
+                    <div
+                      key={file.name}
+                      className="grid grid-cols-12 gap-3 px-6 py-3 items-center text-sm hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="col-span-3 text-muted-foreground">
+                        {format(new Date(file.mtime), "dd MMM yyyy")}
+                        <p className="text-xs text-muted-foreground/60">
+                          {format(new Date(file.mtime), "HH:mm")}
+                        </p>
+                      </div>
+                      <div className="col-span-7 min-w-0 flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                        <p className="font-medium text-foreground truncate">{file.name}</p>
+                      </div>
+                      <div className="col-span-1 text-right">
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {formatFileSize(file.size)}
+                        </span>
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleDownload(file.name)}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
-          </div>
+          </ContentCard>
         </div>
       ) : (
         <div className="bg-card rounded-xl border border-border/80 shadow-sm text-center py-12">
