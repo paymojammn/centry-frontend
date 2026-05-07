@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  Download,
   RefreshCw,
   FileText,
-  Server,
   CheckCircle2,
   XCircle,
   Clock,
   Loader2,
-  AlertCircle,
   ChevronDown,
   ChevronRight,
   AlertTriangle,
@@ -23,31 +19,17 @@ import {
 import {
   useBankAccounts,
   useBankPaymentExports,
-  usePain002RemoteFiles,
-  usePain002Pull,
-  useTaskStatus,
   usePaymentExportStatuses,
   usePaymentExportStatusDetail,
-  useSFTPCredentials,
   type BankPaymentExport,
   type PaymentExportStatus,
   type PaymentTransactionStatus,
-  type SFTPCredential,
-  type Pain002RemoteFile,
 } from "@/hooks/use-banking";
 
 interface Pain002StatusProps {
   organizationId?: string;
   onSelectExport?: (exportId: number) => void;
   selectedExportId?: number;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 function formatDate(dateString: string): string {
@@ -428,15 +410,9 @@ function StatusDetail({ status }: { status: PaymentExportStatus }) {
 
 export function Pain002Status({ organizationId, onSelectExport, selectedExportId }: Pain002StatusProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
-  const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
-  const [isPulling, setIsPulling] = useState(false);
-  const [pullTaskId, setPullTaskId] = useState<string | undefined>();
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
-
-  const { data: credentialsData, isLoading: credentialsLoading } = useSFTPCredentials(selectedAccountId);
-  const sftpCredentials = (credentialsData as any)?.results || [];
 
   const {
     data: exportsData,
@@ -447,233 +423,47 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
     organizationId,
   });
 
-  const {
-    data: remoteFilesData,
-    isLoading: remoteFilesLoading,
-    refetch: refetchRemoteFiles,
-  } = usePain002RemoteFiles(selectedAccountId);
-
-  const pullPain002 = usePain002Pull();
-
-  // Poll task status after pull is initiated
-  const { data: taskStatus } = useTaskStatus(pullTaskId);
-
-  useEffect(() => {
-    if (!taskStatus || !pullTaskId) return;
-
-    if (taskStatus.status === "SUCCESS") {
-      setPullTaskId(undefined);
-      setIsPulling(false);
-      refetchExports();
-      refetchRemoteFiles();
-      const result = taskStatus.result;
-      if (result?.total_downloaded > 0) {
-        toast.success(
-          `Pulled ${result.total_downloaded} file(s), processed ${result.total_processed || 0}`
-        );
-      } else {
-        toast.info("No new pain.002 files found on SFTP");
-      }
-    } else if (taskStatus.status === "FAILURE") {
-      setPullTaskId(undefined);
-      setIsPulling(false);
-      const errorMsg = taskStatus.result?.error || "Task failed";
-      toast.error(`Pull failed: ${errorMsg}`);
-    }
-  }, [taskStatus, pullTaskId]);
-
-  useEffect(() => {
-    if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
-      const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
-      if (activeCredential) {
-        setSelectedSFTPCredentialId(activeCredential.id);
-      } else {
-        setSelectedSFTPCredentialId(sftpCredentials[0].id);
-      }
-    }
-  }, [sftpCredentials, selectedSFTPCredentialId, selectedAccountId]);
-
   const exports = exportsData?.results || [];
-  const remoteFiles = remoteFilesData?.files || [];
-  const pain002Files = remoteFiles.filter(
-    (f) => f.name.toLowerCase().includes("pain") || f.name.toLowerCase().includes(".002")
-  );
-
-  const handlePullFiles = async () => {
-    if (!selectedSFTPCredentialId) return;
-    try {
-      setIsPulling(true);
-      const result = await pullPain002.mutateAsync({
-        sftp_credential_id: selectedSFTPCredentialId,
-        auto_process: true,
-      });
-      if (result.task_id) {
-        setPullTaskId(result.task_id);
-        toast.info("Pulling bank responses...");
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to pull pain.002 files";
-      toast.error(message);
-      setIsPulling(false);
-    }
-  };
 
   // Filter exports that have been uploaded (have bank response potential)
   const uploadedExports = exports.filter(
-    (e) => e.status === "uploaded" || e.status === "processed" || e.status === "completed" || e.status === "partial" || e.status === "failed"
+    (e) =>
+      e.status === "uploaded" ||
+      e.status === "processed" ||
+      e.status === "completed" ||
+      e.status === "partial" ||
+      e.status === "failed"
   );
 
   return (
     <div className="space-y-6">
-      {/* Config Section */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-medium text-foreground">Bank Response (pain.002)</h3>
+      {/* Account filter */}
+      <div className="bg-card rounded-xl border border-border/80 shadow-sm p-4">
+        <div className="flex flex-col md:flex-row md:items-end gap-4 max-w-md">
+          <div className="flex-1 space-y-2">
+            <Label className="text-sm font-medium text-foreground">Bank Account</Label>
+            <Select
+              value={selectedAccountId?.toString() || "all"}
+              onValueChange={(value) =>
+                setSelectedAccountId(value === "all" ? undefined : Number(value))
+              }
+              disabled={accountsLoading}
+            >
+              <SelectTrigger className="h-10 bg-muted border-border">
+                <SelectValue placeholder="All accounts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Accounts</SelectItem>
+                {bankAccounts.map((account: any) => (
+                  <SelectItem key={account.id} value={account.id.toString()}>
+                    {account.account_name} ({account.account_number})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Pull payment status reports from the bank to track transaction outcomes
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Bank Account</Label>
-              <Select
-                value={selectedAccountId?.toString() || "all"}
-                onValueChange={(value) => {
-                  setSelectedAccountId(value === "all" ? undefined : Number(value));
-                  setSelectedSFTPCredentialId(undefined);
-                }}
-                disabled={accountsLoading}
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue placeholder="All accounts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Accounts</SelectItem>
-                  {bankAccounts.map((account: any) => (
-                    <SelectItem key={account.id} value={account.id.toString()}>
-                      {account.account_name} ({account.account_number})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">SFTP Connection</Label>
-              <Select
-                value={selectedSFTPCredentialId?.toString() || ""}
-                onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
-                disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue
-                    placeholder={
-                      credentialsLoading
-                        ? "Loading..."
-                        : sftpCredentials.length === 0
-                        ? "No connections"
-                        : "Select connection"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {sftpCredentials.map((credential: SFTPCredential) => (
-                    <SelectItem key={credential.id} value={credential.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <span>{credential.host}</span>
-                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-primary" />}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                onClick={handlePullFiles}
-                disabled={!selectedSFTPCredentialId || isPulling}
-                className="h-10 bg-primary hover:bg-primary/90 btn-press"
-              >
-                {isPulling ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {pullTaskId ? "Processing..." : "Pulling..."}
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Pull Bank Responses
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              {(() => {
-                const cred = sftpCredentials.find((c: SFTPCredential) => c.id === selectedSFTPCredentialId);
-                if (!cred) return null;
-                return (
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <span>
-                      <span className="text-muted-foreground/60">Host:</span> {cred.host}:{cred.port}
-                    </span>
-                    <span>
-                      <span className="text-muted-foreground/60">Download:</span>{" "}
-                      <code className="text-xs bg-muted px-1 rounded">{cred.download_path}</code>
-                    </span>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Remote Files Available */}
-      {selectedAccountId && pain002Files.length > 0 && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium text-foreground">Available on SFTP</h3>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{pain002Files.length} pain.002 files found</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetchRemoteFiles()}
-              disabled={remoteFilesLoading}
-              className="h-8 btn-press"
-            >
-              <RefreshCw className={`h-3 w-3 mr-1.5 ${remoteFilesLoading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
-          <div className="p-4">
-            <div className="flex flex-wrap gap-2">
-              {pain002Files.map((file) => (
-                <div
-                  key={file.name}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded border border-border text-sm"
-                >
-                  <FileText className="h-3 w-3 text-muted-foreground/60" />
-                  <span className="text-foreground">{file.name}</span>
-                  <span className="text-muted-foreground/60">{formatFileSize(file.size)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Export Status List */}
       <div className="bg-card rounded-xl border border-border/80 shadow-sm">
@@ -684,7 +474,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               <h3 className="text-sm font-medium text-foreground">Payment Export Status</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Track bank responses for uploaded payment files
+              Bank responses for uploaded payment files. Pull new responses from the Inbox tab.
             </p>
           </div>
           <Button
@@ -708,7 +498,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
             <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No uploaded exports yet</p>
             <p className="text-xs text-muted-foreground/60 mt-1">
-              Upload payment files from the SFTP Export tab to track their status
+              Upload payment files from the Pay tab to track their status
             </p>
           </div>
         ) : (
@@ -724,14 +514,6 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           </div>
         )}
       </div>
-
-      {/* No account selected */}
-      {!selectedAccountId && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm text-center py-12">
-          <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Select a bank account to view payment status</p>
-        </div>
-      )}
     </div>
   );
 }

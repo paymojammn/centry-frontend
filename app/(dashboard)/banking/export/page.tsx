@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsOverview } from "@/components/banking/stats-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
+import { Pain002Inbox } from "@/components/banking/pain002-inbox";
 import { Pain002Status } from "@/components/banking/pain002-status";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
@@ -27,6 +28,7 @@ import {
   Upload,
   FileCheck,
   FolderOpen,
+  Inbox,
   Search,
   Download,
   X,
@@ -155,8 +157,9 @@ export default function BankingExportPage() {
     const allTabs = [
       { value: "overview", label: "Overview", icon: BarChart3 },
       { value: "sftp-export", label: "Pay", icon: Upload, requiresExport: true },
-      { value: "bank-status", label: "Reconcile", icon: FileCheck, requiresExport: true },
-      { value: "files", label: "Files", icon: FolderOpen },
+      { value: "files", label: "Outbox", icon: FolderOpen },
+      { value: "inbox", label: "Inbox", icon: Inbox, requiresExport: true },
+      { value: "bank-status", label: "Reconciliation", icon: FileCheck, requiresExport: true },
     ];
     return allTabs.filter((t) => !t.requiresExport || hasBankingExport);
   }, [hasBankingExport]);
@@ -239,6 +242,9 @@ export default function BankingExportPage() {
             selectedExportId={selectedExportId}
           />
         )}
+        {activeTab === "inbox" && (
+          <Pain002Inbox organizationId={selectedOrganizationId || undefined} />
+        )}
         {activeTab === "bank-status" && (
           <Pain002Status
             organizationId={selectedOrganizationId || undefined}
@@ -311,7 +317,7 @@ export default function BankingExportPage() {
               <ContentCardHeader>
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-foreground">
-                    Export Files
+                    Outbox
                   </h3>
                   {!exportsLoading && (
                     <Badge variant="secondary" className="text-xs">
@@ -333,7 +339,7 @@ export default function BankingExportPage() {
                     <FolderOpen className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-foreground">
-                    No export files found
+                    Outbox is empty
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {hasFileFilters
