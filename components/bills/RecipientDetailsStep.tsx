@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Building2, Globe, ChevronDown, Download, Check, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { paymentSourcesApi } from '@/lib/payment-sources-api';
+import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,6 +25,8 @@ interface RecipientDetails {
   bill_id: number;
   recipient_type: 'bank' | 'international';
   recipient_bank_id?: number;
+  recipient_bank_branch_id?: number;
+  recipient_bank_branch_name?: string;
   bank_name?: string;
   swift_code?: string;
   account_number?: string;
@@ -145,6 +147,76 @@ function SearchableSelect({
         </PopoverContent>
       </Popover>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Branch selector — fetches per-bank, auto-picks head-office          */
+/* ------------------------------------------------------------------ */
+function formatBranchLabel(b: BankBranch): string {
+  const name = b.branch_name?.trim() || 'Branch';
+  return `${name} — ${b.branch_code}`;
+}
+
+function BranchSelector({
+  bankId,
+  value,
+  onSelect,
+}: {
+  bankId: number;
+  value?: number;
+  onSelect: (branchId: number, branchName: string) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['bank-branches', bankId],
+    queryFn: () => paymentSourcesApi.getBankBranches(bankId),
+    enabled: !!bankId,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const branches = data?.branches || [];
+
+  // Auto-pick head-office for the selected bank when nothing is chosen yet.
+  useEffect(() => {
+    if (value || !branches.length) return;
+    const headOffice = branches.find((b) => b.is_head_office) || branches[0];
+    if (headOffice) onSelect(headOffice.id, formatBranchLabel(headOffice));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bankId, branches.length]);
+
+  const options = branches.map((b) => ({
+    value: String(b.id),
+    label: formatBranchLabel(b),
+    hint: b.is_head_office ? 'Head office' : undefined,
+  }));
+
+  const selected = branches.find((b) => b.id === value);
+  const displayValue = selected ? formatBranchLabel(selected) : '';
+
+  if (!isLoading && branches.length === 0) {
+    return (
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Branch</label>
+        <div className="h-10 px-3 flex items-center text-xs text-destructive border border-destructive/30 rounded-lg bg-destructive/5">
+          No branches with sort codes on file for this bank — contact support.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <SearchableSelect
+      label="Branch"
+      placeholder={isLoading ? 'Loading branches...' : 'Select branch...'}
+      value={value ? String(value) : ''}
+      displayValue={displayValue}
+      options={options}
+      loading={isLoading}
+      onSelect={(val) => {
+        const branch = branches.find((b) => String(b.id) === val);
+        if (branch) onSelect(branch.id, formatBranchLabel(branch));
+      }}
+    />
   );
 }
 
@@ -322,7 +394,8 @@ export default function RecipientDetailsStep({
         r.purpose_code?.trim()
       );
     }
-    return true;
+    // Local pain.001 transfers require a branch sort code (ClrSysMmbId).
+    return !!r.recipient_bank_branch_id;
   };
 
   const getBankDisplay = (r?: RecipientDetails) => {
@@ -414,6 +487,8 @@ export default function RecipientDetailsStep({
                       recipient_bank_id: undefined,
                       bank_name: undefined,
                       swift_code: undefined,
+                      recipient_bank_branch_id: undefined,
+                      recipient_bank_branch_name: undefined,
                     });
                   }}
                 />
@@ -435,11 +510,28 @@ export default function RecipientDetailsStep({
                     recipient_bank_id: bankId,
                     bank_name: bank ? (bank.short_name || bank.name) : undefined,
                     swift_code: bank?.swift_code || '',
+                    // Reset the branch — BranchSelector will auto-pick head-office for the new bank.
+                    recipient_bank_branch_id: undefined,
+                    recipient_bank_branch_name: undefined,
                   });
                 }}
               />
               {r?.swift_code && (
                 <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
+              )}
+
+              {/* Branch selector — local pain.001 routing requires a sort code (ClrSysMmbId). */}
+              {recipientType === 'bank' && r?.recipient_bank_id && (
+                <BranchSelector
+                  bankId={r.recipient_bank_id}
+                  value={r.recipient_bank_branch_id}
+                  onSelect={(branchId, branchName) =>
+                    update(bill.id, {
+                      recipient_bank_branch_id: branchId,
+                      recipient_bank_branch_name: branchName,
+                    })
+                  }
+                />
               )}
 
               {/* Account fields */}

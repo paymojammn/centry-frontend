@@ -44,6 +44,8 @@ interface RecipientDetails {
   contact_id?: number;
   contact_name?: string;
   recipient_bank_id?: number;
+  recipient_bank_branch_id?: number;
+  recipient_bank_branch_name?: string;
   bank_name?: string;
   swift_code?: string;
   account_number?: string;
@@ -124,6 +126,9 @@ export default function PayBillsModal({
           !r.beneficiary_country?.trim() ||
           !r.purpose_code?.trim()
         ) return false;
+      } else {
+        // Local pain.001 transfers must carry a branch sort code (ClrSysMmbId).
+        if (!r.recipient_bank_branch_id) return false;
       }
     }
     return true;
@@ -253,6 +258,7 @@ export default function PayBillsModal({
           recipient_type: r.recipient_type,
           phone_number: r.phone_number,
           recipient_bank_id: r.recipient_bank_id,
+          recipient_bank_branch_id: r.recipient_bank_branch_id,
           bank_name: r.bank_name,
           swift_code: r.swift_code,
           account_number: r.account_number,
@@ -416,11 +422,18 @@ export default function PayBillsModal({
                 {bills.map((bill) => {
                   const custom = amounts[String(bill.id)] || '';
                   const isPartial = custom && parseFloat(custom) < parseFloat(bill.amount_due);
+                  const r = recipients.get(bill.id);
+                  const recipientLine = r?.recipient_type === 'bank' && r.bank_name
+                    ? `${r.bank_name}${r.recipient_bank_branch_name ? ` · ${r.recipient_bank_branch_name}` : ''}`
+                    : null;
                   return (
                     <div key={bill.id} className="px-4 py-3 flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{bill.vendor_name}</p>
                         <p className="text-xs text-muted-foreground">{bill.invoice_number || `#${bill.id}`}</p>
+                        {recipientLine && (
+                          <p className="text-[11px] text-muted-foreground/80 truncate">{recipientLine}</p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <Input

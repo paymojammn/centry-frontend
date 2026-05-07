@@ -25,6 +25,18 @@ export interface BanksResponse {
   count: number;
 }
 
+export interface BankBranch {
+  id: number;
+  branch_code: string;
+  branch_name: string;
+  is_head_office: boolean;
+}
+
+export interface BankBranchesResponse {
+  branches: BankBranch[];
+  count: number;
+}
+
 export interface BankAccount {
   id: number;
   account_name: string;
@@ -78,6 +90,16 @@ export const paymentSourcesApi = {
     const url = `${BANKING_BASE_URL}/banks/${queryString ? `?${queryString}` : ''}`;
 
     const response = await api.get<BanksResponse>(url);
+    return response;
+  },
+
+  /**
+   * Get branches for a bank, filtered to active branches with a non-empty
+   * branch_code (the only ones usable as a pain.001 sort code).
+   */
+  async getBankBranches(bankId: number): Promise<BankBranchesResponse> {
+    const url = `${BANKING_BASE_URL}/banks/${bankId}/branches/`;
+    const response = await api.get<BankBranchesResponse>(url);
     return response;
   },
 
