@@ -144,6 +144,20 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const canGenerateFile = hasExportPermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) => p.provider_status === 'PROCESSING');
 
+  // Did the user already pick a source when paying these bills? If every selected
+  // event agrees on source_bank_account, skip the picker and use that directly.
+  const consensusSourceBankAccountId: number | null = useMemo(() => {
+    if (!canGenerateFile) return null;
+    const sources = new Set(
+      selectedPaymentsData
+        .map((p: PaymentEvent) => p.source_bank_account)
+        .filter((id): id is number => typeof id === 'number')
+    );
+    return sources.size === 1 && sources.size === selectedPaymentsData.length
+      ? Array.from(sources)[0]
+      : null;
+  }, [canGenerateFile, selectedPaymentsData]);
+
   // Check if selected PROCESSING payments are provider payouts (Ozow, Paystack, etc.)
   const isProviderPayout = canGenerateFile &&
     selectedPaymentsData.every((p: PaymentEvent) =>
@@ -193,12 +207,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     }
   };
 
-  const handleGenerateFile = async () => {
-    if (!canGenerateFile || !selectedBankAccountId) return;
+  const handleGenerateFile = async (overrideSourceId?: number) => {
+    if (!canGenerateFile) return;
+    const sourceId = overrideSourceId ?? selectedBankAccountId;
+    if (!sourceId) return;
     try {
       const result = await generateFile.mutateAsync({
         paymentEventIds: Array.from(selectedPayments),
-        sourceBankAccountId: selectedBankAccountId,
+        sourceBankAccountId: sourceId,
         fileFormat: selectedFileFormat,
       });
       setSelectedPayments(new Set());
@@ -206,6 +222,17 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       alert(`Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}`);
     } catch (error: any) {
       alert(error?.message || 'Failed to generate file. You may not have permission.');
+    }
+  };
+
+  // Click on "Generate File": if the source was already chosen at bill-payment time
+  // (consensus across all selected events), skip the picker. Otherwise open the dialog
+  // so the user can resolve mixed/missing sources.
+  const handleGenerateFileClick = () => {
+    if (consensusSourceBankAccountId) {
+      handleGenerateFile(consensusSourceBankAccountId);
+    } else {
+      setIsGenerateDialogOpen(true);
     }
   };
 
@@ -561,7 +588,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
           {canGenerateFile && !isProviderPayout && (
             <Button
-              onClick={() => setIsGenerateDialogOpen(true)}
+              onClick={handleGenerateFileClick}
+              disabled={generateFile.isPending}
               size="sm"
               className="h-8 text-white"
               style={{ backgroundColor: STATUS_COLORS.processing.bg }}
@@ -899,7 +927,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </Button>
             <Button
               size="sm"
-              onClick={handleGenerateFile}
+              onClick={() => handleGenerateFile()}
               disabled={!selectedBankAccountId || generateFile.isPending}
               className="text-white"
               style={{ backgroundColor: STATUS_COLORS.processing.bg }}
