@@ -363,6 +363,11 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
                       <div className="col-span-7 min-w-0 flex items-center gap-2">
                         <FileText className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                         <p className="font-medium text-foreground truncate">{file.name}</p>
+                        {file.archived && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">
+                            Processed
+                          </Badge>
+                        )}
                       </div>
                       <div className="col-span-1 text-right">
                         <span className="text-xs text-muted-foreground tabular-nums">

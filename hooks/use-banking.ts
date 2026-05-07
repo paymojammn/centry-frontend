@@ -842,6 +842,7 @@ export interface Pain002RemoteFile {
   size: number;
   mtime: string;
   is_dir: boolean;
+  archived?: boolean;
 }
 
 export interface Pain002PullResult {
