@@ -5,6 +5,7 @@ import { Building2, Globe, ChevronDown, Download, Check, Search } from 'lucide-r
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
+import { useOzowBanks } from '@/hooks/use-ozow';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
@@ -41,6 +42,13 @@ interface RecipientDetails {
   regulatory_code?: string;
   regulatory_info?: string;
   transfer_currency?: string;
+  // Ozow-specific: when source is an Ozow ProviderAccount, the bank picker
+  // is populated from /api/ozow/banks/ rather than Centry's internal bank
+  // registry. The selected bank gives us the bankGroupId (Ozow's UUID for
+  // the destination bank) and the universalBranchCode (auto-fills branch_code).
+  bank_group_id?: string;
+  branch_code?: string;
+  customer_bank_reference?: string;
 }
 
 interface RecipientDetailsStepProps {
@@ -50,6 +58,10 @@ interface RecipientDetailsStepProps {
   paymentMethod: 'mobile_money' | 'bank_account';
   /** ISO country codes the selected provider supports, e.g. ['ZA'] for Ozow. */
   sourceCountryCodes?: string[];
+  /** Provider code on the selected source (e.g. 'ozow') — drives Ozow rail UI. */
+  sourceProvider?: string;
+  /** ProviderAccount UUID for the selected Ozow source — needed to scope the bank list. */
+  sourceProviderAccountId?: string;
 }
 
 const PURPOSE_CODES = [
@@ -294,6 +306,56 @@ function TextField({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Ozow Bank Picker — uses Ozow's /getavailablebanks list             */
+/* ------------------------------------------------------------------ */
+function OzowBankPicker({
+  ozowAccountId,
+  bankGroupId,
+  onSelect,
+}: {
+  ozowAccountId: string;
+  bankGroupId?: string;
+  onSelect: (bank: { bankGroupId: string; bankGroupName: string; universalBranchCode: string }) => void;
+}) {
+  const { data: banks = [], isLoading, error } = useOzowBanks(ozowAccountId);
+
+  const options = banks.map((b) => ({
+    value: b.bankGroupId,
+    label: b.bankGroupName,
+    hint: b.universalBranchCode,
+  }));
+
+  const selected = banks.find((b) => b.bankGroupId === bankGroupId);
+  const displayValue = selected ? selected.bankGroupName : '';
+
+  if (error) {
+    return (
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Bank</label>
+        <div className="h-10 px-3 flex items-center text-xs text-destructive border border-destructive/30 rounded-lg bg-destructive/5">
+          Couldn't load Ozow bank list — {error.message}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <SearchableSelect
+      label="Bank"
+      placeholder={isLoading ? 'Loading banks...' : 'Select bank...'}
+      value={bankGroupId || ''}
+      displayValue={displayValue}
+      options={options}
+      loading={isLoading}
+      onSelect={(val) => {
+        const bank = banks.find((b) => b.bankGroupId === val);
+        if (bank) onSelect(bank);
+      }}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function RecipientDetailsStep({
@@ -302,10 +364,17 @@ export default function RecipientDetailsStep({
   onRecipientsChange,
   paymentMethod,
   sourceCountryCodes,
+  sourceProvider,
+  sourceProviderAccountId,
 }: RecipientDetailsStepProps) {
   const [recipientType, setRecipientType] = useState<'bank' | 'international'>('bank');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [loadingErp, setLoadingErp] = useState<number | null>(null);
+
+  // Ozow rail: skip Centry's internal bank/branch lookups and use Ozow's
+  // /getavailablebanks list directly. The selected bank carries both the
+  // bankGroupId (UUID for the Ozow API) and the universalBranchCode.
+  const isOzow = sourceProvider === 'ozow' && Boolean(sourceProviderAccountId);
 
   const defaultLocalCountry = sourceCountryCodes?.[0] || 'UG';
 
@@ -383,6 +452,17 @@ export default function RecipientDetailsStep({
   const isComplete = (billId: number) => {
     const r = recipients.get(billId);
     if (!r) return false;
+    if (isOzow) {
+      // Ozow payouts: bankGroupId + universalBranchCode + account# + name +
+      // a customer bank reference (≤20 chars, alphanumeric/space/dash).
+      return !!(
+        r.bank_group_id &&
+        r.branch_code &&
+        r.account_number &&
+        r.account_name &&
+        r.customer_bank_reference?.trim()
+      );
+    }
     const baseOk = !!(r.recipient_bank_id && (r.account_number || r.iban) && r.account_name);
     if (!baseOk) return false;
     if (r.recipient_type === 'international') {
@@ -414,7 +494,7 @@ export default function RecipientDetailsStep({
   return (
     <div className="space-y-4">
       {/* Transfer type toggle — hide for single-country providers (e.g. Ozow = ZA only) */}
-      {paymentMethod === 'bank_account' && (!sourceCountryCodes || sourceCountryCodes.length !== 1) && (
+      {!isOzow && paymentMethod === 'bank_account' && (!sourceCountryCodes || sourceCountryCodes.length !== 1) && (
         <div className="grid grid-cols-2 gap-2">
           {([
             { key: 'bank' as const, icon: Building2, label: 'Local Transfer' },
@@ -471,8 +551,53 @@ export default function RecipientDetailsStep({
                 </button>
               )}
 
+              {/* Ozow rail: replaces bank+branch combo with Ozow's own list */}
+              {isOzow ? (
+                <>
+                  <OzowBankPicker
+                    ozowAccountId={sourceProviderAccountId!}
+                    bankGroupId={r?.bank_group_id}
+                    onSelect={(bank) =>
+                      update(bill.id, {
+                        recipient_type: 'bank',
+                        bank_group_id: bank.bankGroupId,
+                        bank_name: bank.bankGroupName,
+                        branch_code: bank.universalBranchCode,
+                      })
+                    }
+                  />
+                  <TextField
+                    label="Account Number"
+                    value={r?.account_number || ''}
+                    onChange={(v) => update(bill.id, { account_number: v })}
+                    placeholder="1234567890"
+                    maxLength={20}
+                    hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined}
+                  />
+                  <TextField
+                    label="Account Name"
+                    value={r?.account_name || ''}
+                    onChange={(v) => update(bill.id, { account_name: v })}
+                    placeholder="Account holder name"
+                  />
+                  <TextField
+                    label="Customer Bank Reference"
+                    value={r?.customer_bank_reference || ''}
+                    onChange={(v) =>
+                      // Ozow constraint: ≤20 chars, alphanumeric/space/dash only.
+                      update(bill.id, {
+                        customer_bank_reference: v.replace(/[^A-Za-z0-9 \-]/g, '').slice(0, 20),
+                      })
+                    }
+                    placeholder={bill.vendor_name?.slice(0, 20) || 'Reference'}
+                    maxLength={20}
+                    hint="Appears on the recipient's bank statement (≤20 chars, A–Z, 0–9, space, dash)."
+                  />
+                </>
+              ) : null}
+
               {/* International: country selector */}
-              {recipientType === 'international' && (
+              {!isOzow && recipientType === 'international' && (
                 <SearchableSelect
                   label="Country"
                   placeholder="Search country..."
@@ -494,34 +619,36 @@ export default function RecipientDetailsStep({
                 />
               )}
 
-              {/* Bank selector */}
-              <SearchableSelect
-                label="Bank"
-                placeholder="Search bank..."
-                value={r?.recipient_bank_id ? String(r.recipient_bank_id) : ''}
-                displayValue={getBankDisplay(r)}
-                options={bankOptions}
-                loading={banksLoading}
-                onSelect={(val) => {
-                  const bankId = val ? parseInt(val) : undefined;
-                  const bank = banksData?.banks.find((b: any) => b.id === bankId);
-                  update(bill.id, {
-                    recipient_type: recipientType,
-                    recipient_bank_id: bankId,
-                    bank_name: bank ? (bank.short_name || bank.name) : undefined,
-                    swift_code: bank?.swift_code || '',
-                    // Reset the branch — BranchSelector will auto-pick head-office for the new bank.
-                    recipient_bank_branch_id: undefined,
-                    recipient_bank_branch_name: undefined,
-                  });
-                }}
-              />
-              {r?.swift_code && (
+              {/* Bank selector — non-Ozow path uses Centry's internal bank registry */}
+              {!isOzow && (
+                <SearchableSelect
+                  label="Bank"
+                  placeholder="Search bank..."
+                  value={r?.recipient_bank_id ? String(r.recipient_bank_id) : ''}
+                  displayValue={getBankDisplay(r)}
+                  options={bankOptions}
+                  loading={banksLoading}
+                  onSelect={(val) => {
+                    const bankId = val ? parseInt(val) : undefined;
+                    const bank = banksData?.banks.find((b: any) => b.id === bankId);
+                    update(bill.id, {
+                      recipient_type: recipientType,
+                      recipient_bank_id: bankId,
+                      bank_name: bank ? (bank.short_name || bank.name) : undefined,
+                      swift_code: bank?.swift_code || '',
+                      // Reset the branch — BranchSelector will auto-pick head-office for the new bank.
+                      recipient_bank_branch_id: undefined,
+                      recipient_bank_branch_name: undefined,
+                    });
+                  }}
+                />
+              )}
+              {!isOzow && r?.swift_code && (
                 <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
               )}
 
               {/* Branch selector — local pain.001 routing requires a sort code (ClrSysMmbId). */}
-              {recipientType === 'bank' && r?.recipient_bank_id && (
+              {!isOzow && recipientType === 'bank' && r?.recipient_bank_id && (
                 <BranchSelector
                   bankId={r.recipient_bank_id}
                   value={r.recipient_bank_branch_id}
@@ -534,38 +661,40 @@ export default function RecipientDetailsStep({
                 />
               )}
 
-              {/* Account fields */}
-              {recipientType === 'international' ? (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <TextField label="IBAN" value={r?.iban || ''} onChange={(v) => update(bill.id, { iban: v })} placeholder="IBAN" />
-                    <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="If no IBAN" />
-                  </div>
-                  <TextField label="Beneficiary Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Full name" />
-                  <p className="text-[10px] text-muted-foreground -mt-1">Required by SWIFT: beneficiary address + purpose code.</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <TextField label="Street" value={r?.beneficiary_street || ''} onChange={(v) => update(bill.id, { beneficiary_street: v })} placeholder="Street" />
-                    <TextField label="City" value={r?.beneficiary_city || ''} onChange={(v) => update(bill.id, { beneficiary_city: v })} placeholder="City" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <SelectField label="Purpose" value={r?.purpose_code || ''} onChange={(e) => update(bill.id, { purpose_code: e.target.value })}>
-                      <option value="">Select...</option>
-                      {PURPOSE_CODES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-                    </SelectField>
-                    <SelectField label="Charges" value={r?.charges_bearer || 'SHAR'} onChange={(e) => update(bill.id, { charges_bearer: e.target.value })}>
-                      {CHARGES_BEARER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </SelectField>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <TextField label="Transfer Currency" value={r?.transfer_currency || ''} onChange={(v) => update(bill.id, { transfer_currency: v.toUpperCase() })} placeholder="USD" optional maxLength={3} />
-                    <TextField label="Regulatory Info" value={r?.regulatory_info || ''} onChange={(v) => update(bill.id, { regulatory_info: v })} placeholder="Description" optional />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined} />
-                  <TextField label="Account Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Account holder name" />
-                </>
+              {/* Account fields — Ozow has its own block above */}
+              {!isOzow && (
+                recipientType === 'international' ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextField label="IBAN" value={r?.iban || ''} onChange={(v) => update(bill.id, { iban: v })} placeholder="IBAN" />
+                      <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="If no IBAN" />
+                    </div>
+                    <TextField label="Beneficiary Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Full name" />
+                    <p className="text-[10px] text-muted-foreground -mt-1">Required by SWIFT: beneficiary address + purpose code.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextField label="Street" value={r?.beneficiary_street || ''} onChange={(v) => update(bill.id, { beneficiary_street: v })} placeholder="Street" />
+                      <TextField label="City" value={r?.beneficiary_city || ''} onChange={(v) => update(bill.id, { beneficiary_city: v })} placeholder="City" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <SelectField label="Purpose" value={r?.purpose_code || ''} onChange={(e) => update(bill.id, { purpose_code: e.target.value })}>
+                        <option value="">Select...</option>
+                        {PURPOSE_CODES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                      </SelectField>
+                      <SelectField label="Charges" value={r?.charges_bearer || 'SHAR'} onChange={(e) => update(bill.id, { charges_bearer: e.target.value })}>
+                        {CHARGES_BEARER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </SelectField>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextField label="Transfer Currency" value={r?.transfer_currency || ''} onChange={(v) => update(bill.id, { transfer_currency: v.toUpperCase() })} placeholder="USD" optional maxLength={3} />
+                      <TextField label="Regulatory Info" value={r?.regulatory_info || ''} onChange={(v) => update(bill.id, { regulatory_info: v })} placeholder="Description" optional />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined} />
+                    <TextField label="Account Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Account holder name" />
+                  </>
+                )
               )}
             </div>
           </div>

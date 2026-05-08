@@ -60,6 +60,10 @@ interface RecipientDetails {
   regulatory_code?: string;
   regulatory_info?: string;
   transfer_currency?: string;
+  // Ozow-specific recipient fields (only set when source is an Ozow ProviderAccount).
+  bank_group_id?: string;
+  branch_code?: string;
+  customer_bank_reference?: string;
 }
 
 export default function PayBillsModal({
@@ -115,9 +119,29 @@ export default function PayBillsModal({
     }, 0);
   }, [bills, amounts]);
 
+  const isOzowSource = selectedSource?.provider === 'ozow';
+  // ProviderAccount path = anything that's not a BankAccount. The bills UI
+  // routes BankAccount sources via bank_account_id and ProviderAccount sources
+  // via provider_account_id (see submit handler below).
+  const isProviderAccountSource = !!selectedSource && (
+    selectedSource.source_model === 'provider_account' ||
+    (selectedSource.source_model !== 'bank_account' && selectedSource.type !== 'bank_account')
+  );
+
   const allRecipientsComplete = useMemo(() => {
     if (recipients.size !== bills.length) return false;
     for (const r of recipients.values()) {
+      if (isOzowSource) {
+        // Ozow path: bankGroupId + universalBranchCode + account# + name + customer ref.
+        if (
+          !r.bank_group_id ||
+          !r.branch_code ||
+          !r.account_number ||
+          !r.account_name ||
+          !r.customer_bank_reference?.trim()
+        ) return false;
+        continue;
+      }
       if (!r.recipient_bank_id || !(r.account_number || r.iban) || !r.account_name) return false;
       if (r.recipient_type === 'international') {
         if (
@@ -132,7 +156,7 @@ export default function PayBillsModal({
       }
     }
     return true;
-  }, [recipients, bills.length]);
+  }, [recipients, bills.length, isOzowSource]);
 
   // Initialize amounts
   useEffect(() => {
@@ -273,6 +297,10 @@ export default function PayBillsModal({
           regulatory_code: r.regulatory_code,
           regulatory_info: r.regulatory_info,
           transfer_currency: r.transfer_currency,
+          // Ozow-specific — backend uses these to call OzowDisbursementAdapter.
+          bank_group_id: r.bank_group_id,
+          branch_code: r.branch_code,
+          customer_bank_reference: r.customer_bank_reference,
         }));
       }
 
@@ -389,6 +417,8 @@ export default function PayBillsModal({
                 onRecipientsChange={setRecipients}
                 paymentMethod={selectedSource.type}
                 sourceCountryCodes={selectedSource.country_codes}
+                sourceProvider={selectedSource.provider}
+                sourceProviderAccountId={isProviderAccountSource ? String(selectedSource.id) : undefined}
               />
               <Button
                 onClick={() => setStep('confirm')}
