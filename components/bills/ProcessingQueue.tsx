@@ -53,6 +53,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -240,16 +241,29 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     if (!isProviderPayout) return;
     try {
       const result = await sendProviderPayout.mutateAsync(Array.from(selectedPayments));
-      const failed = result.results?.filter((r: any) => !r.success) || [];
+      const results: any[] = result.results || [];
+      const failed = results.filter((r) => !r.success);
+      const successful = results.filter((r) => r.success);
+
       if (failed.length > 0) {
-        const errors = failed.map((f: any) => f.error).join('\n');
-        alert(`Some payouts failed:\n${errors}`);
-      } else {
-        alert(`${result.summary.successful} payout(s) sent successfully`);
+        // Show each rejection with the per-event reason. Sonner renders
+        // multi-line descriptions cleanly and keeps the toast on screen long
+        // enough to copy the error (e.g. Ozow "Payout amount below minimum").
+        const description = failed
+          .map((f) => `Payment #${f.id}: ${f.error || 'Unknown error'}`)
+          .join('\n');
+        toast.error(
+          `${failed.length} payout${failed.length > 1 ? 's' : ''} failed${
+            successful.length ? ` (${successful.length} succeeded)` : ''
+          }`,
+          { description, duration: 12000 },
+        );
+      } else if (successful.length > 0) {
+        toast.success(`${successful.length} payout${successful.length > 1 ? 's' : ''} sent`);
       }
       setSelectedPayments(new Set());
     } catch (error: any) {
-      alert(error?.message || 'Failed to send payout');
+      toast.error(error?.message || 'Failed to send payout');
     }
   };
 

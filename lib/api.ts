@@ -71,9 +71,17 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      detail: 'An error occurred',
-    }));
+    // Capture the raw body once so we can surface real backend messages even
+    // when the response isn't JSON (common when the proxy 404s or Django
+    // returns its debug HTML page).
+    const rawBody = await response.text().catch(() => '');
+    let error: any;
+    try {
+      error = rawBody ? JSON.parse(rawBody) : {};
+    } catch {
+      const snippet = rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      error = { detail: `HTTP ${response.status} from ${url}${snippet ? ` — ${snippet}` : ''}` };
+    }
 
     // Handle authentication errors — try refresh before logging out
     if (response.status === 401) {
