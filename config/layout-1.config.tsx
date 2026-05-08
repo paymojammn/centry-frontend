@@ -35,7 +35,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     requiredRole: "finance",
   },
   {
-    title: "Payments",
+    title: "Payment Providers",
     icon: Send,
     requiredRole: "finance",
     children: [
