@@ -3,8 +3,16 @@
  * Base URL and authentication configuration
  */
 
-// Use relative URLs — Next.js rewrites proxy /api/* to the backend
-const API_BASE_URL = '';
+import { getApiUrl } from '@/config/api';
+
+// Returns the backend base URL. Uses getApiUrl() (which honours
+// window.__ENV__ for Azure Static Web App runtime injection, falls back to
+// process.env.NEXT_PUBLIC_API_URL, then localhost:8000 for local dev).
+// On deployed builds without a working Next.js proxy route, this hits the
+// backend directly — CORS on the backend allows the deployed origins.
+function apiBase(): string {
+  return (getApiUrl() || '').replace(/\/$/, '');
+}
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
@@ -35,7 +43,7 @@ export async function apiRequest<T>(
   const { params, headers, body, responseType = 'json', ...fetchOptions } = options;
 
   // Build URL with query parameters
-  let url = `${API_BASE_URL}${endpoint}`;
+  let url = `${apiBase()}${endpoint}`;
   if (params) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -89,7 +97,7 @@ export async function apiRequest<T>(
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
           try {
-            const refreshResp = await fetch('/api/v1/users/token/refresh/', {
+            const refreshResp = await fetch(`${apiBase()}/api/v1/users/token/refresh/`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refresh: refreshToken }),
