@@ -487,10 +487,17 @@ function StatementRow({
 }) {
   return (
     <div className="text-sm">
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
-        className="grid w-full grid-cols-12 items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/30"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="grid w-full cursor-pointer grid-cols-12 items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/30 focus-visible:outline-hidden focus-visible:bg-muted/40"
       >
         <div className="col-span-2 text-muted-foreground">
           {format(new Date(row.imported_at), "dd MMM yyyy")}
@@ -545,7 +552,7 @@ function StatementRow({
             Download
           </Button>
         </div>
-      </button>
+      </div>
       {expanded && <StatementTransactions fileImportId={row.id} />}
     </div>
   );
