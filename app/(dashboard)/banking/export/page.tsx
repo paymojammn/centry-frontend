@@ -16,6 +16,7 @@ import { StatsOverview } from "@/components/banking/stats-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
 import { Pain002Inbox } from "@/components/banking/pain002-inbox";
 import { Pain002Status } from "@/components/banking/pain002-status";
+import { BankStatements } from "@/components/banking/bank-statements";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
 import {
@@ -31,6 +32,7 @@ import {
   Inbox,
   Search,
   Download,
+  Wallet,
   X,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -159,6 +161,7 @@ export default function BankingExportPage() {
       { value: "sftp-export", label: "Pay", icon: Upload, requiresExport: true },
       { value: "files", label: "Outbox", icon: FolderOpen },
       { value: "inbox", label: "Inbox", icon: Inbox, requiresExport: true },
+      { value: "statements", label: "Statements", icon: Wallet },
       { value: "bank-status", label: "Reconciliation", icon: FileCheck, requiresExport: true },
     ];
     return allTabs.filter((t) => !t.requiresExport || hasBankingExport);
@@ -251,6 +254,9 @@ export default function BankingExportPage() {
             onSelectExport={handleSelectExport}
             selectedExportId={selectedExportId}
           />
+        )}
+        {activeTab === "statements" && (
+          <BankStatements organizationId={selectedOrganizationId || undefined} />
         )}
         {activeTab === "files" && (
           <div className="space-y-5">

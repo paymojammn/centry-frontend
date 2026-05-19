@@ -630,6 +630,8 @@ export function useSFTPDownloadStatements() {
       queryClient.invalidateQueries({ queryKey: ['sftp-remote-files'] });
       queryClient.invalidateQueries({ queryKey: ['sftp-transfer-logs'] });
       queryClient.invalidateQueries({ queryKey: ['bankImports'] });
+      queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
+      queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
     },
   });
 }
