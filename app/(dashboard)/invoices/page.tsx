@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useInvoices, useInvoiceStats } from '@/hooks/use-invoices';
+import { useInvoices, useCollectionEvents } from '@/hooks/use-invoices';
 import { useSyncInvoices, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
@@ -106,7 +106,9 @@ export default function InvoicesPage() {
 
   const invoiceFilters = { ...filters, organization: selectedOrganizationId || undefined };
   const { data: invoicesResponse, isLoading, error } = useInvoices(invoiceFilters);
-  const { data: stats } = useInvoiceStats(selectedOrganizationId || undefined);
+  const { data: collectionEvents } = useCollectionEvents(
+    selectedOrganizationId || undefined,
+  );
 
   const invoices: Invoice[] = Array.isArray(invoicesResponse)
     ? invoicesResponse
@@ -147,17 +149,31 @@ export default function InvoicesPage() {
     );
   });
 
-  const totalOutstanding = stats ? parseFloat(stats.total_outstanding) : 0;
-  const overdueAmount = stats ? parseFloat(stats.overdue_amount) : 0;
-  const overdueCount = stats?.overdue_count || 0;
-  const outstandingCount = stats?.outstanding_count || 0;
-
-  const dueThisWeek = invoices.reduce((sum, inv) => {
-    if (inv.status === 'AUTHORISED' && isDueSoon(inv.due_date || '')) {
-      return sum + parseFloat(inv.amount_due || '0');
-    }
-    return sum;
-  }, 0);
+  // Centry-internal collection pipeline stats — computed from CollectionEvent
+  // records (collections initiated through Centry), not from Xero-mirrored
+  // receivable totals. So Outstanding/Overdue/Due-This-Week make way for
+  // "what Centry is actually collecting".
+  const collections = Array.isArray(collectionEvents) ? collectionEvents : [];
+  const IN_FLIGHT_STATUSES = new Set([
+    'PENDING_APPROVAL',
+    'PROCESSING',
+    'PENDING',
+    'SENT_PAYMENT',
+  ]);
+  const collInFlight = collections.filter((e: any) =>
+    IN_FLIGHT_STATUSES.has(e.provider_status),
+  );
+  const collPendingApproval = collections.filter(
+    (e: any) => e.provider_status === 'PENDING_APPROVAL',
+  );
+  const collSettled = collections.filter(
+    (e: any) => e.provider_status === 'SUCCESS_PAYMENT',
+  );
+  const sumAmount = (rows: any[]) =>
+    rows.reduce((s, r) => s + parseFloat(r.amount || '0'), 0);
+  const collInFlightAmount = sumAmount(collInFlight);
+  const collPendingApprovalAmount = sumAmount(collPendingApproval);
+  const collSettledAmount = sumAmount(collSettled);
 
   const currentOrg = organizations?.find((o: any) => o.id === selectedOrganizationId);
   const orgCurrency = currentOrg?.primary_currency || currentOrg?.currency || 'UGX';
@@ -258,29 +274,31 @@ export default function InvoicesPage() {
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
               <StatCard
-                label="Outstanding"
-                value={`${orgCurrency} ${formatCompactNumber(totalOutstanding)}`}
-                subtext={`${outstandingCount} open invoices`}
+                label="In Centry Pipeline"
+                value={`${orgCurrency} ${formatCompactNumber(collInFlightAmount)}`}
+                subtext={`${collInFlight.length} collections in flight`}
                 icon={Wallet}
                 iconColor={STATUS_COLORS.awaiting_payment.bg}
                 iconBgColor={STATUS_COLORS.awaiting_payment.light}
                 variant="accent"
               />
               <StatCard
-                label="Due This Week"
-                value={`${orgCurrency} ${formatCompactNumber(dueThisWeek)}`}
-                subtext="Due within 7 days"
+                label="Awaiting Approval"
+                value={collPendingApproval.length}
+                subtext={`${orgCurrency} ${formatCompactNumber(collPendingApprovalAmount)}`}
                 icon={Calendar}
                 iconColor="#b08b00"
                 iconBgColor={STATUS_COLORS.awaiting_approval.light}
-                variant="warning"
+                variant={collPendingApproval.length > 0 ? 'warning' : 'default'}
               />
               <StatCard
-                label="Overdue"
-                value={overdueCount}
-                subtext={`${orgCurrency} ${formatCompactNumber(overdueAmount)} overdue`}
-                icon={AlertTriangle}
-                variant={overdueCount > 0 ? 'danger' : 'default'}
+                label="Collected"
+                value={collSettled.length}
+                subtext={`${orgCurrency} ${formatCompactNumber(collSettledAmount)} settled`}
+                icon={CheckCircle}
+                iconColor={STATUS_COLORS.paid.bg}
+                iconBgColor={STATUS_COLORS.paid.light}
+                variant="default"
               />
               {canCollect && (
                 <StatCard

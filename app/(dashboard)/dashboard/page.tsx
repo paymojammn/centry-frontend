@@ -16,13 +16,12 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { usePayables, usePayableStats } from '@/hooks/use-purchases';
+import { usePayables } from '@/hooks/use-purchases';
 import { useImportStats, useExportStats, usePaymentPipelineStats, useBankResponseStats } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import { useAccountBalances, useReportsDashboard, usePayablesAging, useCurrencyExposure } from '@/hooks/use-reports';
 import { useExpenseStats } from '@/hooks/use-expenses';
 import {
-  AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
   Banknote,
@@ -142,7 +141,6 @@ export default function DashboardPage() {
 
   // Data hooks
   const { data: payables, isLoading: loadingPayables } = usePayables({ status: 'awaiting_payment', organization: orgId });
-  const { data: payableStats } = usePayableStats(orgId);
   const { data: pipelineStats } = usePaymentPipelineStats(orgId);
   const { data: bankResponseStats } = useBankResponseStats(orgId);
   const { data: accountBalances } = useAccountBalances(orgId);
@@ -167,11 +165,9 @@ export default function DashboardPage() {
   const dayInMonth = new Date().getDate();
   const burnRate = dayInMonth > 0 ? Math.round((outflows / dayInMonth) * 30) : 0;
 
-  // Action items
-  const billsToApprove = Number(payableStats?.total_awaiting_approval || 0);
+  // Action items — Centry-internal counters only
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
   const pendingExpenses = Number((expenseStats as any)?.pending_manager_count || 0) + Number((expenseStats as any)?.pending_finance_count || 0);
-  const overdueCount = Number(payableStats?.overdue_count || overdueBills.length || 0);
 
   // Pipeline — full lifecycle from approval through reconciliation
   const bankAccepted = bankResponseStats?.successful_transactions || 0;
@@ -239,10 +235,12 @@ export default function DashboardPage() {
           </div>
 
           {/* ─── Section 2: Action Items ─── */}
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+          {/* All counts come from Centry-internal data (PaymentEvents,
+              pain.002 bank responses, expenses). Bill-level Xero counts
+              moved out so this view reflects only what Centry is doing. */}
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
-              { label: 'Bills to Approve', count: billsToApprove, icon: CreditCard, color: '#D4B35A', href: '/bills' },
-              { label: 'Overdue Bills', count: overdueCount, icon: AlertTriangle, color: '#B85C5C', href: '/bills' },
+              { label: 'Awaiting Approval', count: pipelineStats?.pending_approval || 0, icon: CreditCard, color: '#D4B35A', href: '/payments/processing' },
               { label: 'Ready for Export', count: pipelineStats?.processing || 0, icon: Send, color: '#6B8FB8', href: '/banking/export' },
               { label: 'Failed Payments', count: failedPayments + bankRejected, icon: Zap, color: '#B85C5C', href: '/payments' },
               { label: 'Pending Expenses', count: pendingExpenses, icon: Receipt, color: '#D4944A', href: '/expenses' },

@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useBills } from '@/hooks/use-bills';
-import { usePayableStats } from '@/hooks/use-purchases';
+import { usePaymentPipelineStats } from '@/hooks/use-banking';
 import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import { useCurrentUser } from '@/hooks/use-user';
@@ -117,7 +117,7 @@ export default function BillsPage() {
   };
 
   const { data: billsResponse, isLoading, error } = useBills(billFilters);
-  const { data: payableStats } = usePayableStats(selectedOrganizationId || undefined);
+  const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined);
   const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
 
@@ -161,23 +161,26 @@ export default function BillsPage() {
     );
   });
 
-  // Use stats from backend API (currency-converted, matches Xero)
-  const totalPayableUgx = payableStats?.total_open_ugx
-    ? parseFloat(payableStats.total_open_ugx)
-    : (payableStats?.total_open_amount ? parseFloat(payableStats.total_open_amount) : 0);
-  const overdueUgx = payableStats?.overdue_ugx
-    ? parseFloat(payableStats.overdue_ugx)
-    : (payableStats?.overdue_amount ? parseFloat(payableStats.overdue_amount) : 0);
-  const totalOpen = payableStats?.total_open || 0;
-  const overdueCount = payableStats?.overdue_count || 0;
-
-  // Calculate due this week from current bills
-  const dueThisWeekAmount = bills.reduce((sum: number, bill: Bill) => {
-    if (bill.status === 'AUTHORISED' && isDueSoon(bill.due_date || '')) {
-      return sum + parseFloat(bill.amount_due || '0');
-    }
-    return sum;
-  }, 0);
+  // Centry payment pipeline stats — sum/count of PaymentEvents that
+  // Centry itself routes. Replaces the Xero-mirrored payable totals so the
+  // summary row reflects what Centry is actually moving, not what's
+  // outstanding upstream in the ERP.
+  const pipelinePendingApproval = Number(pipelineStats?.pending_approval || 0);
+  const pipelineProcessing = Number(pipelineStats?.processing || 0);
+  const pipelineSent = Number(pipelineStats?.pending || 0) + Number(pipelineStats?.sent || 0);
+  const pipelineSuccess = Number(pipelineStats?.success || 0);
+  const pipelineInFlight = pipelinePendingApproval + pipelineProcessing + pipelineSent;
+  const pipelineInFlightAmount =
+    parseFloat(pipelineStats?.total_amount_pending_approval || '0') +
+    parseFloat(pipelineStats?.total_amount_processing || '0') +
+    parseFloat(pipelineStats?.total_amount_pending || '0') +
+    parseFloat(pipelineStats?.total_amount_sent || '0');
+  const pipelinePendingApprovalAmount = parseFloat(
+    pipelineStats?.total_amount_pending_approval || '0'
+  );
+  const pipelineSentAmount =
+    parseFloat(pipelineStats?.total_amount_pending || '0') +
+    parseFloat(pipelineStats?.total_amount_sent || '0');
 
   // Get organization currency
   const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
@@ -256,9 +259,9 @@ export default function BillsPage() {
             {/* Summary Stats - Enhanced cards with animations */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
               <StatCard
-                label="Total Payable"
-                value={`${organizationCurrency} ${formatCompactNumber(totalPayableUgx)}`}
-                subtext={`${totalOpen} open bills`}
+                label="In Centry Pipeline"
+                value={`${organizationCurrency} ${formatCompactNumber(pipelineInFlightAmount)}`}
+                subtext={`${pipelineInFlight} payments in flight`}
                 icon={Wallet}
                 iconColor={STATUS_COLORS.awaiting_payment.bg}
                 iconBgColor={STATUS_COLORS.awaiting_payment.light}
@@ -266,21 +269,21 @@ export default function BillsPage() {
               />
 
               <StatCard
-                label="Due This Week"
-                value={`${organizationCurrency} ${formatCompactNumber(dueThisWeekAmount)}`}
-                subtext="Due within 7 days"
+                label="Awaiting Approval"
+                value={pipelinePendingApproval}
+                subtext={`${organizationCurrency} ${formatCompactNumber(pipelinePendingApprovalAmount)}`}
                 icon={Calendar}
                 iconColor="#b08b00"
                 iconBgColor={STATUS_COLORS.awaiting_approval.light}
-                variant="warning"
+                variant={pipelinePendingApproval > 0 ? 'warning' : 'default'}
               />
 
               <StatCard
-                label="Overdue"
-                value={overdueCount}
-                subtext={`${organizationCurrency} ${formatCompactNumber(overdueUgx)} overdue`}
+                label="Sent to Bank"
+                value={pipelineSent}
+                subtext={`${organizationCurrency} ${formatCompactNumber(pipelineSentAmount)} · ${pipelineSuccess} settled`}
                 icon={AlertTriangle}
-                variant={overdueCount > 0 ? 'danger' : 'default'}
+                variant="default"
               />
 
               {canCreatePayment && (
