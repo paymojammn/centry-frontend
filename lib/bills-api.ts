@@ -278,6 +278,25 @@ export const paymentEventsApi = {
   },
 
   /**
+   * Generate a hosted-checkout payment link for an approved Ozow/OneGate
+   * bill payment. Returns a payment_link URL the final payer opens to
+   * complete the transaction on the provider's hosted page.
+   */
+  async generatePaymentLink(
+    paymentEventId: number,
+    amount?: string,
+    paymentType?: string,
+  ): Promise<{ success: boolean; payment_link: string; amount?: string; existing?: boolean }> {
+    return await api.post(
+      `${PAYMENTS_BASE_URL}/${paymentEventId}/generate-link/`,
+      {
+        ...(amount ? { amount } : {}),
+        ...(paymentType ? { payment_type: paymentType } : {}),
+      }
+    );
+  },
+
+  /**
    * Deny payments - cancels payment and restores bill to payable status
    */
   async denyPayments(paymentEventIds: number[], reason?: string): Promise<DenyPaymentsResponse> {

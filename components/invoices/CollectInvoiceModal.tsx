@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePaymentSources } from '@/hooks/use-payment-sources';
 import { invoicesApi, Invoice } from '@/lib/invoices-api';
+import { billsApi } from '@/lib/bills-api';
 import type { PaymentSource } from '@/types/payment-sources';
 import PaymentSourcePicker from '@/components/shared/PaymentSourcePicker';
 import {
@@ -40,6 +41,21 @@ export default function CollectInvoiceModal({
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [results, setResults] = useState<any[]>([]);
 
+  // FX state — shown when the source's settle currency differs from the
+  // invoice currency. Mirrors PayBillsModal.
+  const [fxQuote, setFxQuote] = useState<{
+    rate: string;
+    provider: string;
+    fetched_at: string;
+    expires_at: string;
+    converted_amount: string;
+  } | null>(null);
+  const [fxLoading, setFxLoading] = useState(false);
+  const [fxError, setFxError] = useState<string | null>(null);
+  const [fxConfirmed, setFxConfirmed] = useState(false);
+  const [fxMode, setFxMode] = useState<'auto' | 'manual'>('auto');
+  const [fxManualRate, setFxManualRate] = useState<string>('');
+
   const { data: sourcesData } = usePaymentSources(organizationId);
   const sources = sourcesData?.sources || [];
 
@@ -60,6 +76,11 @@ export default function CollectInvoiceModal({
       setPhone('');
       setNote('');
       setResults([]);
+      setFxQuote(null);
+      setFxError(null);
+      setFxConfirmed(false);
+      setFxMode('auto');
+      setFxManualRate('');
     }
   }, [isOpen]);
 
@@ -69,20 +90,80 @@ export default function CollectInvoiceModal({
       return source.provider === 'airtel' ? 'airtel_momo' : 'mtn_momo';
     }
     if (source.type === 'ozow') return 'ozow_eft';
+    if (source.type === 'onegate') return 'onegate';
     return 'bank_transfer';
   };
+
+  const totalAmount = Object.values(amounts).reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
+  const currency = invoices[0]
+    ? (invoices[0].currency.includes('.') ? invoices[0].currency.split('.').pop()! : invoices[0].currency)
+    : 'USD';
+
+  // FX needed when the source settle currency differs from the invoice
+  // currency. For Ozow/OneGate this is always ZAR vs invoice currency.
+  const needsFx = Boolean(
+    selectedSource && selectedSource.currency && selectedSource.currency !== currency,
+  );
+
+  // Fetch FX quote when we hit the review step and FX is needed.
+  useEffect(() => {
+    let cancelled = false;
+    if (!needsFx || step !== 'review' || totalAmount <= 0) {
+      setFxQuote(null);
+      setFxError(null);
+      return;
+    }
+    setFxLoading(true);
+    setFxError(null);
+    setFxConfirmed(false);
+    billsApi
+      .getFxQuote(currency, selectedSource!.currency, totalAmount)
+      .then((q) => {
+        if (cancelled) return;
+        setFxQuote({
+          rate: q.rate,
+          provider: q.provider,
+          fetched_at: q.fetched_at,
+          expires_at: q.expires_at,
+          converted_amount: q.converted_amount,
+        });
+      })
+      .catch((err: Error) => {
+        if (cancelled) return;
+        setFxError(err.message || 'Failed to fetch FX rate');
+      })
+      .finally(() => {
+        if (!cancelled) setFxLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [needsFx, step, currency, selectedSource, totalAmount]);
 
   const collectMutation = useMutation({
     mutationFn: () => {
       if (!selectedSource) throw new Error('No source selected');
-      return invoicesApi.collectInvoices({
+      const payload: any = {
         organization_id: organizationId,
         invoice_ids: invoices.map((i) => i.id),
         amounts,
         method: getMethodCode(selectedSource),
         phone_number: phone,
         note,
-      });
+      };
+      // Lock the FX rate at submission so the approved amount is what
+      // the customer is charged. Manual rates bypass the 5-min freshness
+      // window; auto rates are re-validated by the backend.
+      if (needsFx) {
+        if (fxMode === 'manual') {
+          payload.fx = { manual: true, rate: fxManualRate };
+        } else if (fxQuote) {
+          payload.fx = {
+            rate: fxQuote.rate,
+            provider: fxQuote.provider,
+            fetched_at: fxQuote.fetched_at,
+          };
+        }
+      }
+      return invoicesApi.collectInvoices(payload);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
@@ -96,11 +177,6 @@ export default function CollectInvoiceModal({
     },
     onError: (err: Error) => { toast.error(err.message || 'Collection failed'); },
   });
-
-  const totalAmount = Object.values(amounts).reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
-  const currency = invoices[0]
-    ? (invoices[0].currency.includes('.') ? invoices[0].currency.split('.').pop()! : invoices[0].currency)
-    : 'USD';
 
   const handleSourceSelect = (source: PaymentSource) => {
     setSelectedSource(source);
@@ -209,7 +285,127 @@ export default function CollectInvoiceModal({
                 <span className="text-sm font-medium text-foreground">Total</span>
                 <span className="text-lg font-bold text-foreground">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
-              <Button onClick={() => collectMutation.mutate()} disabled={collectMutation.isPending || totalAmount <= 0} className="w-full">
+
+              {/* FX Quote — shown when source settle currency differs from invoice currency */}
+              {needsFx && (() => {
+                const manualRateNum = parseFloat(fxManualRate);
+                const manualRateValid = Number.isFinite(manualRateNum) && manualRateNum > 0;
+                const manualConverted = manualRateValid ? totalAmount * manualRateNum : 0;
+                const autoRateNum = fxQuote ? parseFloat(fxQuote.rate) : null;
+                const deviationPct = (manualRateValid && autoRateNum && autoRateNum > 0)
+                  ? Math.abs((manualRateNum - autoRateNum) / autoRateNum) * 100
+                  : 0;
+                const deviationWarn = deviationPct > 5;
+                const activeRate = fxMode === 'manual' ? (manualRateValid ? manualRateNum : null) : autoRateNum;
+                const activeConverted = fxMode === 'manual' ? manualConverted : (fxQuote ? parseFloat(fxQuote.converted_amount) : 0);
+                return (
+                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                        <AlertCircle className="h-4 w-4" />
+                        Currency conversion required
+                      </div>
+                      <div className="inline-flex rounded-md border border-amber-200 bg-white overflow-hidden text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => { setFxMode('auto'); setFxConfirmed(false); }}
+                          className={`px-2 py-1 ${fxMode === 'auto' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                        >
+                          Auto rate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setFxMode('manual'); setFxConfirmed(false); }}
+                          className={`px-2 py-1 border-l border-amber-200 ${fxMode === 'manual' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                        >
+                          My own rate
+                        </button>
+                      </div>
+                    </div>
+
+                    {fxMode === 'auto' && fxLoading && (
+                      <div className="flex items-center gap-2 text-xs text-amber-800">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Fetching rate...
+                      </div>
+                    )}
+                    {fxMode === 'auto' && fxError && (
+                      <div className="text-xs text-destructive">
+                        {fxError} — switch to "My own rate" or pick a different source.
+                      </div>
+                    )}
+
+                    {fxMode === 'manual' && (
+                      <div className="space-y-1">
+                        <label className="block text-[11px] text-amber-900">
+                          Rate (1 {currency} = ? {selectedSource!.currency})
+                        </label>
+                        <Input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={fxManualRate}
+                          onChange={(e) => { setFxManualRate(e.target.value); setFxConfirmed(false); }}
+                          placeholder={autoRateNum ? String(autoRateNum) : 'Enter rate'}
+                          className="h-8 text-sm"
+                        />
+                        {!manualRateValid && fxManualRate && (
+                          <p className="text-[11px] text-destructive">Rate must be a positive number.</p>
+                        )}
+                        {deviationWarn && (
+                          <p className="text-[11px] text-amber-700">
+                            Your rate differs from the market quote
+                            {autoRateNum ? ` (${autoRateNum.toLocaleString(undefined, { maximumFractionDigits: 4 })})` : ''}
+                            {' '}by {deviationPct.toFixed(1)}%. Double-check before confirming.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {activeRate !== null && activeRate > 0 && (
+                      <>
+                        <div className="text-xs text-amber-900 space-y-0.5">
+                          <div>
+                            Invoice: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div>
+                            Customer will pay: <span className="font-medium">
+                              {selectedSource!.currency} {activeConverted.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-amber-700">
+                            Rate: 1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
+                            {' '}&middot; {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                          </div>
+                        </div>
+                        <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={fxConfirmed}
+                            onChange={(e) => setFxConfirmed(e.target.checked)}
+                            className="mt-0.5"
+                          />
+                          <span>
+                            I confirm this rate. The customer will be charged in {selectedSource!.currency} on the provider's page.
+                          </span>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <Button
+                onClick={() => collectMutation.mutate()}
+                disabled={
+                  collectMutation.isPending
+                  || totalAmount <= 0
+                  || (needsFx && !fxConfirmed)
+                  || (needsFx && fxMode === 'manual' && !(parseFloat(fxManualRate) > 0))
+                  || (needsFx && fxMode === 'auto' && !fxQuote)
+                }
+                className="w-full"
+              >
                 {collectMutation.isPending
                   ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
                   : `Collect ${currency} ${totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}

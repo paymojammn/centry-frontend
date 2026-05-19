@@ -28,6 +28,7 @@ import {
   useDenyPayments,
   useReversePayment,
 } from '@/hooks/use-bills';
+import { paymentEventsApi } from '@/lib/bills-api';
 import { useBankAccounts } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
@@ -70,6 +71,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 // Status color constants (matching bills page)
 const STATUS_COLORS = {
@@ -98,6 +100,9 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const [reverseReason, setReverseReason] = useState('');
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
   const [selectedFileFormat, setSelectedFileFormat] = useState<'csv' | 'xml'>('xml');
+  const [isPayNowDialogOpen, setIsPayNowDialogOpen] = useState(false);
+  const [payNowAmount, setPayNowAmount] = useState('');
+  const [payNowLoading, setPayNowLoading] = useState(false);
 
   // Permission checks (must be before data hooks that depend on them)
   const hasApprovePermission = useHasPermission('payments.approve');
@@ -159,11 +164,19 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       : null;
   }, [canGenerateFile, selectedPaymentsData]);
 
-  // Check if selected PROCESSING payments are provider payouts (Ozow, Paystack, etc.)
+  // Check if selected PROCESSING payments are provider payouts (Ozow, OneGate, Paystack, etc.)
   const isProviderPayout = canGenerateFile &&
     selectedPaymentsData.every((p: PaymentEvent) =>
-      p.method?.endsWith('_payout') || ['ozow_payout', 'paystack_payout', 'netcash_payout'].includes(p.method || '')
+      p.method?.endsWith('_payout') || ['ozow_payout', 'onegate_payout', 'paystack_payout', 'netcash_payout'].includes(p.method || '')
     );
+
+  // Hosted-checkout payouts (Ozow/OneGate) use a different UX: the final
+  // payer enters the amount, gets a redirect URL, completes on the provider's
+  // page. Restrict to a single selected event since the action opens a dialog
+  // per payment.
+  const isHostedCheckoutPayout = canGenerateFile &&
+    selectedPaymentsData.length === 1 &&
+    ['ozow_payout', 'onegate_payout'].includes(selectedPaymentsData[0]?.method || '');
 
   // Check if all selected can be denied (PENDING_APPROVAL or PROCESSING status) + user has approve permission
   const canDeny = hasApprovePermission && selectedPaymentsData.length > 0 &&
@@ -234,6 +247,40 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       handleGenerateFile(consensusSourceBankAccountId);
     } else {
       setIsGenerateDialogOpen(true);
+    }
+  };
+
+  const handleOpenPayNow = () => {
+    if (!isHostedCheckoutPayout) return;
+    const event = selectedPaymentsData[0];
+    // Pre-fill with whatever the submitter suggested. The dialog lets the
+    // payer override before we hit the provider's create-payment-key API.
+    setPayNowAmount(String(event?.amount ?? ''));
+    setIsPayNowDialogOpen(true);
+  };
+
+  const handleGeneratePaymentLink = async () => {
+    if (!isHostedCheckoutPayout) return;
+    const event = selectedPaymentsData[0];
+    if (!event) return;
+    setPayNowLoading(true);
+    try {
+      const result = await paymentEventsApi.generatePaymentLink(
+        event.id,
+        payNowAmount || undefined,
+      );
+      if (result.payment_link) {
+        window.open(result.payment_link, '_blank', 'noopener,noreferrer');
+        toast.success('Payment link opened in a new tab');
+        setIsPayNowDialogOpen(false);
+        setSelectedPayments(new Set());
+      } else {
+        toast.error('Provider did not return a payment link');
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to generate payment link');
+    } finally {
+      setPayNowLoading(false);
     }
   };
 
@@ -613,7 +660,19 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </Button>
           )}
 
-          {isProviderPayout && (
+          {isHostedCheckoutPayout && (
+            <Button
+              onClick={handleOpenPayNow}
+              size="sm"
+              className="h-8 text-white"
+              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+            >
+              <CreditCard className="h-4 w-4 mr-1.5" />
+              Pay Now
+            </Button>
+          )}
+
+          {isProviderPayout && !isHostedCheckoutPayout && (
             <Button
               onClick={handleSendProviderPayout}
               disabled={sendProviderPayout.isPending}
@@ -995,6 +1054,79 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <Ban className="h-4 w-4 mr-1.5" />
               )}
               Deny
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pay Now Dialog — Ozow / OneGate hosted-checkout */}
+      <Dialog open={isPayNowDialogOpen} onOpenChange={setIsPayNowDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pay Now</DialogTitle>
+            <DialogDescription>
+              Confirm the amount and open the hosted checkout. The payer
+              completes card or EFT details on the provider's page.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPaymentsData[0] && (
+            <div className="py-2 space-y-3">
+              <div className="rounded-md bg-muted px-3 py-2 text-sm">
+                <div className="font-medium text-foreground">
+                  {selectedPaymentsData[0].vendor_name || 'Payment'}
+                </div>
+                {selectedPaymentsData[0].bill_number && (
+                  <div className="text-xs text-muted-foreground">
+                    Bill {selectedPaymentsData[0].bill_number}
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Provider:{' '}
+                  {selectedPaymentsData[0].method === 'onegate_payout'
+                    ? 'CallPay / OneGate'
+                    : 'Ozow'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Amount ({selectedPaymentsData[0].currency})
+                </label>
+                <Input
+                  type="number"
+                  value={payNowAmount}
+                  onChange={(e) => setPayNowAmount(e.target.value)}
+                  step="0.01"
+                  min="0"
+                  className="text-sm"
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Must be between 0 and the bill's outstanding amount.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPayNowDialogOpen(false)}
+              disabled={payNowLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleGeneratePaymentLink}
+              disabled={payNowLoading || !payNowAmount || parseFloat(payNowAmount) <= 0}
+              className="text-white"
+              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+            >
+              {payNowLoading ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4 mr-1.5" />
+              )}
+              Open Checkout
             </Button>
           </DialogFooter>
         </DialogContent>

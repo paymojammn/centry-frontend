@@ -120,6 +120,11 @@ export default function PayBillsModal({
   }, [bills, amounts]);
 
   const isOzowSource = selectedSource?.provider === 'ozow';
+  const isOnegateSource = selectedSource?.provider === 'onegate';
+  // Hosted-checkout providers — recipient bank details are collected on the
+  // provider's hosted page by the final payer, not in this modal. Submission
+  // creates a PENDING_APPROVAL event with bill+provider only.
+  const isHostedCheckoutSource = isOzowSource || isOnegateSource;
   // ProviderAccount path = anything that's not a BankAccount. The bills UI
   // routes BankAccount sources via bank_account_id and ProviderAccount sources
   // via provider_account_id (see submit handler below).
@@ -129,19 +134,11 @@ export default function PayBillsModal({
   );
 
   const allRecipientsComplete = useMemo(() => {
+    // Hosted-checkout providers defer recipient details to the final payer
+    // on the provider's hosted page after approval.
+    if (isHostedCheckoutSource) return true;
     if (recipients.size !== bills.length) return false;
     for (const r of recipients.values()) {
-      if (isOzowSource) {
-        // Ozow path: bankGroupId + universalBranchCode + account# + name + customer ref.
-        if (
-          !r.bank_group_id ||
-          !r.branch_code ||
-          !r.account_number ||
-          !r.account_name ||
-          !r.customer_bank_reference?.trim()
-        ) return false;
-        continue;
-      }
       if (!r.recipient_bank_id || !(r.account_number || r.iban) || !r.account_name) return false;
       if (r.recipient_type === 'international') {
         if (
@@ -156,7 +153,7 @@ export default function PayBillsModal({
       }
     }
     return true;
-  }, [recipients, bills.length, isOzowSource]);
+  }, [recipients, bills.length, isHostedCheckoutSource]);
 
   // Initialize amounts
   useEffect(() => {
@@ -325,12 +322,20 @@ export default function PayBillsModal({
 
   const handleSourceSelect = (source: PaymentSource) => {
     setSelectedSource(source);
-    setStep('recipients');
+    // Hosted-checkout providers don't need upfront recipient details — the
+    // final payer fills them in on the provider's page after approval.
+    const hostedCheckout = source.provider === 'ozow' || source.provider === 'onegate';
+    setStep(hostedCheckout ? 'confirm' : 'recipients');
   };
 
   const goBack = () => {
-    if (step === 'confirm') setStep('recipients');
-    else if (step === 'recipients') { setStep('source'); setSelectedSource(null); }
+    if (step === 'confirm') {
+      setStep(isHostedCheckoutSource ? 'source' : 'recipients');
+      if (isHostedCheckoutSource) setSelectedSource(null);
+    } else if (step === 'recipients') {
+      setStep('source');
+      setSelectedSource(null);
+    }
   };
 
   if (!isOpen) return null;
@@ -365,8 +370,10 @@ export default function PayBillsModal({
         {/* Step indicator */}
         {!['result'].includes(step) && (
           <div className="flex items-center gap-1 px-5 py-3 border-b border-border shrink-0">
-            {['Source', 'Recipients', 'Review'].map((label, i) => {
-              const stepIndex = step === 'source' ? 0 : step === 'recipients' ? 1 : 2;
+            {(isHostedCheckoutSource ? ['Source', 'Review'] : ['Source', 'Recipients', 'Review']).map((label, i, arr) => {
+              const stepIndex = isHostedCheckoutSource
+                ? (step === 'source' ? 0 : 1)
+                : (step === 'source' ? 0 : step === 'recipients' ? 1 : 2);
               const isActive = stepIndex === i;
               const isDone = stepIndex > i;
               return (
@@ -379,7 +386,7 @@ export default function PayBillsModal({
                     </span>
                     <span className="hidden sm:inline">{label}</span>
                   </div>
-                  {i < 2 && <div className={`flex-1 h-px ${isDone ? 'bg-primary' : 'bg-border'}`} />}
+                  {i < arr.length - 1 && <div className={`flex-1 h-px ${isDone ? 'bg-primary' : 'bg-border'}`} />}
                 </div>
               );
             })}
@@ -446,6 +453,18 @@ export default function PayBillsModal({
                   </>
                 )}
               </div>
+
+              {/* Hosted-checkout banner */}
+              {isHostedCheckoutSource && (
+                <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 text-xs text-blue-900">
+                  <p className="font-medium mb-0.5">Hosted-checkout flow</p>
+                  <p className="text-blue-800">
+                    After approval, the final payer will confirm the amount and complete payment on{' '}
+                    {selectedSource.provider === 'onegate' ? 'CallPay/OneGate' : 'Ozow'}'s hosted page.
+                    The amount below is a suggestion and can be adjusted later.
+                  </p>
+                </div>
+              )}
 
               {/* Bills with editable amounts */}
               <div className="border border-border rounded-lg divide-y divide-border">

@@ -7,7 +7,7 @@
  * subscription checkout.
  */
 
-export type PaymentSourceType = 'mobile_money' | 'bank_account' | 'ozow' | 'paystack' | 'netcash';
+export type PaymentSourceType = 'mobile_money' | 'bank_account' | 'ozow' | 'onegate' | 'paystack' | 'netcash';
 
 /**
  * Which backend model backs this source. Determines which ID field to send
