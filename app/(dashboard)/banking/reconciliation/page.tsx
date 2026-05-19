@@ -422,7 +422,7 @@ export default function BankReconciliationPage() {
         </div>
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-5">
+      <div className="px-6 py-8 space-y-5">
         {/* Summary bar + bulk action */}
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-6">

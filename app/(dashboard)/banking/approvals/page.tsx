@@ -29,7 +29,7 @@ export default function ApprovalsPage() {
   return (
     <div className="min-h-screen bg-muted">
       <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center gap-4">
             <div>
               <h1 className="text-xl font-semibold text-foreground">Approvals</h1>
@@ -58,7 +58,7 @@ export default function ApprovalsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <ApprovalWorkflowsList organizationId={selectedOrganizationId || undefined} />
         </div>

@@ -141,7 +141,7 @@ export default function BankAccountsPage() {
     <div className="min-h-screen bg-muted">
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-foreground">Bank Accounts</h1>
@@ -192,7 +192,7 @@ export default function BankAccountsPage() {
 
       {/* Stats Bar */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-3">
+        <div className="px-6 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Total Balance:</span>
@@ -223,7 +223,7 @@ export default function BankAccountsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         <div className="bg-card rounded-lg border border-border">
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">

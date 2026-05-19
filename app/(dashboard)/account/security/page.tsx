@@ -270,7 +270,7 @@ export default function SecurityPage() {
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
       <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -287,7 +287,7 @@ export default function SecurityPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6 animate-fade-in-up">
+      <div className="px-6 py-6 space-y-6 animate-fade-in-up">
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

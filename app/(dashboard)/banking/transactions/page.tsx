@@ -249,7 +249,7 @@ export default function BankTransactionsPage() {
         </div>
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-5">
+      <div className="px-6 py-8 space-y-5">
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[180px] max-w-xs">

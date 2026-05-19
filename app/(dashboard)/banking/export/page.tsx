@@ -171,7 +171,7 @@ export default function BankingExportPage() {
     <div className="min-h-screen bg-muted">
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-foreground">Export</h1>
@@ -206,7 +206,7 @@ export default function BankingExportPage() {
 
       {/* Tabs */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="px-6">
           <div className="flex gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -230,7 +230,7 @@ export default function BankingExportPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         {activeTab === "overview" && (
           <StatsOverview
             organizationId={selectedOrganizationId || undefined}

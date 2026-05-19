@@ -31,7 +31,7 @@ const VARIANT_COLORS = {
 export function StatsBar({ stats }: StatsBarProps) {
   return (
     <div className="bg-card border-b border-border">
-      <div className="max-w-7xl mx-auto px-6 py-3">
+      <div className="px-6 py-3">
         <div className="flex items-center gap-6 flex-wrap">
           {stats.map((stat, index) => {
             const variant = VARIANT_COLORS[stat.variant || 'default'];

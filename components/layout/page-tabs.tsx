@@ -20,7 +20,7 @@ interface PageTabsProps {
 export function PageTabs({ tabs, activeTab, onTabChange }: PageTabsProps) {
   return (
     <div className="bg-card border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="px-4 sm:px-6">
         <nav className="flex gap-8">
           {tabs.map((tab) => (
             <button

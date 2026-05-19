@@ -87,7 +87,7 @@ export default function ExpenseReportsPage() {
         )}
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+      <div className="px-4 sm:px-6 space-y-6">
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

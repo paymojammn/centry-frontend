@@ -666,7 +666,7 @@ export default function TransactionReportsPage() {
 
       {/* Tab Sub-menu */}
       <div className="border-b border-border bg-card/50">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="px-6">
           <nav className="flex gap-1 -mb-px">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -695,7 +695,7 @@ export default function TransactionReportsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <div className="px-6 py-8 space-y-8">
         {/* ============================== */}
         {/* OVERVIEW TAB                   */}
         {/* ============================== */}

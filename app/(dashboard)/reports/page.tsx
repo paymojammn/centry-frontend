@@ -177,7 +177,7 @@ export default function ReportsPage() {
         )}
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <div className="px-6 py-8 space-y-8">
 
         {/* Row 1: Key Pipeline Metrics */}
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">

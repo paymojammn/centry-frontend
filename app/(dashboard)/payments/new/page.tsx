@@ -245,7 +245,7 @@ export default function NewPaymentPage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="py-8 px-4">
         <div className="space-y-6">
           {/* Header */}
           <div className="bg-card rounded-xl border border-border p-8 shadow-sm">

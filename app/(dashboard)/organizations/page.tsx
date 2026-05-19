@@ -44,11 +44,11 @@ export default function OrganizationsPage() {
     return (
       <div className="min-h-screen bg-muted">
         <div className="bg-card border-b border-border sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="px-6 py-4">
             <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="px-6 py-6">
           <div className="bg-card rounded-lg border border-border text-center py-12">
             <Building2 className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Error Loading Organizations</p>
@@ -65,7 +65,7 @@ export default function OrganizationsPage() {
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
       <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
@@ -81,7 +81,7 @@ export default function OrganizationsPage() {
 
       {/* Stats Bar */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-3">
+        <div className="px-6 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Organizations:</span>
@@ -106,7 +106,7 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         <div className="space-y-4 animate-fade-in-up">
           {/* Search */}
           <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3">

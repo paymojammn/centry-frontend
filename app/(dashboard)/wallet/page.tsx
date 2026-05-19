@@ -129,7 +129,7 @@ export default function WalletPage() {
     return (
       <div className="min-h-screen bg-[rgb(var(--page-bg))]">
         <PageHeader title="Wallet" subtitle="Manage your department wallet" />
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="px-6 py-12">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
               <Building2 className="w-10 h-10 text-muted-foreground/60" />
@@ -171,7 +171,7 @@ export default function WalletPage() {
             </Select>
           )}
         </PageHeader>
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="px-6 py-12">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
               <WalletIcon className="w-10 h-10 text-muted-foreground/60" />
@@ -279,7 +279,7 @@ export default function WalletPage() {
         </Button>
       </PageHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         {/* Balance & Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
           <StatCard
