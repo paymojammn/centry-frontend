@@ -35,18 +35,15 @@ export const MENU_SIDEBAR: MenuConfig = [
     requiredRole: "finance",
   },
   {
-    title: "Payment Providers",
+    title: "Rails",
     icon: Send,
     requiredRole: "finance",
     children: [
       { title: "All Payments", path: "/payments" },
       { title: "Processing", path: "/payments/processing" },
+      { title: "Provider Accounts", path: "/banking/provider-accounts" },
+      { title: "Approvals", path: "/banking/approvals" },
     ],
-  },
-  {
-    title: "Contacts",
-    icon: Users,
-    path: "/vendors",
   },
   {
     title: "Banking",
@@ -57,9 +54,12 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Transactions", path: "/banking/transactions" },
       { title: "Reconciliation", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
-      { title: "Provider Accounts", path: "/banking/provider-accounts" },
-      { title: "Approvals", path: "/banking/approvals" },
     ],
+  },
+  {
+    title: "Contacts",
+    icon: Users,
+    path: "/vendors",
   },
   {
     title: "Reports",
