@@ -226,7 +226,7 @@ export default function InvoicesPage() {
 
       {/* Tabs */}
       <div className="bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="px-6">
           <nav className="flex gap-8">
             <button
               onClick={() => setActiveTab('invoices')}
@@ -252,7 +252,7 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="px-6 py-6">
         {activeTab === 'invoices' && (
           <>
             {/* Summary Stats */}

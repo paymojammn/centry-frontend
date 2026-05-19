@@ -45,7 +45,6 @@ import type { Payable } from '@/types/purchases';
 import { setAuthToken } from '@/lib/api';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
-import { PageContainer } from '@/components/layout/page-container';
 import { StatCard } from '@/components/layout/stat-card';
 import {
   ContentCard,
@@ -201,7 +200,7 @@ export default function DashboardPage() {
         isLoadingOrgs={orgsLoading}
       />
 
-      <PageContainer>
+      <div className="px-6 py-6">
         <div className="space-y-6 animate-fade-in-up">
 
           {/* ─── Section 1: Cash Position ─── */}
@@ -535,7 +534,7 @@ export default function DashboardPage() {
             </ContentCard>
           </div>
         </div>
-      </PageContainer>
+      </div>
 
       {/* ─── Quick Actions Bar ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-sm border-t border-border shadow-lg">
