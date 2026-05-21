@@ -338,6 +338,34 @@ export function useUploadBankFile() {
 }
 
 /**
+ * Recompute a bank account's balance from its most recent imported
+ * statement file (server re-parses the file and applies the closing
+ * balance with :25:-tag routing + currency safety).
+ */
+export function useRefreshAccountBalance() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    {
+      status: string;
+      balance: string;
+      currency: string;
+      last_balance_update: string;
+      source_import_id: number;
+      source_filename: string;
+    },
+    Error,
+    { accountId: number }
+  >({
+    mutationFn: ({ accountId }) =>
+      post(`/api/v1/banking/accounts/${accountId}/refresh_balance/`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
+    },
+  });
+}
+
+/**
  * Sync to Xero
  */
 export function useSyncToXero() {

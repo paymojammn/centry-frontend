@@ -8,6 +8,7 @@ import {
   Download,
   FileText,
   Loader2,
+  RefreshCw,
   Server,
   Wallet,
 } from "lucide-react";
@@ -32,6 +33,7 @@ import {
   useBankAccounts,
   useBankImports,
   useBankTransactions,
+  useRefreshAccountBalance,
   useSFTPCredentials,
   useSFTPDownloadStatements,
   useSFTPTaskStatus,
@@ -50,6 +52,7 @@ interface BankAccount {
   currency: string;
   balance: string | null;
   last_balance_update: string | null;
+  balance_as_of_date: string | null;
 }
 
 interface BankFileImportRow {
@@ -93,6 +96,9 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
   const [isPulling, setIsPulling] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [refreshingAccountId, setRefreshingAccountId] = useState<number | null>(
+    null
+  );
   const [accountFilter, setAccountFilter] = useState<string>("all");
 
   const hasBankingExport = useHasPermission("banking.export");
@@ -140,6 +146,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   const pullStatements = useSFTPDownloadStatements();
   const { data: taskStatus } = useSFTPTaskStatus(pullTaskId);
+  const refreshBalance = useRefreshAccountBalance();
 
   // Auto-pick the first active credential when an account is chosen.
   useEffect(() => {
@@ -189,6 +196,27 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
       const msg = error instanceof Error ? error.message : "Pull failed";
       toast.error(msg);
       setIsPulling(false);
+    }
+  };
+
+  const handleRefreshBalance = async (acct: BankAccount) => {
+    setRefreshingAccountId(acct.id);
+    try {
+      const result = await refreshBalance.mutateAsync({ accountId: acct.id });
+      toast.success(
+        `Balance refreshed from ${result.source_filename}: ${formatCurrency(
+          parseFloat(result.balance),
+          result.currency
+        )}`
+      );
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to refresh balance";
+      toast.error(msg);
+    } finally {
+      setRefreshingAccountId(null);
     }
   };
 
@@ -358,36 +386,61 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         </div>
       ) : bankAccounts.length > 0 ? (
         <div className="grid gap-3 md:grid-cols-2">
-          {bankAccounts.map((acct) => (
-            <ContentCard key={acct.id}>
-              <div className="flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground truncate">
-                    {acct.account_name} · {acct.account_number}
-                  </p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <Wallet className="h-4 w-4 text-muted-foreground/60" />
-                    <span className="text-lg font-semibold tabular-nums text-foreground">
-                      {acct.balance != null
-                        ? formatCurrency(
-                            parseFloat(acct.balance),
-                            acct.currency
-                          )
-                        : "—"}
-                    </span>
+          {bankAccounts.map((acct) => {
+            const isRefreshing = refreshingAccountId === acct.id;
+            return (
+              <ContentCard key={acct.id}>
+                <div className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground truncate">
+                      {acct.account_name} · {acct.account_number}
+                    </p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <Wallet className="h-4 w-4 text-muted-foreground/60" />
+                      <span className="text-lg font-semibold tabular-nums text-foreground">
+                        {acct.balance != null
+                          ? formatCurrency(
+                              parseFloat(acct.balance),
+                              acct.currency
+                            )
+                          : "—"}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground/70">
+                      {acct.balance_as_of_date
+                        ? `As of ${format(
+                            new Date(acct.balance_as_of_date),
+                            "dd MMM yyyy"
+                          )}`
+                        : acct.last_balance_update
+                        ? `Updated ${format(
+                            new Date(acct.last_balance_update),
+                            "dd MMM yyyy HH:mm"
+                          )}`
+                        : "Never updated from statement"}
+                    </p>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground/70">
-                    {acct.last_balance_update
-                      ? `Updated ${format(
-                          new Date(acct.last_balance_update),
-                          "dd MMM yyyy HH:mm"
-                        )}`
-                      : "Never updated from statement"}
-                  </p>
+                  {hasBankingExport && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRefreshBalance(acct)}
+                      disabled={isRefreshing}
+                      title="Recompute balance from the most recent imported statement"
+                      className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                    >
+                      {isRefreshing ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      <span className="ml-1.5 text-xs">Refresh</span>
+                    </Button>
+                  )}
                 </div>
-              </div>
-            </ContentCard>
-          ))}
+              </ContentCard>
+            );
+          })}
         </div>
       ) : null}
 
