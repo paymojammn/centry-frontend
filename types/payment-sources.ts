@@ -25,6 +25,12 @@ export interface PaymentSource {
   provider_name?: string;       // e.g. 'MTN Uganda Production'
   currency: string;
   balance?: string;
+  /**
+   * For BankAccount sources fed from MT940 imports: end-of-day booked
+   * balance (:62F:). Differs from `balance` when same-day credits haven't
+   * cleared yet. Used as the hard sufficiency gate for bill payments.
+   */
+  booked_balance?: string | null;
   phone_number?: string;        // for mobile money
   account_number?: string;      // for bank accounts
   bank_name?: string;

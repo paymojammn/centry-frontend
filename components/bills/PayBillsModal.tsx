@@ -106,6 +106,10 @@ export default function PayBillsModal({
   // Manual-rate override
   const [fxMode, setFxMode] = useState<'auto' | 'manual'>('auto');
   const [fxManualRate, setFxManualRate] = useState<string>('');
+  // User acknowledgement that paying from uncleared funds (amount sits
+  // between booked and available) is acceptable. Required to submit when
+  // the gap applies.
+  const [ackUncleared, setAckUncleared] = useState(false);
 
   const currency = bills[0]?.currency_code
     ? String(bills[0].currency_code).split('.').pop() || 'UGX'
@@ -179,11 +183,53 @@ export default function PayBillsModal({
       setFxConfirmed(false);
       setFxMode('auto');
       setFxManualRate('');
+      setAckUncleared(false);
     }
   }, [isOpen]);
 
   // Fetch an FX quote whenever currencies differ + amount changes.
   const needsFx = Boolean(selectedSource && selectedSource.currency && selectedSource.currency !== currency);
+
+  // Amount that will actually be debited from the source, in the source's
+  // currency. Equals totalAmount when no FX is involved; otherwise applies
+  // the active FX rate (auto quote or manual override).
+  const sourceDebitAmount = useMemo(() => {
+    if (!needsFx) return totalAmount;
+    if (fxMode === 'manual') {
+      const r = parseFloat(fxManualRate);
+      return Number.isFinite(r) && r > 0 ? totalAmount * r : 0;
+    }
+    return fxQuote ? parseFloat(fxQuote.converted_amount) : 0;
+  }, [needsFx, fxMode, fxManualRate, fxQuote, totalAmount]);
+
+  // Sufficiency gate: booked balance is the hard limit (settled funds the
+  // bank will actually let move). Available includes same-day uncleared
+  // credits that can reverse — paying from there is OK if the user
+  // acknowledges the risk. Hosted-checkout providers (Ozow / OneGate)
+  // settle on their side, so the gate doesn't apply to them.
+  const balanceGate = useMemo(() => {
+    if (!selectedSource || isHostedCheckoutSource || sourceDebitAmount <= 0) {
+      return { kind: 'ok' as const };
+    }
+    const available = parseFloat(selectedSource.balance ?? '0');
+    const booked = selectedSource.booked_balance != null
+      ? parseFloat(selectedSource.booked_balance)
+      : available;
+    if (sourceDebitAmount > available) {
+      return { kind: 'insufficient' as const, available, booked };
+    }
+    if (sourceDebitAmount > booked) {
+      return { kind: 'uncleared_gap' as const, available, booked };
+    }
+    return { kind: 'ok' as const };
+  }, [selectedSource, isHostedCheckoutSource, sourceDebitAmount]);
+
+  // Acknowledgement only matters when we're in the uncleared gap. Reset
+  // it whenever the source changes so a user switching sources can't
+  // accidentally inherit a stale ack.
+  useEffect(() => {
+    setAckUncleared(false);
+  }, [selectedSource?.id]);
   useEffect(() => {
     let cancelled = false;
     if (!needsFx || step !== 'confirm' || totalAmount <= 0) {
@@ -629,11 +675,56 @@ export default function PayBillsModal({
                 />
               </div>
 
+              {/* Balance gate — block when over available, warn (+ require
+                  acknowledgement) when in the uncleared gap between booked
+                  and available. */}
+              {balanceGate.kind === 'insufficient' && (
+                <div className="border border-red-200 bg-red-50 rounded-lg p-3 text-sm text-red-900">
+                  <div className="flex items-center gap-2 font-medium">
+                    <AlertCircle className="h-4 w-4" />
+                    Insufficient balance
+                  </div>
+                  <div className="mt-1 text-xs">
+                    Will debit {selectedSource!.currency}{' '}
+                    {sourceDebitAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })};
+                    {' '}available is {selectedSource!.currency}{' '}
+                    {balanceGate.available.toLocaleString(undefined, { minimumFractionDigits: 2 })}.
+                  </div>
+                </div>
+              )}
+              {balanceGate.kind === 'uncleared_gap' && (
+                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                    <AlertCircle className="h-4 w-4" />
+                    Paying from uncleared funds
+                  </div>
+                  <div className="text-xs text-amber-900">
+                    Booked balance is {selectedSource!.currency}{' '}
+                    {balanceGate.booked.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {' '}— {selectedSource!.currency}{' '}
+                    {(balanceGate.available - balanceGate.booked).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {' '}of your balance is same-day credit that hasn't settled yet. If
+                    those credits reverse, the account could go into overdraft.
+                  </div>
+                  <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={ackUncleared}
+                      onChange={(e) => setAckUncleared(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span>I understand and want to proceed anyway.</span>
+                  </label>
+                </div>
+              )}
+
               <Button
                 onClick={() => payBillsMutation.mutate()}
                 disabled={
                   payBillsMutation.isPending
                   || totalAmount <= 0
+                  || balanceGate.kind === 'insufficient'
+                  || (balanceGate.kind === 'uncleared_gap' && !ackUncleared)
                   || (
                     needsFx
                     && (
@@ -647,6 +738,10 @@ export default function PayBillsModal({
               >
                 {payBillsMutation.isPending ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
+                ) : balanceGate.kind === 'insufficient' ? (
+                  'Insufficient balance'
+                ) : balanceGate.kind === 'uncleared_gap' && !ackUncleared ? (
+                  'Acknowledge uncleared funds to continue'
                 ) : needsFx && !fxConfirmed ? (
                   'Confirm conversion to continue'
                 ) : (
