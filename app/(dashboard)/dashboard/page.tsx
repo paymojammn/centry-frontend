@@ -17,9 +17,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { usePayables } from '@/hooks/use-purchases';
-import { useImportStats, useExportStats, usePaymentPipelineStats, useBankResponseStats } from '@/hooks/use-banking';
+import {
+  useImportStats,
+  useExportStats,
+  usePaymentPipelineStats,
+  useBankResponseStats,
+  useBankAccounts,
+  useAllSFTPCredentials,
+} from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
-import { useAccountBalances, useReportsDashboard, usePayablesAging, useCurrencyExposure } from '@/hooks/use-reports';
+import { useReportsDashboard, usePayablesAging, useCurrencyExposure } from '@/hooks/use-reports';
 import { useExpenseStats } from '@/hooks/use-expenses';
 import {
   ArrowDownRight,
@@ -143,7 +150,8 @@ export default function DashboardPage() {
   const { data: payables, isLoading: loadingPayables } = usePayables({ status: 'awaiting_payment', organization: orgId });
   const { data: pipelineStats } = usePaymentPipelineStats(orgId);
   const { data: bankResponseStats } = useBankResponseStats(orgId);
-  const { data: accountBalances } = useAccountBalances(orgId);
+  const { data: bankAccountsData } = useBankAccounts(orgId);
+  const { data: sftpCredsData } = useAllSFTPCredentials(orgId);
   const { data: dashboardStats } = useReportsDashboard(orgId);
   const { data: agingData } = usePayablesAging(orgId);
   const { data: currencyData } = useCurrencyExposure(orgId);
@@ -156,9 +164,37 @@ export default function DashboardPage() {
   const openBills = Array.isArray(payables) ? payables : (payables as any)?.results || [];
   const overdueBills = openBills.filter((bill: Payable) => bill.due_date && new Date(bill.due_date) < new Date());
 
-  // Cash position
-  const totalsByPrimary = (accountBalances as any)?.totals_by_currency || {};
-  const bankBalance = Object.entries(totalsByPrimary).reduce((sum, [, val]) => sum + Number(val), 0);
+  // Cash position — only count BankAccounts that have at least one
+  // active SFTP credential (i.e. are wired up to actually pull statements
+  // / push payments). Group by currency so UGX and USD live in their own
+  // cards instead of being summed into a meaningless single number.
+  const sftpBankAccountIds = new Set<number>(
+    ((sftpCredsData as any)?.results || [])
+      .filter((c: any) => c.is_active && c.bank_account?.id)
+      .map((c: any) => c.bank_account.id as number)
+  );
+  const bankAccounts = ((bankAccountsData as any)?.results || []) as Array<{
+    id: number;
+    balance: string | null;
+    currency: string;
+  }>;
+  const sftpAccounts = bankAccounts.filter((a) => sftpBankAccountIds.has(a.id));
+  const sftpBalancesByCurrency = sftpAccounts.reduce<Record<string, { sum: number; count: number }>>(
+    (acc, a) => {
+      const ccy =
+        (a.currency || '').replace('CurrencyCode.', '').toUpperCase() || 'UGX';
+      const amount = parseFloat(a.balance ?? '0') || 0;
+      if (!acc[ccy]) acc[ccy] = { sum: 0, count: 0 };
+      acc[ccy].sum += amount;
+      acc[ccy].count += 1;
+      return acc;
+    },
+    {}
+  );
+  const sftpCurrencyEntries = Object.entries(sftpBalancesByCurrency).sort(
+    ([a], [b]) => a.localeCompare(b)
+  );
+
   const txns = (dashboardStats as any)?.transactions || {};
   const inflows = Number(txns.credits || 0);
   const outflows = Math.abs(Number(txns.debits || 0));
@@ -200,14 +236,31 @@ export default function DashboardPage() {
         <div className="space-y-6 animate-fade-in-up">
 
           {/* ─── Section 1: Cash Position ─── */}
+          {/* One Bank Balance card per currency — only includes BankAccount
+              rows that have an active SFTP credential, i.e. the accounts
+              the bank is actually pulling statements for. Sums across UGX
+              and USD made no arithmetic sense before this split. */}
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              label="Bank Balance"
-              value={formatCompact(bankBalance)}
-              subtext="Across all accounts"
-              icon={Wallet}
-              variant="accent"
-            />
+            {sftpCurrencyEntries.length === 0 ? (
+              <StatCard
+                label="Bank Balance"
+                value="—"
+                subtext="No SFTP-configured accounts"
+                icon={Wallet}
+                variant="accent"
+              />
+            ) : (
+              sftpCurrencyEntries.map(([ccy, agg]) => (
+                <StatCard
+                  key={ccy}
+                  label={`Bank Balance · ${ccy}`}
+                  value={`${ccy} ${formatCompact(agg.sum)}`}
+                  subtext={`${agg.count} SFTP account${agg.count === 1 ? '' : 's'}`}
+                  icon={Wallet}
+                  variant="accent"
+                />
+              ))
+            )}
             <StatCard
               label="Inflows"
               value={formatCompact(inflows)}

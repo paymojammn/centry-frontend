@@ -592,6 +592,23 @@ export function useSFTPCredentials(bankAccountId?: number) {
 }
 
 /**
+ * Get all SFTP credentials in the user's organization. Server filters
+ * by membership; pass an explicit organizationId only to scope to a
+ * specific org when the user belongs to several. Used by the dashboard
+ * to know which BankAccount rows have an SFTP wire-up.
+ */
+export function useAllSFTPCredentials(organizationId?: string) {
+  return useQuery<{ results: SFTPCredential[]; count: number }>({
+    queryKey: ['sftp-credentials-all', organizationId],
+    queryFn: () => {
+      const params = organizationId ? `?organization=${organizationId}` : '';
+      return get(`/api/v1/banking/sftp-credentials/${params}`);
+    },
+    enabled: !!organizationId,
+  });
+}
+
+/**
  * Get SFTP transfer logs
  */
 export function useSFTPTransferLogs(filters?: {
