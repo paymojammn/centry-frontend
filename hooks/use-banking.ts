@@ -929,6 +929,33 @@ export function useAllPaymentExportStatuses(filters?: {
 }
 
 /**
+ * Re-run the pain.002 → BankPaymentExport matcher across every
+ * PaymentExportStatus row in this org that's still unlinked. Returns
+ * { examined, relinked, still_unmatched }. Useful after a matcher fix
+ * (case-insensitive comparison, new fallback rule) to retroactively
+ * attach previously-stored bank responses to their exports.
+ */
+export function useRelinkUnmatchedPain002() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { examined: number; relinked: number; still_unmatched: number },
+    Error,
+    { organizationId?: string }
+  >({
+    mutationFn: ({ organizationId }) => {
+      const qs = organizationId ? `?organization=${organizationId}` : '';
+      return post(`/api/v1/banking/export-statuses/relink-unmatched/${qs}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['all-payment-export-statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-export-status-detail'] });
+    },
+  });
+}
+
+/**
  * Get a single payment export status with transaction details
  */
 export function usePaymentExportStatusDetail(statusId?: number) {

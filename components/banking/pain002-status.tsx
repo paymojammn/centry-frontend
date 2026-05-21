@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
+  Link2,
   RefreshCw,
   FileText,
   CheckCircle2,
@@ -21,6 +23,7 @@ import {
   useBankPaymentExports,
   usePaymentExportStatuses,
   usePaymentExportStatusDetail,
+  useRelinkUnmatchedPain002,
   type BankPaymentExport,
   type PaymentExportStatus,
   type PaymentTransactionStatus,
@@ -423,6 +426,31 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
     organizationId,
   });
 
+  const relinkUnmatched = useRelinkUnmatchedPain002();
+
+  const handleRelink = async () => {
+    try {
+      const result = await relinkUnmatched.mutateAsync({ organizationId });
+      if (result.relinked > 0) {
+        toast.success(
+          `Re-linked ${result.relinked} bank response${result.relinked === 1 ? "" : "s"}` +
+            (result.still_unmatched > 0
+              ? `; ${result.still_unmatched} still unmatched`
+              : "")
+        );
+      } else if (result.examined === 0) {
+        toast.info("No unmatched bank responses to re-link.");
+      } else {
+        toast.info(
+          `Checked ${result.examined} unmatched response${result.examined === 1 ? "" : "s"}, none could be re-linked.`
+        );
+      }
+      refetchExports();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err?.message || "Re-link failed");
+    }
+  };
+
   const exports = exportsData?.results || [];
 
   // Filter exports that have been uploaded (have bank response potential)
@@ -477,16 +505,33 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
               Bank responses for uploaded payment files. Pull new responses from the Inbox tab.
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetchExports()}
-            disabled={exportsLoading}
-            className="h-8 btn-press"
-          >
-            <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRelink}
+              disabled={relinkUnmatched.isPending}
+              title="Retry matching unmatched bank responses to their payment exports"
+              className="h-8 btn-press"
+            >
+              {relinkUnmatched.isPending ? (
+                <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+              ) : (
+                <Link2 className="h-3 w-3 mr-1.5" />
+              )}
+              Re-link unmatched
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchExports()}
+              disabled={exportsLoading}
+              className="h-8 btn-press"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {exportsLoading ? (
