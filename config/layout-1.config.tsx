@@ -43,6 +43,18 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Processing", path: "/payments/processing" },
       { title: "Provider Accounts", path: "/banking/provider-accounts" },
       { title: "Approvals", path: "/banking/approvals" },
+      {
+        title: "Ozow",
+        children: [
+          { title: "Sign-off", path: "/banking/ozow/signoff" },
+        ],
+      },
+      {
+        title: "Onegate",
+        children: [
+          { title: "Sign-off", path: "/banking/onegate/signoff" },
+        ],
+      },
     ],
   },
   {

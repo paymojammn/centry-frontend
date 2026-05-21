@@ -56,6 +56,71 @@ export interface OzowPayoutStatusResponse {
   raw_response?: unknown;
 }
 
+// ---------------------------------------------------------------------------
+// Sign-off (Rails > Ozow > Sign-off)
+// ---------------------------------------------------------------------------
+
+export interface OzowSignoffTest {
+  slug: string;
+  label: string;
+  requires_payout_id: boolean;
+}
+
+export interface OzowSignoffTestsResponse {
+  success: boolean;
+  tests: OzowSignoffTest[];
+}
+
+/** Loose shape — each test returns slightly different keys, all JSON-safe. */
+export type OzowSignoffResult = Record<string, unknown> & {
+  payout_id?: string;
+  status?: string | null;
+  status_code?: number | null;
+  sub_status?: string | null;
+  sub_status_code?: number | null;
+  error_message?: string;
+  exception?: string;
+  merchant_reference?: string;
+  raw_response?: unknown;
+  skipped?: string;
+  expectation?: string;
+  note?: string;
+};
+
+export interface OzowSignoffRunResponse {
+  success: boolean;
+  test: string;
+  label: string;
+  account_id: string;
+  environment: 'sandbox' | 'production';
+  bank: {
+    bank_group_id: string;
+    bank_group_name: string;
+    branch_code: string;
+  };
+  result: OzowSignoffResult;
+}
+
+export interface OzowSignoffWebhookOutcome {
+  found: boolean;
+  payout_id?: string;
+  merchant_reference?: string;
+  status?: string;
+  status_code?: number | null;
+  sub_status_code?: number | null;
+  error_message?: string;
+  completed_at?: string | null;
+  verification_received?: boolean;
+  callback_count?: number;
+  callbacks?: Array<Record<string, unknown>>;
+}
+
+export interface OzowSignoffWebhookOutcomeResponse {
+  success: boolean;
+  account_id: string;
+  outcome: OzowSignoffWebhookOutcome;
+}
+
 export const ozowApi = {
   /**
    * GET /api/ozow/banks/
@@ -104,6 +169,45 @@ export const ozowApi = {
     return api.get<OzowPayoutStatusResponse>(
       `${OZOW_BASE}/payouts/${payoutId}/`,
       { params: query },
+    );
+  },
+
+  // ---- Sign-off ---------------------------------------------------------
+
+  /**
+   * GET /api/ozow/signoff/tests/ — catalogue of sign-off tests.
+   */
+  async listSignoffTests(): Promise<OzowSignoffTestsResponse> {
+    return api.get<OzowSignoffTestsResponse>(`${OZOW_BASE}/signoff/tests/`);
+  },
+
+  /**
+   * POST /api/ozow/accounts/<id>/signoff/<slug>/ — run a single sign-off
+   * test against a sandbox provider account. ``payout_id`` is required for
+   * the get-status test.
+   */
+  async runSignoffTest(
+    accountId: string,
+    slug: string,
+    body?: { payout_id?: string },
+  ): Promise<OzowSignoffRunResponse> {
+    return api.post<OzowSignoffRunResponse>(
+      `${OZOW_BASE}/accounts/${accountId}/signoff/${slug}/`,
+      body ?? {},
+    );
+  },
+
+  /**
+   * GET /api/ozow/accounts/<id>/signoff/webhook-outcome/<payoutId>/ —
+   * inspect the OzowPayout + OzowCallback rows for a payoutId, used to
+   * verify the four sign-off items Ozow drives via webhook.
+   */
+  async getSignoffWebhookOutcome(
+    accountId: string,
+    payoutId: string,
+  ): Promise<OzowSignoffWebhookOutcomeResponse> {
+    return api.get<OzowSignoffWebhookOutcomeResponse>(
+      `${OZOW_BASE}/accounts/${accountId}/signoff/webhook-outcome/${payoutId}/`,
     );
   },
 };
