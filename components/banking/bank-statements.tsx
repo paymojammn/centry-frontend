@@ -51,6 +51,7 @@ interface BankAccount {
   account_number: string;
   currency: string;
   balance: string | null;
+  booked_balance: string | null;
   last_balance_update: string | null;
   balance_as_of_date: string | null;
 }
@@ -405,7 +406,25 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
                             )
                           : "—"}
                       </span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                        Available
+                      </span>
                     </div>
+                    {acct.booked_balance != null &&
+                      acct.balance != null &&
+                      acct.booked_balance !== acct.balance && (
+                        <div className="mt-0.5 flex items-baseline gap-1.5">
+                          <span className="text-xs tabular-nums text-muted-foreground">
+                            {formatCurrency(
+                              parseFloat(acct.booked_balance),
+                              acct.currency
+                            )}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                            Booked
+                          </span>
+                        </div>
+                      )}
                     <p className="mt-0.5 text-[11px] text-muted-foreground/70">
                       {acct.balance_as_of_date
                         ? `As of ${format(
