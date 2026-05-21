@@ -71,7 +71,6 @@ export default function PayBillsModal({
   onClose,
   bills,
   organizationId,
-  countryCode,
 }: PayBillsModalProps) {
   const queryClient = useQueryClient();
   const { data: sourcesData, isLoading: sourcesLoading } = usePaymentSources(organizationId);

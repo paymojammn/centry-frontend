@@ -11,7 +11,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useBills } from '@/hooks/use-bills';
 import { usePaymentPipelineStats } from '@/hooks/use-banking';
 import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
@@ -95,6 +97,35 @@ export default function BillsPage() {
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'bills' | 'processing'>('bills');
 
+  // Surface OneGate / Ozow hosted-checkout return as a toast. The provider
+  // redirects back here with ?payment=success|cancelled|error and ?bill_id=…
+  // after the customer finishes on the hosted page. We strip the params
+  // afterwards so a refresh doesn't re-fire the toast.
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const paymentToastHandled = useRef(false);
+  useEffect(() => {
+    if (paymentToastHandled.current) return;
+    const payment = searchParams.get('payment');
+    if (!payment) return;
+    paymentToastHandled.current = true;
+    const billIdParam = searchParams.get('bill_id');
+    const suffix = billIdParam ? ` for bill #${billIdParam}` : '';
+    if (payment === 'success') {
+      toast.success(`Payment successful${suffix}`);
+      setActiveTab('processing');
+    } else if (payment === 'cancelled') {
+      toast.error(`Payment cancelled${suffix}`);
+    } else {
+      toast.error(`Payment failed${suffix}`);
+    }
+    const remaining = new URLSearchParams(searchParams.toString());
+    remaining.delete('payment');
+    remaining.delete('bill_id');
+    const qs = remaining.toString();
+    router.replace(qs ? `/bills?${qs}` : '/bills', { scroll: false });
+  }, [searchParams, router]);
+
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
   const { data: user } = useCurrentUser();
 
@@ -121,9 +152,24 @@ export default function BillsPage() {
   const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
 
-  const bills = Array.isArray(billsResponse)
+  // Defensive dedupe: the backend bills endpoint can echo the same id when
+  // ERP-synced rows overlap with locally-created rows on page boundaries.
+  // Two rows with the same `id` would crash <BillsTable> with a duplicate
+  // React key, so collapse them here and keep the first occurrence.
+  const billsRaw = Array.isArray(billsResponse)
     ? billsResponse
     : (billsResponse as any)?.results || [];
+  const bills: Bill[] = (() => {
+    const seen = new Set<string | number>();
+    const out: Bill[] = [];
+    for (const b of billsRaw as Bill[]) {
+      const k = (b?.id ?? `${out.length}`) as string | number;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(b);
+    }
+    return out;
+  })();
 
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Building2, Globe, ChevronDown, Download, Check, Search } from 'lucide-react';
+import { Building2, Globe, ChevronDown, Download, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
@@ -21,6 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import type { Bill } from '@/types/bill';
+import type { PaymentSourceType } from '@/types/payment-sources';
 
 interface RecipientDetails {
   bill_id: number;
@@ -55,7 +56,11 @@ interface RecipientDetailsStepProps {
   bills: Bill[];
   recipients: Map<number, RecipientDetails>;
   onRecipientsChange: (recipients: Map<number, RecipientDetails>) => void;
-  paymentMethod: 'mobile_money' | 'bank_account';
+  // Accepts the full PaymentSourceType because bank-rail providers
+  // (ozow/onegate/paystack/netcash) flow through here too — they're branched
+  // on via `sourceProvider` (e.g. the `isOzow` carve-out below), not by
+  // collapsing them down to 'bank_account'.
+  paymentMethod: PaymentSourceType;
   /** ISO country codes the selected provider supports, e.g. ['ZA'] for Ozow. */
   sourceCountryCodes?: string[];
   /** Provider code on the selected source (e.g. 'ozow') — drives Ozow rail UI. */

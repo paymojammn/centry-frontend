@@ -91,7 +91,7 @@ export default function PaymentSourceSelector({
           source.type === selectedSource.type && 
           String(source.id) === String(selectedSource.id);
         const Icon = getIcon(source.type);
-        const hasBalance = parseFloat(source.balance) > 0;
+        const hasBalance = parseFloat(source.balance ?? '0') > 0;
         const needsConversion = billCurrency && source.currency !== billCurrency;
         
         return (
@@ -165,7 +165,7 @@ export default function PaymentSourceSelector({
                       </span>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-foreground'}`}>
-                          {source.currency} {parseFloat(source.balance).toLocaleString(undefined, {
+                          {source.currency} {parseFloat(source.balance ?? '0').toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
