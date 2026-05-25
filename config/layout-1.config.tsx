@@ -79,6 +79,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "Dashboard", path: "/reports" },
       { title: "Transactions", path: "/reports/transactions" },
+      { title: "Audit Trail", path: "/reports/audit" },
     ],
   },
   { heading: "Organization" },

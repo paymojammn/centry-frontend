@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, subMonths } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { format, subMonths, parseISO } from "date-fns";
 import {
   CheckCircle2,
   Clock,
@@ -11,10 +11,30 @@ import {
   ChevronRight,
   Calendar,
   CreditCard,
-  FileText,
   ShieldCheck,
   ArrowRightLeft,
+  Wallet,
+  Receipt,
+  AlertOctagon,
+  FileX,
+  Landmark,
+  Inbox,
+  Activity,
+  ScrollText,
 } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   Select,
   SelectContent,
@@ -24,25 +44,31 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatCard } from "@/components/layout/stat-card";
 import {
   ContentCard,
   ContentCardHeader,
   ContentCardBody,
 } from "@/components/layout/content-card";
 import {
-  useCEODashboard,
   useFinancialTrends,
+  usePipelineOverview,
 } from "@/hooks/use-reports";
-import {
-  usePaymentPipelineStats,
-  useBankResponseStats,
-} from "@/hooks/use-banking";
 import { useOrganizations } from "@/hooks/use-organization";
 import { PageHeader } from "@/components/layout/page-header";
-import { TrendChart } from "@/components/reports/charts/TrendChart";
-import { PaymentChannelsChart } from "@/components/reports/charts/PaymentChannelsChart";
 import { ExportButton } from "@/components/reports/export/ExportButton";
+import { ProviderAccountsCard } from "@/components/reports/cards/ProviderAccountsCard";
+import { MetricTile } from "@/components/reports/MetricTile";
+import {
+  AXIS_STYLE,
+  CHART_COLORS,
+  ChartGradients,
+  ChartTooltip,
+  EmptyState,
+  GRID_STYLE,
+  SectionTitle,
+  formatCurrencyCompact,
+  pickColor,
+} from "@/components/reports/chart-theme";
 import Link from "next/link";
 
 // ============================================================
@@ -82,17 +108,16 @@ function ChartSkeleton({ height = "h-[350px]" }: { height?: string }) {
 }
 
 // ============================================================
-// Pipeline bar colors (muted fintech palette)
+// Pipeline bar colors
 // ============================================================
 
-const PIPELINE_STAGES = [
-  { key: "pending_approval", label: "Pending Approval", color: "#D4B35A" },
-  { key: "processing", label: "Ready for Export", color: "#6B8FB8" },
-  { key: "sent_to_bank", label: "Sent to Bank", color: "#D4944A" },
-  { key: "accepted", label: "Bank Accepted", color: "#6B9B71" },
-  { key: "failed", label: "Failed / Rejected", color: "#B85C5C" },
-  { key: "synced", label: "Synced to ERP", color: "rgb(var(--brand-primary))" },
-] as const;
+const STAGE_COLORS: Record<string, string> = {
+  pending_approval: "#D4B35A",
+  ready_for_export: "#6B8FB8",
+  sent_to_bank: "#D4944A",
+  bank_accepted: "#6B9B71",
+  bank_rejected: "#B85C5C",
+};
 
 // ============================================================
 // Page
@@ -117,39 +142,64 @@ export default function ReportsPage() {
   const startDate = format(subMonths(new Date(), parseInt(period)), "yyyy-MM-dd");
   const endDate = format(new Date(), "yyyy-MM-dd");
 
-  const { data: ceo, isLoading: loadingCEO } = useCEODashboard(organizationId, startDate, endDate);
-  const { data: trends, isLoading: loadingTrends } = useFinancialTrends(organizationId, parseInt(period));
-  const { data: pipeline, isLoading: loadingPipeline } = usePaymentPipelineStats(organizationId);
-  const { data: bankResponses, isLoading: loadingBank } = useBankResponseStats(organizationId);
+  const { data: trends, isLoading: loadingTrends } = useFinancialTrends(
+    organizationId,
+    parseInt(period),
+    "payments"
+  );
+  const { data: overview, isLoading: loadingOverview } = usePipelineOverview(
+    organizationId,
+    startDate,
+    endDate
+  );
 
-  // Derived metrics
-  const totalProcessed = pipeline?.success || 0;
-  const pendingPipeline = (pipeline?.pending_approval || 0) + (pipeline?.processing || 0) + (pipeline?.pending || 0);
-  const totalResponded = (bankResponses?.successful_transactions || 0) + (bankResponses?.rejected_transactions || 0);
-  const acceptanceRate = totalResponded > 0
-    ? Math.round((bankResponses!.successful_transactions / totalResponded) * 100)
-    : 0;
-  const syncTotal = (pipeline?.synced_count || 0) + (pipeline?.not_synced_count || 0);
-  const syncRate = syncTotal > 0
-    ? Math.round((pipeline!.synced_count / syncTotal) * 100)
-    : 0;
+  // Derived metrics from the unified overview
+  const queue = overview?.queue || [];
+  const queueByStage = Object.fromEntries(queue.map((s) => [s.stage, s])) as Record<
+    string,
+    (typeof queue)[number] | undefined
+  >;
+  const periodAmount = parseFloat(overview?.totals.period.amount_processed || "0");
+  const lifetimeAmount = parseFloat(overview?.totals.lifetime.amount_processed || "0");
+  const lifetimeCount = overview?.totals.lifetime.bills_count || 0;
+  const periodCount = overview?.totals.period.bills_count || 0;
+  const inPipelineCount =
+    (queueByStage.pending_approval?.count || 0) +
+    (queueByStage.ready_for_export?.count || 0) +
+    (queueByStage.sent_to_bank?.count || 0);
+  const completed = queueByStage.bank_accepted?.count || 0;
+  const failed = queueByStage.bank_rejected?.count || 0;
+  const decided = completed + failed;
+  const successRate = decided > 0 ? Math.round((completed / decided) * 100) : 0;
 
-  // Pipeline bar data
-  const pipelineData = [
-    { ...PIPELINE_STAGES[0], count: pipeline?.pending_approval || 0, amount: parseFloat(pipeline?.total_amount_pending_approval || "0") },
-    { ...PIPELINE_STAGES[1], count: pipeline?.processing || 0, amount: parseFloat(pipeline?.total_amount_processing || "0") },
-    { ...PIPELINE_STAGES[2], count: (pipeline?.pending || 0) + (pipeline?.sent || 0), amount: parseFloat(pipeline?.total_amount_pending || "0") + parseFloat(pipeline?.total_amount_sent || "0") },
-    { ...PIPELINE_STAGES[3], count: bankResponses?.successful_transactions || 0, amount: 0 },
-    { ...PIPELINE_STAGES[4], count: (pipeline?.failed || 0) + (pipeline?.rejected || 0) + (bankResponses?.rejected_transactions || 0), amount: 0 },
-    { ...PIPELINE_STAGES[5], count: pipeline?.synced_count || 0, amount: 0 },
-  ];
-  const maxPipelineCount = Math.max(...pipelineData.map((d) => d.count), 1);
+  const maxPipelineCount = Math.max(...queue.map((s) => s.count), 1);
+
+  // Sparkline series derived from already-loaded data
+  const trendSpark = useMemo(
+    () => (trends?.trends || []).map((t) => Number(t.income) || 0),
+    [trends]
+  );
+  const periodSpark = useMemo(() => {
+    const days = parseInt(period) * 30;
+    const today = new Date();
+    const buckets = new Map<string, number>();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      buckets.set(d.toISOString().slice(0, 10), 0);
+    }
+    for (const t of overview?.recent_transactions || []) {
+      const key = t.date.slice(0, 10);
+      buckets.set(key, (buckets.get(key) || 0) + parseFloat(t.amount));
+    }
+    return Array.from(buckets.values());
+  }, [overview, period]);
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Reports"
-        subtitle="Payment pipeline analytics"
+        title="Centry Payments"
+        subtitle="End-to-end payment processing across banks and provider accounts"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
@@ -170,7 +220,7 @@ export default function ReportsPage() {
         {organizationId && (
           <ExportButton
             organizationId={organizationId}
-            reportType="financial"
+            reportType="pipeline"
             startDate={startDate}
             endDate={endDate}
           />
@@ -178,10 +228,11 @@ export default function ReportsPage() {
       </PageHeader>
 
       <div className="px-6 py-8 space-y-8">
+        <ChartGradients />
 
         {/* Row 1: Key Pipeline Metrics */}
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {loadingPipeline || loadingBank ? (
+          {loadingOverview ? (
             <>
               <StatSkeleton />
               <StatSkeleton />
@@ -190,31 +241,45 @@ export default function ReportsPage() {
             </>
           ) : (
             <>
-              <StatCard
-                label="Total Processed"
-                value={totalProcessed}
+              <MetricTile
+                label="Processed by Centry"
+                value={formatCurrency(lifetimeAmount)}
                 icon={CheckCircle2}
-                variant="accent"
-                subtext={formatCurrency(parseFloat(pipeline?.total_amount_sent || "0"))}
+                tone="accent"
+                hint={`${lifetimeCount.toLocaleString()} payments lifetime`}
+                sparkline={trendSpark.length >= 2 ? trendSpark : undefined}
+                sparklineKind="area"
               />
-              <StatCard
-                label="In Pipeline"
-                value={pendingPipeline}
-                icon={Clock}
-                variant={pendingPipeline > 0 ? "warning" : "default"}
-                subtext="Across approval, export & bank"
-              />
-              <StatCard
-                label="Bank Acceptance"
-                value={`${acceptanceRate}%`}
+              <MetricTile
+                label="This Period"
+                value={formatCurrency(periodAmount)}
                 icon={TrendingUp}
-                subtext={`${bankResponses?.successful_transactions || 0} of ${totalResponded} transactions`}
+                tone="default"
+                hint={`${periodCount.toLocaleString()} payments`}
+                sparkline={periodSpark.length >= 2 ? periodSpark : undefined}
+                sparklineKind="area"
               />
-              <StatCard
-                label="ERP Sync Rate"
-                value={`${syncRate}%`}
+              <MetricTile
+                label="In Pipeline"
+                value={inPipelineCount.toLocaleString()}
+                icon={Clock}
+                tone={inPipelineCount > 0 ? "warning" : "default"}
+                hint="Awaiting approval, in flight, or pending bank response"
+              />
+              <MetricTile
+                label="Success Rate"
+                value={decided > 0 ? `${successRate}%` : "—"}
                 icon={RefreshCw}
-                subtext={`${pipeline?.synced_count || 0} synced, ${pipeline?.not_synced_count || 0} pending`}
+                tone={
+                  decided === 0
+                    ? "default"
+                    : successRate >= 90
+                    ? "success"
+                    : successRate >= 70
+                    ? "warning"
+                    : "danger"
+                }
+                hint={`${completed} completed · ${failed} failed`}
               />
             </>
           )}
@@ -223,231 +288,681 @@ export default function ReportsPage() {
         {/* Row 2: Pipeline Breakdown + Payment Channels */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Payment Pipeline */}
-          {loadingPipeline || loadingBank ? (
+          {loadingOverview ? (
             <ChartSkeleton height="h-[280px]" />
           ) : (
             <ContentCard noPadding>
               <ContentCardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10">
-                    <ArrowRightLeft className="h-4 w-4 text-primary" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground">Payment Pipeline</h3>
-                </div>
+                <SectionTitle
+                  icon={<ArrowRightLeft className="h-4 w-4" />}
+                  title="Centry Payments Pipeline"
+                  subtitle="Where bills sit in the flow right now"
+                />
               </ContentCardHeader>
-              <ContentCardBody className="space-y-4">
-                {pipelineData.map((stage) => (
-                  <div key={stage.key} className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground">{stage.label}</span>
-                      <div className="flex items-center gap-2">
-                        {stage.amount > 0 && (
-                          <span className="text-xs text-muted-foreground tabular-nums">
-                            {formatCurrency(stage.amount)}
-                          </span>
-                        )}
-                        <span className="text-sm font-semibold text-foreground tabular-nums w-8 text-right">
-                          {stage.count}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${(stage.count / maxPipelineCount) * 100}%`,
-                          backgroundColor: stage.color,
-                          minWidth: stage.count > 0 ? "8px" : "0px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </ContentCardBody>
-            </ContentCard>
-          )}
-
-          {/* Payment Channels */}
-          {loadingCEO ? (
-            <ChartSkeleton height="h-[280px]" />
-          ) : (
-            <ContentCard noPadding>
-              <ContentCardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10">
-                    <CreditCard className="h-4 w-4 text-primary" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground">Payments by Channel</h3>
-                </div>
-              </ContentCardHeader>
-              <ContentCardBody>
-                {ceo?.payment_channels && ceo.payment_channels.length > 0 ? (
-                  <PaymentChannelsChart data={ceo.payment_channels} />
-                ) : (
-                  <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
-                    No channel data yet
-                  </div>
-                )}
-              </ContentCardBody>
-            </ContentCard>
-          )}
-        </div>
-
-        {/* Row 3: Bank Responses + Top Vendors */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Bank Response Summary */}
-          {loadingBank ? (
-            <ChartSkeleton height="h-[200px]" />
-          ) : (
-            <ContentCard noPadding>
-              <ContentCardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
-                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-foreground">Bank Responses</h3>
-                  </div>
-                  <Link href="/banking/reconciliation">
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary h-8">
-                      View all
-                      <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </ContentCardHeader>
-              <ContentCardBody className="space-y-4">
-                {(() => {
-                  const totalTxn = bankResponses?.total_transactions || 0;
-                  const rows = [
-                    {
-                      label: "Accepted",
-                      count: bankResponses?.successful_transactions || 0,
-                      color: "#6B9B71",
-                      bgClass: "bg-emerald-500/10",
-                    },
-                    {
-                      label: "Rejected",
-                      count: bankResponses?.rejected_transactions || 0,
-                      color: "#B85C5C",
-                      bgClass: "bg-red-500/10",
-                    },
-                    {
-                      label: "Pending",
-                      count: bankResponses?.pending_transactions || 0,
-                      color: "#D4B35A",
-                      bgClass: "bg-amber-500/10",
-                    },
-                  ];
-
-                  if (totalTxn === 0) {
-                    return (
-                      <div className="flex items-center justify-center h-[120px] text-sm text-muted-foreground">
-                        No bank responses yet
-                      </div>
-                    );
-                  }
-
-                  return rows.map((row) => (
-                    <div key={row.label} className="flex items-center gap-4">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${row.bgClass}`}
-                      >
-                        <span
-                          className="text-sm font-bold tabular-nums"
-                          style={{ color: row.color }}
-                        >
-                          {row.count}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm font-medium text-foreground">{row.label}</span>
-                          <span className="text-xs text-muted-foreground tabular-nums">
-                            {totalTxn > 0 ? Math.round((row.count / totalTxn) * 100) : 0}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${totalTxn > 0 ? (row.count / totalTxn) * 100 : 0}%`,
-                              backgroundColor: row.color,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </ContentCardBody>
-            </ContentCard>
-          )}
-
-          {/* Top Vendors */}
-          {loadingCEO ? (
-            <ChartSkeleton height="h-[200px]" />
-          ) : (
-            <ContentCard noPadding className="h-full">
-              <ContentCardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[rgb(var(--warning))]/10">
-                    <TrendingUp className="h-4 w-4 text-[rgb(var(--warning))]" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground">Top Vendors</h3>
-                </div>
-              </ContentCardHeader>
-              <ContentCardBody className="space-y-4">
-                {ceo?.top_vendors && ceo.top_vendors.length > 0 ? (
-                  (() => {
-                    const maxAmount = Math.max(...ceo.top_vendors.map((v) => v.total_paid));
-                    return ceo.top_vendors.map((vendor, i) => (
-                      <div key={vendor.vendor_name} className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-foreground truncate max-w-[60%]">
-                            {vendor.vendor_name}
-                          </span>
-                          <span className="text-sm font-semibold text-foreground tabular-nums">
-                            {formatCurrency(vendor.total_paid)}
-                          </span>
-                        </div>
+              <ContentCardBody className="space-y-5">
+                {queue.map((stage) => {
+                  const amount = parseFloat(stage.amount);
+                  const color = STAGE_COLORS[stage.stage] || CHART_COLORS.primary;
+                  const widthPct =
+                    Math.max((stage.count / maxPipelineCount) * 100, stage.count > 0 ? 2 : 0);
+                  return (
+                    <div key={stage.stage} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${maxAmount > 0 ? (vendor.total_paid / maxAmount) * 100 : 0}%`,
-                                backgroundColor: `rgb(var(--brand-primary) / ${1 - i * 0.15})`,
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground tabular-nums w-16 text-right">
-                            {vendor.bill_count} bills
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="text-sm text-foreground">
+                            {stage.label}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-3">
+                          {amount > 0 && (
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                              {formatCurrencyCompact(amount)}
+                            </span>
+                          )}
+                          <span className="text-sm font-semibold text-foreground tabular-nums w-10 text-right">
+                            {stage.count.toLocaleString()}
                           </span>
                         </div>
                       </div>
-                    ));
-                  })()
-                ) : (
-                  <div className="flex items-center justify-center h-[120px] text-sm text-muted-foreground">
-                    No vendor data yet
-                  </div>
-                )}
+                      <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${widthPct}%`,
+                            background: `linear-gradient(90deg, ${color} 0%, ${color}cc 100%)`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </ContentCardBody>
             </ContentCard>
           )}
+
+          {/* Payments by Channel — Bank (SFTP) + each Provider Account */}
+          {loadingOverview ? (
+            <ChartSkeleton height="h-[280px]" />
+          ) : (() => {
+            const channels = (overview?.channels || [])
+              .map((c, i) => ({
+                name: c.label,
+                value: parseFloat(c.amount),
+                count: c.count,
+                fill: pickColor(i),
+              }))
+              .filter((c) => c.value > 0);
+            const total = channels.reduce((s, c) => s + c.value, 0);
+            return (
+              <ContentCard noPadding>
+                <ContentCardHeader>
+                  <SectionTitle
+                    icon={<CreditCard className="h-4 w-4" />}
+                    title="Payments by Channel"
+                    subtitle="Bank (SFTP) and each provider account"
+                  />
+                </ContentCardHeader>
+                <ContentCardBody>
+                  {channels.length === 0 ? (
+                    <EmptyState
+                      icon={<Inbox className="h-5 w-5" />}
+                      title="No payments this period"
+                      hint="Once payments are processed, you'll see how they split across bank and provider accounts."
+                    />
+                  ) : (
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                      <div className="relative w-[180px] h-[180px] shrink-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={channels}
+                              dataKey="value"
+                              innerRadius={56}
+                              outerRadius={86}
+                              paddingAngle={2}
+                              stroke="none"
+                              isAnimationActive
+                              animationDuration={500}
+                            >
+                              {channels.map((c, i) => (
+                                <Cell key={i} fill={c.fill} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              content={<ChartTooltip />}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            Total
+                          </span>
+                          <span className="text-base font-semibold text-foreground tabular-nums">
+                            {formatCurrencyCompact(total)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-1 space-y-2 w-full">
+                        {channels.map((c) => {
+                          const pct = total > 0 ? Math.round((c.value / total) * 100) : 0;
+                          return (
+                            <div key={c.name} className="flex items-center gap-3">
+                              <span
+                                className="w-2 h-2 rounded-full shrink-0"
+                                style={{ backgroundColor: c.fill }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-foreground truncate">
+                                    {c.name}
+                                  </span>
+                                  <span className="text-foreground font-medium tabular-nums">
+                                    {formatCurrencyCompact(c.value)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex-1 h-1 rounded-full bg-muted/60 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full transition-all"
+                                      style={{
+                                        width: `${pct}%`,
+                                        backgroundColor: c.fill,
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-[11px] text-muted-foreground tabular-nums w-8 text-right">
+                                    {pct}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </ContentCardBody>
+              </ContentCard>
+            );
+          })()}
         </div>
 
-        {/* Row 4: Financial Trends */}
+        {/* Row 3: Payment Outcomes by Channel + Top Provider Accounts */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Payment Outcomes — grouped per bank / provider account */}
+          {loadingOverview ? (
+            <ChartSkeleton height="h-[200px]" />
+          ) : (() => {
+            type OutcomeRow = {
+              key: string;
+              kind: "bank" | "provider";
+              name: string;
+              sub: string;
+              completed: number;
+              failed: number;
+              in_flight: number;
+            };
+            const rows: OutcomeRow[] = [];
+            for (const b of overview?.by_bank || []) {
+              rows.push({
+                key: `b:${b.bank_account_id}`,
+                kind: "bank",
+                name: b.bank_name,
+                sub: b.account_name,
+                completed: b.accepted_count,
+                failed: b.rejected_count,
+                in_flight: Math.max(
+                  b.sent_count - b.accepted_count - b.rejected_count,
+                  0
+                ),
+              });
+            }
+            for (const a of overview?.provider_accounts || []) {
+              if (
+                a.period_completed_count === 0 &&
+                a.period_failed_count === 0 &&
+                a.period_inflight_count === 0
+              ) {
+                continue;
+              }
+              rows.push({
+                key: `p:${a.account_id}`,
+                kind: "provider",
+                name: a.account_name,
+                sub: a.provider,
+                completed: a.period_completed_count,
+                failed: a.period_failed_count,
+                in_flight: a.period_inflight_count,
+              });
+            }
+            rows.sort(
+              (x, y) =>
+                y.completed + y.failed + y.in_flight -
+                (x.completed + x.failed + x.in_flight)
+            );
+
+            return (
+              <ContentCard noPadding>
+                <ContentCardHeader>
+                  <SectionTitle
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    title="Payment Outcomes by Channel"
+                    subtitle="Done · In flight · Failed per account"
+                    right={
+                      <Link href="/banking/reconciliation">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-primary h-8"
+                        >
+                          View all
+                          <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+                        </Button>
+                      </Link>
+                    }
+                  />
+                </ContentCardHeader>
+                <ContentCardBody>
+                  {rows.length === 0 ? (
+                    <EmptyState
+                      icon={<Inbox className="h-5 w-5" />}
+                      title="No activity in this period"
+                      hint="Outcomes will appear here as bills move through the pipeline."
+                    />
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                            <th className="py-2 font-medium">Channel</th>
+                            <th className="py-2 font-medium text-right">Done</th>
+                            <th className="py-2 font-medium text-right">In flight</th>
+                            <th className="py-2 font-medium text-right">Failed</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((r) => (
+                            <tr
+                              key={r.key}
+                              className="border-b border-border/40 last:border-0"
+                            >
+                              <td className="py-2.5">
+                                <div className="font-medium text-foreground flex items-center gap-2">
+                                  {r.name}
+                                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">
+                                    {r.kind}
+                                  </span>
+                                </div>
+                                {r.sub && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {r.sub}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="py-2.5 text-right tabular-nums text-emerald-600">
+                                {r.completed}
+                              </td>
+                              <td className="py-2.5 text-right tabular-nums text-amber-600">
+                                {r.in_flight}
+                              </td>
+                              <td className="py-2.5 text-right tabular-nums text-red-600">
+                                {r.failed}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </ContentCardBody>
+              </ContentCard>
+            );
+          })()}
+
+          {/* Recent Transactions — merged feed of payments + bank exports */}
+          {loadingOverview ? (
+            <ChartSkeleton height="h-[200px]" />
+          ) : (() => {
+            const txns = overview?.recent_transactions || [];
+            const statusClass = (status: string) => {
+              if (["completed", "processed"].includes(status))
+                return "text-emerald-600";
+              if (["failed", "rejected"].includes(status)) return "text-red-600";
+              if (["processing", "uploaded", "approved"].includes(status))
+                return "text-amber-600";
+              return "text-muted-foreground";
+            };
+            return (
+              <ContentCard noPadding className="h-full">
+                <ContentCardHeader>
+                  <SectionTitle
+                    icon={<ArrowRightLeft className="h-4 w-4" />}
+                    title="Recent Transactions"
+                    subtitle="Latest 10 across both pipelines"
+                    right={
+                      <Link href="/payments">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-primary h-8"
+                        >
+                          View all
+                          <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+                        </Button>
+                      </Link>
+                    }
+                  />
+                </ContentCardHeader>
+                <ContentCardBody>
+                  {txns.length === 0 ? (
+                    <EmptyState
+                      icon={<Inbox className="h-5 w-5" />}
+                      title="No recent transactions"
+                      hint="New payments will surface here as they're created."
+                    />
+                  ) : (
+                    <ul className="divide-y divide-border/40">
+                      {txns.map((t) => (
+                        <li
+                          key={`${t.kind}:${t.id}`}
+                          className="py-2.5 flex items-start justify-between gap-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-foreground truncate">
+                              {t.recipient || "—"}
+                              {t.kind === "bank" && t.count > 1 && (
+                                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                                  · {t.count} payments
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              {t.channel} ·{" "}
+                              {new Date(t.date).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-sm font-semibold text-foreground tabular-nums">
+                              {formatCurrency(parseFloat(t.amount))}
+                            </div>
+                            <div
+                              className={`text-xs ${statusClass(t.status)} capitalize`}
+                            >
+                              {t.status_label}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </ContentCardBody>
+              </ContentCard>
+            );
+          })()}
+        </div>
+
+        {/* Row 5: Throughput trend */}
         {loadingTrends ? (
           <ChartSkeleton />
+        ) : (() => {
+          const data = (trends?.trends || []).map((t) => ({
+            month: t.month,
+            label: format(parseISO(t.month), "MMM yyyy"),
+            processed: Number(t.income) || 0,
+            failed: Number(t.expenses) || 0,
+          }));
+          return (
+            <ContentCard noPadding>
+              <ContentCardHeader>
+                <SectionTitle
+                  icon={<Activity className="h-4 w-4" />}
+                  title="Centry Payments Throughput"
+                  subtitle="Monthly processed vs failed amount"
+                />
+              </ContentCardHeader>
+              <ContentCardBody>
+                {data.length === 0 ? (
+                  <EmptyState
+                    icon={<Activity className="h-5 w-5" />}
+                    title="No throughput data yet"
+                    hint="Trends will appear once you have a few months of activity."
+                  />
+                ) : (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={data}
+                        margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid {...GRID_STYLE} />
+                        <XAxis dataKey="label" {...AXIS_STYLE} />
+                        <YAxis
+                          {...AXIS_STYLE}
+                          tickFormatter={(v) => formatCurrencyCompact(v)}
+                          width={56}
+                        />
+                        <Tooltip content={<ChartTooltip />} />
+                        <Legend
+                          iconType="circle"
+                          wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                          formatter={(v) => (
+                            <span className="text-muted-foreground">{v}</span>
+                          )}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="processed"
+                          name="Processed"
+                          stroke={CHART_COLORS.primary}
+                          strokeWidth={2}
+                          fill="url(#gradient-primary)"
+                          activeDot={{ r: 4 }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="failed"
+                          name="Failed"
+                          stroke={CHART_COLORS.danger}
+                          strokeWidth={2}
+                          fill="url(#gradient-danger)"
+                          activeDot={{ r: 4 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </ContentCardBody>
+            </ContentCard>
+          );
+        })()}
+
+        {/* Row 6: Provider Accounts */}
+        {loadingOverview ? (
+          <ChartSkeleton height="h-[200px]" />
         ) : (
-          <TrendChart data={trends?.trends || []} title="Financial Trends" />
+          <ProviderAccountsCard
+            accounts={overview?.provider_accounts || []}
+            formatCurrency={formatCurrency}
+          />
         )}
 
-        {/* Row 5: Quick Navigation */}
+        {/* Detailed reports — CEO pack */}
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            CEO reports
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Link href="/reports/throughput" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-primary/10 w-fit">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Throughput &amp; Trends
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Volume over time, MoM, by channel
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/concentration" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-[rgb(var(--warning))]/10 w-fit">
+                      <ArrowRightLeft className="h-5 w-5 text-[rgb(var(--warning))]" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Concentration Risk
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Top recipients, channels, top-3 share
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/liquidity" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-emerald-500/10 w-fit">
+                      <Wallet className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Liquidity &amp; Balances
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Cash across provider accounts
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/approval-cycle" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-primary/10 w-fit">
+                      <Clock className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Approval Cycle
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Bottlenecks, time-to-pay, slowest approvers
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+          </div>
+        </div>
+
+        {/* Detailed reports — Accountant pack */}
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Accountant reports
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <Link href="/reports/settlement" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-primary/10 w-fit">
+                      <Landmark className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Daily Settlement
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Per-account daily volume, fees, net debited
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/unreconciled" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-[rgb(var(--warning))]/10 w-fit">
+                      <FileX className="h-5 w-5 text-[rgb(var(--warning))]" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Unreconciled Register
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sent w/o response, unmatched pain.002, stuck payments
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/fees" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-emerald-500/10 w-fit">
+                      <Receipt className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Fees Ledger
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Gateway pass-through fees, per account &amp; effective rate
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/failures" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-red-500/10 w-fit">
+                      <AlertOctagon className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Failed Payments
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Every failure with reason — provider, bank, pain.002
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+
+            <Link href="/reports/audit" className="block">
+              <ContentCard hover className="group cursor-pointer h-full">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-xl bg-violet-500/10 w-fit">
+                      <ScrollText className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Audit Trail
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Every approval-bearing action · downloadable CSV
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors mt-1" />
+                </div>
+              </ContentCard>
+            </Link>
+          </div>
+        </div>
+
+        {/* Row 7: Quick Navigation — Centry Payments actions */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Link href="/banking/transactions" className="block">
+          <Link href="/payments" className="block">
             <ContentCard hover className="group cursor-pointer h-full">
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
@@ -455,9 +970,9 @@ export default function ReportsPage() {
                     <ArrowRightLeft className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground">Transactions</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Payments</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      View all outgoing payments
+                      Initiate and review payment requests
                     </p>
                   </div>
                 </div>
@@ -466,7 +981,7 @@ export default function ReportsPage() {
             </ContentCard>
           </Link>
 
-          <Link href="/banking/reconciliation" className="block">
+          <Link href="/banking/approvals" className="block">
             <ContentCard hover className="group cursor-pointer h-full">
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
@@ -474,9 +989,9 @@ export default function ReportsPage() {
                     <ShieldCheck className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground">Reconciliation</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Approvals</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Bank responses & ERP sync
+                      Approve pending payments
                     </p>
                   </div>
                 </div>
@@ -485,17 +1000,17 @@ export default function ReportsPage() {
             </ContentCard>
           </Link>
 
-          <Link href="/bills" className="block">
+          <Link href="/banking/provider-accounts" className="block">
             <ContentCard hover className="group cursor-pointer h-full">
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
                   <div className="p-2 rounded-xl bg-[rgb(var(--warning))]/10 w-fit">
-                    <FileText className="h-5 w-5 text-[rgb(var(--warning))]" />
+                    <Wallet className="h-5 w-5 text-[rgb(var(--warning))]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground">Bills</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Provider Accounts</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Manage bills & approvals
+                      Manage gateway and bank credentials
                     </p>
                   </div>
                 </div>

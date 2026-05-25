@@ -63,10 +63,15 @@ export function SidebarMenu() {
     return items;
   }, [isFinanceOrAdmin]);
 
-  // Memoize matchPath to prevent unnecessary re-renders
+  // Memoize matchPath to prevent unnecessary re-renders.
+  // Active when the path equals the pathname exactly, or when the
+  // pathname is a sub-route under that path — but the boundary has to
+  // be a slash, so `/reports` matches `/reports/x` but NOT `/reports`
+  // collapsing onto every sibling like `/reports/transactions`.
   const matchPath = useCallback(
     (path: string): boolean =>
-      path === pathname || (path.length > 1 && pathname.startsWith(path) && path !== '/layout-1'),
+      path === pathname ||
+      (path.length > 1 && path !== '/layout-1' && pathname.startsWith(path + '/')),
     [pathname],
   );
 

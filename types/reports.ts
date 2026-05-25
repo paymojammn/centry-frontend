@@ -258,10 +258,341 @@ export interface PaymentTransactionFilters {
 
 export interface ExportParams {
   organization: string;
-  report_type: "expenses" | "transactions" | "financial" | "payment-transactions";
+  report_type:
+    | "expenses"
+    | "transactions"
+    | "financial"
+    | "payment-transactions"
+    | "pipeline";
   format: "csv" | "excel" | "pdf";
   start_date?: string;
   end_date?: string;
   status?: string;
   method?: string;
+}
+
+export type PipelineStageKey =
+  | "pending_approval"
+  | "ready_for_export"
+  | "sent_to_bank"
+  | "bank_accepted"
+  | "bank_rejected";
+
+export interface PipelineQueueStage {
+  stage: PipelineStageKey;
+  label: string;
+  count: number;
+  amount: string;
+}
+
+export interface PipelineByBankRow {
+  bank_account_id: string;
+  bank_name: string;
+  account_name: string;
+  sent_count: number;
+  sent_amount: string;
+  accepted_count: number;
+  rejected_count: number;
+  acceptance_rate: number | null;
+}
+
+export interface PipelineProviderAccount {
+  account_id: string;
+  account_name: string;
+  provider: string;
+  environment: string;
+  is_active: boolean;
+  currency: string;
+  balance: string;
+  balance_synced_at: string | null;
+  period_completed_count: number;
+  period_completed_amount: string;
+  period_inflight_count: number;
+  period_failed_count: number;
+}
+
+export interface PipelineChannel {
+  kind: "bank" | "provider";
+  label: string;
+  amount: string;
+  count: number;
+}
+
+export interface PipelineTotalsBucket {
+  bills_count: number;
+  amount_processed: string;
+  currency?: string;
+}
+
+export interface PipelineRecentTransaction {
+  kind: "bank" | "provider";
+  id: string;
+  date: string;
+  channel: string;
+  recipient: string;
+  amount: string;
+  currency: string;
+  count: number;
+  status: string;
+  status_label: string;
+}
+
+export interface PipelineOverview {
+  period: { start_date: string; end_date: string };
+  totals: { period: PipelineTotalsBucket; lifetime: PipelineTotalsBucket };
+  queue: PipelineQueueStage[];
+  by_bank: PipelineByBankRow[];
+  provider_accounts: PipelineProviderAccount[];
+  channels: PipelineChannel[];
+  recent_transactions: PipelineRecentTransaction[];
+}
+
+// =====================================================================
+// Detail reports — CEO pack
+// =====================================================================
+
+export interface ThroughputBucket {
+  bucket: string;
+  bank_count: number;
+  bank_amount: string;
+  provider_count: number;
+  provider_amount: string;
+  total_amount: string;
+  total_count: number;
+}
+
+export interface ThroughputReport {
+  period: { start_date: string; end_date: string; granularity: string };
+  filters: { channel: string; status: string };
+  series: ThroughputBucket[];
+  totals: { amount: string; prev_amount: string; mom_pct: number | null };
+}
+
+export interface ConcentrationEntry {
+  label: string;
+  sub: string;
+  amount: string;
+  count: number;
+  share: number;
+}
+
+export interface ConcentrationReport {
+  period: { start_date: string; end_date: string };
+  filters: { dimension: string; top_n: number; include_bulk: boolean };
+  entries: ConcentrationEntry[];
+  totals: { total_completed_amount: string; top3_pct: number; top5_pct: number };
+}
+
+export interface LiquidityAccount {
+  account_id: string;
+  name: string;
+  provider: string;
+  provider_code: string;
+  environment: string;
+  is_active: boolean;
+  is_default: boolean;
+  currency: string;
+  balance: string;
+  balance_synced_at: string | null;
+  fee_percentage: string;
+  fee_fixed: string;
+}
+
+export interface LiquidityReport {
+  filters: { currency: string; environment: string; active_only: boolean };
+  totals_by_currency: { currency: string; amount: string }[];
+  accounts: LiquidityAccount[];
+  account_count: number;
+}
+
+export interface ApprovalApprover {
+  user_id: string;
+  name: string;
+  approved_count: number;
+  approved_amount: string;
+  avg_hours: number | null;
+}
+
+export interface ApprovalCycleReport {
+  period: { start_date: string; end_date: string };
+  filters: { status: string; approver_id: string; min_amount: string };
+  pending: { count: number; amount: string; oldest_at: string | null };
+  averages: {
+    avg_hours_to_approve: number | null;
+    avg_hours_to_execute: number | null;
+    sample_size: number;
+  };
+  approvers: ApprovalApprover[];
+}
+
+// =====================================================================
+// Detail reports — Accountant pack
+// =====================================================================
+
+export interface SettlementRow {
+  date: string;
+  account_kind: "provider" | "bank";
+  account_id: string;
+  account_name: string;
+  provider: string;
+  currency: string;
+  count: number;
+  amount: string;
+  fees: string;
+  net_debited: string;
+}
+
+export interface SettlementCurrentBalance {
+  account_id: string;
+  account_name: string;
+  currency: string;
+  balance: string;
+  synced_at: string | null;
+}
+
+export interface SettlementReport {
+  period: { start_date: string; end_date: string };
+  filters: { account_kind: string; currency: string };
+  rows: SettlementRow[];
+  totals: {
+    count: number;
+    amount: string;
+    fees: string;
+    net_debited: string;
+  };
+  current_balances: SettlementCurrentBalance[];
+}
+
+export interface UnreconciledBucketSummary {
+  count: number;
+  amount: string;
+}
+
+export interface UnreconciledReport {
+  period: { start_date: string; end_date: string };
+  filters: { bucket: string; min_age_hours: number };
+  summary: Record<string, UnreconciledBucketSummary>;
+  sections: {
+    bank_no_response?: Array<{
+      id: string;
+      filename: string;
+      uploaded_at: string;
+      bank: string;
+      account_name: string;
+      payment_count: number;
+      amount: string;
+      currency: string;
+      age_hours: number;
+    }>;
+    bank_unmatched?: Array<{
+      id: string;
+      received_at: string;
+      end_to_end_id: string;
+      instruction_id: string;
+      status: string;
+      status_description: string;
+      amount: string;
+      currency: string;
+      source_file: string;
+    }>;
+    provider_stuck?: Array<{
+      id: string;
+      created_at: string;
+      recipient: string;
+      amount: string;
+      currency: string;
+      provider: string;
+      age_hours: number;
+      payment_reference: string;
+    }>;
+  };
+}
+
+export interface FeesAccountRow {
+  account_id: string;
+  account_name: string;
+  provider: string;
+  count: number;
+  amount: string;
+  fee_percentage: string;
+  fee_fixed: string;
+  fees: string;
+  effective_rate_pct: number;
+}
+
+export interface FeesDailyRow {
+  date: string;
+  count: number;
+  amount: string;
+  estimated_fee: string;
+}
+
+export interface FeesLedgerReport {
+  period: { start_date: string; end_date: string };
+  filters: { status: string; account_id: string };
+  accounts: FeesAccountRow[];
+  daily: FeesDailyRow[];
+  totals: { amount: string; fees: string; effective_rate_pct: number };
+}
+
+export interface FailureRow {
+  id: string;
+  source: "provider" | "bank" | "pain002";
+  date: string;
+  channel: string;
+  recipient: string;
+  amount: string;
+  currency: string;
+  status: string;
+  reason: string;
+}
+
+export interface FailuresReport {
+  period: { start_date: string; end_date: string };
+  filters: { source: string; reason_contains: string };
+  summary: Record<string, { count: number; amount: string }>;
+  rows: FailureRow[];
+}
+
+// Audit log — wired to centry-backend's security.AuditLog (the canonical
+// system-wide audit trail). See /api/v1/security/audit-logs/.
+export type AuditSeverity = "info" | "warning" | "error" | "critical";
+
+export interface AuditLog {
+  id: string;
+  user: number | null;
+  user_name: string;
+  user_email: string;
+  user_ip: string | null;
+  action_type: string;
+  action_display: string;
+  action_description: string;
+  severity: AuditSeverity;
+  severity_display: string;
+  module: string;
+  target_representation: string;
+  timestamp: string;
+  organization: string | null;
+  organization_name: string;
+  changes: Record<string, any>;
+  metadata: Record<string, any>;
+  success: boolean;
+  error_message: string;
+}
+
+export interface AuditLogListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AuditLog[];
+}
+
+export interface AuditStats {
+  total_logs: number;
+  by_severity: Record<string, number>;
+  by_module: Record<string, number>;
+  by_action: Record<string, number>;
+  recent_count: number;
+  error_count: number;
+  critical_count: number;
 }

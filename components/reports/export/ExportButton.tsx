@@ -15,7 +15,12 @@ import { toast } from "sonner";
 
 interface ExportButtonProps {
   organizationId: string;
-  reportType: "expenses" | "transactions" | "financial" | "payment-transactions";
+  reportType:
+    | "expenses"
+    | "transactions"
+    | "financial"
+    | "payment-transactions"
+    | "pipeline";
   startDate?: string;
   endDate?: string;
   status?: string;
@@ -74,7 +79,7 @@ export function ExportButton({
           <FileSpreadsheet className="mr-2 h-4 w-4" />
           Export as Excel
         </DropdownMenuItem>
-        {reportType === "financial" && (
+        {(reportType === "financial" || reportType === "pipeline") && (
           <DropdownMenuItem onClick={() => handleExport("pdf")}>
             <File className="mr-2 h-4 w-4" />
             Export as PDF
