@@ -179,10 +179,18 @@ function BranchSelector({
   bankId,
   value,
   onSelect,
+  optional,
 }: {
   bankId: number;
   value?: number;
   onSelect: (branchId: number, branchName: string) => void;
+  /**
+   * When true (international flow), treat an empty branch list as "no
+   * branches on file for this foreign bank" and render nothing instead of
+   * a hard error. Local pain.001 still treats it as a blocking warning
+   * since ClrSysMmbId is mandatory for domestic routing.
+   */
+  optional?: boolean;
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ['bank-branches', bankId],
@@ -194,8 +202,10 @@ function BranchSelector({
   const branches = data?.branches || [];
 
   // Auto-pick head-office for the selected bank when nothing is chosen yet.
+  // Skipped for the optional/international flow — picking a UG head-office
+  // for a foreign bank would be wrong.
   useEffect(() => {
-    if (value || !branches.length) return;
+    if (optional || value || !branches.length) return;
     const headOffice = branches.find((b) => b.is_head_office) || branches[0];
     if (headOffice) onSelect(headOffice.id, formatBranchLabel(headOffice));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -211,6 +221,10 @@ function BranchSelector({
   const displayValue = selected ? formatBranchLabel(selected) : '';
 
   if (!isLoading && branches.length === 0) {
+    // International beneficiary banks rarely have branches seeded in our
+    // BankBranch table — hide the picker silently rather than showing a
+    // destructive "contact support" message for a non-blocking situation.
+    if (optional) return null;
     return (
       <div>
         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Branch</label>
@@ -229,6 +243,7 @@ function BranchSelector({
       displayValue={displayValue}
       options={options}
       loading={isLoading}
+      optional={optional}
       onSelect={(val) => {
         const branch = branches.find((b) => String(b.id) === val);
         if (branch) onSelect(branch.id, formatBranchLabel(branch));
@@ -652,11 +667,15 @@ export default function RecipientDetailsStep({
                 <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
               )}
 
-              {/* Branch selector — local pain.001 routing requires a sort code (ClrSysMmbId). */}
-              {!isOzow && recipientType === 'bank' && r?.recipient_bank_id && (
+              {/* Branch selector — local pain.001 routing requires a sort code
+                  (ClrSysMmbId); international shows the same picker but treats
+                  it as optional since foreign banks typically aren't seeded
+                  with branches in our BankBranch table. */}
+              {!isOzow && r?.recipient_bank_id && (
                 <BranchSelector
                   bankId={r.recipient_bank_id}
                   value={r.recipient_bank_branch_id}
+                  optional={recipientType === 'international'}
                   onSelect={(branchId, branchName) =>
                     update(bill.id, {
                       recipient_bank_branch_id: branchId,
