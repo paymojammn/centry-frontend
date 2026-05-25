@@ -461,6 +461,10 @@ export default function BillsPage() {
                       setSelectedBills(new Set(bills.map(b => b.id)));
                     }
                   }}
+                  onPayOne={(billId) => {
+                    setSelectedBills(new Set([billId]));
+                    setIsPayModalOpen(true);
+                  }}
                 />
               )}
             </div>
@@ -490,9 +494,10 @@ interface BillsTableProps {
   canCreatePayment: boolean;
   onSelectBill: (billId: number) => void;
   onSelectAll: (bills: Bill[]) => void;
+  onPayOne: (billId: number) => void;
 }
 
-function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSelectAll }: BillsTableProps) {
+function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSelectAll, onPayOne }: BillsTableProps) {
   const payableBills = bills.filter(bill => bill.status === 'AUTHORISED');
   const allPayableSelected = payableBills.length > 0 && payableBills.every(bill => selectedBills.has(bill.id));
   const somePayableSelected = payableBills.some(bill => selectedBills.has(bill.id)) && !allPayableSelected;
@@ -546,10 +551,20 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
   return (
     <div className="overflow-x-auto">
       <table className="w-full table-professional">
+        <colgroup>
+          {canCreatePayment && <col className="w-10" />}
+          <col />
+          <col className="w-[80px]" />{/* Invoice — narrow */}
+          <col />
+          <col className="w-[48px]" />
+          <col />
+          <col />
+          <col className="w-[90px]" />{/* Pay action */}
+        </colgroup>
         <thead>
           <tr>
             {canCreatePayment && (
-              <th className="w-10">
+              <th>
                 <input
                   type="checkbox"
                   checked={allPayableSelected}
@@ -568,6 +583,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
             <th className="cell-currency">Ccy</th>
             <th className="text-right">Amount</th>
             <th>Status</th>
+            <th className="text-right pr-4">{canCreatePayment ? '' : ''}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -608,7 +624,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     </div>
                   </div>
                 </td>
-                <td>{bill.invoice_number || '-'}</td>
+                <td className="truncate" title={bill.invoice_number || ''}>{bill.invoice_number || '-'}</td>
                 <td className="cell-muted">
                   <div className="flex items-center gap-2">
                     <span>{formatDate(bill.due_date || '')}</span>
@@ -626,6 +642,19 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                 </td>
                 <td>
                   {getStatusBadge(bill.status)}
+                </td>
+                <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                  {canCreatePayment && canPay && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2.5 text-xs font-normal"
+                      onClick={() => onPayOne(bill.id)}
+                    >
+                      <Send className="h-3 w-3 mr-1" />
+                      Pay
+                    </Button>
+                  )}
                 </td>
               </tr>
             );

@@ -111,12 +111,15 @@ export function SidebarMenu() {
   };
 
   // Recursively render children inside the collapsed-mode flyout panel.
+  // Each item shows its icon when one is defined so the flyout reads like
+  // a real submenu, not a list of bare strings.
   const renderFlyoutItems = (items: MenuConfig): JSX.Element[] => {
     return items.map((child, i) => {
       if (child.children) {
         return (
           <li key={i} className="pt-2 first:pt-0">
-            <div className="px-2 pb-1 text-[10px] uppercase font-semibold text-white/30 tracking-wider">
+            <div className="flex items-center gap-1.5 px-2 pb-1 text-[10px] uppercase font-semibold text-white/30 tracking-wider">
+              {child.icon && <child.icon className="size-3 shrink-0" />}
               {child.title}
             </div>
             <ul className="space-y-0.5">{renderFlyoutItems(child.children)}</ul>
@@ -129,14 +132,16 @@ export function SidebarMenu() {
             <Link
               href={child.path}
               className={cn(
-                'block px-2 py-1.5 rounded-md text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition-colors',
+                'flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition-colors',
                 matchPath(child.path) && 'bg-primary text-white font-semibold',
               )}
             >
-              {child.title}
+              {child.icon && <child.icon className="size-3.5 shrink-0 opacity-70" />}
+              <span className="truncate">{child.title}</span>
             </Link>
           ) : (
-            <span className="block px-2 py-1.5 text-[13px] text-white/40">
+            <span className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-white/40">
+              {child.icon && <child.icon className="size-3.5 shrink-0 opacity-50" />}
               {child.title}
             </span>
           )}
@@ -147,7 +152,51 @@ export function SidebarMenu() {
 
   const buildMenuItemRoot = (item: MenuItem, index: number): JSX.Element => {
     if (item.children) {
-      const sub = (
+      // Collapsed: render a clean icon-only button anchored to the trigger,
+      // so the flyout positions cleanly against the visible 40px x 40px box
+      // (not the 80px-wide row). Highlight when any descendant matches.
+      if (sidebarCollapse) {
+        const anyChildActive = (items: MenuConfig): boolean =>
+          items.some(
+            (c) => (c.path && matchPath(c.path)) || (c.children && anyChildActive(c.children)),
+          );
+        const active = anyChildActive(item.children);
+        return (
+          <HoverCard key={index} openDelay={80} closeDelay={120}>
+            <HoverCardTrigger asChild>
+              <button
+                type="button"
+                aria-label={item.title}
+                className={cn(
+                  'flex items-center justify-center mx-auto size-10 rounded-lg transition-colors',
+                  active
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-white/70 hover:bg-white/5 hover:text-white',
+                )}
+              >
+                {item.icon && <item.icon className="size-4 shrink-0" />}
+              </button>
+            </HoverCardTrigger>
+            <HoverCardContent
+              side="right"
+              align="start"
+              sideOffset={8}
+              className="w-60 p-2 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
+            >
+              <div className="flex items-center gap-2 px-2 pb-2 pt-1 border-b border-white/10 mb-1">
+                {item.icon && <item.icon className="size-3.5 shrink-0 text-white/70" />}
+                <span className="text-[11px] uppercase font-semibold text-white/60 tracking-wider">
+                  {item.title}
+                </span>
+              </div>
+              <ul className="space-y-0.5">{renderFlyoutItems(item.children)}</ul>
+            </HoverCardContent>
+          </HoverCard>
+        );
+      }
+
+      // Expanded: regular accordion with inline sub-content.
+      return (
         <AccordionMenuSub key={index} value={item.path || `root-${index}`}>
           <AccordionMenuSubTrigger className="text-sm font-medium gap-2.5">
             {item.icon && <item.icon data-slot="accordion-menu-icon" className="size-4 shrink-0" />}
@@ -165,37 +214,40 @@ export function SidebarMenu() {
           </AccordionMenuSubContent>
         </AccordionMenuSub>
       );
-
-      // When the sidebar is collapsed, the inline accordion sub-content is
-      // hidden (CSS in styles/demos/demo1.css). Show a portal-positioned
-      // flyout panel on hover so children stay reachable — the portal
-      // renders outside the sidebar, so it overlays without shifting the
-      // main content grid.
+    } else {
+      // Collapsed: leaf items become centred icon Links with a hover-card
+      // tooltip so the user can still see the label. Same shape as the
+      // parent items above for uniform 40x40 alignment.
       if (sidebarCollapse) {
+        const active = item.path ? matchPath(item.path) : false;
         return (
           <HoverCard key={index} openDelay={80} closeDelay={120}>
             <HoverCardTrigger asChild>
-              <div>{sub}</div>
+              <Link
+                href={item.path || '#'}
+                aria-label={item.title}
+                className={cn(
+                  'flex items-center justify-center mx-auto size-10 rounded-lg transition-colors',
+                  active
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-white/70 hover:bg-white/5 hover:text-white',
+                )}
+              >
+                {item.icon && <item.icon className="size-4 shrink-0" />}
+              </Link>
             </HoverCardTrigger>
             <HoverCardContent
               side="right"
               align="start"
-              sideOffset={12}
-              className="w-56 p-2 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
+              sideOffset={8}
+              className="w-auto px-3 py-1.5 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
             >
-              <div className="px-2 pb-2 pt-1 text-[11px] uppercase font-bold text-white/40 tracking-wider">
-                {item.title}
-              </div>
-              <ul className="space-y-0.5">
-                {renderFlyoutItems(item.children)}
-              </ul>
+              <span className="text-[12px] font-normal">{item.title}</span>
             </HoverCardContent>
           </HoverCard>
         );
       }
 
-      return sub;
-    } else {
       return (
         <AccordionMenuItem
           key={index}
