@@ -143,8 +143,9 @@ export default function BankAccountsPage() {
       <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-normal text-foreground">Bank Accounts</h1>
+            <h1 className="text-xl font-normal text-foreground">Bank Accounts</h1>
+
+            <div className="flex items-center gap-2">
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
@@ -162,9 +163,6 @@ export default function BankAccountsPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
               {activeConnectionId && (
                 <Button
                   variant="outline"

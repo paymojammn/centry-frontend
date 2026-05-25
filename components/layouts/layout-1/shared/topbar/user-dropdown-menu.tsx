@@ -1,9 +1,6 @@
 import { ReactNode } from 'react';
 import {
-  BetweenHorizontalStart,
   Moon,
-  Settings,
-  Shield,
   UserCircle,
   Users,
   LogOut,
@@ -17,9 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
@@ -92,34 +86,6 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             Organizations
           </Link>
         </DropdownMenuItem>
-
-        {/* Account Settings Submenu */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="flex items-center gap-2 text-foreground hover:text-primary">
-            <Settings className="text-primary" />
-            Settings
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-48">
-            <DropdownMenuItem asChild>
-              <Link
-                href="/account/security"
-                className="flex items-center gap-2 text-foreground hover:text-primary"
-              >
-                <Shield className="text-primary" />
-                Security
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/integrations"
-                className="flex items-center gap-2 text-foreground hover:text-primary"
-              >
-                <BetweenHorizontalStart className="text-primary" />
-                Integrations
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
 
         <DropdownMenuSeparator />
 
