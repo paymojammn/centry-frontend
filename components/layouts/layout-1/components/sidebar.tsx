@@ -18,7 +18,10 @@ export function Sidebar() {
     >
       <SidebarHeader />
       <div className="sidebar-wrapper overflow-hidden">
-        <div className="sidebar-logo w-(--sidebar-default-width)">
+        {/* Width is owned by demo1.css / sidebar-collapse rules — don't
+            hardcode a Tailwind utility here or it overrides the collapse
+            width and the menu items push their icons off-screen. */}
+        <div className="sidebar-logo">
           <SidebarMenu />
         </div>
       </div>

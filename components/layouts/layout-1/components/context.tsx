@@ -19,7 +19,9 @@ interface LayoutProviderProps {
 }
 
 export function LayoutProvider({ children }: LayoutProviderProps) {
-  const [sidebarCollapse, setSidebarCollapse] = useState(false);
+  // Default to collapsed — the icon-only sidebar with hover flyouts is the
+  // preferred layout; users can expand via the toggle in the header.
+  const [sidebarCollapse, setSidebarCollapse] = useState(true);
   const [sidebarTheme, setSidebarTheme] = useState<SidebarTheme>('light');
 
   return (

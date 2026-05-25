@@ -168,19 +168,19 @@ export function SidebarMenu() {
                 type="button"
                 aria-label={item.title}
                 className={cn(
-                  'flex items-center justify-center mx-auto size-10 rounded-lg transition-colors',
+                  'flex w-full h-10 items-center justify-start px-3 rounded-lg transition-colors',
                   active
                     ? 'bg-primary text-white shadow-sm'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white',
+                    : 'text-white/80 hover:bg-white/5 hover:text-white',
                 )}
               >
-                {item.icon && <item.icon className="size-4 shrink-0" />}
+                {item.icon && <item.icon className="size-5 shrink-0" />}
               </button>
             </HoverCardTrigger>
             <HoverCardContent
               side="right"
               align="start"
-              sideOffset={8}
+              sideOffset={1}
               className="w-60 p-2 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
             >
               <div className="flex items-center gap-2 px-2 pb-2 pt-1 border-b border-white/10 mb-1">
@@ -227,19 +227,19 @@ export function SidebarMenu() {
                 href={item.path || '#'}
                 aria-label={item.title}
                 className={cn(
-                  'flex items-center justify-center mx-auto size-10 rounded-lg transition-colors',
+                  'flex w-full h-10 items-center justify-start px-3 rounded-lg transition-colors',
                   active
                     ? 'bg-primary text-white shadow-sm'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white',
+                    : 'text-white/80 hover:bg-white/5 hover:text-white',
                 )}
               >
-                {item.icon && <item.icon className="size-4 shrink-0" />}
+                {item.icon && <item.icon className="size-5 shrink-0" />}
               </Link>
             </HoverCardTrigger>
             <HoverCardContent
               side="right"
               align="start"
-              sideOffset={8}
+              sideOffset={1}
               className="w-auto px-3 py-1.5 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
             >
               <span className="text-[12px] font-normal">{item.title}</span>
@@ -383,7 +383,16 @@ export function SidebarMenu() {
   };
 
   return (
-    <ScrollArea className="flex grow shrink-0 py-5 px-3 lg:h-[calc(100vh-5.5rem)]">
+    <ScrollArea
+      className={cn(
+        'flex grow shrink-0 py-5 lg:h-[calc(100vh-5.5rem)]',
+        // Collapsed: no horizontal padding so the trigger buttons span the
+        // full 80px sidebar width — that puts each trigger's right edge
+        // flush with the sidebar's right edge, so the hover flyout opens
+        // immediately next to the sidebar with no visible gap.
+        sidebarCollapse ? 'px-0' : 'px-3',
+      )}
+    >
       <AccordionMenu
         selectedValue={pathname}
         matchPath={matchPath}
