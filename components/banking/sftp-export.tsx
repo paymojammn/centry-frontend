@@ -169,14 +169,14 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-medium text-foreground">SFTP Export</h3>
+            <h3 className="text-sm font-normal text-foreground">SFTP Export</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-1">Upload payment files to bank SFTP server</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Bank Account</Label>
+              <Label className="text-sm font-normal text-foreground">Bank Account</Label>
               <Select
                 value={selectedAccountId?.toString() || "all"}
                 onValueChange={(value) => {
@@ -200,7 +200,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">SFTP Connection</Label>
+              <Label className="text-sm font-normal text-foreground">SFTP Connection</Label>
               <Select
                 value={selectedSFTPCredentialId?.toString() || ""}
                 onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
@@ -229,11 +229,11 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             <div className="flex items-end gap-4">
               <div className="flex items-center gap-2 px-3 py-2 bg-[#D4B35A]/10 rounded border border-[#D4B35A]/20">
                 <span className="h-2 w-2 rounded-full bg-[#D4B35A]" />
-                <span className="text-sm font-medium text-[#D4B35A]">{pendingExports.length} pending</span>
+                <span className="text-sm font-normal text-[#D4B35A]">{pendingExports.length} pending</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded border border-primary/20">
                 <span className="h-2 w-2 rounded-full bg-primary" />
-                <span className="text-sm font-medium text-primary">{uploadedExports.length} uploaded</span>
+                <span className="text-sm font-normal text-primary">{uploadedExports.length} uploaded</span>
               </div>
             </div>
           </div>
@@ -269,7 +269,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           ) : (
             <Loader2 className="h-5 w-5 text-[#6B8FB8] animate-spin" />
           )}
-          <span className={`text-sm font-medium ${
+          <span className={`text-sm font-normal ${
             taskStatus.status === "SUCCESS" ? "text-primary" :
             taskStatus.status === "FAILURE" ? "text-[#D4944A]" :
             "text-[#6B8FB8]"
@@ -287,7 +287,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           <div>
             <div className="flex items-center gap-2">
               <Upload className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium text-foreground">Ready for Upload</h3>
+              <h3 className="text-sm font-normal text-foreground">Ready for Upload</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{pendingExports.length} files pending</p>
           </div>
@@ -311,11 +311,11 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Bank Account</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Amount</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Payments</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Status</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank Account</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Amount</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Payments</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
                 <th className="w-32"></th>
               </tr>
             </thead>
@@ -327,20 +327,20 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                   onClick={() => onSelectExport?.(exportFile.id)}
                 >
                   <td className="px-6 py-3">
-                    <p className="text-sm font-medium text-foreground">{exportFile.file_name}</p>
+                    <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
                     <p className="text-xs text-muted-foreground">{formatFileSize(exportFile.file_size)} · {exportFile.format}</p>
                   </td>
                   <td className="px-6 py-3">
                     <p className="text-sm text-foreground">{exportFile.bank_account?.account_name}</p>
                   </td>
                   <td className="px-6 py-3">
-                    <span className="text-sm font-medium text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
+                    <span className="text-sm font-normal text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
                   </td>
                   <td className="px-6 py-3">
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">{exportFile.payment_count} payments</span>
                   </td>
                   <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
                       <Clock className="h-3 w-3" />
                       {exportFile.status}
                     </span>
@@ -375,7 +375,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             <div>
               <div className="flex items-center gap-2">
                 <Server className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium text-foreground">Local Export Files</h3>
+                <h3 className="text-sm font-normal text-foreground">Local Export Files</h3>
               </div>
               {localFilesData?.export_path && (
                 <p className="text-xs text-muted-foreground mt-1 font-mono">{localFilesData.export_path}</p>
@@ -400,10 +400,10 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
             <table className="w-full table-professional">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Format</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Size</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">SFTP</th>
+                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
+                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Format</th>
+                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Size</th>
+                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">SFTP</th>
                   <th className="w-24"></th>
                 </tr>
               </thead>
@@ -411,7 +411,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                 {localFiles.map((file: LocalExportFile) => (
                   <tr key={file.absolute_path} className="row-interactive">
                     <td className="px-6 py-3">
-                      <p className="text-sm font-medium text-foreground">{file.filename}</p>
+                      <p className="text-sm font-normal text-foreground">{file.filename}</p>
                     </td>
                     <td className="px-6 py-3">
                       <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded uppercase">{file.format}</span>
@@ -419,12 +419,12 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                     <td className="px-6 py-3 text-sm text-muted-foreground">{file.size_display}</td>
                     <td className="px-6 py-3">
                       {file.sftp_uploaded ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
                           <CheckCircle2 className="h-3 w-3" />
                           Uploaded
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
                           <Clock className="h-3 w-3" />
                           Pending
                         </span>
@@ -464,18 +464,18 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium text-foreground">Uploaded Files</h3>
+              <h3 className="text-sm font-normal text-foreground">Uploaded Files</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{uploadedExports.length} files completed</p>
           </div>
           <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Bank Account</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Amount</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Uploaded</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank Account</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Amount</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Uploaded</th>
                 <th className="w-20"></th>
               </tr>
             </thead>
@@ -483,15 +483,15 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
               {uploadedExports.map((exportFile: BankPaymentExport) => (
                 <tr key={exportFile.id} className={`row-interactive ${selectedExportId === exportFile.id ? 'bg-primary/5' : ''}`}>
                   <td className="px-6 py-3">
-                    <p className="text-sm font-medium text-foreground">{exportFile.file_name}</p>
+                    <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
                     <p className="text-xs text-muted-foreground">{formatFileSize(exportFile.file_size)}</p>
                   </td>
                   <td className="px-6 py-3 text-sm text-foreground">{exportFile.bank_account?.account_name}</td>
                   <td className="px-6 py-3">
-                    <span className="text-sm font-medium text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
+                    <span className="text-sm font-normal text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
                   </td>
                   <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
                       <CheckCircle2 className="h-3 w-3" />
                       {exportFile.status}
                     </span>
@@ -517,17 +517,17 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium text-foreground">Recent Uploads</h3>
+              <h3 className="text-sm font-normal text-foreground">Recent Uploads</h3>
             </div>
           </div>
           <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Bank</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Size</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Time</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Size</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
+                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border animate-stagger">
@@ -537,7 +537,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                   <td className="px-6 py-3 text-sm text-muted-foreground">{log.bank_account_name}</td>
                   <td className="px-6 py-3 text-sm text-muted-foreground">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal ${
                       log.status === "success" ? "bg-primary/5 text-primary" :
                       log.status === "failed" ? "bg-[#D4944A]/10 text-[#D4944A]" :
                       "bg-[#6B8FB8]/10 text-[#6B8FB8]"

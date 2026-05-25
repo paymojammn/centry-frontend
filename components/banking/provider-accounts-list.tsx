@@ -66,7 +66,7 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
   }
 
   return (
-    <table className="w-full">
+    <table className="w-full table-professional">
       <thead>
         <tr className="border-b border-border bg-muted/50">
           <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Account</th>

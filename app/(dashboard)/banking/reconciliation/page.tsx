@@ -358,11 +358,11 @@ export default function BankReconciliationPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Reconciliation"
-        subtitle="Bank responses for exported payments"
+        title="Sync to ERP"
+        subtitle="Post bank-accepted payments to your ERP"
         breadcrumbs={[
           { label: "Banking", href: "/banking" },
-          { label: "Reconciliation" },
+          { label: "Sync to ERP" },
         ]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
@@ -423,39 +423,99 @@ export default function BankReconciliationPage() {
       </PageHeader>
 
       <div className="px-6 py-8 space-y-5">
-        {/* Summary bar + bulk action */}
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-6">
-            <span className="text-muted-foreground">
-              Accepted{" "}
-              <span className="font-semibold text-emerald-600">
-                {counts.accepted}
-              </span>
-            </span>
-            <span className="text-muted-foreground">
-              Rejected{" "}
-              <span className="font-semibold text-red-600">
-                {counts.rejected}
-              </span>
-            </span>
-            <span className="text-muted-foreground">
-              Pending{" "}
-              <span className="font-semibold text-amber-600">
-                {counts.pending}
-              </span>
-            </span>
+        {/* Summary KPI tiles — clickable to filter the grid by status.
+            Active tile gets a sage ring so the filter state is visible. */}
+        <div className="flex items-stretch gap-3">
+          <div className="grid grid-cols-3 gap-3 flex-1">
+            {[
+              {
+                key: "ACSP",
+                label: "Accepted",
+                value: counts.accepted,
+                icon: CheckCircle2,
+                tone: {
+                  bg: "bg-emerald-500/10",
+                  text: "text-emerald-700",
+                  ring: "ring-emerald-500/20",
+                },
+              },
+              {
+                key: "RJCT",
+                label: "Rejected",
+                value: counts.rejected,
+                icon: XCircle,
+                tone: {
+                  bg: "bg-red-500/10",
+                  text: "text-red-700",
+                  ring: "ring-red-500/20",
+                },
+              },
+              {
+                key: "PDNG",
+                label: "Pending",
+                value: counts.pending,
+                icon: Clock,
+                tone: {
+                  bg: "bg-amber-500/10",
+                  text: "text-amber-700",
+                  ring: "ring-amber-500/20",
+                },
+              },
+            ].map((t) => {
+              const Icon = t.icon;
+              const total = counts.accepted + counts.rejected + counts.pending;
+              const pct = total > 0 ? Math.round((t.value / total) * 100) : 0;
+              const active = statusFilter === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() =>
+                    setStatusFilter(active ? "all" : t.key)
+                  }
+                  className={`text-left bg-card rounded-xl border p-4 transition-all group hover:shadow-sm ${
+                    active
+                      ? "border-primary/30 ring-1 ring-primary/20"
+                      : "border-border hover:border-foreground/10"
+                  }`}
+                >
+                  <div
+                    className={`size-8 rounded-lg ${t.tone.bg} ring-1 ${t.tone.ring} flex items-center justify-center`}
+                  >
+                    <Icon className={`h-4 w-4 ${t.tone.text}`} />
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+                      {t.label}
+                    </p>
+                    <p className="text-2xl font-normal text-foreground tabular-nums mt-1 leading-none">
+                      {t.value}
+                    </p>
+                    <p className="text-[12px] text-muted-foreground mt-1.5">
+                      {total > 0 ? `${pct}% of responses` : "no data"}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
+          {/* Bulk action card — same height as tiles, only visible when
+              user has selected accepted-not-yet-synced rows. */}
           {selectedValid.length > 0 && (
-            <div className="ml-auto flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {selectedValid.length} selected
-              </Badge>
+            <div className="bg-card rounded-xl border border-primary/30 ring-1 ring-primary/15 p-4 flex flex-col justify-between min-w-[200px]">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+                  Selected
+                </p>
+                <p className="text-2xl font-normal text-foreground tabular-nums mt-1 leading-none">
+                  {selectedValid.length}
+                </p>
+              </div>
               <Button
                 size="sm"
                 onClick={handleBulkPost}
                 disabled={bulkPosting}
-                className="h-8"
+                className="h-8 mt-3"
               >
                 {bulkPosting ? (
                   <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
@@ -553,7 +613,7 @@ export default function BankReconciliationPage() {
         <ContentCard noPadding>
           <ContentCardHeader>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-sm font-normal text-foreground">
                 Bank Responses
               </h3>
               {!isLoading && (
@@ -575,7 +635,7 @@ export default function BankReconciliationPage() {
               <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
                 <FileCheck className="h-6 w-6 text-muted-foreground" />
               </div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-normal text-foreground">
                 No bank responses found
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -585,48 +645,38 @@ export default function BankReconciliationPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden">
-              <table className="w-full">
+            /* Single table — the wrapper is the scroll container and
+               .table-professional already makes <thead th> sticky, so the
+               header stays pinned while the body scrolls. Two tables drift
+               apart under HTML auto-layout (Currency lands under Amount,
+               Amount lands under Reason). One table = one column flow. */
+            <div className="max-h-[calc(100vh-380px)] overflow-y-auto">
+              <table className="w-full table-professional">
+                <colgroup>
+                  <col className="w-10" />
+                  <col className="w-[88px]" />
+                  <col />
+                  <col className="w-[140px]" />
+                  <col className="w-[48px]" />
+                  <col className="w-[110px]" />
+                  <col />
+                  <col className="w-[100px]" />
+                  <col className="w-[132px]" />
+                </colgroup>
                 <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="w-10 px-4 py-2.5" />
-                    <th className="w-[88px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Vendor
-                    </th>
-                    <th className="w-[140px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Bill
-                    </th>
-                    <th className="w-[130px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="w-[90px] px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Reason
-                    </th>
-                    <th className="w-[100px] px-3 py-2.5 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider pr-6">
-                      Action
-                    </th>
+                  <tr>
+                    <th />
+                    <th>Date</th>
+                    <th>Vendor</th>
+                    <th>Bill</th>
+                    <th className="cell-currency">Ccy</th>
+                    <th className="text-right">Amount</th>
+                    <th>Reason</th>
+                    <th className="text-right pr-6">Action</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
-              </table>
-              <div className="max-h-[calc(100vh-380px)] overflow-y-auto">
-                <table className="w-full">
-                  <colgroup>
-                    <col className="w-10" />
-                    <col className="w-[88px]" />
-                    <col />
-                    <col className="w-[140px]" />
-                    <col className="w-[130px]" />
-                    <col className="w-[90px]" />
-                    <col />
-                    <col className="w-[100px]" />
-                  </colgroup>
-                  <tbody className="divide-y divide-border/50">
+                <tbody>
                     {filtered.map((txn) => {
                       const cfg = STATUS_CONFIG[txn.status];
                       const Icon = cfg?.icon;
@@ -638,16 +688,9 @@ export default function BankReconciliationPage() {
                       const isSelected = selected.includes(txn.id);
 
                       return (
-                        <tr
-                          key={txn.id}
-                          className={`transition-colors ${
-                            isSelected
-                              ? "bg-primary/5"
-                              : "hover:bg-muted/30"
-                          }`}
-                        >
+                        <tr key={txn.id} className={isSelected ? "is-selected" : ""}>
                           {/* Checkbox */}
-                          <td className="px-4 py-3 align-middle">
+                          <td>
                             {isSelectable && (
                               <Checkbox
                                 checked={isSelected}
@@ -657,78 +700,66 @@ export default function BankReconciliationPage() {
                           </td>
 
                           {/* Date */}
-                          <td className="px-3 py-3 align-middle text-xs text-muted-foreground whitespace-nowrap">
+                          <td className="cell-muted tabular-nums whitespace-nowrap">
                             {format(new Date(txn.created_at), "dd MMM yy")}
                           </td>
 
                           {/* Vendor */}
-                          <td className="px-3 py-3 align-middle max-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
+                          <td className="cell-primary max-w-0">
+                            <div className="truncate">
                               {txn.vendor_name || txn.creditor_name || "—"}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
+                            </div>
+                            <span className="cell-sub truncate">
                               {[txn.payment_method, txn.source_bank_account_name]
                                 .filter(Boolean)
                                 .join(" · ")}
-                            </p>
+                            </span>
                           </td>
 
                           {/* Bill */}
-                          <td className="px-3 py-3 align-middle">
-                            <p className="text-sm text-foreground truncate">
+                          <td>
+                            <div className="truncate">
                               {txn.invoice_number || "—"}
-                            </p>
+                            </div>
                             {txn.bill_reference && (
-                              <p className="text-xs text-muted-foreground truncate">
+                              <span className="cell-sub truncate">
                                 {txn.bill_reference}
-                              </p>
+                              </span>
                             )}
                             {txn.bill_due_date && (
-                              <p className="text-[11px] text-muted-foreground/60">
+                              <span className="cell-sub truncate">
                                 Due {format(new Date(txn.bill_due_date), "dd MMM yy")}
-                              </p>
+                              </span>
                             )}
                           </td>
 
-                          {/* Amount */}
-                          <td className="px-3 py-3 align-middle">
-                            <span className="text-sm font-semibold tabular-nums text-foreground">
-                              {formatCurrency(
-                                parseFloat(txn.original_amount),
-                                txn.original_currency
-                              )}
-                            </span>
-                          </td>
+                          {/* Currency */}
+                          <td className="cell-currency">{txn.original_currency}</td>
 
-                          {/* Status */}
-                          <td className="px-3 py-3 align-middle">
-                            <span
-                              className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap ${
-                                cfg?.className ||
-                                "bg-muted text-muted-foreground border-border"
-                              }`}
-                            >
-                              {Icon && <Icon className="h-3 w-3 shrink-0" />}
-                              {cfg?.label || txn.status}
-                            </span>
+                          {/* Amount */}
+                          <td className="cell-amount">
+                            {parseFloat(txn.original_amount).toLocaleString(undefined, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 2,
+                            })}
                           </td>
 
                           {/* Reason */}
-                          <td className="px-3 py-3 align-middle max-w-0">
-                            <p className="text-xs text-muted-foreground truncate">
+                          <td className="cell-muted max-w-0">
+                            <div className="truncate">
                               {txn.status_description || "—"}
-                            </p>
+                            </div>
                             {txn.status_code && txn.status_code !== "NARR" && (
-                              <p className="text-[11px] font-mono text-muted-foreground/60 truncate">
+                              <span className="cell-sub font-mono truncate">
                                 {txn.status_code}
-                              </p>
+                              </span>
                             )}
                           </td>
 
                           {/* Action */}
-                          <td className="px-3 py-3 align-middle text-right pr-6">
+                          <td className="text-right pr-6">
                             {isSynced && (
-                              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
                                 <CheckCircle2 className="h-3 w-3" />
                                 Synced
                               </span>
@@ -766,12 +797,24 @@ export default function BankReconciliationPage() {
                               </Button>
                             )}
                           </td>
+
+                          {/* Status (last column) */}
+                          <td>
+                            <span
+                              className={`status-pill ${
+                                cfg?.className ||
+                                "bg-muted text-muted-foreground border-border"
+                              }`}
+                            >
+                              {Icon && <Icon className="h-3 w-3 shrink-0" />}
+                              {cfg?.label || txn.status}
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+                </tbody>
+              </table>
             </div>
           )}
         </ContentCard>

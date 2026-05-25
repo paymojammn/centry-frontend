@@ -172,7 +172,7 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
           <p className="text-xs text-muted-foreground/60 mt-1">Try adjusting your filters</p>
         </div>
       ) : (
-        <table className="w-full">
+        <table className="w-full table-professional">
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Date</th>

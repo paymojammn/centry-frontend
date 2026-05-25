@@ -177,7 +177,7 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
             <p className="text-xs text-muted-foreground/60 mt-1">Try adjusting your search</p>
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Reference</th>

@@ -319,7 +319,7 @@ interface ParamTableProps {
 export function ParamTable({ params }: ParamTableProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm table-professional">
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <th className="text-left px-4 py-3 font-semibold text-foreground">Parameter</th>

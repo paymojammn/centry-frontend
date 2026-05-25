@@ -422,7 +422,7 @@ export function PaymentReconciliationItem({
 
                   {/* Matches Table */}
                   <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full">
+                    <table className="w-full table-professional">
                       <thead className="bg-muted border-b">
                         <tr>
                           <th className="text-left p-3 text-sm font-medium text-foreground">Date</th>

@@ -223,14 +223,14 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   const getTypeBadge = (contact: Contact) => {
     if (contact.is_supplier && contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/10 text-primary">
           Both
         </span>
       );
     }
     if (contact.is_supplier) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Package className="h-3 w-3" />
           Supplier
         </span>
@@ -238,7 +238,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
     }
     if (contact.is_customer) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
           <ShoppingCart className="h-3 w-3" />
           Customer
         </span>
@@ -250,14 +250,14 @@ function ContactsTable({ contacts }: ContactsTableProps) {
   const getStatusBadge = (status: string) => {
     if (status === 'ACTIVE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
           <CheckCircle className="h-3 w-3" />
           Active
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-muted text-muted-foreground">
         {status}
       </span>
     );
@@ -278,48 +278,42 @@ function ContactsTable({ contacts }: ContactsTableProps) {
         {contacts.map((contact) => (
           <tr
             key={contact.id}
-            className="row-interactive cursor-pointer"
+            className="cursor-pointer"
             onClick={() => router.push(`/vendors/${contact.id}`)}
           >
-            <td className="py-3 px-4">
+            <td className="cell-primary">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
-                  {getInitials(contact.name)}
-                </div>
+                <div className="cell-avatar">{getInitials(contact.name)}</div>
                 <div>
-                  <div className="text-sm font-medium text-foreground">{contact.name}</div>
+                  <div>{contact.name}</div>
                   {contact.organization_name && (
-                    <div className="text-xs text-muted-foreground">{contact.organization_name}</div>
+                    <span className="cell-sub">{contact.organization_name}</span>
                   )}
                 </div>
               </div>
             </td>
-            <td className="py-3 px-4">
+            <td className="cell-muted">
               <div className="space-y-1">
                 {contact.primary_phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
                     <Phone className="h-3 w-3 text-muted-foreground/60" />
                     {contact.primary_phone}
                   </div>
                 )}
                 {contact.email_address && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
                     <Mail className="h-3 w-3 text-muted-foreground/60" />
                     <span className="truncate max-w-[200px]">{contact.email_address}</span>
                   </div>
                 )}
                 {!contact.primary_phone && !contact.email_address && (
-                  <span className="text-xs text-muted-foreground/60">No contact info</span>
+                  <span className="cell-sub">No contact info</span>
                 )}
               </div>
             </td>
-            <td className="py-3 px-4">
-              {getTypeBadge(contact)}
-            </td>
-            <td className="py-3 px-4">
-              {getStatusBadge(contact.contact_status)}
-            </td>
-            <td className="py-3 px-3">
+            <td>{getTypeBadge(contact)}</td>
+            <td>{getStatusBadge(contact.contact_status)}</td>
+            <td>
               <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
             </td>
           </tr>

@@ -23,16 +23,13 @@ export const MENU_SIDEBAR: MenuConfig = [
   },
   { heading: "Financial Management" },
   {
-    title: "Invoices",
-    icon: Receipt,
-    path: "/invoices",
+    title: "ERP",
+    icon: Wallet,
     requiredRole: "finance",
-  },
-  {
-    title: "Bills",
-    icon: FileText,
-    path: "/bills",
-    requiredRole: "finance",
+    children: [
+      { title: "Invoices", path: "/invoices" },
+      { title: "Bills", path: "/bills" },
+    ],
   },
   {
     title: "Rails",
@@ -64,14 +61,10 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "Export", path: "/banking/export" },
       { title: "Transactions", path: "/banking/transactions" },
-      { title: "Reconciliation", path: "/banking/reconciliation" },
+      { title: "Sync to ERP", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
+      { title: "Vendors", path: "/vendors" },
     ],
-  },
-  {
-    title: "Contacts",
-    icon: Users,
-    path: "/vendors",
   },
   {
     title: "Reports",
@@ -82,17 +75,16 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Audit Trail", path: "/reports/audit" },
     ],
   },
-  { heading: "Organization" },
-  {
-    title: "Organizations",
-    icon: Briefcase,
-    path: "/organizations",
-  },
   { heading: "Settings" },
   {
     title: "Account",
     icon: Settings,
     path: "/account/profile",
+  },
+  {
+    title: "Organizations",
+    icon: Briefcase,
+    path: "/organizations",
   },
 ];
 

@@ -13,6 +13,12 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
+  Download,
+  Building2,
+  Sparkles,
+  Copy as CopyIcon,
+  Mail,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -189,34 +195,93 @@ export default function CollectInvoiceModal({
 
   if (!isOpen) return null;
 
+  // Step indicator config — collapses Phone step when source doesn't need it
+  const requiresPhone = !!selectedSource?.requires_phone;
+  const stepLabels = step === 'source'
+    ? ['Source', 'Details', 'Review']
+    : requiresPhone
+      ? ['Source', 'Phone', 'Review']
+      : ['Source', 'Review'];
+  const stepIndex = (() => {
+    if (step === 'source') return 0;
+    if (step === 'details') return 1;
+    if (step === 'review') return requiresPhone ? 2 : 1;
+    return stepLabels.length;
+  })();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border">
-          <div className="flex items-center gap-3">
-            {step !== 'source' && step !== 'result' && (
-              <button
-                onClick={() => setStep(step === 'review' ? (selectedSource?.requires_phone ? 'details' : 'source') : 'source')}
-                className="p-1 rounded hover:bg-muted transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )}
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Collect Payment</h2>
-              <p className="text-sm text-muted-foreground">
-                {invoices.length} invoice{invoices.length > 1 ? 's' : ''} &middot; {currency} {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </p>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header — branded gradient strip with icon */}
+        <div className="relative shrink-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-card to-card pointer-events-none" />
+          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-primary/8 blur-2xl pointer-events-none" />
+          <div className="relative flex items-start justify-between p-5">
+            <div className="flex items-center gap-3 min-w-0">
+              {step !== 'source' && step !== 'result' && (
+                <button
+                  onClick={() => setStep(step === 'review' ? (selectedSource?.requires_phone ? 'details' : 'source') : 'source')}
+                  aria-label="Back"
+                  className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+              <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 ring-1 ring-primary/20 shrink-0">
+                <Download className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-foreground tracking-tight">Collect Payment</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {invoices.length} invoice{invoices.length > 1 ? 's' : ''}
+                  <span className="mx-1.5 text-muted-foreground/40">•</span>
+                  <span className="font-semibold text-foreground tabular-nums">
+                    {currency} {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </span>
+                </p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors shrink-0"
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-            <X className="h-5 w-5 text-muted-foreground" />
-          </button>
         </div>
 
-        <div className="p-5">
+        {/* Step indicator — pill chips with sage accent */}
+        {step !== 'result' && (
+          <div className="flex items-center gap-2 px-5 py-3 border-y border-border bg-muted/30 shrink-0">
+            {stepLabels.map((label, i, arr) => {
+              const isActive = stepIndex === i;
+              const isDone = stepIndex > i;
+              return (
+                <div key={label} className="flex items-center gap-2 flex-1">
+                  <div className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${isActive ? 'text-foreground' : isDone ? 'text-primary' : 'text-muted-foreground/50'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                      isDone
+                        ? 'bg-primary text-white shadow-sm shadow-primary/30'
+                        : isActive
+                          ? 'bg-foreground text-card ring-2 ring-foreground/10 ring-offset-2 ring-offset-card'
+                          : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                    </span>
+                    <span className="hidden sm:inline">{label}</span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className={`flex-1 h-0.5 rounded-full transition-colors ${isDone ? 'bg-primary' : 'bg-border'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto p-5">
           {/* Step 1: Pick source */}
           {step === 'source' && (
             <div>
@@ -258,10 +323,23 @@ export default function CollectInvoiceModal({
           {/* Step 3: Review */}
           {step === 'review' && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg text-sm">
-                <span className="text-muted-foreground">Via:</span>
-                <span className="font-medium text-foreground">{selectedSource?.name}</span>
-                {phone && <><span className="text-muted-foreground">&middot;</span><span>{phone}</span></>}
+              {/* Source summary — branded card */}
+              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-gradient-to-br from-card to-muted/30">
+                <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10 ring-1 ring-primary/15 shrink-0">
+                  <Building2 className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Collecting via</p>
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {selectedSource?.name}
+                    {phone && <span className="ml-2 text-xs font-normal text-muted-foreground">· {phone}</span>}
+                  </p>
+                </div>
+                {selectedSource && selectedSource.currency !== currency && (
+                  <span className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-800">
+                    {currency} → {selectedSource.currency}
+                  </span>
+                )}
               </div>
               <div className="border border-border rounded-lg divide-y divide-border">
                 {invoices.map((inv) => (
@@ -281,9 +359,19 @@ export default function CollectInvoiceModal({
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between px-4 py-3 bg-muted rounded-lg">
-                <span className="text-sm font-medium text-foreground">Total</span>
-                <span className="text-lg font-bold text-foreground">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              {/* Total — branded gradient bar */}
+              <div className="relative overflow-hidden rounded-xl border border-primary/20">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-card to-primary/5" />
+                <div className="relative flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Total to collect</span>
+                  </div>
+                  <span className="text-xl font-bold text-foreground tabular-nums">
+                    <span className="text-xs font-semibold text-muted-foreground/80 mr-1">{currency}</span>
+                    {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
 
               {/* FX Quote — shown when source settle currency differs from invoice currency */}
@@ -404,7 +492,7 @@ export default function CollectInvoiceModal({
                   || (needsFx && fxMode === 'manual' && !(parseFloat(fxManualRate) > 0))
                   || (needsFx && fxMode === 'auto' && !fxQuote)
                 }
-                className="w-full"
+                className="w-full h-11 text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow"
               >
                 {collectMutation.isPending
                   ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
@@ -416,47 +504,88 @@ export default function CollectInvoiceModal({
           {/* Step 4: Results */}
           {step === 'result' && (
             <div className="space-y-4">
+              {/* Summary hero with halo */}
+              {(() => {
+                const allOk = results.every((r) => r.success);
+                return (
+                  <div className="text-center py-4">
+                    <div className="relative mx-auto mb-3 size-16">
+                      <div className={`absolute inset-0 rounded-full blur-xl ${allOk ? 'bg-primary/15' : 'bg-destructive/15'}`} />
+                      <div className={`relative size-16 rounded-full flex items-center justify-center ring-1 ${allOk ? 'bg-gradient-to-br from-primary/15 to-primary/5 ring-primary/25' : 'bg-destructive/10 ring-destructive/25'}`}>
+                        {allOk
+                          ? <CheckCircle className="h-8 w-8 text-primary" strokeWidth={2.5} />
+                          : <AlertCircle className="h-8 w-8 text-destructive" strokeWidth={2.5} />}
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground tracking-tight">
+                      {allOk ? 'Collection initiated' : 'Some collections failed'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {allOk
+                        ? `Send the payment link${results.length > 1 ? 's' : ''} below to your customer${results.length > 1 ? 's' : ''}.`
+                        : 'Review the results below.'}
+                    </p>
+                  </div>
+                );
+              })()}
+
               {results.map((r) => {
                 const inv = invoices.find((i) => i.id === r.invoice_id);
                 const hasPaymentLink = r.payment_link && r.payment_link.startsWith('http');
                 return (
-                  <div key={r.invoice_id} className="p-4 rounded-lg border border-border space-y-3">
+                  <div key={r.invoice_id} className="p-4 rounded-xl border border-border bg-card space-y-3">
                     <div className="flex items-center gap-3">
-                      {r.success ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : <AlertCircle className="h-5 w-5 text-destructive shrink-0" />}
+                      {r.success ? (
+                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                        </div>
+                      ) : (
+                        <div className="size-8 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{inv?.customer_name || `#${r.invoice_id}`}</p>
-                        <p className="text-xs text-muted-foreground">{r.success ? `Ref: ${r.reference}` : r.error_message}</p>
+                        <p className="text-xs text-muted-foreground truncate">{r.success ? `Ref: ${r.reference}` : r.error_message}</p>
                       </div>
                     </div>
                     {/* Ozow payment link — copy or send to customer */}
                     {hasPaymentLink && (
-                      <div className="bg-muted rounded-lg p-3 space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground">Payment link — send to customer</p>
+                      <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3 space-y-2.5">
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-primary">
+                          Payment link — send to customer
+                        </p>
                         <div className="flex items-center gap-2">
                           <input
                             type="text" readOnly value={r.payment_link}
-                            className="flex-1 text-xs bg-card border border-border rounded px-2 py-1.5 text-foreground truncate"
+                            className="flex-1 text-xs bg-card border border-border rounded-md px-2.5 py-1.5 text-foreground truncate font-mono"
                           />
                           <button
-                            onClick={() => { navigator.clipboard.writeText(r.payment_link); }}
-                            className="px-3 py-1.5 text-xs font-medium bg-card border border-border rounded hover:bg-muted transition-colors shrink-0"
+                            onClick={() => {
+                              navigator.clipboard.writeText(r.payment_link);
+                              toast.success('Link copied');
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-card border border-border rounded-md hover:bg-primary/10 hover:border-primary/30 transition-colors shrink-0"
                           >
+                            <CopyIcon className="h-3 w-3" />
                             Copy
                           </button>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-3 pt-0.5">
                           <a
-                            href={`mailto:${inv?.customer_name || ''}?subject=Payment for Invoice ${inv?.invoice_number || ''}&body=Please complete your payment using this link: ${r.payment_link}`}
-                            className="text-xs font-medium text-primary hover:underline"
+                            href={`mailto:?subject=Payment for Invoice ${inv?.invoice_number || ''}&body=Please complete your payment using this link: ${r.payment_link}`}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                           >
-                            Send via Email
+                            <Mail className="h-3 w-3" />
+                            Email
                           </a>
-                          <span className="text-muted-foreground">|</span>
+                          <span className="text-muted-foreground/30">·</span>
                           <a
                             href={r.payment_link} target="_blank" rel="noopener noreferrer"
-                            className="text-xs font-medium text-primary hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                           >
-                            Open link
+                            <ExternalLink className="h-3 w-3" />
+                            Open
                           </a>
                         </div>
                       </div>
@@ -464,7 +593,12 @@ export default function CollectInvoiceModal({
                   </div>
                 );
               })}
-              <Button onClick={onClose} className="w-full">Done</Button>
+              <Button
+                onClick={onClose}
+                className="w-full h-11 text-sm font-semibold shadow-md shadow-primary/20"
+              >
+                Done
+              </Button>
             </div>
           )}
         </div>

@@ -181,7 +181,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
     return (
       <div className="text-center py-16">
         <Send className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-        <p className="text-sm font-medium text-foreground">No collections initiated</p>
+        <p className="text-sm font-normal text-foreground">No collections initiated</p>
         <p className="text-sm text-muted-foreground mt-1">Select invoices and collect payment to see them here</p>
       </div>
     );
@@ -193,7 +193,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         <button
           onClick={() => setStatusFilter('all')}
-          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+          className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
             statusFilter === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -205,7 +205,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             <button
               key={status}
               onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
                 statusFilter === status
                   ? 'text-white'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -223,89 +223,65 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
         <table className="w-full table-professional">
           <thead>
             <tr>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Customer</th>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
-              <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Method</th>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Payment Link</th>
-              <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Created</th>
+              <th>Customer</th>
+              <th>Invoice</th>
+              <th>Method</th>
+              <th className="cell-currency">Ccy</th>
+              <th className="text-right">Amount</th>
+              <th>Payment Link</th>
+              <th>Created</th>
+              <th>Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody>
             {filtered.map((e: any) => {
               const cfg = STATUS_CONFIG[e.provider_status] || STATUS_CONFIG.PENDING;
               const MethodIcon = METHOD_ICONS[e.method] || CreditCard;
               const hasLink = e.payment_link && e.payment_link.startsWith('http');
 
               return (
-                <tr key={e.id} className="transition-colors hover:bg-muted">
+                <tr key={e.id}>
                   {/* Customer */}
-                  <td className="py-3 px-4">
-                    <div className="text-sm font-medium text-foreground">
-                      {e.customer_name || e.vendor_name || '-'}
-                    </div>
+                  <td className="cell-primary">
+                    <div>{e.customer_name || e.vendor_name || '-'}</div>
                     {e.phone_number && (
-                      <div className="text-xs text-muted-foreground">{e.phone_number}</div>
+                      <span className="cell-sub">{e.phone_number}</span>
                     )}
                   </td>
 
                   {/* Invoice */}
-                  <td className="py-3 px-4">
-                    <span className="text-sm text-foreground">
-                      {e.invoice_number || e.bill_number || '-'}
-                    </span>
+                  <td>
+                    <div>{e.invoice_number || e.bill_number || '-'}</div>
                     {(e.invoice_reference || e.bill_reference) && (
-                      <div className="text-xs text-muted-foreground">{e.invoice_reference || e.bill_reference}</div>
+                      <span className="cell-sub">{e.invoice_reference || e.bill_reference}</span>
                     )}
-                  </td>
-
-                  {/* Amount */}
-                  <td className="py-3 px-4 text-right">
-                    <span className="text-sm font-medium text-foreground">
-                      {cleanCurrency(e.currency)} {parseFloat(e.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    </span>
                   </td>
 
                   {/* Method */}
-                  <td className="py-3 px-4">
+                  <td>
                     <div className="flex items-center gap-2">
                       <MethodIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs text-foreground">{e.method_display || e.method}</span>
+                      <span>{e.method_display || e.method}</span>
                     </div>
                   </td>
 
-                  {/* Status */}
-                  <td className="py-3 px-4">
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                      style={{ backgroundColor: `${cfg.bg}15`, color: cfg.color }}
-                    >
-                      {cfg.label === 'Paid' ? (
-                        <CheckCircle className="h-3 w-3" />
-                      ) : cfg.label === 'Failed' || cfg.label === 'Rejected' ? (
-                        <AlertCircle className="h-3 w-3" />
-                      ) : (
-                        <Clock className="h-3 w-3" />
-                      )}
-                      {cfg.label}
-                    </span>
-                    {e.provider_reference && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]" title={e.provider_reference}>
-                        Ref: {e.provider_reference}
-                      </div>
-                    )}
+                  {/* Currency */}
+                  <td className="cell-currency">{cleanCurrency(e.currency)}</td>
+
+                  {/* Amount */}
+                  <td className="cell-amount">
+                    {parseFloat(e.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </td>
 
                   {/* Payment Link / Approval */}
-                  <td className="py-3 px-4">
+                  <td>
                     {e.provider_status === 'PENDING_APPROVAL' ? (
                       hasApprovePermission ? (
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleApprove(e.id)}
                             disabled={actingId === e.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
                             title="Approve"
                           >
                             {actingId === e.id ? (
@@ -318,7 +294,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                           <button
                             onClick={() => handleReject(e.id)}
                             disabled={actingId === e.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
                             title="Reject"
                           >
                             <X className="h-3 w-3" />
@@ -332,7 +308,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => copyLink(e.payment_link, String(e.id))}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border border-border hover:bg-muted transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded border border-border hover:bg-muted transition-colors"
                           title="Copy payment link"
                         >
                           {copied === String(e.id) ? (
@@ -363,7 +339,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         <button
                           onClick={() => setSendLinkTarget(e)}
                           disabled={generatingId === e.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-normal rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
                         >
                           {generatingId === e.id ? (
                             <><Loader2 className="h-3 w-3 animate-spin" /> Generating...</>
@@ -373,7 +349,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         </button>
                         {e.fx_rate && isFxStale(e.fx_fetched_at) && (
                           <span
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-normal bg-amber-50 text-amber-800 border border-amber-200"
                             title={`FX rate locked ${formatDate(e.fx_fetched_at)} — over ${FX_STALE_HOURS}h old`}
                           >
                             <AlertCircle className="h-2.5 w-2.5" />
@@ -387,10 +363,36 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                   </td>
 
                   {/* Created */}
-                  <td className="py-3 px-4">
-                    <div className="text-xs text-muted-foreground">{formatDate(e.created_at)}</div>
+                  <td className="cell-muted">
+                    <div>{formatDate(e.created_at)}</div>
                     {e.created_by_name && (
-                      <div className="text-[10px] text-muted-foreground">by {e.created_by_name}</div>
+                      <span className="cell-sub">by {e.created_by_name}</span>
+                    )}
+                  </td>
+
+                  {/* Status (last column) */}
+                  <td>
+                    <span
+                      className="status-pill"
+                      style={{
+                        backgroundColor: `${cfg.bg}15`,
+                        color: cfg.color,
+                        borderColor: 'transparent',
+                      }}
+                    >
+                      {cfg.label === 'Paid' ? (
+                        <CheckCircle className="h-3 w-3" />
+                      ) : cfg.label === 'Failed' || cfg.label === 'Rejected' ? (
+                        <AlertCircle className="h-3 w-3" />
+                      ) : (
+                        <Clock className="h-3 w-3" />
+                      )}
+                      {cfg.label}
+                    </span>
+                    {e.provider_reference && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]" title={e.provider_reference}>
+                        Ref: {e.provider_reference}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -420,7 +422,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             return (
               <div className="py-2 space-y-3">
                 <div className="rounded-md bg-muted px-3 py-2 text-sm space-y-1">
-                  <div className="font-medium text-foreground">
+                  <div className="font-normal text-foreground">
                     {t.customer_name || t.vendor_name || `Event #${t.id}`}
                   </div>
                   {t.invoice_number && (
@@ -434,7 +436,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                 <div className="rounded-md border border-border px-3 py-2 text-sm space-y-1">
                   <div className="flex justify-between text-foreground">
                     <span className="text-muted-foreground">Invoice amount</span>
-                    <span className="font-medium">
+                    <span className="font-normal">
                       {cleanCurrency(t.currency)}{' '}
                       {parseFloat(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
@@ -443,7 +445,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                     <>
                       <div className="flex justify-between text-foreground">
                         <span className="text-muted-foreground">Customer pays</span>
-                        <span className="font-medium">
+                        <span className="font-normal">
                           {settleCcy} {settleAmt}
                         </span>
                       </div>

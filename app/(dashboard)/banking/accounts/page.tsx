@@ -144,7 +144,7 @@ export default function BankAccountsPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-foreground">Bank Accounts</h1>
+              <h1 className="text-xl font-normal text-foreground">Bank Accounts</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
@@ -196,25 +196,25 @@ export default function BankAccountsPage() {
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Total Balance:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/10 text-primary">
+              <span className="px-2 py-0.5 rounded text-sm font-normal bg-primary/10 text-primary">
                 {stats.primaryCurrency} {formatCurrencyAmount(stats.totalBalance)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Accounts:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+              <span className="px-2 py-0.5 rounded text-sm font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
                 {stats.totalAccounts}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Active:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/5 text-primary">
+              <span className="px-2 py-0.5 rounded text-sm font-normal bg-primary/5 text-primary">
                 {stats.activeAccounts}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Default:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+              <span className="px-2 py-0.5 rounded text-sm font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
                 {stats.defaultAccount ? stats.defaultAccount.account_name : 'None'}
               </span>
             </div>
@@ -228,7 +228,7 @@ export default function BankAccountsPage() {
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Landmark className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-medium text-foreground">All Accounts</h3>
+              <h3 className="text-sm font-normal text-foreground">All Accounts</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">Manage your organization's bank accounts</p>
           </div>

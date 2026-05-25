@@ -250,7 +250,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-medium text-foreground">
+            <h3 className="text-sm font-normal text-foreground">
               Bank Statements
             </h3>
           </div>
@@ -262,7 +262,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">
+              <Label className="text-sm font-normal text-foreground">
                 Bank Account
               </Label>
               <Select
@@ -294,7 +294,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">
+              <Label className="text-sm font-normal text-foreground">
                 SFTP Connection
               </Label>
               <Select
@@ -398,7 +398,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
                     </p>
                     <div className="mt-1 flex items-baseline gap-2">
                       <Wallet className="h-4 w-4 text-muted-foreground/60" />
-                      <span className="text-lg font-semibold tabular-nums text-foreground">
+                      <span className="text-lg font-normal tabular-nums text-foreground">
                         {acct.balance != null
                           ? formatCurrency(
                               parseFloat(acct.balance),
@@ -468,7 +468,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         <ContentCardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-sm font-normal text-foreground">
                 Imported Statements
               </h3>
               {!importsLoading && (
@@ -504,7 +504,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
             <div className="mx-auto mb-3 w-fit rounded-xl bg-muted p-3">
               <FileText className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-normal text-foreground">
               No statements yet
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -513,7 +513,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-12 gap-3 border-b border-border/50 px-6 py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-12 gap-3 border-b border-border/50 px-6 py-2.5 text-xs font-normal uppercase tracking-wider text-muted-foreground">
               <div className="col-span-2">Imported</div>
               <div className="col-span-5">Filename</div>
               <div className="col-span-2">Account</div>
@@ -583,7 +583,7 @@ function StatementRow({
               expanded ? "rotate-90" : ""
             }`}
           />
-          <p className="truncate font-medium text-foreground">
+          <p className="truncate font-normal text-foreground">
             {row.original_filename}
           </p>
         </div>
@@ -597,7 +597,7 @@ function StatementRow({
         </div>
         <div className="col-span-1">
           <span
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-normal ${
               STATUS_STYLES[row.status] ||
               "bg-muted text-muted-foreground border-border"
             }`}
@@ -653,7 +653,7 @@ function StatementTransactions({ fileImportId }: { fileImportId: number }) {
 
   return (
     <div className="bg-muted/20 px-6 py-3">
-      <div className="grid grid-cols-12 gap-2 px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+      <div className="grid grid-cols-12 gap-2 px-2 py-1.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground/70">
         <div className="col-span-2">Date</div>
         <div className="col-span-6">Description</div>
         <div className="col-span-1">Type</div>
@@ -683,7 +683,7 @@ function StatementTransactions({ fileImportId }: { fileImportId: number }) {
               </div>
               <div className="col-span-1">
                 <span
-                  className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                  className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-normal ${
                     isCredit
                       ? "bg-emerald-500/10 text-emerald-700"
                       : "bg-red-500/10 text-red-700"

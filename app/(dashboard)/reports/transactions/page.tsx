@@ -68,10 +68,17 @@ const formatCurrency = (value: number) =>
     notation: "compact",
   }).format(value);
 
-const formatCurrencyFull = (value: number) =>
+// Number-only formatters (no currency symbol) — used when the currency
+// code is rendered in its own column.
+const formatAmount = (value: number) =>
   new Intl.NumberFormat("en-UG", {
-    style: "currency",
-    currency: "UGX",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+    notation: "compact",
+  }).format(value);
+
+const formatAmountFull = (value: number) =>
+  new Intl.NumberFormat("en-UG", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
@@ -140,6 +147,10 @@ const STATUS_BADGE_MAP: Record<
   SENT_PAYMENT: {
     label: "Sent",
     className: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  },
+  REVERSED: {
+    label: "Reversed",
+    className: "bg-purple-500/10 text-purple-700 border-purple-500/20",
   },
 };
 
@@ -212,7 +223,7 @@ function ChannelStatusCard({ channel }: { channel: ChannelBreakdown }) {
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-sm font-normal text-foreground">
               {channel.channel}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -220,7 +231,7 @@ function ChannelStatusCard({ channel }: { channel: ChannelBreakdown }) {
             </p>
           </div>
         </div>
-        <p className="text-sm font-semibold text-foreground tabular-nums">
+        <p className="text-sm font-normal text-foreground tabular-nums">
           {formatCurrency(channel.total_amount)}
         </p>
       </div>
@@ -326,7 +337,7 @@ function StatusDonut({
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-lg font-bold text-foreground">{total}</p>
+            <p className="text-lg font-normal text-foreground">{total}</p>
             <p className="text-[10px] text-muted-foreground">total</p>
           </div>
         </div>
@@ -343,7 +354,7 @@ function StatusDonut({
               <span className="text-sm text-foreground">{item.name}</span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold text-foreground tabular-nums">
+              <span className="text-sm font-normal text-foreground tabular-nums">
                 {item.value}
               </span>
               <span className="text-xs text-muted-foreground ml-1.5">
@@ -372,39 +383,39 @@ function FileRow({ file }: { file: PaymentFile }) {
     file.successful_count + file.failed_count + file.pending_count;
 
   return (
-    <div className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center hover:bg-muted/30 transition-colors">
+    <div className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors">
       <div className="col-span-4 flex items-center gap-3 min-w-0">
         <div className="p-1.5 rounded-lg bg-muted shrink-0">
           <FileText className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
         <div className="min-w-0">
-          <p
-            className="text-sm font-medium text-foreground truncate"
-            title={file.filename}
-          >
+          <p className="text-foreground truncate" title={file.filename}>
             {displayName}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground mt-0.5">
             {file.bank_account_name || "—"}
           </p>
         </div>
       </div>
       <div className="col-span-2">
-        <p className="text-sm text-foreground">
+        <p className="text-foreground tabular-nums">
           {format(new Date(file.created_at), "dd MMM yyyy")}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground mt-0.5">
           {formatDistanceToNow(new Date(file.created_at), {
             addSuffix: true,
           })}
         </p>
       </div>
-      <div className="col-span-2 text-right">
-        <p className="text-sm font-semibold text-foreground tabular-nums">
-          {formatCurrency(file.total_amount)}
+      <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
+        UGX
+      </div>
+      <div className="col-span-1 text-right">
+        <p className="text-foreground tabular-nums">
+          {formatAmount(file.total_amount)}
         </p>
-        <p className="text-xs text-muted-foreground">
-          {file.payment_count} payments
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          {file.payment_count} pmts
         </p>
       </div>
       <div className="col-span-2">
@@ -473,23 +484,23 @@ function TransactionRow({ txn }: { txn: PaymentTransaction }) {
   const Icon = CHANNEL_ICONS[txn.method] || Send;
 
   return (
-    <div className="grid grid-cols-12 gap-3 px-6 py-3 items-center hover:bg-muted/30 transition-colors text-sm">
+    <div className="grid grid-cols-12 gap-3 px-6 py-3 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors">
       {/* Date */}
       <div className="col-span-2">
-        <p className="font-medium text-foreground">
+        <p className="text-foreground tabular-nums">
           {format(new Date(txn.date), "dd MMM yyyy")}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground mt-0.5">
           {format(new Date(txn.date), "HH:mm")}
         </p>
       </div>
 
       {/* Recipient */}
       <div className="col-span-2 min-w-0">
-        <p className="font-medium text-foreground truncate" title={txn.recipient}>
+        <p className="text-foreground truncate" title={txn.recipient}>
           {txn.recipient}
         </p>
-        <p className="text-xs text-muted-foreground truncate" title={txn.reference}>
+        <p className="text-[12px] text-muted-foreground truncate mt-0.5" title={txn.reference}>
           {txn.reference}
         </p>
       </div>
@@ -498,49 +509,53 @@ function TransactionRow({ txn }: { txn: PaymentTransaction }) {
       <div className="col-span-1">
         <div className="flex items-center gap-1.5">
           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="text-xs text-muted-foreground truncate">
+          <span className="text-[12px] text-muted-foreground truncate">
             {CHANNEL_LABELS[txn.method] || txn.channel}
           </span>
         </div>
       </div>
 
+      {/* Currency */}
+      <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
+        {txn.currency}
+      </div>
+
       {/* Amount */}
       <div className="col-span-2 text-right">
-        <p className="font-semibold text-foreground tabular-nums">
-          {formatCurrencyFull(txn.amount)}
-        </p>
-        <p className="text-xs text-muted-foreground">{txn.currency}</p>
+        <span className="text-foreground tabular-nums">
+          {formatAmountFull(txn.amount)}
+        </span>
       </div>
 
       {/* Status */}
       <div className="col-span-1">
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusBadge.className}`}
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-normal border ${statusBadge.className}`}
         >
           {statusBadge.label}
         </span>
       </div>
 
       {/* Initiated By */}
-      <div className="col-span-2">
+      <div className="col-span-2 min-w-0">
         {txn.initiated_by ? (
           <div className="flex items-center gap-1.5 min-w-0">
             <User className="h-3 w-3 text-muted-foreground shrink-0" />
-            <span className="text-xs text-foreground truncate" title={txn.initiated_by.email}>
+            <span className="text-[12px] text-foreground truncate" title={txn.initiated_by.email}>
               {txn.initiated_by.name}
             </span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+          <span className="text-[12px] text-muted-foreground">—</span>
         )}
       </div>
 
       {/* Approved By */}
-      <div className="col-span-2">
+      <div className="col-span-1 min-w-0">
         {txn.approved_by ? (
           <div className="flex items-center gap-1.5 min-w-0">
             <ShieldCheck className="h-3 w-3 text-emerald-600 shrink-0" />
-            <span className="text-xs text-foreground truncate" title={txn.approved_by.email}>
+            <span className="text-[12px] text-foreground truncate" title={txn.approved_by.email}>
               {txn.approved_by.name}
             </span>
           </div>
@@ -548,14 +563,14 @@ function TransactionRow({ txn }: { txn: PaymentTransaction }) {
           <div className="flex items-center gap-1.5 min-w-0">
             <XCircle className="h-3 w-3 text-red-500 shrink-0" />
             <span
-              className="text-xs text-red-600 truncate"
+              className="text-[12px] text-red-600 truncate"
               title={txn.rejected_by.reason || txn.rejected_by.email}
             >
               {txn.rejected_by.name}
             </span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Pending</span>
+          <span className="text-[12px] text-muted-foreground">Pending</span>
         )}
       </div>
     </div>
@@ -675,7 +690,7 @@ export default function TransactionReportsPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-normal border-b-2 transition-colors ${
                     isActive
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
@@ -772,7 +787,7 @@ export default function TransactionReportsPage() {
                         <div className="p-1.5 rounded-lg bg-primary/10">
                           <Landmark className="h-4 w-4 text-primary" />
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground">
+                        <h3 className="text-sm font-normal text-foreground">
                           Performance by Channel
                         </h3>
                       </div>
@@ -808,7 +823,7 @@ export default function TransactionReportsPage() {
                         <div className="p-1.5 rounded-lg bg-[rgb(var(--warning))]/10">
                           <CheckCircle2 className="h-4 w-4 text-[rgb(var(--warning))]" />
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground">
+                        <h3 className="text-sm font-normal text-foreground">
                           Status Breakdown
                         </h3>
                       </div>
@@ -835,7 +850,7 @@ export default function TransactionReportsPage() {
                       <div className="p-1.5 rounded-lg bg-primary/10">
                         <Upload className="h-4 w-4 text-primary" />
                       </div>
-                      <h3 className="text-sm font-semibold text-foreground">
+                      <h3 className="text-sm font-normal text-foreground">
                         Recent Payment Files
                       </h3>
                       <Badge variant="secondary" className="text-xs">
@@ -844,10 +859,11 @@ export default function TransactionReportsPage() {
                     </div>
                   </div>
                 </ContentCardHeader>
-                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
                   <div className="col-span-4">File</div>
                   <div className="col-span-2">Submitted</div>
-                  <div className="col-span-2 text-right">Amount</div>
+                  <div className="col-span-1 text-right">Ccy</div>
+                  <div className="col-span-1 text-right">Amount</div>
                   <div className="col-span-2">Results</div>
                   <div className="col-span-2 text-right">Bank Status</div>
                 </div>
@@ -863,7 +879,7 @@ export default function TransactionReportsPage() {
                   <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-4">
                     <FileText className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-normal text-foreground">
                     No payment files yet
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -908,6 +924,12 @@ export default function TransactionReportsPage() {
                     <span className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-amber-500" />
                       Processing
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="reversed">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-purple-500" />
+                      Reversed
                     </span>
                   </SelectItem>
                 </SelectContent>
@@ -974,7 +996,7 @@ export default function TransactionReportsPage() {
                       <div className="p-1.5 rounded-lg bg-primary/10">
                         <List className="h-4 w-4 text-primary" />
                       </div>
-                      <h3 className="text-sm font-semibold text-foreground">
+                      <h3 className="text-sm font-normal text-foreground">
                         Payment Transactions
                       </h3>
                       <Badge variant="secondary" className="text-xs">
@@ -985,14 +1007,15 @@ export default function TransactionReportsPage() {
                 </ContentCardHeader>
 
                 {/* Table header */}
-                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
                   <div className="col-span-2">Date</div>
                   <div className="col-span-2">Recipient</div>
                   <div className="col-span-1">Channel</div>
+                  <div className="col-span-1 text-right">Ccy</div>
                   <div className="col-span-2 text-right">Amount</div>
                   <div className="col-span-1">Status</div>
                   <div className="col-span-2">Initiated By</div>
-                  <div className="col-span-2">Approved By</div>
+                  <div className="col-span-1">Approved By</div>
                 </div>
 
                 <div className="divide-y divide-border/50 max-h-[600px] overflow-y-auto">
@@ -1007,7 +1030,7 @@ export default function TransactionReportsPage() {
                   <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-4">
                     <List className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-normal text-foreground">
                     No transactions found
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

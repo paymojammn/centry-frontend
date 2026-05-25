@@ -122,23 +122,16 @@ export default function BankTransactionsPage() {
     }
   }, [organizations, selectedOrganizationId]);
 
-  // Fetch outgoing payments
+  // Fetch outgoing payments. Only org + direction are sent to the API —
+  // the XeroPaymentEventViewSet ignores `search` and `source_bank_account`,
+  // and the legacy/current status enums don't line up cleanly with what the
+  // dropdown shows. Doing all four user filters client-side avoids silent
+  // no-ops and keeps the UI honest.
   const { data, isLoading } = useQuery<{ results: PaymentEvent[] }>({
-    queryKey: [
-      "outgoing-payments",
-      search,
-      statusFilter,
-      accountFilter,
-      startDate,
-      endDate,
-      selectedOrganizationId,
-    ],
+    queryKey: ["outgoing-payments", selectedOrganizationId],
     queryFn: () => {
       const p = new URLSearchParams();
       p.append("direction", "OUT");
-      if (search) p.append("search", search);
-      if (statusFilter !== "all") p.append("status", statusFilter);
-      if (accountFilter !== "all") p.append("source_bank_account", accountFilter);
       if (selectedOrganizationId) p.append("organization", selectedOrganizationId);
       return api.get(`/api/v1/xero/payments/?${p.toString()}`);
     },
@@ -162,11 +155,50 @@ export default function BankTransactionsPage() {
     setSearch("");
   };
 
-  // Client-side date filter (API may not support date range on this endpoint)
+  // Client-side: search across the user-visible fields, account/status enums,
+  // and the date range. Keeps the dataset honest — the user sees exactly
+  // what the filters say.
+  const searchLower = search.trim().toLowerCase();
   const filteredPayments = payments.filter((p) => {
     if (startDate && new Date(p.created_at) < new Date(startDate)) return false;
     if (endDate && new Date(p.created_at) > new Date(endDate + "T23:59:59"))
       return false;
+    if (statusFilter !== "all" && p.provider_status !== statusFilter) return false;
+    if (accountFilter !== "all") {
+      // accountFilter holds the bank-account id as a string. The payment
+      // response carries the name (source_bank_account_name) rather than
+      // the id, so resolve via the cached account list.
+      const acct = (bankAccounts as any[]).find(
+        (a: any) => String(a.id) === accountFilter,
+      );
+      const wantName = acct?.account_name;
+      if (
+        wantName &&
+        p.source_bank_account_name !== wantName &&
+        p.bank_name_display !== wantName
+      ) {
+        return false;
+      }
+    }
+    if (searchLower) {
+      const hay = [
+        p.vendor_name,
+        p.account_name,
+        p.bill_number,
+        p.bill_reference,
+        p.source_bank_account_name,
+        p.bank_name_display,
+        p.created_by_name,
+        p.approved_by_name,
+        p.method_display,
+        p.status_display,
+        STATUS_LABELS[p.provider_status] || p.provider_status,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (!hay.includes(searchLower)) return false;
+    }
     return true;
   });
 
@@ -284,9 +316,10 @@ export default function BankTransactionsPage() {
               <SelectItem value="all">All status</SelectItem>
               <SelectItem value="PENDING_APPROVAL">Pending Approval</SelectItem>
               <SelectItem value="PROCESSING">Ready for File</SelectItem>
-              <SelectItem value="PENDING">Sent to Bank</SelectItem>
+              <SelectItem value="SENT_PAYMENT">Sent to Bank</SelectItem>
               <SelectItem value="SUCCESS_PAYMENT">Paid</SelectItem>
               <SelectItem value="FAILED_PAYMENT">Failed</SelectItem>
+              <SelectItem value="ERROR_PAYMENT">Error</SelectItem>
               <SelectItem value="REJECTED">Rejected</SelectItem>
             </SelectContent>
           </Select>
@@ -355,54 +388,51 @@ export default function BankTransactionsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
                 <div className="col-span-2">Date</div>
                 <div className="col-span-3">Recipient</div>
-                <div className="col-span-2">Account</div>
+                <div className="col-span-1">Account</div>
+                <div className="col-span-1 text-right">Ccy</div>
                 <div className="col-span-2 text-right">Amount</div>
-                <div className="col-span-1">Status</div>
-                <div className="col-span-2">Created by</div>
+                <div className="col-span-1">Created by</div>
+                <div className="col-span-2">Status</div>
               </div>
-              <div className="divide-y divide-border/50 max-h-[calc(100vh-300px)] overflow-y-auto">
+              <div className="divide-y divide-border max-h-[calc(100vh-300px)] overflow-y-auto">
                 {filteredPayments.map((p) => (
                   <div
                     key={p.id}
-                    className="grid grid-cols-12 gap-3 px-6 py-3 items-center text-sm hover:bg-muted/30 transition-colors"
+                    className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
                   >
-                    <div className="col-span-2 text-muted-foreground">
+                    <div className="col-span-2 text-muted-foreground tabular-nums">
                       {format(new Date(p.created_at), "dd MMM yyyy")}
                     </div>
                     <div className="col-span-3 min-w-0">
-                      <p className="font-medium text-foreground truncate">
+                      <p className="text-foreground truncate">
                         {p.vendor_name || p.account_name || "—"}
                       </p>
                       {p.bill_number && (
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-[12px] text-muted-foreground truncate mt-0.5">
                           Bill #{p.bill_number}
                         </p>
                       )}
                     </div>
-                    <div className="col-span-2 min-w-0">
-                      <p className="text-xs text-muted-foreground truncate">
+                    <div className="col-span-1 min-w-0">
+                      <p className="text-[12px] text-muted-foreground truncate">
                         {p.source_bank_account_name || p.bank_name_display || "—"}
                       </p>
                     </div>
+                    <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
+                      {p.currency}
+                    </div>
                     <div className="col-span-2 text-right">
-                      <span className="font-semibold tabular-nums text-foreground">
-                        {formatCurrency(parseFloat(p.amount), p.currency)}
+                      <span className="tabular-nums text-foreground">
+                        {parseFloat(p.amount).toLocaleString(undefined, {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
-                    <div className="col-span-1">
-                      <span
-                        className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium border ${
-                          STATUS_STYLES[p.provider_status] ||
-                          "bg-muted text-muted-foreground border-border"
-                        }`}
-                      >
-                        {STATUS_LABELS[p.provider_status] || p.status_display || p.provider_status}
-                      </span>
-                    </div>
-                    <div className="col-span-2 min-w-0">
+                    <div className="col-span-1 min-w-0">
                       <p className="text-xs text-muted-foreground truncate">
                         {p.created_by_name || "—"}
                       </p>
@@ -411,6 +441,16 @@ export default function BankTransactionsPage() {
                           Approved: {p.approved_by_name}
                         </p>
                       )}
+                    </div>
+                    <div className="col-span-2">
+                      <span
+                        className={`status-pill ${
+                          STATUS_STYLES[p.provider_status] ||
+                          "bg-muted text-muted-foreground border-border"
+                        }`}
+                      >
+                        {STATUS_LABELS[p.provider_status] || p.status_display || p.provider_status}
+                      </span>
                     </div>
                   </div>
                 ))}

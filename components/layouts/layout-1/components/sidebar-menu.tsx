@@ -15,14 +15,21 @@ import {
   AccordionMenuSubTrigger,
 } from '@/components/ui/accordion-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useCurrentUser } from '@/hooks/use-user';
+import { useLayout } from './context';
 
 export function SidebarMenu() {
   const pathname = usePathname();
   const { data: user } = useCurrentUser();
+  const { sidebarCollapse } = useLayout();
 
   // Check if user is finance role or an org owner/admin (bypass)
   const isFinanceOrAdmin = useMemo(() => {
@@ -103,9 +110,44 @@ export function SidebarMenu() {
     });
   };
 
+  // Recursively render children inside the collapsed-mode flyout panel.
+  const renderFlyoutItems = (items: MenuConfig): JSX.Element[] => {
+    return items.map((child, i) => {
+      if (child.children) {
+        return (
+          <li key={i} className="pt-2 first:pt-0">
+            <div className="px-2 pb-1 text-[10px] uppercase font-semibold text-white/30 tracking-wider">
+              {child.title}
+            </div>
+            <ul className="space-y-0.5">{renderFlyoutItems(child.children)}</ul>
+          </li>
+        );
+      }
+      return (
+        <li key={i}>
+          {child.path ? (
+            <Link
+              href={child.path}
+              className={cn(
+                'block px-2 py-1.5 rounded-md text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition-colors',
+                matchPath(child.path) && 'bg-primary text-white font-semibold',
+              )}
+            >
+              {child.title}
+            </Link>
+          ) : (
+            <span className="block px-2 py-1.5 text-[13px] text-white/40">
+              {child.title}
+            </span>
+          )}
+        </li>
+      );
+    });
+  };
+
   const buildMenuItemRoot = (item: MenuItem, index: number): JSX.Element => {
     if (item.children) {
-      return (
+      const sub = (
         <AccordionMenuSub key={index} value={item.path || `root-${index}`}>
           <AccordionMenuSubTrigger className="text-sm font-medium gap-2.5">
             {item.icon && <item.icon data-slot="accordion-menu-icon" className="size-4 shrink-0" />}
@@ -123,6 +165,36 @@ export function SidebarMenu() {
           </AccordionMenuSubContent>
         </AccordionMenuSub>
       );
+
+      // When the sidebar is collapsed, the inline accordion sub-content is
+      // hidden (CSS in styles/demos/demo1.css). Show a portal-positioned
+      // flyout panel on hover so children stay reachable — the portal
+      // renders outside the sidebar, so it overlays without shifting the
+      // main content grid.
+      if (sidebarCollapse) {
+        return (
+          <HoverCard key={index} openDelay={80} closeDelay={120}>
+            <HoverCardTrigger asChild>
+              <div>{sub}</div>
+            </HoverCardTrigger>
+            <HoverCardContent
+              side="right"
+              align="start"
+              sideOffset={12}
+              className="w-56 p-2 bg-[rgb(var(--brand-dark))] border border-[rgb(var(--brand-dark-light))] text-white shadow-xl"
+            >
+              <div className="px-2 pb-2 pt-1 text-[11px] uppercase font-bold text-white/40 tracking-wider">
+                {item.title}
+              </div>
+              <ul className="space-y-0.5">
+                {renderFlyoutItems(item.children)}
+              </ul>
+            </HoverCardContent>
+          </HoverCard>
+        );
+      }
+
+      return sub;
     } else {
       return (
         <AccordionMenuItem

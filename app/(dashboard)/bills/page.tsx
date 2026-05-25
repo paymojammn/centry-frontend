@@ -549,7 +549,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
         <thead>
           <tr>
             {canCreatePayment && (
-              <th className="py-3 px-4 w-10">
+              <th className="w-10">
                 <input
                   type="checkbox"
                   checked={allPayableSelected}
@@ -562,11 +562,12 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                 />
               </th>
             )}
-            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Vendor</th>
-            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Invoice</th>
-            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Due Date</th>
-            <th className="text-right text-xs font-medium text-muted-foreground py-3 px-4">Amount</th>
-            <th className="text-left text-xs font-medium text-muted-foreground py-3 px-4">Status</th>
+            <th>Vendor</th>
+            <th>Invoice</th>
+            <th>Due Date</th>
+            <th className="cell-currency">Ccy</th>
+            <th className="text-right">Amount</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -577,13 +578,11 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
             return (
               <tr
                 key={bill.id}
-                className={`transition-colors ${
-                  isSelected ? 'bg-[#6B8FB8]/10' : 'hover:bg-muted'
-                } ${!canPay || !canCreatePayment ? 'opacity-60' : 'cursor-pointer'}`}
+                className={`${isSelected ? 'is-selected' : ''} ${!canPay || !canCreatePayment ? 'opacity-60' : 'cursor-pointer'}`}
                 onClick={() => canCreatePayment && canPay && onSelectBill(bill.id)}
               >
                 {canCreatePayment && (
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                  <td onClick={(e) => e.stopPropagation()}>
                     {canPay ? (
                       <input
                         type="checkbox"
@@ -596,39 +595,36 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     )}
                   </td>
                 )}
-                <td className="py-3 px-4">
+                <td className="cell-primary">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
+                    <div className="cell-avatar">
                       {getVendorInitials(bill.vendor_name || '')}
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-foreground">{bill.vendor_name}</div>
+                    <div className="min-w-0">
+                      <div className="truncate">{bill.vendor_name}</div>
                       {bill.reference && (
-                        <div className="text-xs text-muted-foreground">{bill.reference}</div>
+                        <span className="cell-sub truncate">{bill.reference}</span>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-4">
-                  <span className="text-sm text-foreground">{bill.invoice_number || '-'}</span>
-                </td>
-                <td className="py-3 px-4">
+                <td>{bill.invoice_number || '-'}</td>
+                <td className="cell-muted">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{formatDate(bill.due_date || '')}</span>
+                    <span>{formatDate(bill.due_date || '')}</span>
                     {getDueBadge(bill)}
                   </div>
                 </td>
-                <td className="py-3 px-4 text-right">
-                  <span className="text-sm font-medium text-foreground">
-                    {cleanCurrencyCode(bill.currency)} {parseFloat(
-                      bill.status === 'PAID' ? bill.total : bill.amount_due
-                    ).toLocaleString(undefined, {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    })}
-                  </span>
+                <td className="cell-currency">{cleanCurrencyCode(bill.currency)}</td>
+                <td className="cell-amount">
+                  {parseFloat(
+                    bill.status === 'PAID' ? bill.total : bill.amount_due
+                  ).toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}
                 </td>
-                <td className="py-3 px-4">
+                <td>
                   {getStatusBadge(bill.status)}
                 </td>
               </tr>

@@ -1,5 +1,6 @@
 import { ReactNode, Suspense } from 'react';
-import { Inter } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
@@ -10,12 +11,11 @@ import { HydrationErrorHandler } from '@/components/hydration-error-handler';
 
 import '@/styles/globals.css';
 
-// Metronic uses Inter font as the primary font
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
+// Geist Sans is the app-wide UI font (Vercel's open type system).
+// Geist Mono powers tabular figures in data grids and code.
+// `geist/font/sans` ships its own CSS variable `--font-geist-sans`;
+// we expose it under our existing `--font-sans` (and keep `--font-inter`
+// as an alias so any old utility class that still references it works).
 
 export const metadata: Metadata = {
   title: {
@@ -33,11 +33,15 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en" className={cn('h-full', inter.variable)} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn('h-full', GeistSans.variable, GeistMono.variable)}
+      suppressHydrationWarning
+    >
       <body
         className={cn(
-          'antialiased flex h-full text-base text-foreground bg-background font-inter',
-          inter.className,
+          'antialiased flex h-full text-base text-foreground bg-background',
+          GeistSans.className,
         )}
         suppressHydrationWarning
       >

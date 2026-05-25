@@ -411,8 +411,12 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
     return (
       <span
-        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium"
-        style={{ backgroundColor: config.light, color: config.bg !== '#bec3c6' ? config.bg : config.text }}
+        className="status-pill"
+        style={{
+          backgroundColor: config.light,
+          color: config.bg !== '#bec3c6' ? config.bg : config.text,
+          borderColor: 'transparent',
+        }}
       >
         {config.label}
       </span>
@@ -467,7 +471,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         <div className="p-4 bg-destructive/5 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
           <XCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Queue</h3>
+        <h3 className="text-lg font-normal text-foreground mb-2">Error Loading Queue</h3>
         <p className="text-muted-foreground text-sm mb-4">{error.message}</p>
         <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -491,7 +495,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }}
             />
             <span className="text-sm text-muted-foreground">Pending Approval</span>
-            <span className="text-sm font-semibold text-foreground">{stats.pending_approval}</span>
+            <span className="text-sm font-normal text-foreground">{stats.pending_approval}</span>
           </button>
 
           <button
@@ -503,7 +507,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.processing.bg }}
             />
             <span className="text-sm text-muted-foreground">Ready for File</span>
-            <span className="text-sm font-semibold text-foreground">{stats.processing}</span>
+            <span className="text-sm font-normal text-foreground">{stats.processing}</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -512,7 +516,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.pending.bg }}
             />
             <span className="text-sm text-muted-foreground">File Sent</span>
-            <span className="text-sm font-semibold text-foreground">{stats.pending}</span>
+            <span className="text-sm font-normal text-foreground">{stats.pending}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -521,7 +525,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.sent.bg }}
             />
             <span className="text-sm text-muted-foreground">Processing</span>
-            <span className="text-sm font-semibold text-foreground">{stats.sent}</span>
+            <span className="text-sm font-normal text-foreground">{stats.sent}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -530,7 +534,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.success.bg }}
             />
             <span className="text-sm text-muted-foreground">Successful</span>
-            <span className="text-sm font-semibold text-foreground">{stats.success}</span>
+            <span className="text-sm font-normal text-foreground">{stats.success}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -539,7 +543,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               style={{ backgroundColor: STATUS_COLORS.failed.bg }}
             />
             <span className="text-sm text-muted-foreground">Failed</span>
-            <span className="text-sm font-semibold text-foreground">{(stats.failed || 0) + (stats.rejected || 0)}</span>
+            <span className="text-sm font-normal text-foreground">{(stats.failed || 0) + (stats.rejected || 0)}</span>
           </div>
         </div>
       )}
@@ -718,7 +722,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       {!payments || payments.length === 0 ? (
         <div className="py-16 text-center">
           <Send className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-sm font-medium text-foreground">No Payments in Queue</p>
+          <p className="text-sm font-normal text-foreground">No Payments in Queue</p>
           <p className="text-sm text-muted-foreground mt-1">
             {statusFilter !== 'all'
               ? 'No payments with this status. Try a different filter.'
@@ -727,11 +731,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-professional">
             <thead>
-              <tr className="border-b border-border bg-muted">
+              <tr>
                 {hasAnyActionPermission && (
-                  <th className="px-4 py-3 w-10">
+                  <th className="w-10">
                     <input
                       type="checkbox"
                       checked={payments.length > 0 && selectedPayments.size === payments.length}
@@ -746,28 +750,27 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                     />
                   </th>
                 )}
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Vendor</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Bill</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Method</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Created</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Actions</th>
+                <th>Vendor</th>
+                <th>Bill</th>
+                <th>Method</th>
+                <th className="cell-currency">Ccy</th>
+                <th className="text-right">Amount</th>
+                <th>Created</th>
+                <th className="text-right pr-6">Actions</th>
+                <th>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {payments.map((payment: PaymentEvent) => (
                 <tr
                   key={payment.id}
-                  className={`transition-colors ${
+                  className={`${selectedPayments.has(payment.id) ? 'is-selected' : ''} ${
                     hasAnyActionPermission ? 'cursor-pointer' : ''
-                  } ${
-                    selectedPayments.has(payment.id) ? 'bg-primary/5' : 'hover:bg-muted'
                   }`}
                   onClick={() => hasAnyActionPermission && togglePaymentSelection(payment.id)}
                 >
                   {hasAnyActionPermission && (
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedPayments.has(payment.id)}
@@ -776,56 +779,84 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                     />
                   </td>
                   )}
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="cell-primary whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground font-medium text-xs">
+                      <div className="cell-avatar">
                         {getInitials(payment.vendor_name)}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-foreground">
-                          {payment.vendor_name || 'Unknown Vendor'}
-                        </div>
+                        <div>{payment.vendor_name || 'Unknown Vendor'}</div>
                         {payment.account_name && (
-                          <div className="text-xs text-muted-foreground">{payment.account_name}</div>
+                          <span className="cell-sub">{payment.account_name}</span>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-foreground">{payment.bill_number || '-'}</div>
+                  <td className="whitespace-nowrap">
+                    <div>{payment.bill_number || '-'}</div>
                     {payment.bill_reference && (
-                      <div className="text-xs text-muted-foreground">{payment.bill_reference}</div>
+                      <span className="cell-sub">{payment.bill_reference}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-right">
-                    <div className="text-sm font-medium text-foreground">
-                      {payment.currency}{' '}
-                      {parseFloat(payment.amount).toLocaleString(undefined, {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <span className="p-1 bg-muted rounded">
                         {getMethodIcon(payment.method)}
                       </span>
                       <div>
-                        <div className="text-sm text-foreground">{payment.method_display}</div>
+                        <div>{payment.method_display}</div>
                         {payment.phone_number && (
-                          <div className="text-xs text-muted-foreground">{payment.phone_number}</div>
+                          <span className="cell-sub">{payment.phone_number}</span>
                         )}
                         {payment.account_number && (
-                          <div className="text-xs text-muted-foreground">
+                          <span className="cell-sub">
                             {payment.bank_name_display ? `${payment.bank_name_display} - ` : ''}
                             {payment.account_number}
-                          </div>
+                          </span>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="cell-currency">{payment.currency}</td>
+                  <td className="cell-amount">
+                    {parseFloat(payment.amount).toLocaleString(undefined, {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </td>
+                  <td className="whitespace-nowrap cell-muted">
+                    <div>{formatDate(payment.created_at)}</div>
+                    {payment.created_by_name && (
+                      <span className="cell-sub">by {payment.created_by_name}</span>
+                    )}
+                    {payment.approved_by_name && (
+                      <span className="cell-sub" style={{ color: STATUS_COLORS.success.bg }}>
+                        Approved by {payment.approved_by_name}
+                      </span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap text-right pr-6">
+                    {hasApprovePermission && payment.provider_status !== 'REVERSED' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openReverseDialog(payment);
+                        }}
+                        className="h-7 px-2 text-xs"
+                        title="Reverse this payment — restores the bill to payable status"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reverse
+                      </Button>
+                    )}
+                    {payment.provider_status === 'REVERSED' && (
+                      <span className="text-[11px] text-muted-foreground">Reversed</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap">
                     {getStatusBadge(payment.provider_status)}
                     {payment.rejection_reason && (
                       <div className="text-xs text-destructive mt-1 max-w-[120px] truncate" title={payment.rejection_reason}>
@@ -849,38 +880,6 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-muted-foreground">{formatDate(payment.created_at)}</div>
-                    {payment.created_by_name && (
-                      <div className="text-xs text-muted-foreground">by {payment.created_by_name}</div>
-                    )}
-                    {payment.approved_by_name && (
-                      <div className="text-xs" style={{ color: STATUS_COLORS.success.bg }}>
-                        Approved by {payment.approved_by_name}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-right">
-                    {hasApprovePermission && payment.provider_status !== 'REVERSED' && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openReverseDialog(payment);
-                        }}
-                        className="h-7 px-2 text-xs"
-                        title="Reverse this payment — restores the bill to payable status"
-                      >
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        Reverse
-                      </Button>
-                    )}
-                    {payment.provider_status === 'REVERSED' && (
-                      <span className="text-[11px] text-muted-foreground">Reversed</span>
-                    )}
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -898,7 +897,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="block text-sm font-normal text-foreground mb-2">
               Reason (optional)
             </label>
             <Textarea
@@ -942,7 +941,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-normal text-foreground mb-2">
                 Source Bank Account
               </label>
               <Select
@@ -963,7 +962,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-normal text-foreground mb-2">
                 File Format
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -976,7 +975,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       : 'border-border hover:border-border'
                   }`}
                 >
-                  <div className="font-medium text-foreground text-sm">XML</div>
+                  <div className="font-normal text-foreground text-sm">XML</div>
                   <div className="text-xs text-muted-foreground mt-0.5">ISO 20022</div>
                 </button>
                 <button
@@ -988,7 +987,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       : 'border-border hover:border-border'
                   }`}
                 >
-                  <div className="font-medium text-foreground text-sm">CSV</div>
+                  <div className="font-normal text-foreground text-sm">CSV</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Standard</div>
                 </button>
               </div>
@@ -1026,7 +1025,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="block text-sm font-normal text-foreground mb-2">
               Reason (optional)
             </label>
             <Textarea
@@ -1072,7 +1071,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           {selectedPaymentsData[0] && (
             <div className="py-2 space-y-3">
               <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                <div className="font-medium text-foreground">
+                <div className="font-normal text-foreground">
                   {selectedPaymentsData[0].vendor_name || 'Payment'}
                 </div>
                 {selectedPaymentsData[0].bill_number && (
@@ -1088,7 +1087,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-normal text-foreground mb-2">
                   Amount ({selectedPaymentsData[0].currency})
                 </label>
                 <Input
@@ -1145,7 +1144,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           {reverseTarget && (
             <div className="py-2 space-y-3">
               <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                <div className="font-medium text-foreground">
+                <div className="font-normal text-foreground">
                   {reverseTarget.vendor_name || 'Payment'} &middot; {reverseTarget.currency}{' '}
                   {parseFloat(reverseTarget.amount).toLocaleString()}
                 </div>
@@ -1156,7 +1155,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-normal text-foreground mb-2">
                   Reason (required)
                 </label>
                 <Textarea

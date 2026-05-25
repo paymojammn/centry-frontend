@@ -105,7 +105,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
           <p className="text-xs text-muted-foreground/60 mt-1">Upload a bank file to get started</p>
         </div>
       ) : (
-        <table className="w-full">
+        <table className="w-full table-professional">
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">File</th>

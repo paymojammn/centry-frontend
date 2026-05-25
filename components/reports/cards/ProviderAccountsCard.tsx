@@ -47,7 +47,7 @@ export function ProviderAccountsCard({ accounts, formatCurrency }: Props) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-professional">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                   <th className="py-2 font-medium">Account</th>

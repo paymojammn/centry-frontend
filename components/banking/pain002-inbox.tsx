@@ -164,7 +164,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-medium text-foreground">Bank Response (pain.002)</h3>
+            <h3 className="text-sm font-normal text-foreground">Bank Response (pain.002)</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Pull payment status reports from the bank — processed responses appear in the Reconciliation tab
@@ -173,7 +173,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Bank Account</Label>
+              <Label className="text-sm font-normal text-foreground">Bank Account</Label>
               <Select
                 value={selectedAccountId?.toString() || "all"}
                 onValueChange={(value) => {
@@ -197,7 +197,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">SFTP Connection</Label>
+              <Label className="text-sm font-normal text-foreground">SFTP Connection</Label>
               <Select
                 value={selectedSFTPCredentialId?.toString() || ""}
                 onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
@@ -311,7 +311,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
           <ContentCard noPadding>
             <ContentCardHeader>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-foreground">Inbox</h3>
+                <h3 className="text-sm font-normal text-foreground">Inbox</h3>
                 {!remoteFilesLoading && (
                   <Badge variant="secondary" className="text-xs">
                     {filteredFiles.length}
@@ -331,7 +331,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
                 <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
                   <InboxIcon className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-normal text-foreground">
                   {hasFileFilters ? "No files match your filters" : "Inbox is empty"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -342,7 +342,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-normal text-muted-foreground uppercase tracking-wider border-b border-border/50">
                   <div className="col-span-3">Modified</div>
                   <div className="col-span-7">Filename</div>
                   <div className="col-span-1 text-right">Size</div>
@@ -362,7 +362,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
                       </div>
                       <div className="col-span-7 min-w-0 flex items-center gap-2">
                         <FileText className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                        <p className="font-medium text-foreground truncate">{file.name}</p>
+                        <p className="font-normal text-foreground truncate">{file.name}</p>
                         {file.archived && (
                           <Badge variant="secondary" className="text-[10px] shrink-0">
                             Processed

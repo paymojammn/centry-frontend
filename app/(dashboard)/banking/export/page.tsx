@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatsOverview } from "@/components/banking/stats-overview";
+import { BankingExportOverview } from "@/components/banking/banking-export-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
 import { Pain002Inbox } from "@/components/banking/pain002-inbox";
 import { Pain002Status } from "@/components/banking/pain002-status";
@@ -174,7 +174,7 @@ export default function BankingExportPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-foreground">Export</h1>
+              <h1 className="text-xl font-normal text-foreground">Export</h1>
               <Select
                 value={selectedOrganizationId || undefined}
                 onValueChange={setSelectedOrganizationId}
@@ -214,7 +214,7 @@ export default function BankingExportPage() {
                 <button
                   key={tab.value}
                   onClick={() => setActiveTab(tab.value)}
-                  className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex items-center gap-2 py-3 px-4 text-sm font-normal border-b-2 transition-colors ${
                     activeTab === tab.value
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground"
@@ -232,9 +232,9 @@ export default function BankingExportPage() {
       {/* Content */}
       <div className="px-6 py-6">
         {activeTab === "overview" && (
-          <StatsOverview
+          <BankingExportOverview
             organizationId={selectedOrganizationId || undefined}
-            mode="export"
+            onNavigate={setActiveTab}
           />
         )}
         {activeTab === "sftp-export" && (
@@ -322,7 +322,7 @@ export default function BankingExportPage() {
             <ContentCard noPadding>
               <ContentCardHeader>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">
+                  <h3 className="text-sm font-normal text-foreground">
                     Outbox
                   </h3>
                   {!exportsLoading && (
@@ -344,7 +344,7 @@ export default function BankingExportPage() {
                   <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
                     <FolderOpen className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-normal text-foreground">
                     Outbox is empty
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -355,58 +355,62 @@ export default function BankingExportPage() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
+                  <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
                     <div className="col-span-2">Date</div>
                     <div className="col-span-3">Filename</div>
-                    <div className="col-span-2">Account</div>
+                    <div className="col-span-1">Account</div>
                     <div className="col-span-1 text-center">Payments</div>
+                    <div className="col-span-1 text-right">Ccy</div>
                     <div className="col-span-2 text-right">Amount</div>
                     <div className="col-span-1">Status</div>
                     <div className="col-span-1"></div>
                   </div>
-                  <div className="divide-y divide-border/50 max-h-[calc(100vh-350px)] overflow-y-auto">
+                  <div className="divide-y divide-border max-h-[calc(100vh-350px)] overflow-y-auto">
                     {filteredExports.map((e) => (
                       <div
                         key={e.id}
-                        className="grid grid-cols-12 gap-3 px-6 py-3 items-center text-sm hover:bg-muted/30 transition-colors"
+                        className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
                       >
-                        <div className="col-span-2 text-muted-foreground">
+                        <div className="col-span-2 text-muted-foreground tabular-nums">
                           {format(new Date(e.created_at), "dd MMM yyyy")}
-                          <p className="text-xs text-muted-foreground/60">
+                          <p className="text-[12px] text-muted-foreground/60 mt-0.5">
                             {format(new Date(e.created_at), "HH:mm")}
                           </p>
                         </div>
                         <div className="col-span-3 min-w-0">
-                          <p className="font-medium text-foreground truncate">
+                          <p className="text-foreground truncate">
                             {e.file_name || "—"}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[12px] text-muted-foreground mt-0.5">
                             {e.file_size
                               ? `${(e.file_size / 1024).toFixed(1)} KB`
                               : "—"}
                           </p>
                         </div>
-                        <div className="col-span-2 min-w-0">
-                          <p className="text-xs text-muted-foreground truncate">
+                        <div className="col-span-1 min-w-0">
+                          <p className="text-[12px] text-muted-foreground truncate">
                             {e.bank_account?.account_name || "—"}
                           </p>
                         </div>
                         <div className="col-span-1 text-center">
-                          <span className="text-sm tabular-nums text-foreground">
+                          <span className="tabular-nums text-foreground">
                             {e.payment_count}
                           </span>
                         </div>
+                        <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
+                          {e.currency}
+                        </div>
                         <div className="col-span-2 text-right">
-                          <span className="font-semibold tabular-nums text-foreground">
-                            {formatCurrency(
-                              parseFloat(e.total_amount),
-                              e.currency
-                            )}
+                          <span className="tabular-nums text-foreground">
+                            {parseFloat(e.total_amount).toLocaleString(undefined, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 2,
+                            })}
                           </span>
                         </div>
                         <div className="col-span-1">
                           <span
-                            className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium border ${
+                            className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${
                               FILE_STATUS_STYLES[e.status] ||
                               "bg-muted text-muted-foreground border-border"
                             }`}

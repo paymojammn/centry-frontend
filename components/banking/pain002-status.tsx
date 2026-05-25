@@ -51,35 +51,35 @@ function getStatusBadge(status: string) {
   switch (status) {
     case "ACSP":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
           <CheckCircle2 className="h-3 w-3" />
           Accepted
         </span>
       );
     case "ACWC":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
           <AlertTriangle className="h-3 w-3" />
           Accepted with Change
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
           <Clock className="h-3 w-3" />
           Pending
         </span>
       );
     case "RJCT":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
           <XCircle className="h-3 w-3" />
           Rejected
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-muted text-foreground">
           {status || "Unknown"}
         </span>
       );
@@ -90,31 +90,31 @@ function getGroupStatusBadge(status: string | null) {
   switch (status) {
     case "RCVD":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Received
         </span>
       );
     case "ACSP":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
           All Accepted
         </span>
       );
     case "PART":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
           Partial
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Pending
         </span>
       );
     case "RJCT":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
           Rejected
         </span>
       );
@@ -127,33 +127,33 @@ function getReportTypeBadge(type: string) {
   switch (type) {
     case "ACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/5 text-primary">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
           <FileCheck className="h-3 w-3" />
           ACK
         </span>
       );
     case "NACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-destructive/5 text-destructive">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
           <XCircle className="h-3 w-3" />
           NACK
         </span>
       );
     case "INTERIM":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
           Interim
         </span>
       );
     case "FINAL":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#8B7BB8]/10 text-[#8B7BB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#8B7BB8]/10 text-[#8B7BB8]">
           Final
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-muted text-foreground">
           {type}
         </span>
       );
@@ -196,31 +196,31 @@ function TransactionStatusRow({ tx }: { tx: PaymentTransactionStatus }) {
             <div className="ml-6 space-y-2 text-sm">
               {tx.creditor_name && (
                 <div>
-                  <span className="font-medium text-muted-foreground">Creditor:</span>{" "}
+                  <span className="font-normal text-muted-foreground">Creditor:</span>{" "}
                   <span className="text-foreground">{tx.creditor_name}</span>
                 </div>
               )}
               {tx.invoice_number && (
                 <div>
-                  <span className="font-medium text-muted-foreground">Invoice:</span>{" "}
+                  <span className="font-normal text-muted-foreground">Invoice:</span>{" "}
                   <span className="text-foreground">{tx.invoice_number}</span>
                 </div>
               )}
               {tx.status_description && (
                 <div>
-                  <span className="font-medium text-muted-foreground">Description:</span>{" "}
+                  <span className="font-normal text-muted-foreground">Description:</span>{" "}
                   <span className="text-foreground">{tx.status_description}</span>
                 </div>
               )}
               {tx.original_instruction_id && (
                 <div>
-                  <span className="font-medium text-muted-foreground">Instruction ID:</span>{" "}
+                  <span className="font-normal text-muted-foreground">Instruction ID:</span>{" "}
                   <span className="font-mono text-foreground">{tx.original_instruction_id}</span>
                 </div>
               )}
               {tx.additional_info && tx.additional_info.length > 0 && (
                 <div>
-                  <span className="font-medium text-muted-foreground">Additional Info:</span>
+                  <span className="font-normal text-muted-foreground">Additional Info:</span>
                   <ul className="list-disc list-inside mt-1 text-foreground">
                     {tx.additional_info.map((info, i) => (
                       <li key={i}>{info}</li>
@@ -268,7 +268,7 @@ function ExportStatusCard({
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
           <div>
-            <p className="text-sm font-medium text-foreground">{exportFile.file_name}</p>
+            <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
             <p className="text-xs text-muted-foreground">
               {exportFile.payment_count} payments · {formatCurrency(exportFile.total_amount, exportFile.currency)}
             </p>
@@ -387,15 +387,15 @@ function StatusDetail({ status }: { status: PaymentExportStatus }) {
               No transaction details available
             </div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-professional">
               <thead>
                 <tr className="bg-muted border-b border-border">
                   <th className="w-8 px-4 py-2"></th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">End-to-End ID</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Code</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Payment</th>
+                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">End-to-End ID</th>
+                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Status</th>
+                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Code</th>
+                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Amount</th>
+                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Payment</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -469,7 +469,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
       <div className="bg-card rounded-xl border border-border/80 shadow-sm p-4">
         <div className="flex flex-col md:flex-row md:items-end gap-4 max-w-md">
           <div className="flex-1 space-y-2">
-            <Label className="text-sm font-medium text-foreground">Bank Account</Label>
+            <Label className="text-sm font-normal text-foreground">Bank Account</Label>
             <Select
               value={selectedAccountId?.toString() || "all"}
               onValueChange={(value) =>
@@ -499,7 +499,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           <div>
             <div className="flex items-center gap-2">
               <FileCheck className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium text-foreground">Payment Export Status</h3>
+              <h3 className="text-sm font-normal text-foreground">Payment Export Status</h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Bank responses for uploaded payment files. Pull new responses from the Inbox tab.

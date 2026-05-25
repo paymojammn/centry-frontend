@@ -148,13 +148,12 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
     toggleActiveMutation.mutate({ id: account.id, is_active: !account.is_active });
   };
 
-  const formatBalance = (amount: number | string, currency: string) => {
-    const cleanCurrency = cleanCurrencyCode(currency);
+  const formatBalanceAmount = (amount: number | string) => {
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `${cleanCurrency} ${(numericAmount || 0).toLocaleString('en-US', {
+    return (numericAmount || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
+      maximumFractionDigits: 2,
+    });
   };
 
   if (isLoading) {
@@ -192,52 +191,42 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
           </p>
         </div>
       ) : (
-        <table className="w-full">
+        <table className="w-full table-professional">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Account</th>
-              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Bank</th>
-              <th className="text-left text-xs font-medium text-muted-foreground px-6 py-3">Currency</th>
-              <th className="text-right text-xs font-medium text-muted-foreground px-6 py-3">Balance</th>
-              <th className="text-center text-xs font-medium text-muted-foreground px-6 py-3">Active</th>
-              <th className="w-10 px-3"></th>
+            <tr>
+              <th>Account</th>
+              <th>Bank</th>
+              <th className="cell-currency">Ccy</th>
+              <th className="text-right">Balance</th>
+              <th className="text-center">Active</th>
+              <th className="w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody>
             {accounts.map((account: BankAccount) => (
-              <tr key={account.id} className="hover:bg-muted transition-colors">
-                <td className="px-6 py-3">
+              <tr key={account.id}>
+                <td className="cell-primary">
                   <div className="flex items-center gap-2">
                     {account.is_default && (
                       <Star className="h-3.5 w-3.5 text-[#D4B35A] fill-[#D4B35A] flex-shrink-0" />
                     )}
                     <div>
-                      <div className="text-sm font-medium text-foreground">{account.account_name}</div>
-                      <div className="text-xs text-muted-foreground">{account.account_number}</div>
+                      <div>{account.account_name}</div>
+                      <span className="cell-sub">{account.account_number}</span>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-3">
-                  <span className="text-sm text-foreground">{account.bank?.name || '-'}</span>
-                </td>
-                <td className="px-6 py-3">
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                    {cleanCurrencyCode(account.currency)}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-right">
-                  <span className="text-sm font-medium text-foreground">
-                    {formatBalance(account.balance || 0, account.currency)}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-center">
+                <td>{account.bank?.name || '-'}</td>
+                <td className="cell-currency">{cleanCurrencyCode(account.currency)}</td>
+                <td className="cell-amount">{formatBalanceAmount(account.balance || 0)}</td>
+                <td className="text-center">
                   <Switch
                     checked={account.is_active}
                     onCheckedChange={() => handleToggleActive(account)}
                     className="data-[state=checked]:bg-primary"
                   />
                 </td>
-                <td className="px-3 py-3">
+                <td>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground/60 hover:text-muted-foreground">

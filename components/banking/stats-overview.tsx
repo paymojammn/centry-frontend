@@ -28,7 +28,7 @@ function StatPill({ label, value, color }: { label: string; value: string | numb
   return (
     <div className="flex items-center gap-2">
       <span className="text-muted-foreground text-sm">{label}:</span>
-      <span className={`px-2 py-0.5 rounded text-sm font-medium ${colors[color] || colors.blue}`}>
+      <span className={`px-2 py-0.5 rounded text-sm font-normal ${colors[color] || colors.blue}`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </span>
     </div>
@@ -98,7 +98,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-medium text-foreground">By Bank Provider</h3>
+              <h3 className="text-sm font-normal text-foreground">By Bank Provider</h3>
             </div>
           </div>
           <div className="divide-y divide-border">
@@ -108,11 +108,11 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                 className="px-6 py-3 flex items-center justify-between hover:bg-muted"
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground">{provider.bank_provider__name}</p>
+                  <p className="text-sm font-normal text-foreground">{provider.bank_provider__name}</p>
                   <p className="text-xs text-muted-foreground font-mono">{provider.bank_provider__code}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-primary">
+                  <p className="text-sm font-normal text-primary">
                     {provider.count} {provider.count === 1 ? 'import' : 'imports'}
                   </p>
                   <p className="text-xs text-muted-foreground">{provider.total_txs.toLocaleString()} txns</p>
@@ -128,7 +128,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-medium text-foreground">By Bank Account</h3>
+              <h3 className="text-sm font-normal text-foreground">By Bank Account</h3>
             </div>
           </div>
           <div className="divide-y divide-border">
@@ -138,11 +138,11 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                 className="px-6 py-3 flex items-center justify-between hover:bg-muted"
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground">{bank.bank_account__account_name}</p>
+                  <p className="text-sm font-normal text-foreground">{bank.bank_account__account_name}</p>
                   <p className="text-xs text-muted-foreground">{bank.bank_account__bank_provider__name || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-primary">
+                  <p className="text-sm font-normal text-primary">
                     {bank.count} {bank.count === 1 ? 'export' : 'exports'}
                   </p>
                   <p className="text-xs text-muted-foreground">{bank.total_payments.toLocaleString()} payments</p>
@@ -159,7 +159,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-medium text-foreground">Recent Imports</h3>
+              <h3 className="text-sm font-normal text-foreground">Recent Imports</h3>
             </div>
           </div>
           <div className="divide-y divide-border">
@@ -177,14 +177,14 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                       <Clock className="h-4 w-4 text-[#D4B35A]" />
                     )}
                     <div>
-                      <p className="text-sm font-medium text-foreground">{imp.original_filename}</p>
+                      <p className="text-sm font-normal text-foreground">{imp.original_filename}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(imp.imported_at).toLocaleDateString()} · {imp.bank_provider.name}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-medium ${isFullySynced ? 'text-primary' : 'text-[#D4B35A]'}`}>
+                    <p className={`text-sm font-normal ${isFullySynced ? 'text-primary' : 'text-[#D4B35A]'}`}>
                       {imp.transactions_synced}/{imp.transactions_count}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -204,7 +204,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-medium text-foreground">Recent Exports</h3>
+              <h3 className="text-sm font-normal text-foreground">Recent Exports</h3>
             </div>
           </div>
           <div className="divide-y divide-border">
@@ -233,14 +233,14 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                   <div className="flex items-center gap-3">
                     <StatusIcon className={`h-4 w-4 ${statusColor}`} />
                     <div>
-                      <p className="text-sm font-medium text-foreground">{exp.filename}</p>
+                      <p className="text-sm font-normal text-foreground">{exp.filename}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(exp.created_at).toLocaleDateString()} · {exp.bank_account_name}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-medium ${statusColor}`}>
+                    <p className={`text-sm font-normal ${statusColor}`}>
                       {exp.payment_count} {exp.payment_count === 1 ? 'payment' : 'payments'}
                     </p>
                     <p className="text-xs text-muted-foreground capitalize">{exp.status.replace('_', ' ')}</p>

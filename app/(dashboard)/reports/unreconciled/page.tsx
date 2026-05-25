@@ -163,7 +163,7 @@ export default function UnreconciledReportPage() {
                 <div className="text-sm text-muted-foreground py-4">All bank uploads have responses</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm table-professional">
                     <thead>
                       <tr className="border-b border-border text-left text-xs text-muted-foreground">
                         <th className="py-2 font-medium">Filename</th>
@@ -215,7 +215,7 @@ export default function UnreconciledReportPage() {
                 <div className="text-sm text-muted-foreground py-4">No unmatched bank responses</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm table-professional">
                     <thead>
                       <tr className="border-b border-border text-left text-xs text-muted-foreground">
                         <th className="py-2 font-medium">EndToEnd ID</th>
@@ -265,7 +265,7 @@ export default function UnreconciledReportPage() {
                 <div className="text-sm text-muted-foreground py-4">No stuck provider payments</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm table-professional">
                     <thead>
                       <tr className="border-b border-border text-left text-xs text-muted-foreground">
                         <th className="py-2 font-medium">Recipient</th>

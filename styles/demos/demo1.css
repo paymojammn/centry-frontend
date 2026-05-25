@@ -76,6 +76,14 @@
 
     /* Collapsed state stays collapsed — no hover-expand. */
 
+    /* Shrink inner wrappers so menu items match the collapsed sidebar width.
+       Otherwise items stay 280px wide and centered icons sit at ~140px —
+       outside the visible 80px window — so clicks land on empty space. */
+    .demo1.sidebar-collapse .sidebar .sidebar-wrapper,
+    .demo1.sidebar-collapse .sidebar .sidebar-logo {
+      width: var(--sidebar-width-collapse);
+    }
+
     .demo1.sidebar-collapse .sidebar .default-logo {
       display: none;
     }

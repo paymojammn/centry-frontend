@@ -11,8 +11,12 @@
 
 /** Colors - https://tailwindcss.com/docs/colors **/
 :root {
-  /** Metronic Font - Inter **/
-  --font-inter: var(--font-inter);
+  /** App typography — Geist Sans for UI, Geist Mono for tabular figures.
+      `--font-inter` is kept as an alias so legacy utility classes (font-inter,
+      etc.) keep working without a rename pass. */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-inter: var(--font-geist-sans);
   
   /** Metronic Breakpoints **/
   --breakpoint-sm: 640px;
@@ -277,42 +281,174 @@ html {
     background-color: var(--hover-row);
   }
   
-  /* Professional table base styles */
+  /* ─────────────────────────────────────────────────────────────
+     .table-professional — shared data-grid style.
+     Used by /bills, /invoices, and other lists. Edit this one
+     block to refresh look-and-feel everywhere.
+     Design intent: Stripe/Linear-class refinement.
+       • Quiet, low-contrast headers (11px uppercase, weight 500)
+       • Body text at 13px weight 400 — easy on the eye
+       • Primary column (.cell-primary) at weight 500 — single
+         emphasis per row to anchor the scan
+       • Tabular-nums on numeric cells so columns of figures align
+       • Generous vertical padding for breathing room
+       • No zebra striping; whitespace + hairline borders only
+     ───────────────────────────────────────────────────────────── */
   .table-professional {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;             /* 13px body baseline */
+    color: var(--foreground);
+    font-feature-settings: 'cv11', 'ss01'; /* Inter stylistic alternates — refined numerals */
   }
-  
-  .table-professional thead {
-    border-bottom: 2px solid var(--divider-teal);
-  }
-  
-  .table-professional th {
+
+  /* Header — quiet, uppercase, no background fill, light weight. */
+  .table-professional thead th {
     padding: 0.75rem 1rem;
     text-align: left;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--foreground);
-    background-color: rgb(var(--brand-primary) / 0.05);
-  }
-  
-  .table-professional td {
-    padding: 0.75rem 1rem;
+    font-weight: 400;                 /* Light/regular — never bold */
+    font-size: 0.6875rem;             /* 11px */
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    background-color: var(--background);
     border-bottom: 1px solid var(--border);
-    font-size: 0.875rem;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .table-professional thead th[align='right'],
+  .table-professional thead th.text-right {
+    text-align: right;
+  }
+
+  /* Body cells — generous padding, soft border, light weight throughout. */
+  .table-professional tbody td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8125rem;             /* 13px */
+    font-weight: 400;                 /* Light/regular baseline */
+    color: var(--foreground);
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+
+  /* Cell role classes — opt in from the page markup.
+     Hierarchy comes from color/spacing, not font weight. No cell is bolder
+     than another; the user reads `text-foreground` vs `text-muted-foreground`
+     as the contrast cue. */
+  .table-professional td.cell-primary {
+    /* The single anchored cell per row (vendor / customer / title) —
+       same weight as the rest, just full foreground colour. */
+    font-weight: 400;
     color: var(--foreground);
   }
-  
-  .table-professional tbody tr {
-    transition: background-color 0.15s ease;
+  .table-professional td.cell-muted {
+    color: var(--muted-foreground);
   }
-  
+  .table-professional td.cell-amount,
+  .table-professional td.amount {
+    font-weight: 400;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum', 'cv11';
+  }
+  /* Currency code lives in its own cell — small, muted, right-edge so it
+     sits flush against the amount column. */
+  .table-professional td.cell-currency,
+  .table-professional th.cell-currency {
+    font-weight: 400;
+    font-size: 0.6875rem;             /* 11px */
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    text-align: right;
+    width: 1%;                        /* shrink-to-fit */
+    white-space: nowrap;
+    padding-right: 0.25rem;
+  }
+  .table-professional td.cell-amount + td,
+  .table-professional td.cell-currency + td.cell-amount {
+    /* When currency immediately precedes/follows amount, kill the gap so
+       they read as one unit. */
+    padding-left: 0;
+  }
+  /* Anything right-aligned gets tabular figures so currency columns
+     line up cleanly without the page having to opt in. */
+  .table-professional tbody td.text-right,
+  .table-professional tbody td[align='right'],
+  .table-professional tbody td.tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum', 'cv11';
+  }
+
+  /* Sub-line beneath a primary cell (e.g. reference number under vendor). */
+  .table-professional td .cell-sub {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: 0.75rem;               /* 12px */
+    font-weight: 400;
+    color: var(--muted-foreground);
+  }
+
+  /* Row interactions. */
+  .table-professional tbody tr {
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
   .table-professional tbody tr:hover {
     background-color: var(--hover-row);
   }
-  
   .table-professional tbody tr:last-child td {
     border-bottom: none;
+  }
+
+  /* Selected row — soft sage tint with a 2px left accent stripe. */
+  .table-professional tbody tr.is-selected,
+  .table-professional tbody tr[data-state='selected'] {
+    background-color: rgb(var(--brand-primary) / 0.06);
+    box-shadow: inset 2px 0 0 0 rgb(var(--brand-primary));
+  }
+
+  /* Avatar bubble used in cell-primary — kept here so the whole
+     grid system stays self-contained. */
+  .table-professional .cell-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;                   /* 28px */
+    height: 1.75rem;
+    border-radius: 9999px;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;             /* 11px */
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  /* Status pill — uniform shape so a column of pills with different
+     labels ("Paid" / "Pending Approval" / "Rejected") still reads as one
+     coherent column. Pages add `.status-pill` plus the colour utility
+     classes (bg-emerald-500/10 text-emerald-700 border-emerald-500/20,
+     etc.) for the variant tint. */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 7rem;                  /* 112px — fits "Pending Approval" */
+    height: 1.375rem;                 /* 22px — consistent vertical rhythm */
+    padding: 0 0.625rem;              /* 10px horizontal */
+    border-radius: 9999px;
+    border-width: 1px;
+    font-size: 0.6875rem;             /* 11px */
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
   }
 }
 
