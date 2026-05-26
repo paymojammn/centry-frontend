@@ -141,12 +141,14 @@ export default function OnegateSignoffPage() {
   const startDeposit = useMutation({
     mutationFn: async ({ slug, amount }: { slug: string; amount: string }) => {
       if (!accountId) throw new Error("Pick an account");
-      const returnUrl = window.location.origin + "/banking/onegate/signoff";
+      // Don't pass return_url from the browser — the backend pulls
+      // gateway_return_url straight off the ProviderAccount admin
+      // record and uses it verbatim. Passing window.location.origin from
+      // a localhost dev session would just be rejected.
       const method = deposits.find((m) => m.slug === slug);
       return onegateApi.startDepositTest(accountId, {
         slug,
         amount: amount || method?.default_amount || "10.00",
-        return_url: returnUrl,
       });
     },
     onSuccess: (resp) => {
@@ -506,7 +508,14 @@ function DepositCard({
   useEffect(() => {
     setAmount(row.default_amount);
   }, [row.default_amount, row.slug]);
-  const amountValid = /^\d+(\.\d{0,2})?$/.test(amount.trim()) && Number(amount) > 0;
+  // Vouchers must send amount=0 — OneGate captures voucher value from the
+  // PIN entered on their hosted page. UI locks the field so users can't
+  // override.
+  const isVoucher = row.is_voucher;
+  const amountValid = isVoucher
+    ? true
+    : /^\d+(\.\d{0,2})?$/.test(amount.trim()) && Number(amount) > 0;
+  const effectiveAmount = isVoucher ? "0.00" : amount.trim();
 
   return (
     <div
@@ -546,21 +555,27 @@ function DepositCard({
         <div className="flex items-center gap-1">
           <span className="text-xs text-muted-foreground">R</span>
           <Input
-            value={amount}
+            value={isVoucher ? "0.00" : amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
             placeholder={row.default_amount}
             aria-label={`Test amount for ${row.label}`}
+            disabled={isVoucher}
+            title={isVoucher ? "Vouchers must be submitted with amount=0" : undefined}
             className={
               "h-8 w-24 font-mono text-xs " +
-              (amountValid ? "" : "border-rose-400 focus-visible:ring-rose-200")
+              (isVoucher
+                ? "opacity-70 cursor-not-allowed"
+                : amountValid
+                ? ""
+                : "border-rose-400 focus-visible:ring-rose-200")
             }
           />
         </div>
         <Button
           size="sm"
           disabled={isRunning || !amountValid}
-          onClick={() => onStart(amount.trim())}
+          onClick={() => onStart(effectiveAmount)}
         >
           {isRunning ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -569,13 +584,67 @@ function DepositCard({
           )}
           Start test deposit
         </Button>
-        {!amountValid && (
+        {isVoucher && (
+          <span className="text-[11px] text-muted-foreground">
+            Voucher · amount locked to 0
+          </span>
+        )}
+        {!isVoucher && !amountValid && (
           <span className="text-[11px] text-rose-600">
             Enter a positive amount
           </span>
         )}
       </div>
+      <TestRefsList refs={row.references} />
       <IntentControls intent={row.intent} onChange={onIntentChange} />
+    </div>
+  );
+}
+
+/**
+ * Compact list of the merchant's most-recent test transactions for one
+ * method. Mirrors what OneGate's UAT feedback table shows — the reference
+ * string + the status — so the merchant can answer "I sent these
+ * transactions for this service" with a click.
+ */
+function TestRefsList({ refs }: { refs: OneGateDepositRow["references"] }) {
+  if (!refs || refs.length === 0) {
+    return (
+      <div className="text-[11px] text-muted-foreground italic">
+        No test transactions yet.
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-border/70 bg-muted/30 px-2 py-1.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+        Recent test refs
+      </div>
+      <ul className="space-y-0.5">
+        {refs.map((r, idx) => (
+          <li
+            key={`${r.reference}-${idx}`}
+            className="text-[11px] font-mono flex items-center gap-2"
+          >
+            <span
+              className={
+                "inline-block w-1.5 h-1.5 rounded-full " +
+                (r.classification === "paid"
+                  ? "bg-emerald-500"
+                  : r.classification === "failed"
+                  ? "bg-rose-500"
+                  : r.classification === "pending"
+                  ? "bg-amber-500"
+                  : "bg-slate-400")
+              }
+              aria-hidden
+            />
+            <span className="text-foreground/80">{r.reference || "—"}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{r.status || "—"}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -618,6 +687,11 @@ function PayoutCard({
           <span>{row.name}</span>
         </button>
         <StatusBadge status={status.status} label={status.label} size="sm" />
+        {row.rsa_id_required && (
+          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
+            RSA ID required
+          </span>
+        )}
         <div className="text-[11px] text-muted-foreground flex items-center gap-2 ml-2">
           <span>
             Paid <span className="font-mono text-emerald-700">{row.paid}</span>
@@ -647,10 +721,16 @@ function PayoutCard({
       {formOpen && (
         <PayoutTestForm
           slug={row.slug}
+          rsaIdRequired={row.rsa_id_required}
           isRunning={isRunning}
           onCancel={() => setFormOpen(false)}
           onSubmit={onSubmit}
         />
+      )}
+      {row.references && row.references.length > 0 && (
+        <div className="mt-3">
+          <TestRefsList refs={row.references} />
+        </div>
       )}
       <div className="mt-3 pt-3 border-t border-border/60">
         <IntentControls intent={row.intent} onChange={onIntentChange} />
@@ -661,11 +741,13 @@ function PayoutCard({
 
 function PayoutTestForm({
   slug,
+  rsaIdRequired,
   isRunning,
   onCancel,
   onSubmit,
 }: {
   slug: string;
+  rsaIdRequired: boolean;
   isRunning: boolean;
   onCancel: () => void;
   onSubmit: (body: OneGatePayoutTestPayload) => void;
@@ -682,11 +764,15 @@ function PayoutTestForm({
     email: "",
   });
 
+  const idMissing = rsaIdRequired && !(form.id_number ?? "").trim();
+  const canSubmit = !!form.mobile && !idMissing;
+
   return (
     <form
       className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 bg-muted/40 rounded-lg p-3"
       onSubmit={(e) => {
         e.preventDefault();
+        if (!canSubmit) return;
         onSubmit(form);
       }}
     >
@@ -734,11 +820,23 @@ function PayoutTestForm({
           onChange={(e) => setForm({ ...form, branch_code: e.target.value })}
         />
       </Field>
-      <Field label="ID number (optional)">
+      <Field
+        label={
+          rsaIdRequired ? "ID number (required for this method)" : "ID number (optional)"
+        }
+      >
         <Input
+          required={rsaIdRequired}
           value={form.id_number}
+          placeholder={rsaIdRequired ? "13-digit RSA ID" : ""}
           onChange={(e) => setForm({ ...form, id_number: e.target.value })}
+          className={idMissing ? "border-rose-400 focus-visible:ring-rose-200" : ""}
         />
+        {idMissing && (
+          <span className="text-[11px] text-rose-600">
+            OneGate rejects this payout method when id_number is blank
+          </span>
+        )}
       </Field>
       <Field label="Email (optional)">
         <Input
@@ -751,7 +849,7 @@ function PayoutTestForm({
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={isRunning || !form.mobile}>
+        <Button type="submit" size="sm" disabled={isRunning || !canSubmit}>
           {isRunning ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
           ) : (

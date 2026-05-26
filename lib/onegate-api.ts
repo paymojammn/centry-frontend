@@ -21,19 +21,37 @@ export interface OneGateSignoffIntent {
   notes: string;
 }
 
+/**
+ * A single test transaction reference (one row in the OneGate UAT table).
+ * For deposits these come from OneGate's gateway-transaction list; for
+ * payouts they come from our local OneGatePayout rows.
+ */
+export interface OneGateTestRef {
+  reference: string;
+  status: string;
+  /** Bucketed classification — what the badge logic uses. */
+  classification: "paid" | "failed" | "pending" | "unknown";
+  created: string | null;
+  amount?: string | number | null;
+}
+
 export interface OneGateDepositRow {
   slug: string;
   payment_type: string;
   label: string;
   note?: string;
-  /** Per-method test amount (vouchers often have denomination minimums). */
+  /** Per-method test amount (vouchers force "0.00"). */
   default_amount: string;
+  /** True for voucher payment_types — UI must lock amount to 0. */
+  is_voucher: boolean;
   paid: number;
   failed: number;
   pending: number;
   total: number;
   last_paid: string | null;
   last_failed: string | null;
+  /** Most-recent test transactions for this method (max 5, newest first). */
+  references: OneGateTestRef[];
   status: SignoffBadge;
   intent: OneGateSignoffIntent;
 }
@@ -67,6 +85,10 @@ export interface OneGatePayoutRow {
   pending: number;
   batched: number;
   total: number;
+  /** True when OneGate requires id_number for this payout method. */
+  rsa_id_required: boolean;
+  /** Most-recent local OneGatePayout rows (max 5, newest first). */
+  references: OneGateTestRef[];
   status: SignoffBadge;
   intent: OneGateSignoffIntent;
 }

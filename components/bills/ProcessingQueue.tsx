@@ -1116,7 +1116,16 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             <Button
               size="sm"
               onClick={handleGeneratePaymentLink}
-              disabled={payNowLoading || !payNowAmount || parseFloat(payNowAmount) <= 0}
+              // Allow amount=0 — vouchers (1Voucher / BluVoucher / OTT etc.)
+              // require amount=0 on the provider's hosted page; the value
+              // is captured from the PIN. Only reject empty strings,
+              // non-numeric input, or strictly negative numbers.
+              disabled={
+                payNowLoading ||
+                payNowAmount === '' ||
+                !Number.isFinite(parseFloat(payNowAmount)) ||
+                parseFloat(payNowAmount) < 0
+              }
               className="text-white"
               style={{ backgroundColor: STATUS_COLORS.success.bg }}
             >
