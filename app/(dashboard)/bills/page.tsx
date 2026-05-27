@@ -110,18 +110,45 @@ export default function BillsPage() {
     if (!payment) return;
     paymentToastHandled.current = true;
     const billIdParam = searchParams.get('bill_id');
-    const suffix = billIdParam ? ` for bill #${billIdParam}` : '';
+    const orgFromReturn = searchParams.get('organization');
+    const merchantRef = searchParams.get('merchant_reference');
+    const transactionId = searchParams.get('transaction_id');
+    if (orgFromReturn) {
+      // OneGate's customer-return endpoint resolves the originating
+      // Centry org UUID and propagates it here so we land on the right
+      // tenant's bills page instead of falling back to organizations[0]
+      // (which produced a 403 cascade when the user wasn't a member).
+      setSelectedOrganizationId(orgFromReturn);
+    }
+    // Prefer the merchant_reference for the toast — it's the canonical
+    // identifier the user typed when minting the payment-key, while the
+    // numeric bill_id is parsed out of it server-side. Falls back to
+    // bill_id when the reference wasn't propagated (older redirects).
+    const refSuffix = merchantRef
+      ? ` (${merchantRef})`
+      : billIdParam
+      ? ` for bill #${billIdParam}`
+      : '';
+    const txnSuffix = transactionId ? ` · txn ${transactionId}` : '';
     if (payment === 'success') {
-      toast.success(`Payment successful${suffix}`);
+      toast.success(`Payment successful${refSuffix}${txnSuffix}`);
       setActiveTab('processing');
     } else if (payment === 'cancelled') {
-      toast.error(`Payment cancelled${suffix}`);
+      toast.error(`Payment cancelled${refSuffix}`);
     } else {
-      toast.error(`Payment failed${suffix}`);
+      toast.error(`Payment failed${refSuffix}`);
     }
     const remaining = new URLSearchParams(searchParams.toString());
-    remaining.delete('payment');
-    remaining.delete('bill_id');
+    for (const k of [
+      'payment',
+      'bill_id',
+      'organization',
+      'merchant_reference',
+      'transaction_id',
+      'payment_key',
+    ]) {
+      remaining.delete(k);
+    }
     const qs = remaining.toString();
     router.replace(qs ? `/bills?${qs}` : '/bills', { scroll: false });
   }, [searchParams, router]);

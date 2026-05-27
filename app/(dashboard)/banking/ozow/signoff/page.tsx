@@ -57,9 +57,15 @@ import {
 // Test groupings — matches Ozow's enablement checklist exactly.
 // ---------------------------------------------------------------------------
 
+// Section headings match the Ozow Payouts Integration Testing checklist
+// so a reviewer can compare side-by-side without translating jargon. The
+// final group ("Collections — One API") is our own addition — Ozow's
+// payouts checklist doesn't require it, but it's the natural end-to-end
+// sanity check that the same merchant account can both pay out AND
+// collect through the One API hosted checkout.
 const TEST_GROUPS: Array<{ heading: string; slugs: string[]; note?: string }> = [
   {
-    heading: "Payout API tests",
+    heading: "Payout API Tests",
     slugs: [
       "min-amount",
       "max-amount",
@@ -69,28 +75,37 @@ const TEST_GROUPS: Array<{ heading: string; slugs: string[]; note?: string }> = 
     ],
   },
   {
-    heading: "Mock API simulation records",
+    heading: "Simulation records in Mock API",
     note:
-      "Mock endpoints exercise different webhook outcomes without moving funds. Ozow's TestConfiguration setter may be portal-only on staging.",
+      "Mock endpoints exercise different webhook outcomes without moving funds.",
     slugs: [
       "mock-decryption-failed",
       "mock-not-verified",
       "mock-decryption-key-missing",
     ],
   },
+  {
+    heading: "Collections — One API",
+    note:
+      "End-to-end sanity check: same merchant credentials can ALSO collect via the One API hosted checkout. Opens the redirect URL in a new tab on success.",
+    slugs: ["collection-oneapi"],
+  },
 ];
 
+// Webhook-observable items from Ozow's enablement checklist. Labels and
+// numbering are taken verbatim from the docs so the UI matches the
+// language Ozow uses when signing off.
 const WEBHOOK_DRIVEN_ITEMS = [
   {
     key: "verification_received",
-    label: "Receive Verification Request and respond successfully",
+    label: "Test Case 3: Receive Verification Request and respond to it successfully",
   },
   {
     key: "verification_success",
-    label: "Receive Payout Verification Success message",
+    label: "Test Case 4: Receive Payout Verification Success Message",
   },
-  { key: "payout_complete", label: "Receive Payout Complete message" },
-  { key: "payout_cancelled", label: "Receive Payout Cancelled message" },
+  { key: "payout_complete", label: "Test Case 5: Receive Payout Complete Message" },
+  { key: "payout_cancelled", label: "Test Case 6: Receive Payout Cancelled Message" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -150,6 +165,23 @@ function deriveStatus(slug: string, result: OzowSignoffResult): {
       return { status: "success", label: "Mock submitted" };
     }
     return { status: "failed", label: "No payoutId returned" };
+  }
+
+  // Collections: success when Ozow returns a payment id + redirect URL.
+  if (slug === "collection-oneapi") {
+    const paymentId = (result as Record<string, unknown>).payment_id as
+      | string
+      | undefined;
+    const redirectUrl = (result as Record<string, unknown>).redirect_url as
+      | string
+      | undefined;
+    if (paymentId && redirectUrl) {
+      return { status: "success", label: "Hosted checkout ready" };
+    }
+    if (paymentId) {
+      return { status: "pending", label: "No redirect URL yet" };
+    }
+    return { status: "failed", label: "No paymentId returned" };
   }
 
   return { status: "pending", label: "Unknown" };
@@ -250,7 +282,19 @@ export default function OzowSignoffPage() {
     queryFn: () =>
       ozowApi.getSignoffWebhookOutcome(accountId!, payoutId),
     enabled: !!accountId && !!payoutId && isSandbox,
-    refetchInterval: (q) => (q.state.data?.outcome?.completed_at ? false : 10000),
+    // Keep polling Test Case 3 progress until Ozow's verify webhook
+    // actually fires (``last_verify_result === "verified"``) AND the
+    // payout reaches a terminal state (``completed_at`` set). Either
+    // alone isn't enough: ``completed_at`` flips for failures too, and
+    // the verify webhook can fire seconds before the notify webhook
+    // marks the payout complete.
+    refetchInterval: (q) => {
+      const o = q.state.data?.outcome;
+      if (!o?.found) return 6000;
+      const verified = o.last_verify_result === "verified";
+      const terminal = !!o.completed_at;
+      return verified && terminal ? false : 6000;
+    },
   });
   const outcome = webhookOutcome.data?.outcome;
 
@@ -270,8 +314,8 @@ export default function OzowSignoffPage() {
     context: {
       accountName: selectedAccount?.name ?? "Unknown",
       environment: selectedAccount?.active_environment ?? "sandbox",
-      bankName: lastRunWithBank?.bank.bank_group_name,
-      branchCode: lastRunWithBank?.bank.branch_code,
+      bankName: lastRunWithBank?.bank?.bank_group_name,
+      branchCode: lastRunWithBank?.bank?.branch_code,
       workingPayoutId: payoutId || undefined,
       webhookOutcome: outcome ?? null,
     },
@@ -431,7 +475,7 @@ export default function OzowSignoffPage() {
                   runTest.isPending && runTest.variables?.slug === slug;
                 return (
                   <div key={slug} className="px-5 py-3">
-                    <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-start gap-3 flex-wrap">
                       <button
                         type="button"
                         onClick={() =>
@@ -440,75 +484,125 @@ export default function OzowSignoffPage() {
                             [expandedKey]: !prev[expandedKey],
                           }))
                         }
-                        className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-primary"
+                        className="flex items-start gap-1.5 text-left hover:text-primary min-w-0 flex-1"
                       >
                         {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" />
                         ) : (
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
                         )}
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {slug}
-                        </span>
-                        <span>·</span>
-                        <span>{meta?.label ?? slug}</span>
-                      </button>
-                      {status && (
-                        <StatusBadge
-                          status={status.status}
-                          label={status.label}
-                          size="sm"
-                        />
-                      )}
-                      {lastRun?.result.payout_id ? (
-                        <div className="flex items-center gap-1 ml-auto">
-                          <span className="text-xs text-muted-foreground">
-                            PayoutId
-                          </span>
-                          <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
-                            {String(lastRun.result.payout_id)}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              copy(slug, String(lastRun.result.payout_id))
-                            }
-                          >
-                            {copied === slug ? (
-                              <Check className="h-3.5 w-3.5" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-foreground">
+                            {meta?.label ?? slug}
+                          </div>
+                          <div className="font-mono text-[11px] text-muted-foreground mt-0.5">
+                            {slug}
+                          </div>
                         </div>
-                      ) : null}
-                      <Button
-                        variant={status?.status === "success" ? "outline" : "primary"}
-                        size="sm"
-                        className={lastRun?.result.payout_id ? "" : "ml-auto"}
-                        disabled={
-                          !accountId ||
-                          !isSandbox ||
-                          isRunning ||
-                          (requiresPayoutId && !payoutId)
-                        }
-                        onClick={() => runTest.mutate({ slug })}
-                      >
-                        {isRunning ? (
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        ) : lastRun ? (
-                          <RotateCw className="h-4 w-4 mr-1" />
-                        ) : (
-                          <Play className="h-4 w-4 mr-1" />
+                      </button>
+                      <div className="flex items-center gap-2 flex-wrap ml-auto">
+                        {status && (
+                          <StatusBadge
+                            status={status.status}
+                            label={status.label}
+                            size="sm"
+                          />
                         )}
-                        {lastRun ? "Re-run" : "Run"}
-                      </Button>
+                        {lastRun?.result.payout_id ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">
+                              PayoutId
+                            </span>
+                            <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                              {String(lastRun.result.payout_id)}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                copy(slug, String(lastRun.result.payout_id))
+                              }
+                            >
+                              {copied === slug ? (
+                                <Check className="h-3.5 w-3.5" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        ) : null}
+                        {/* Collection-specific: surface PaymentId + Open
+                            checkout link. Lives alongside the PayoutId block
+                            so both kinds of test results read the same way. */}
+                        {(() => {
+                          const paymentId = lastRun?.result
+                            ? ((lastRun.result as Record<string, unknown>)
+                                .payment_id as string | undefined)
+                            : undefined;
+                          const redirectUrl = lastRun?.result
+                            ? ((lastRun.result as Record<string, unknown>)
+                                .redirect_url as string | undefined)
+                            : undefined;
+                          if (!paymentId) return null;
+                          return (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">
+                                PaymentId
+                              </span>
+                              <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                                {paymentId}
+                              </code>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copy(slug, paymentId)}
+                              >
+                                {copied === slug ? (
+                                  <Check className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Copy className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                              {redirectUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    window.open(redirectUrl, "_blank", "noopener")
+                                  }
+                                  title="Open hosted checkout in a new tab"
+                                >
+                                  Open checkout
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })()}
+                        <Button
+                          variant={status?.status === "success" ? "outline" : "primary"}
+                          size="sm"
+                          disabled={
+                            !accountId ||
+                            !isSandbox ||
+                            isRunning ||
+                            (requiresPayoutId && !payoutId)
+                          }
+                          onClick={() => runTest.mutate({ slug })}
+                        >
+                          {isRunning ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : lastRun ? (
+                            <RotateCw className="h-4 w-4 mr-1" />
+                          ) : (
+                            <Play className="h-4 w-4 mr-1" />
+                          )}
+                          {lastRun ? "Re-run" : "Run"}
+                        </Button>
+                      </div>
                     </div>
                     {requiresPayoutId && !payoutId && (
-                      <p className="mt-1 text-xs text-amber-700">
-                        Needs a payoutId — run <span className="font-mono">valid-submit</span>{" "}
-                        first or paste one above.
+                      <p className="mt-1 ml-6 text-xs text-amber-700">
+                        Needs a payoutId — run Test Case 3 first or paste one above.
                       </p>
                     )}
                     {isExpanded && lastRun && (
@@ -575,8 +669,27 @@ export default function OzowSignoffPage() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Callbacks</div>
-                    <div className="font-mono">{outcome.callback_count ?? 0}</div>
+                    <div className="text-muted-foreground">
+                      Verify calls{" "}
+                      {webhookOutcome.isFetching && (
+                        <Loader2 className="inline h-3 w-3 animate-spin ml-1" />
+                      )}
+                    </div>
+                    <div className="font-mono flex items-center gap-2">
+                      <span>{outcome.verify_call_count ?? 0}</span>
+                      {outcome.last_verify_result && (
+                        <span
+                          className={
+                            "text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded " +
+                            (outcome.last_verify_result === "verified"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800")
+                          }
+                        >
+                          {outcome.last_verify_result}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">Completed at</div>
@@ -603,6 +716,24 @@ export default function OzowSignoffPage() {
                     );
                   })}
                 </ul>
+                <div className="text-[11px] text-muted-foreground border-t border-border/60 pt-2">
+                  Polling every 6s until{" "}
+                  <code className="bg-muted px-1 rounded">
+                    last_verify_result = "verified"
+                  </code>{" "}
+                  AND <code className="bg-muted px-1 rounded">completed_at</code>{" "}
+                  is set. Last verify hit:{" "}
+                  <code className="bg-muted px-1 rounded">
+                    {outcome.last_verified_at
+                      ? new Date(outcome.last_verified_at).toLocaleTimeString()
+                      : "—"}
+                  </code>{" "}
+                  from{" "}
+                  <code className="bg-muted px-1 rounded">
+                    {outcome.last_verify_ip ?? "—"}
+                  </code>
+                  .
+                </div>
               </div>
             )}
           </div>
@@ -614,7 +745,7 @@ export default function OzowSignoffPage() {
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
             <span className="font-medium text-foreground">
-              Insufficient Float Balance email.
+              Test Case 7: Receive Insufficient Float Balance Message.
             </span>{" "}
             Triggered by Ozow when the float is drained — request via Ozow
             support and capture the email screenshot. There's no API
@@ -725,7 +856,9 @@ function ResultPanel({
     <div className="mt-3 rounded-lg border border-border bg-muted/30">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <div className="text-xs text-muted-foreground">
-          {result.bank.bank_group_name} · {result.bank.branch_code}
+          {result.bank
+            ? `${result.bank.bank_group_name} · ${result.bank.branch_code}`
+            : `${result.test} · ${result.environment}`}
         </div>
         <Button
           variant="ghost"
@@ -753,6 +886,15 @@ function deriveWebhookItemStatus(
   outcome: OzowSignoffWebhookOutcome,
 ): { status: string; label: string } {
   if (key === "verification_received") {
+    // ``verify_call_count`` is the most authoritative signal: it
+    // increments every time Ozow hits the verify endpoint, regardless of
+    // whether the call passed hash validation or rejected. Fall back to
+    // the legacy ``verification_received`` flag if the audit column
+    // isn't populated yet.
+    const verified = outcome.last_verify_result === "verified";
+    const count = outcome.verify_call_count ?? 0;
+    if (verified) return { status: "success", label: `Verified (×${count})` };
+    if (count > 0) return { status: "pending", label: `Hit ×${count}` };
     return outcome.verification_received
       ? { status: "success", label: "Received" }
       : { status: "pending", label: "Waiting" };

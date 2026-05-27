@@ -68,9 +68,13 @@ function buildRows({ tests, results }: SignoffExportArgs): Row[] {
       };
     }
     const r = run.result;
+    // Collections return ``payment_id`` instead of ``payout_id`` — show
+    // whichever the test produced. Same column header in the export so
+    // the reviewer reads one identifier per row regardless of test kind.
     const payoutId =
       (r.payout_id as string | undefined) ||
       (r["queried_payout_id"] as string | undefined) ||
+      (r["payment_id"] as string | undefined) ||
       "";
     return {
       slug: t.slug,
@@ -91,6 +95,102 @@ function buildRows({ tests, results }: SignoffExportArgs): Row[] {
   });
 }
 
+// The docs sign-off form lists 12 test cases. Runnable slugs cover
+// cases 1, 2, 3, 8, 9, 10, 11, 12 — the remainder (4, 5, 6, 7) are
+// observation-only and live alongside the runnable rows in the export so
+// the reviewer can tick the whole checklist from a single artifact.
+function buildObservationRows(context: SignoffExportContext): Row[] {
+  const w = context.webhookOutcome;
+  const observed = w?.found ? w : null;
+  const code = observed?.status_code;
+
+  const observationStatus = (
+    expectedCode: number | "received" | "any-past-2",
+  ): string => {
+    if (!observed) return "Awaiting webhook";
+    if (expectedCode === "received") {
+      return observed.verification_received ? "Received" : "Awaiting webhook";
+    }
+    if (expectedCode === "any-past-2") {
+      return code != null && code >= 3 ? "Verified" : "Awaiting webhook";
+    }
+    return code === expectedCode
+      ? expectedCode === 5
+        ? "Complete"
+        : expectedCode === 99
+          ? "Cancelled"
+          : "Reached"
+      : "Awaiting webhook";
+  };
+
+  const sharedPid = observed?.payout_id ?? "";
+  const sharedJson = observed ? JSON.stringify(observed, null, 2) : "";
+
+  return [
+    {
+      slug: "webhook-verification-success",
+      label: "Test Case 4: Receive Payout Verification Success Message",
+      status: observationStatus("any-past-2"),
+      payoutId: sharedPid,
+      statusCode: code != null ? String(code) : "",
+      subStatusCode:
+        observed?.sub_status_code != null
+          ? String(observed.sub_status_code)
+          : "",
+      errorMessage: "",
+      json: sharedJson,
+    },
+    {
+      slug: "webhook-payout-complete",
+      label: "Test Case 5: Receive Payout Complete Message",
+      status: observationStatus(5),
+      payoutId: sharedPid,
+      statusCode: code != null ? String(code) : "",
+      subStatusCode:
+        observed?.sub_status_code != null
+          ? String(observed.sub_status_code)
+          : "",
+      errorMessage: "",
+      json: sharedJson,
+    },
+    {
+      slug: "webhook-payout-cancelled",
+      label: "Test Case 6: Receive Payout Cancelled Message",
+      status: observationStatus(99),
+      payoutId: sharedPid,
+      statusCode: code != null ? String(code) : "",
+      subStatusCode:
+        observed?.sub_status_code != null
+          ? String(observed.sub_status_code)
+          : "",
+      errorMessage: "",
+      json: sharedJson,
+    },
+    {
+      slug: "manual-insufficient-float",
+      label:
+        "Test Case 7: Receive Insufficient Float Balance Message (email — manual)",
+      status: "Manual",
+      payoutId: "",
+      statusCode: "",
+      subStatusCode: "",
+      errorMessage:
+        "No API equivalent. Request from Ozow support and capture the email screenshot.",
+      json: "",
+    },
+  ];
+}
+
+// Re-order rows so the Test Case numbers appear in canonical 1..12 order
+// in the export, regardless of which slugs were run first.
+function orderByTestCase(rows: Row[]): Row[] {
+  const caseNum = (label: string): number => {
+    const m = /^Test Case (\d+):/i.exec(label);
+    return m ? Number(m[1]) : 999;
+  };
+  return [...rows].sort((a, b) => caseNum(a.label) - caseNum(b.label));
+}
+
 function exportFilename(env: string): string {
   const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   return `ozow-signoff-${env}-${ts}`;
@@ -101,8 +201,11 @@ function exportFilename(env: string): string {
 // ---------------------------------------------------------------------------
 
 export function exportSignoffExcel(args: SignoffExportArgs) {
-  const rows = buildRows(args);
   const { context } = args;
+  const rows = orderByTestCase([
+    ...buildRows(args),
+    ...buildObservationRows(context),
+  ]);
 
   const header = [
     "Test slug",
@@ -128,7 +231,7 @@ export function exportSignoffExcel(args: SignoffExportArgs) {
 
   // Banner rows at the top so context travels with the file.
   const banner: (string | number)[][] = [
-    ["Ozow Payouts Sign-off"],
+    ["Ozow Payouts Sign-off — 12 Test Cases per Integration Testing checklist"],
     [`Account: ${context.accountName} (${context.environment})`],
   ];
   if (context.bankName) {
@@ -263,11 +366,18 @@ function renderWebhookOutcome(w: OzowSignoffWebhookOutcome): string {
 }
 
 export function exportSignoffPDF(args: SignoffExportArgs) {
-  const rows = buildRows(args);
   const { context } = args;
+  const rows = orderByTestCase([
+    ...buildRows(args),
+    ...buildObservationRows(context),
+  ]);
 
   const sections = rows.map(renderTestSection).join("");
-  const webhookSection = context.webhookOutcome
+  // The synthetic observation rows already surface the webhook-derived
+  // state per Test Case (4/5/6), so we no longer need a separate
+  // "Webhook outcome" footer — but keep the raw block for cases where
+  // the reviewer wants the full JSON envelope.
+  const webhookSection = context.webhookOutcome?.found
     ? renderWebhookOutcome(context.webhookOutcome)
     : "";
 
@@ -322,6 +432,7 @@ export function exportSignoffPDF(args: SignoffExportArgs) {
   <header>
     <h1>Ozow Payouts — Sign-off Report</h1>
     <div class="meta">
+      12 test cases per Ozow's Payouts Integration Testing checklist.<br />
       Account: <code>${esc(context.accountName)}</code> · Environment: <code>${esc(context.environment)}</code><br />
       ${context.bankName ? `Test bank: <code>${esc(context.bankName)}</code> (branch <code>${esc(context.branchCode ?? "")}</code>)<br />` : ""}
       ${context.workingPayoutId ? `Working PayoutId: <code>${esc(context.workingPayoutId)}</code><br />` : ""}

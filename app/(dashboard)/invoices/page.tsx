@@ -11,8 +11,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useInvoices, useCollectionEvents } from '@/hooks/use-invoices';
 import { useSyncInvoices, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
@@ -121,6 +122,54 @@ export default function InvoicesPage() {
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse
     : (erpConnectionsResponse as any)?.results || [];
+
+  // OneGate / Ozow hosted-checkout return handler. The provider redirects
+  // back here with ?payment=success|cancelled|error plus the originating
+  // ?organization=<uuid> so we land on the right tenant instead of falling
+  // back to organizations[0] (which produces a 403 when the user isn't a
+  // member of that one). Mirrors the same effect in /bills/page.tsx.
+  const searchParams = useSearchParams();
+  const paymentToastHandled = useRef(false);
+  useEffect(() => {
+    if (paymentToastHandled.current) return;
+    const payment = searchParams.get('payment');
+    if (!payment) return;
+    paymentToastHandled.current = true;
+    const invoiceIdParam = searchParams.get('invoice_id');
+    const orgFromReturn = searchParams.get('organization');
+    const merchantRef = searchParams.get('merchant_reference');
+    const transactionId = searchParams.get('transaction_id');
+    if (orgFromReturn) {
+      setSelectedOrganizationId(orgFromReturn);
+    }
+    const refSuffix = merchantRef
+      ? ` (${merchantRef})`
+      : invoiceIdParam
+      ? ` for invoice #${invoiceIdParam}`
+      : '';
+    const txnSuffix = transactionId ? ` · txn ${transactionId}` : '';
+    if (payment === 'success') {
+      toast.success(`Payment successful${refSuffix}${txnSuffix}`);
+      setActiveTab('collections');
+    } else if (payment === 'cancelled') {
+      toast.error(`Payment cancelled${refSuffix}`);
+    } else {
+      toast.error(`Payment failed${refSuffix}`);
+    }
+    const remaining = new URLSearchParams(searchParams.toString());
+    for (const k of [
+      'payment',
+      'invoice_id',
+      'organization',
+      'merchant_reference',
+      'transaction_id',
+      'payment_key',
+    ]) {
+      remaining.delete(k);
+    }
+    const qs = remaining.toString();
+    router.replace(qs ? `/invoices?${qs}` : '/invoices', { scroll: false });
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (!selectedOrganizationId && organizations?.length > 0) {

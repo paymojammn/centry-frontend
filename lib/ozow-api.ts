@@ -93,7 +93,10 @@ export interface OzowSignoffRunResponse {
   label: string;
   account_id: string;
   environment: 'sandbox' | 'production';
-  bank: {
+  // Optional: only payout tests resolve a destination bank.
+  // ``collection-oneapi`` and any other ``requires_bank=False`` slug
+  // omit this block.
+  bank?: {
     bank_group_id: string;
     bank_group_name: string;
     branch_code: string;
@@ -113,6 +116,13 @@ export interface OzowSignoffWebhookOutcome {
   verification_received?: boolean;
   callback_count?: number;
   callbacks?: Array<Record<string, unknown>>;
+  // Verify-webhook audit columns (migration 0030). Surfaced so the
+  // sign-off UI can poll Test Case 3 until ``last_verify_result`` is
+  // ``"verified"`` and show how many times Ozow has hit our endpoint.
+  verify_call_count?: number;
+  last_verified_at?: string | null;
+  last_verify_ip?: string | null;
+  last_verify_result?: string;
 }
 
 export interface OzowSignoffWebhookOutcomeResponse {
