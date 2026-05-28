@@ -132,11 +132,25 @@ export default function DashboardPage() {
     else setGreeting('Good evening');
   }, []);
 
+  // Restore the last-selected org so reloads don't snap back to the
+  // alphabetically-first org (often an empty demo org with no payment
+  // data). Falls back to the first org only when nothing is persisted.
   useEffect(() => {
-    if (!selectedOrganizationId && organizations?.length > 0) {
-      setSelectedOrganizationId(organizations[0].id);
-    }
+    if (selectedOrganizationId || !organizations?.length) return;
+    const saved =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('selectedOrganizationId')
+        : null;
+    const savedIsValid = saved && organizations.some((o: any) => o.id === saved);
+    setSelectedOrganizationId(savedIsValid ? saved : organizations[0].id);
   }, [organizations, selectedOrganizationId]);
+
+  const handleOrganizationChange = (id: string) => {
+    setSelectedOrganizationId(id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedOrganizationId', id);
+    }
+  };
 
   // Handle Xero OAuth callback
   useEffect(() => {
@@ -352,7 +366,7 @@ export default function DashboardPage() {
         title={greeting}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
-        onOrganizationChange={setSelectedOrganizationId}
+        onOrganizationChange={handleOrganizationChange}
         isLoadingOrgs={orgsLoading}
       />
 
