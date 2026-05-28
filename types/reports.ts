@@ -289,9 +289,11 @@ export interface PipelineByBankRow {
   bank_account_id: string;
   bank_name: string;
   account_name: string;
+  currency: string;
   sent_count: number;
   sent_amount: string;
   accepted_count: number;
+  accepted_amount: string;
   rejected_count: number;
   acceptance_rate: number | null;
 }
@@ -316,6 +318,19 @@ export interface PipelineChannel {
   label: string;
   amount: string;
   count: number;
+}
+
+export interface CashFlowPoint {
+  month: string;
+  inflow: number;
+  outflow: number;
+}
+
+export interface CashFlowSeries {
+  currency: string;
+  series: CashFlowPoint[];
+  total_inflow: number;
+  total_outflow: number;
 }
 
 export interface PipelineTotalsBucket {
@@ -344,6 +359,7 @@ export interface PipelineOverview {
   by_bank: PipelineByBankRow[];
   provider_accounts: PipelineProviderAccount[];
   channels: PipelineChannel[];
+  cash_flow_series: CashFlowSeries[];
   recent_transactions: PipelineRecentTransaction[];
 }
 

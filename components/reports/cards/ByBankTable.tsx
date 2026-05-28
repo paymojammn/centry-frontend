@@ -6,14 +6,14 @@ import {
   ContentCardHeader,
   ContentCardBody,
 } from "@/components/layout/content-card";
+import { formatCurrencyCompact } from "@/components/reports/chart-theme";
 import type { PipelineByBankRow } from "@/types/reports";
 
 interface Props {
   rows: PipelineByBankRow[];
-  formatCurrency: (value: number) => string;
 }
 
-export function ByBankTable({ rows, formatCurrency }: Props) {
+export function ByBankTable({ rows }: Props) {
   return (
     <ContentCard noPadding>
       <ContentCardHeader>
@@ -45,7 +45,7 @@ export function ByBankTable({ rows, formatCurrency }: Props) {
               <tbody>
                 {rows.map((row) => (
                   <tr
-                    key={row.bank_account_id}
+                    key={`${row.bank_account_id}:${row.currency}`}
                     className="border-b border-border/40 last:border-0"
                   >
                     <td className="py-2.5">
@@ -62,7 +62,7 @@ export function ByBankTable({ rows, formatCurrency }: Props) {
                       {row.sent_count}
                     </td>
                     <td className="py-2.5 text-right tabular-nums text-foreground">
-                      {formatCurrency(parseFloat(row.sent_amount))}
+                      {formatCurrencyCompact(parseFloat(row.sent_amount), row.currency)}
                     </td>
                     <td className="py-2.5 text-right tabular-nums text-emerald-600">
                       {row.accepted_count}

@@ -24,8 +24,6 @@ import {
 } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
-  useReportsDashboard,
-  useFinancialTrends,
   useAuditStats,
   usePipelineOverview,
 } from '@/hooks/use-reports';
@@ -39,13 +37,13 @@ import {
   CreditCard,
   FileUp,
   Flame,
+  Landmark,
   Loader2,
   Receipt,
   RefreshCw,
   Scale,
   Send,
   ShieldCheck,
-  Timer,
   Upload,
   Wallet,
   Zap,
@@ -63,6 +61,7 @@ import {
 import { LoadingState } from '@/components/layout/loading-state';
 import { StatusBadge } from '@/components/layout/status-badge';
 import { MetricTile } from '@/components/reports/MetricTile';
+import { CashFlowCard } from '@/components/reports/cards/CashFlowCard';
 import {
   ChartGradients,
   EmptyState,
@@ -159,10 +158,7 @@ export default function DashboardPage() {
   const { data: bankResponseStats } = useBankResponseStats(orgId);
   const { data: bankAccountsData } = useBankAccounts(orgId);
   const { data: sftpCredsData } = useAllSFTPCredentials(orgId);
-  const { data: dashboardStats } = useReportsDashboard(orgId);
   const { data: expenseStats } = useExpenseStats(orgId);
-  // Sparkline source: monthly payment throughput from Centry's pipeline.
-  const { data: trends } = useFinancialTrends(orgId, 6, 'payments');
   // Live system activity counters for the "Today" pulse card.
   const { data: auditStats } = useAuditStats(orgId, 1);
   // Outward-payment data — drives Latest Payment Events, Payments by
@@ -175,74 +171,163 @@ export default function DashboardPage() {
   const openBills = Array.isArray(payables) ? payables : (payables as any)?.results || [];
   const overdueBills = openBills.filter((bill: Payable) => bill.due_date && new Date(bill.due_date) < new Date());
 
-  // Cash position — only count BankAccounts that have at least one
-  // active SFTP credential (i.e. are wired up to actually pull statements
-  // / push payments). Group by currency so UGX and USD live in their own
-  // cards instead of being summed into a meaningless single number.
-  const sftpBankAccountIds = new Set<number>(
+  // Funding accounts — one card per account, in the account's own
+  // currency. Sources of truth:
+  //   • SFTPCredential (banking_integrations) — gates which BankAccounts
+  //     count as "wired" (i.e. actually push pain.001 over SFTP, covering
+  //     both SWIFT and local-rails payments).
+  //   • ProviderAccount (payments) — every gateway funding account
+  //     (Ozow / MoMo / Airtel / Paystack / OneGate / Netcash).
+  // Per-account so we never sum across currencies.
+  const sftpBankAccountIds = new Set<string>(
     ((sftpCredsData as any)?.results || [])
       .filter((c: any) => c.is_active && c.bank_account?.id)
-      .map((c: any) => c.bank_account.id as number)
+      .map((c: any) => String(c.bank_account.id))
   );
   const bankAccounts = ((bankAccountsData as any)?.results || []) as Array<{
     id: number;
     balance: string | null;
     currency: string;
   }>;
-  const sftpAccounts = bankAccounts.filter((a) => sftpBankAccountIds.has(a.id));
-  const sftpBalancesByCurrency = sftpAccounts.reduce<Record<string, { sum: number; count: number }>>(
-    (acc, a) => {
-      const ccy =
-        (a.currency || '').replace('CurrencyCode.', '').toUpperCase() || 'UGX';
-      const amount = parseFloat(a.balance ?? '0') || 0;
-      if (!acc[ccy]) acc[ccy] = { sum: 0, count: 0 };
-      acc[ccy].sum += amount;
-      acc[ccy].count += 1;
-      return acc;
-    },
-    {}
-  );
-  const sftpCurrencyEntries = Object.entries(sftpBalancesByCurrency).sort(
-    ([a], [b]) => a.localeCompare(b)
+  const bankBalanceById = new Map<string, { balance: number; currency: string }>(
+    bankAccounts.map((a) => [
+      String(a.id),
+      {
+        balance: parseFloat(a.balance ?? '0') || 0,
+        currency: (a.currency || '').replace('CurrencyCode.', '').toUpperCase() || 'UGX',
+      },
+    ])
   );
 
-  const txns = (dashboardStats as any)?.transactions || {};
-  const inflows = Number(txns.credits || 0);
-  const outflows = Math.abs(Number(txns.debits || 0));
+  // pipeline-overview's period defaults to 90 days; divide by 3 to get a
+  // monthly run-rate on each account, then runway from balance ÷ run-rate.
+  const periodStart = pipelineOverview?.period?.start_date
+    ? new Date(pipelineOverview.period.start_date)
+    : null;
+  const periodEnd = pipelineOverview?.period?.end_date
+    ? new Date(pipelineOverview.period.end_date)
+    : null;
+  const periodDays =
+    periodStart && periodEnd
+      ? Math.max(
+          Math.round((periodEnd.getTime() - periodStart.getTime()) / 86_400_000) + 1,
+          1
+        )
+      : 90;
+  const periodLabel = periodDays === 90 ? '90d' : `${periodDays}d`;
+
+  type FundingCard = {
+    key: string;
+    bankName: string;
+    accountName: string;
+    currency: string;
+    balance: number | null;
+    accepted: number;
+    acceptedCount: number;
+    monthly: number;
+    runwayDays: number | null;
+    iconKind: 'bank' | 'provider';
+  };
+
+  function runwayLabelFor(days: number | null): string {
+    if (days === null) return '—';
+    if (days > 365) return `${(days / 365).toFixed(1)}y`;
+    if (days > 60) return `${(days / 30).toFixed(1)}mo`;
+    return `${days}d`;
+  }
+  function toneFor(days: number | null): 'success' | 'warning' | 'danger' | 'default' {
+    if (days === null) return 'default';
+    if (days < 30) return 'danger';
+    if (days < 90) return 'warning';
+    return 'success';
+  }
+
+  const bankCards: FundingCard[] = (pipelineOverview?.by_bank || [])
+    .filter((b) => sftpBankAccountIds.size === 0 || sftpBankAccountIds.has(b.bank_account_id))
+    .map((b) => {
+      const accepted = parseFloat(b.accepted_amount || '0') || 0;
+      const monthly = (accepted / periodDays) * 30;
+      const ba = bankBalanceById.get(b.bank_account_id);
+      const balance = ba ? ba.balance : null;
+      const currency = b.currency || ba?.currency || 'UGX';
+      const days = balance !== null && monthly > 0 ? Math.floor(balance / (monthly / 30)) : null;
+      return {
+        key: `bank:${b.bank_account_id}:${currency}`,
+        bankName: b.bank_name,
+        accountName: b.account_name,
+        currency,
+        balance,
+        accepted,
+        acceptedCount: b.accepted_count,
+        monthly,
+        runwayDays: days,
+        iconKind: 'bank' as const,
+      };
+    });
+
+  const providerCards: FundingCard[] = (pipelineOverview?.provider_accounts || []).map((p) => {
+    const accepted = parseFloat(p.period_completed_amount || '0') || 0;
+    const monthly = (accepted / periodDays) * 30;
+    const balance = parseFloat(p.balance || '0');
+    const currency = (p.currency || 'UGX').toUpperCase();
+    const days = monthly > 0 ? Math.floor(balance / (monthly / 30)) : null;
+    return {
+      key: `prov:${p.account_id}`,
+      bankName: p.provider,
+      accountName: p.account_name,
+      currency,
+      balance: Number.isFinite(balance) ? balance : null,
+      accepted,
+      acceptedCount: p.period_completed_count,
+      monthly,
+      runwayDays: days,
+      iconKind: 'provider' as const,
+    };
+  });
+
+  const fundingCards = [...bankCards, ...providerCards].sort(
+    (a, b) => b.accepted - a.accepted
+  );
+
+  // Month-to-date cash flow — single-currency summary so we never sum
+  // across FX. We pick the org's primary operating currency (highest
+  // 6-month volume in cash_flow_series) and read its current-month bucket.
+  // The monthly TruncMonth bucket for the current month *is* month-to-date,
+  // since it only contains transactions from the 1st through today.
+  const cashFlowSeries = pipelineOverview?.cash_flow_series || [];
+  const primaryCcyData =
+    cashFlowSeries.length > 0
+      ? [...cashFlowSeries].sort(
+          (a, b) =>
+            b.total_inflow + b.total_outflow - (a.total_inflow + a.total_outflow)
+        )[0]
+      : null;
+  const mtdCurrency = primaryCcyData?.currency || 'UGX';
+  const mtdSeries = primaryCcyData?.series || [];
+  const mtdPoint = mtdSeries[mtdSeries.length - 1];
+  const mtdPrev = mtdSeries[mtdSeries.length - 2];
+  const inflows = mtdPoint?.inflow || 0;
+  const outflows = mtdPoint?.outflow || 0;
   const netFlow = inflows - outflows;
-  const netFlowChange = Number(txns.change || 0); // MoM % change on net flow
-  const dayInMonth = new Date().getDate();
-  const burnRate = dayInMonth > 0 ? Math.round((outflows / dayInMonth) * 30) : 0;
-
-  // Sparkline series — last 6 months of processed throughput, useful as a
-  // visual heartbeat under the inflow / outflow tiles.
-  const throughputSpark = (trends?.trends || []).map((t) => Number(t.income) || 0);
-  const failedSpark = (trends?.trends || []).map((t) => Number(t.expenses) || 0);
-
-  // Cash runway — at the current monthly burn, how many days of cover do
-  // we have across all SFTP-wired bank accounts (UGX-equivalent)?
-  // We approximate by summing UGX balance directly + roughly assuming
-  // non-UGX accounts at parity (we don't have FX rates here).
-  const totalSftpBalance = sftpCurrencyEntries.reduce((s, [, a]) => s + a.sum, 0);
-  const dailyBurn = burnRate / 30;
-  const runwayDays =
-    dailyBurn > 0 ? Math.floor(totalSftpBalance / dailyBurn) : null;
-  const runwayLabel =
-    runwayDays === null
-      ? '—'
-      : runwayDays > 365
-      ? `${(runwayDays / 365).toFixed(1)}y`
-      : runwayDays > 60
-      ? `${(runwayDays / 30).toFixed(1)}mo`
-      : `${runwayDays}d`;
-  const runwayTone: 'success' | 'warning' | 'danger' | 'default' =
-    runwayDays === null
-      ? 'default'
-      : runwayDays < 30
-      ? 'danger'
-      : runwayDays < 90
-      ? 'warning'
-      : 'success';
+  const prevNet = mtdPrev ? mtdPrev.inflow - mtdPrev.outflow : 0;
+  const netFlowChange =
+    prevNet !== 0
+      ? Math.round(((netFlow - prevNet) / Math.abs(prevNet)) * 1000) / 10
+      : netFlow > 0
+      ? 100
+      : 0;
+  const nowDate = new Date();
+  const dayOfMonth = nowDate.getDate();
+  const daysInMonth = new Date(
+    nowDate.getFullYear(),
+    nowDate.getMonth() + 1,
+    0
+  ).getDate();
+  // Project this month's realized outflow to a full-month burn rate.
+  const burnRate = dayOfMonth > 0 ? (outflows / dayOfMonth) * daysInMonth : 0;
+  // Sparkline heartbeats — full 6-month inflow / outflow history.
+  const inflowSpark = mtdSeries.map((p) => p.inflow);
+  const outflowSpark = mtdSeries.map((p) => p.outflow);
 
   // Action items — Centry-internal counters only
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
@@ -275,75 +360,95 @@ export default function DashboardPage() {
         <ChartGradients />
         <div className="space-y-8 animate-fade-in-up">
 
-          {/* ─── Hero: Cash Position ─── */}
-          {/* Per-currency bank balances drawn only from SFTP-wired
-              accounts (the ones the bank actually pulls statements for). */}
+          {/* ─── Section 1: Needs attention (top row) ─── */}
+          {/* All counts come from Centry-internal data (PaymentEvents,
+              pain.002 bank responses, expenses). Each tile is a clickable
+              MetricTile so the card style stays uniform with the rest of
+              the app — non-zero counts carry the tone-coloured left stripe. */}
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Cash position
+              Needs attention
             </h2>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              {sftpCurrencyEntries.length === 0 ? (
+              {([
+                {
+                  label: 'Awaiting Approval',
+                  count: pipelineStats?.pending_approval || 0,
+                  icon: CreditCard,
+                  href: '/payments/processing',
+                  tone: 'warning' as const,
+                },
+                {
+                  label: 'Ready for Export',
+                  count: pipelineStats?.processing || 0,
+                  icon: Send,
+                  href: '/banking/export',
+                  tone: 'accent' as const,
+                },
+                {
+                  label: 'Failed Payments',
+                  count: failedPayments + bankRejected,
+                  icon: Zap,
+                  href: '/payments',
+                  tone: 'danger' as const,
+                },
+                {
+                  label: 'Pending Expenses',
+                  count: pendingExpenses,
+                  icon: Receipt,
+                  href: '/expenses',
+                  tone: 'warning' as const,
+                },
+              ]).map((item) => (
                 <MetricTile
-                  label="Bank balance"
-                  value="—"
-                  hint="No SFTP-configured accounts"
-                  icon={Wallet}
-                  tone="accent"
+                  key={item.label}
+                  label={item.label}
+                  value={item.count.toLocaleString()}
+                  icon={item.count > 0 ? item.icon : CheckCircle}
+                  tone={item.count > 0 ? item.tone : 'success'}
+                  hint={item.count > 0 ? 'Click to review' : 'All caught up'}
+                  onClick={() => router.push(item.href)}
                 />
-              ) : (
-                sftpCurrencyEntries.map(([ccy, agg]) => (
-                  <MetricTile
-                    key={ccy}
-                    label={`Bank balance · ${ccy}`}
-                    value={`${ccy} ${formatCompact(agg.sum)}`}
-                    hint={`${agg.count} SFTP account${agg.count === 1 ? '' : 's'}`}
-                    icon={Wallet}
-                    tone="accent"
-                  />
-                ))
-              )}
-              <MetricTile
-                label="Cash runway"
-                value={runwayLabel}
-                icon={Timer}
-                tone={runwayTone}
-                hint={
-                  runwayDays === null
-                    ? 'No burn this month yet'
-                    : `at ${formatCompact(burnRate)}/mo burn`
-                }
-              />
+              ))}
             </div>
           </div>
 
-          {/* ─── Cash Flow ─── */}
+          {/* ─── Section 2: Month-to-date cash flow ─── */}
+          {/* Single-currency summary (org's primary operating currency) so
+              UGX and USD never get summed. Sourced from cash_flow_series
+              (XeroPaymentEvent realized IN/OUT) — the current-month bucket
+              is month-to-date. Sparklines show the 6-month history. */}
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Month-to-date cash flow
-            </h2>
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Month-to-date cash flow
+              </h2>
+              <span className="text-[11px] text-muted-foreground">
+                {mtdCurrency}
+              </span>
+            </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <MetricTile
                 label="Inflows"
-                value={formatCompact(inflows)}
-                hint="Bank credits this month"
+                value={`${mtdCurrency} ${formatCompact(inflows)}`}
+                hint="Collected this month"
                 icon={ArrowDownRight}
                 tone="success"
-                sparkline={throughputSpark.length >= 2 ? throughputSpark : undefined}
+                sparkline={inflowSpark.length >= 2 ? inflowSpark : undefined}
                 sparklineKind="area"
               />
               <MetricTile
                 label="Outflows"
-                value={formatCompact(outflows)}
-                hint="Bank debits this month"
+                value={`${mtdCurrency} ${formatCompact(outflows)}`}
+                hint="Paid out this month"
                 icon={ArrowUpRight}
                 tone="warning"
-                sparkline={failedSpark.length >= 2 ? failedSpark : undefined}
+                sparkline={outflowSpark.length >= 2 ? outflowSpark : undefined}
                 sparklineKind="area"
               />
               <MetricTile
                 label="Net position"
-                value={`${netFlow >= 0 ? '+' : ''}${formatCompact(netFlow)}`}
+                value={`${netFlow >= 0 ? '+' : '−'}${mtdCurrency} ${formatCompact(Math.abs(netFlow))}`}
                 hint="Inflows − outflows"
                 icon={Scale}
                 tone={netFlow >= 0 ? 'success' : 'danger'}
@@ -355,7 +460,7 @@ export default function DashboardPage() {
               />
               <MetricTile
                 label="Burn rate"
-                value={`${formatCompact(burnRate)}/mo`}
+                value={`${mtdCurrency} ${formatCompact(burnRate)}/mo`}
                 hint="Projected monthly spend"
                 icon={Flame}
                 tone="danger"
@@ -363,43 +468,82 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ─── Section 2: Action Items ─── */}
-          {/* All counts come from Centry-internal data (PaymentEvents,
-              pain.002 bank responses, expenses). */}
+          {/* ─── Section 3: Funding accounts ─── */}
+          {/* One card per account in its own currency — no FX mixing.
+              Primary number = accepted payments through that account
+              over the pipeline-overview period (default 90d). Each card
+              also carries the account's balance, derived monthly run-rate
+              and per-account runway. Sources:
+                • bank rows  → SFTPCredential-wired BankAccount + by_bank
+                • provider rows → ProviderAccount + provider_accounts. */}
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Needs attention
-            </h2>
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: 'Awaiting Approval', count: pipelineStats?.pending_approval || 0, icon: CreditCard, color: '#D4B35A', href: '/payments/processing' },
-              { label: 'Ready for Export', count: pipelineStats?.processing || 0, icon: Send, color: '#6B8FB8', href: '/banking/export' },
-              { label: 'Failed Payments', count: failedPayments + bankRejected, icon: Zap, color: '#B85C5C', href: '/payments' },
-              { label: 'Pending Expenses', count: pendingExpenses, icon: Receipt, color: '#D4944A', href: '/expenses' },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={() => router.push(item.href)}
-                className={`flex items-center gap-3 p-4 rounded-xl border bg-card text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                  item.count > 0 ? 'border-l-4' : 'border-border'
-                }`}
-                style={item.count > 0 ? { borderLeftColor: item.color } : undefined}
-              >
-                <div className="p-2 rounded-lg" style={{ backgroundColor: item.count > 0 ? `${item.color}15` : 'rgb(var(--page-bg-subtle))' }}>
-                  {item.count > 0 ? (
-                    <item.icon className="h-4 w-4" style={{ color: item.color }} />
-                  ) : (
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                  )}
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Funding accounts
+              </h2>
+              <span className="text-[11px] text-muted-foreground">
+                Accepted payments · last {periodLabel}
+              </span>
+            </div>
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              {loadingPipeline ? (
+                <div className="col-span-full flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
-                <div>
-                  <p className="text-2xl font-semibold text-foreground leading-tight">{item.count}</p>
-                  <p className="text-[11px] text-muted-foreground">{item.label}</p>
-                </div>
-              </button>
-            ))}
+              ) : fundingCards.length === 0 ? (
+                <MetricTile
+                  label="No funding accounts"
+                  value="—"
+                  hint="Wire an SFTP bank account or add a ProviderAccount"
+                  icon={Wallet}
+                  tone="accent"
+                />
+              ) : (
+                fundingCards.map((c) => {
+                  const balanceLine =
+                    c.balance === null
+                      ? 'Balance not synced'
+                      : `Bal ${c.currency} ${formatCompact(c.balance)}`;
+                  const runwayLine =
+                    c.monthly > 0
+                      ? `~${c.currency} ${formatCompact(c.monthly)}/mo · ${runwayLabelFor(c.runwayDays)}`
+                      : `${c.acceptedCount} accepted`;
+                  return (
+                    <MetricTile
+                      key={c.key}
+                      label={`${c.bankName} · ${c.accountName || '—'}`}
+                      value={`${c.currency} ${formatCompact(c.accepted)}`}
+                      hint={balanceLine}
+                      footer={
+                        <span className="text-[11px] text-muted-foreground">
+                          {runwayLine}
+                        </span>
+                      }
+                      icon={c.iconKind === 'bank' ? Landmark : Wallet}
+                      tone={toneFor(c.runwayDays)}
+                    />
+                  );
+                })
+              )}
             </div>
           </div>
+
+          {/* ─── Cash flow graphs — one card per currency ─── */}
+          {/* Realized monthly inflow vs outflow from cash_flow_series
+              (XeroPaymentEvent IN/OUT). Separate UGX / USD cards so the
+              two never share a y-axis. */}
+          {!loadingPipeline && (pipelineOverview?.cash_flow_series?.length ?? 0) > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Cash flow
+              </h2>
+              <div className="grid gap-6 lg:grid-cols-2">
+                {pipelineOverview!.cash_flow_series.map((cf) => (
+                  <CashFlowCard key={cf.currency} data={cf} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ─── Section 3: Payment Pipeline + Today's Pulse ─── */}
           <div className="grid gap-6 lg:grid-cols-3">
@@ -764,7 +908,7 @@ export default function DashboardPage() {
                           : null;
                       return (
                         <div
-                          key={b.bank_account_id}
+                          key={`${b.bank_account_id}:${b.currency}`}
                           className="flex items-center justify-between gap-3 py-1"
                         >
                           <div className="min-w-0 flex-1">
@@ -777,7 +921,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-sm font-semibold text-foreground tabular-nums">
-                              {formatCompact(sent)}
+                              {b.currency} {formatCompact(sent)}
                             </p>
                             <p className="text-[11px] text-muted-foreground tabular-nums">
                               {b.sent_count} sent

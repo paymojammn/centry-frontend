@@ -28,8 +28,13 @@ interface MetricTileProps {
   tone?: Tone;
   className?: string;
   footer?: ReactNode;
+  /** Optional click handler — turns the tile into an interactive button. */
+  onClick?: () => void;
 }
 
+// Single source of truth for card visuals across the app. The 4-px left
+// stripe is the "cute" accent the rest of the UI matches (StatCard wraps
+// this component to inherit the same look).
 const TONE_STYLES: Record<
   Tone,
   { accent: string; spark: string; iconBg: string; iconColor: string }
@@ -41,25 +46,25 @@ const TONE_STYLES: Record<
     iconColor: "text-muted-foreground",
   },
   accent: {
-    accent: "border-l-2 border-l-primary",
+    accent: "border-l-4 border-l-primary",
     spark: "rgb(var(--brand-primary))",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   success: {
-    accent: "border-l-2 border-l-emerald-500",
+    accent: "border-l-4 border-l-emerald-500",
     spark: "#10b981",
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600",
   },
   warning: {
-    accent: "border-l-2 border-l-amber-500",
+    accent: "border-l-4 border-l-amber-500",
     spark: "#f59e0b",
     iconBg: "bg-amber-500/10",
     iconColor: "text-amber-600",
   },
   danger: {
-    accent: "border-l-2 border-l-red-500",
+    accent: "border-l-4 border-l-red-500",
     spark: "#ef4444",
     iconBg: "bg-red-500/10",
     iconColor: "text-red-600",
@@ -77,6 +82,7 @@ export function MetricTile({
   tone = "default",
   className,
   footer,
+  onClick,
 }: MetricTileProps) {
   const styles = TONE_STYLES[tone];
 
@@ -89,11 +95,15 @@ export function MetricTile({
   const sparkColor = styles.spark;
   const gradId = `mt-spark-${label.replace(/[^a-z0-9]/gi, "-")}`;
 
+  const Wrapper: any = onClick ? "button" : "div";
+
   return (
-    <div
+    <Wrapper
+      {...(onClick ? { type: "button", onClick } : {})}
       className={cn(
-        "group relative rounded-xl border border-border bg-card overflow-hidden",
+        "group relative rounded-xl border border-border bg-card overflow-hidden text-left w-full",
         "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
+        onClick && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         styles.accent,
         className
       )}
@@ -179,6 +189,6 @@ export function MetricTile({
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </Wrapper>
   );
 }

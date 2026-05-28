@@ -20,6 +20,7 @@ import {
   ContentCard,
   ContentCardHeader,
 } from "@/components/layout/content-card";
+import { MetricTile } from "@/components/reports/MetricTile";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   DropdownMenu,
@@ -424,106 +425,77 @@ export default function BankReconciliationPage() {
 
       <div className="px-6 py-8 space-y-5">
         {/* Summary KPI tiles — clickable to filter the grid by status.
-            Active tile gets a sage ring so the filter state is visible. */}
+            Active tile gets a primary ring on top of the tone stripe so
+            the filter state is visible. */}
         <div className="flex items-stretch gap-3">
           <div className="grid grid-cols-3 gap-3 flex-1">
-            {[
+            {([
               {
                 key: "ACSP",
                 label: "Accepted",
                 value: counts.accepted,
                 icon: CheckCircle2,
-                tone: {
-                  bg: "bg-emerald-500/10",
-                  text: "text-emerald-700",
-                  ring: "ring-emerald-500/20",
-                },
+                tone: "success" as const,
               },
               {
                 key: "RJCT",
                 label: "Rejected",
                 value: counts.rejected,
                 icon: XCircle,
-                tone: {
-                  bg: "bg-red-500/10",
-                  text: "text-red-700",
-                  ring: "ring-red-500/20",
-                },
+                tone: "danger" as const,
               },
               {
                 key: "PDNG",
                 label: "Pending",
                 value: counts.pending,
                 icon: Clock,
-                tone: {
-                  bg: "bg-amber-500/10",
-                  text: "text-amber-700",
-                  ring: "ring-amber-500/20",
-                },
+                tone: "warning" as const,
               },
-            ].map((t) => {
-              const Icon = t.icon;
+            ]).map((t) => {
               const total = counts.accepted + counts.rejected + counts.pending;
               const pct = total > 0 ? Math.round((t.value / total) * 100) : 0;
               const active = statusFilter === t.key;
               return (
-                <button
+                <MetricTile
                   key={t.key}
-                  onClick={() =>
-                    setStatusFilter(active ? "all" : t.key)
-                  }
-                  className={`text-left bg-card rounded-xl border p-4 transition-all group hover:shadow-sm ${
-                    active
-                      ? "border-primary/30 ring-1 ring-primary/20"
-                      : "border-border hover:border-foreground/10"
-                  }`}
-                >
-                  <div
-                    className={`size-8 rounded-lg ${t.tone.bg} ring-1 ${t.tone.ring} flex items-center justify-center`}
-                  >
-                    <Icon className={`h-4 w-4 ${t.tone.text}`} />
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
-                      {t.label}
-                    </p>
-                    <p className="text-2xl font-normal text-foreground tabular-nums mt-1 leading-none">
-                      {t.value}
-                    </p>
-                    <p className="text-[12px] text-muted-foreground mt-1.5">
-                      {total > 0 ? `${pct}% of responses` : "no data"}
-                    </p>
-                  </div>
-                </button>
+                  label={t.label}
+                  value={t.value}
+                  icon={t.icon}
+                  tone={t.tone}
+                  hint={total > 0 ? `${pct}% of responses` : "no data"}
+                  onClick={() => setStatusFilter(active ? "all" : t.key)}
+                  className={active ? "ring-2 ring-primary/40" : ""}
+                />
               );
             })}
           </div>
 
-          {/* Bulk action card — same height as tiles, only visible when
-              user has selected accepted-not-yet-synced rows. */}
+          {/* Bulk action card — same MetricTile shape as the KPI tiles,
+              only visible when user has selected accepted-not-yet-synced
+              rows. Action button rides in the footer. */}
           {selectedValid.length > 0 && (
-            <div className="bg-card rounded-xl border border-primary/30 ring-1 ring-primary/15 p-4 flex flex-col justify-between min-w-[200px]">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
-                  Selected
-                </p>
-                <p className="text-2xl font-normal text-foreground tabular-nums mt-1 leading-none">
-                  {selectedValid.length}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                onClick={handleBulkPost}
-                disabled={bulkPosting}
-                className="h-8 mt-3"
-              >
-                {bulkPosting ? (
-                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                ) : (
-                  <Upload className="h-3.5 w-3.5 mr-1.5" />
-                )}
-                Post to ERP
-              </Button>
+            <div className="min-w-[200px]">
+              <MetricTile
+                label="Selected"
+                value={selectedValid.length}
+                icon={FileCheck}
+                tone="accent"
+                footer={
+                  <Button
+                    size="sm"
+                    onClick={handleBulkPost}
+                    disabled={bulkPosting}
+                    className="h-8 mt-3 w-full"
+                  >
+                    {bulkPosting ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    Post to ERP
+                  </Button>
+                }
+              />
             </div>
           )}
         </div>
