@@ -388,7 +388,7 @@ function KpiTile({
   return (
     <button
       onClick={onClick}
-      className="text-left bg-card rounded-xl border border-border p-4 hover:border-foreground/10 hover:shadow-sm transition-all group"
+      className="text-left bg-card rounded-xl border border-border p-4 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all group"
     >
       <div className="flex items-center justify-between gap-3">
         <div className={`size-8 rounded-lg ${a.bg} flex items-center justify-center ring-1 ${a.ring}`}>

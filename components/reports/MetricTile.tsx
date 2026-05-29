@@ -102,7 +102,7 @@ export function MetricTile({
       {...(onClick ? { type: "button", onClick } : {})}
       className={cn(
         "group relative rounded-xl border border-border bg-card overflow-hidden text-left w-full",
-        "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
+        "transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5",
         onClick && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         styles.accent,
         className

@@ -176,7 +176,7 @@ interface OrganizationCardProps {
 
 function OrganizationCard({ organization }: OrganizationCardProps) {
   return (
-    <div className="bg-card border border-border/80 rounded-xl shadow-sm card-lift">
+    <div className="bg-card border border-border/80 rounded-xl shadow-sm transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3">

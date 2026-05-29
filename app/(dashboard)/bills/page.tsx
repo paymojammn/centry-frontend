@@ -356,7 +356,7 @@ export default function BillsPage() {
                 value={pipelineSent}
                 subtext={`${organizationCurrency} ${formatCompactNumber(pipelineSentAmount)} · ${pipelineSuccess} settled`}
                 icon={AlertTriangle}
-                variant="default"
+                variant="accent"
               />
 
               {canCreatePayment && (
@@ -366,7 +366,7 @@ export default function BillsPage() {
                   icon={CheckCircle}
                   iconColor={selectedBills.size > 0 ? STATUS_COLORS.paid.bg : undefined}
                   iconBgColor={selectedBills.size > 0 ? STATUS_COLORS.paid.light : undefined}
-                  variant={selectedBills.size > 0 ? 'accent' : 'default'}
+                  variant="accent"
                 >
                   {selectedBills.size > 0 ? (
                     <Button
