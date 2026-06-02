@@ -34,6 +34,7 @@ import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
 import {
   Send,
+  Search,
   CheckCircle2,
   XCircle,
   Clock,
@@ -89,6 +90,7 @@ interface ProcessingQueueProps {
 
 export default function ProcessingQueue({ organizationId }: ProcessingQueueProps) {
   const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayments, setSelectedPayments] = useState<Set<number>>(new Set());
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
@@ -136,6 +138,22 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const bankAccounts = Array.isArray(bankAccountsData)
     ? bankAccountsData
     : (bankAccountsData as any)?.results || [];
+
+  // Client-side search over the already-fetched (status-filtered) payments,
+  // matching the bills queue: instant, no debounce. Status is filtered
+  // server-side via the `filters` above; search narrows the visible rows.
+  const filteredPayments = useMemo(() => {
+    if (!searchQuery.trim()) return payments;
+    const query = searchQuery.toLowerCase();
+    return payments.filter((p: PaymentEvent) =>
+      p.vendor_name?.toLowerCase().includes(query) ||
+      p.bill_number?.toLowerCase().includes(query) ||
+      p.bill_reference?.toLowerCase().includes(query) ||
+      p.account_name?.toLowerCase().includes(query) ||
+      p.bank_name?.toLowerCase().includes(query) ||
+      p.note?.toLowerCase().includes(query)
+    );
+  }, [payments, searchQuery]);
 
   // Get selected payments data
   const selectedPaymentsData = useMemo(() => {
@@ -552,6 +570,15 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         {/* Left: Filter and Refresh */}
         <div className="flex items-center gap-3">
+          <div className="relative w-64 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+            <Input
+              placeholder="Search vendors, bills, accounts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+            />
+          </div>
           <Select
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val as PaymentEventStatus | 'all')}
@@ -719,12 +746,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       </div>
 
       {/* Payments List */}
-      {!payments || payments.length === 0 ? (
+      {!filteredPayments || filteredPayments.length === 0 ? (
         <div className="py-16 text-center">
           <Send className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm font-normal text-foreground">No Payments in Queue</p>
           <p className="text-sm text-muted-foreground mt-1">
-            {statusFilter !== 'all'
+            {searchQuery.trim()
+              ? 'No payments match your search. Try a different term.'
+              : statusFilter !== 'all'
               ? 'No payments with this status. Try a different filter.'
               : 'Payments you initiate will appear here for tracking.'}
           </p>
@@ -738,10 +767,10 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   <th className="w-10">
                     <input
                       type="checkbox"
-                      checked={payments.length > 0 && selectedPayments.size === payments.length}
+                      checked={filteredPayments.length > 0 && filteredPayments.every((p: PaymentEvent) => selectedPayments.has(p.id))}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedPayments(new Set(payments.map((p: PaymentEvent) => p.id)));
+                          setSelectedPayments(new Set(filteredPayments.map((p: PaymentEvent) => p.id)));
                         } else {
                           setSelectedPayments(new Set());
                         }
@@ -761,7 +790,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment: PaymentEvent) => (
+              {filteredPayments.map((payment: PaymentEvent) => (
                 <tr
                   key={payment.id}
                   className={`${selectedPayments.has(payment.id) ? 'is-selected' : ''} ${
