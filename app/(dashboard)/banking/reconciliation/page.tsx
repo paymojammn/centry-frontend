@@ -229,6 +229,7 @@ export default function BankReconciliationPage() {
     if (selectedValid.length === 0) return;
     setBulkPosting(true);
     let ok = 0;
+    const failures: string[] = [];
     for (const id of selectedValid) {
       const txn = transactions.find((t) => t.id === id);
       if (!txn?.payment_event_id) continue;
@@ -240,12 +241,26 @@ export default function BankReconciliationPage() {
         console.log("[BulkPost] Success:", res);
         ok++;
       } catch (err: any) {
+        const reason =
+          err?.response?.data?.error || err?.message || "Unknown error";
         console.error("[BulkPost] Failed for payment event", txn.payment_event_id, ":", err?.response?.data || err?.message || err);
+        failures.push(`Payment #${txn.payment_event_id}: ${reason}`);
       }
     }
     setBulkPosting(false);
     setSelected([]);
-    toast.success(`Posted ${ok} of ${selectedValid.length} payments to ERP`);
+    if (ok > 0) {
+      toast.success(`Posted ${ok} of ${selectedValid.length} payments to ERP`);
+    }
+    if (failures.length > 0) {
+      // Surface the actual Xero/ERP errors (e.g. "Payments can only be made
+      // against Authorised documents") instead of silently swallowing them.
+      const distinct = Array.from(new Set(failures));
+      toast.error(
+        `Failed to post ${failures.length} of ${selectedValid.length} payments`,
+        { description: distinct.join("\n") }
+      );
+    }
     queryClient.invalidateQueries({
       queryKey: ["bank-response-transactions"],
     });

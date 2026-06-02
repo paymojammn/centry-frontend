@@ -79,6 +79,7 @@ const STATUS_COLORS = {
   pending_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
   processing: { bg: '#6B8FB8', text: '#ffffff', light: '#E8F2FA' },
   pending: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
+  accepted: { bg: '#2A9D8F', text: '#ffffff', light: '#E6F4F1' },
   sent: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5' },
   success: { bg: '#5C8A65', text: '#ffffff', light: '#E8F5E5' },
   failed: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
@@ -396,6 +397,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         return <FileText className="h-4 w-4 text-primary" />;
       case 'PENDING':
         return <Clock className="h-4 w-4 text-muted-foreground" />;
+      case 'ACCEPTED_BANK':
+        return <ShieldCheck className="h-4 w-4" style={{ color: STATUS_COLORS.accepted.bg }} />;
       case 'SENT_PAYMENT':
         return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       case 'SUCCESS_PAYMENT':
@@ -417,6 +420,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       PENDING_APPROVAL: { ...STATUS_COLORS.pending_approval, label: 'Pending Approval' },
       PROCESSING: { ...STATUS_COLORS.processing, label: 'Ready for File' },
       PENDING: { ...STATUS_COLORS.pending, label: 'File Generated' },
+      ACCEPTED_BANK: { ...STATUS_COLORS.accepted, label: 'Accepted by Bank' },
       SENT_PAYMENT: { ...STATUS_COLORS.sent, label: 'Processing' },
       SUCCESS_PAYMENT: { ...STATUS_COLORS.success, label: 'Successful' },
       FAILED_PAYMENT: { ...STATUS_COLORS.failed, label: 'Failed' },
@@ -537,6 +541,18 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             <span className="text-sm font-normal text-foreground">{stats.pending}</span>
           </div>
 
+          <button
+            onClick={() => { setStatusFilter('ACCEPTED_BANK'); selectAllByStatus('ACCEPTED_BANK'); }}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS.accepted.bg }}
+            />
+            <span className="text-sm text-muted-foreground">Accepted by Bank</span>
+            <span className="text-sm font-normal text-foreground">{stats.accepted}</span>
+          </button>
+
           <div className="flex items-center gap-2">
             <span
               className="w-2 h-2 rounded-full"
@@ -604,6 +620,12 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending.bg }} />
                   File Sent
+                </span>
+              </SelectItem>
+              <SelectItem value="ACCEPTED_BANK">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.accepted.bg }} />
+                  Accepted by Bank
                 </span>
               </SelectItem>
               <SelectItem value="SENT_PAYMENT">

@@ -47,6 +47,7 @@ import { useHasPermission } from "@/hooks/use-user";
 const FILE_STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
   generated: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  uploading: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   uploaded: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   processed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   failed: "bg-red-500/10 text-red-700 border-red-500/20",
@@ -55,6 +56,7 @@ const FILE_STATUS_STYLES: Record<string, string> = {
 const FILE_STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   generated: "Generated",
+  uploading: "Uploading",
   uploaded: "Uploaded",
   processed: "Processed",
   failed: "Failed",

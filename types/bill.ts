@@ -148,6 +148,7 @@ export type PaymentEventStatus =
   | 'PENDING_APPROVAL'
   | 'PROCESSING'
   | 'PENDING'
+  | 'ACCEPTED_BANK'
   | 'SENT_PAYMENT'
   | 'ERROR_PAYMENT'
   | 'SUCCESS_PAYMENT'
@@ -237,6 +238,7 @@ export interface PaymentEventStats {
   pending_approval: number;
   processing: number;
   pending: number;
+  accepted: number;
   sent: number;
   success: number;
   failed: number;
