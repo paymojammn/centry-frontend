@@ -532,7 +532,11 @@ export default function OnegateSignoffPage() {
   const runVoucherPayment = useMutation({
     mutationFn: async () => {
       if (!accountId) throw new Error("Pick an account");
-      return onegateApi.runVoucherPaymentTest(accountId, tc12Form);
+      // OneGate UAT feedback: pass amount=0 for EVERY voucher deposit method
+      // (1Voucher, BluVoucher, EasyLoad, EasyPay/4All, OTT). OneGate captures
+      // the value from the PIN entered on their hosted page — force it here so
+      // the form can never submit a non-zero voucher amount.
+      return onegateApi.runVoucherPaymentTest(accountId, { ...tc12Form, amount: "0" });
     },
     onSuccess: (resp) => {
       setTc12Result(resp.result);
@@ -1141,6 +1145,20 @@ export default function OnegateSignoffPage() {
               exists. Click "Start test deposit" to create a payment-key and
               open OneGate's hosted checkout in a new tab.
             </p>
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+              <span className="font-medium text-foreground">Redirect URLs:</span>{" "}
+              every deposit is sent with{" "}
+              <code className="bg-muted px-1 rounded">success_url</code>,{" "}
+              <code className="bg-muted px-1 rounded">cancel_url</code> and{" "}
+              <code className="bg-muted px-1 rounded">error_url</code> — these are
+              what EFTsecure, OZOW EFT and all voucher methods use to return the
+              customer to us.{" "}
+              <code className="bg-muted px-1 rounded">return_url</code> is honoured
+              by OneGate <span className="font-medium">only</span> for 3DS card
+              (Direct) payments, so the backend maps it onto{" "}
+              <code className="bg-muted px-1 rounded">success_url</code> for the
+              non-card methods rather than relying on it.
+            </p>
           </div>
           {depositsQuery.isLoading ? (
             <div className="px-5 py-8 flex items-center justify-center text-muted-foreground">
@@ -1198,6 +1216,7 @@ export default function OnegateSignoffPage() {
                 <PayoutCard
                   key={row.slug}
                   row={row}
+                  constants={constants}
                   isRunning={
                     startPayout.isPending &&
                     startPayout.variables?.payout_method_slug === row.slug
@@ -1554,11 +1573,11 @@ function PaymentMethodMatrix({
 
 // Friendly labels per docs page for the 5 voucher types.
 const VOUCHER_LABELS: Record<string, string> = {
-  ott_voucher: "OTT-Voucher (partial OK if enabled)",
-  onevoucher: "1Voucher (partial OK if enabled)",
-  bluvoucher: "BluVoucher (full only)",
-  kazangvoucher: "EasyPay Voucher / Kazang (full only)",
-  shop2shop_voucher: "EasyLoad Voucher / Shop2Shop (full only)",
+  ott_voucher: "OTT-Voucher",
+  onevoucher: "1Voucher",
+  bluvoucher: "BluVoucher",
+  kazangvoucher: "EasyPay Voucher / Kazang",
+  shop2shop_voucher: "EasyLoad Voucher / Shop2Shop",
 };
 
 interface VoucherPaymentFormValue {
@@ -1619,11 +1638,12 @@ function VoucherPaymentForm({
             Amount (ZAR)
           </Label>
           <Input
-            value={value.amount}
-            onChange={(e) => set("amount", e.target.value)}
-            placeholder="0 = full redemption"
-            disabled={disabled}
-            className="h-9 font-mono"
+            value="0"
+            readOnly
+            disabled
+            title="Vouchers must be submitted with amount=0 (OneGate UAT requirement)"
+            aria-label="Voucher amount (locked to 0)"
+            className="h-9 font-mono opacity-70 cursor-not-allowed"
           />
         </div>
         <div>
@@ -1640,11 +1660,11 @@ function VoucherPaymentForm({
         </div>
       </div>
       <div className="text-[11px] text-muted-foreground">
-        Default <code className="bg-muted px-1 rounded">amount=0</code>{" "}
-        tells OneGate to look up the voucher value with the provider and
-        redeem the full balance — works for every voucher type. Set a
-        non-zero amount only for OTT-Voucher / 1Voucher where partial
-        redemption is enabled.
+        Locked to <code className="bg-muted px-1 rounded">amount=0</code>{" "}
+        for every voucher type — OneGate's UAT team requires{" "}
+        <code className="bg-muted px-1 rounded">amount=0</code> on all voucher
+        deposits (1Voucher, BluVoucher, EasyLoad, EasyPay/4All, OTT). OneGate
+        captures the value from the PIN entered on their hosted page.
       </div>
     </div>
   );
@@ -3021,17 +3041,20 @@ function TestRefsList({ refs }: { refs: OneGateDepositRow["references"] }) {
 
 function PayoutCard({
   row,
+  constants,
   isRunning,
   onSubmit,
   onIntentChange,
 }: {
   row: OneGatePayoutRow;
+  constants?: OneGateConstants;
   isRunning: boolean;
   onSubmit: (body: OneGatePayoutTestPayload) => void;
   onIntentChange: (patch: Partial<OneGateSignoffIntent>) => void;
 }) {
   const status = badgeStatus(row.status);
   const [formOpen, setFormOpen] = useState(false);
+  const limits = constants?.payout_amount_limits?.[row.slug];
 
   return (
     <div className={"px-5 py-4 " + intentTone(row.intent).replace("bg-", "").trim()}>
@@ -3056,6 +3079,15 @@ function PayoutCard({
         {row.rsa_id_required && (
           <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
             RSA ID required
+          </span>
+        )}
+        {limits && (
+          <span
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-100 text-sky-900"
+            title={`OneGate limits · ${limits.action_time}`}
+          >
+            R{Number(limits.min).toLocaleString()}–R
+            {Number(limits.max).toLocaleString()}
           </span>
         )}
         <div className="text-[11px] text-muted-foreground flex items-center gap-2 ml-2">
@@ -3088,6 +3120,14 @@ function PayoutCard({
         <PayoutTestForm
           slug={row.slug}
           rsaIdRequired={row.rsa_id_required}
+          limits={limits}
+          participatingBanks={
+            row.slug === "payshap-account"
+              ? constants?.payshap_participating_banks
+              : row.slug === "rtc-payments"
+                ? constants?.rtc_participating_banks
+                : undefined
+          }
           isRunning={isRunning}
           onCancel={() => setFormOpen(false)}
           onSubmit={onSubmit}
@@ -3108,19 +3148,26 @@ function PayoutCard({
 function PayoutTestForm({
   slug,
   rsaIdRequired,
+  limits,
+  participatingBanks,
   isRunning,
   onCancel,
   onSubmit,
 }: {
   slug: string;
   rsaIdRequired: boolean;
+  limits?: { min: string; max: string; action_time: string };
+  participatingBanks?: Record<string, string>;
   isRunning: boolean;
   onCancel: () => void;
   onSubmit: (body: OneGatePayoutTestPayload) => void;
 }) {
+  // Seed the amount at the method's minimum so the form starts inside
+  // OneGate's accepted range — their old R5 default tripped the R10/R50/R100
+  // floors and got rejected during UAT.
   const [form, setForm] = useState<OneGatePayoutTestPayload>({
     payout_method_slug: slug,
-    amount: "5.00",
+    amount: limits?.min ?? "5.00",
     first_name: "Test",
     surname: "Signoff",
     mobile: "",
@@ -3131,7 +3178,34 @@ function PayoutTestForm({
   });
 
   const idMissing = rsaIdRequired && !(form.id_number ?? "").trim();
-  const canSubmit = !!form.mobile && !idMissing;
+
+  // Amount must sit within OneGate's published per-method bounds (PayShap
+  // R50–R50k, RTC R50k–R150k, OTT-Voucher R10–R3k, etc.).
+  const lo = limits ? Number(limits.min) : null;
+  const hi = limits ? Number(limits.max) : null;
+  const amountNum = Number((form.amount ?? "").trim());
+  const amountValid =
+    Number.isFinite(amountNum) &&
+    amountNum > 0 &&
+    (lo == null || amountNum >= lo) &&
+    (hi == null || amountNum <= hi);
+
+  // PayShap / RTC payouts must target a participating bank — require both the
+  // account number and a branch code picked from that list.
+  const bankRequired = !!participatingBanks;
+  const selectedBankName = participatingBanks
+    ? Object.keys(participatingBanks).find(
+        (n) => participatingBanks[n] === form.branch_code,
+      ) ?? ""
+    : "";
+  const bankMissing =
+    bankRequired &&
+    (!(form.account_number ?? "").trim() || !(form.branch_code ?? "").trim());
+
+  const canSubmit =
+    !!form.mobile && !idMissing && amountValid && !bankMissing;
+
+  const fmt = (v: string) => Number(v).toLocaleString();
 
   return (
     <form
@@ -3142,13 +3216,28 @@ function PayoutTestForm({
         onSubmit(form);
       }}
     >
-      <Field label="Amount (ZAR)">
+      <Field
+        label={
+          limits
+            ? `Amount (ZAR · R${fmt(limits.min)}–R${fmt(limits.max)})`
+            : "Amount (ZAR)"
+        }
+      >
         <Input
           required
           value={form.amount}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
           inputMode="decimal"
+          className={
+            amountValid ? "" : "border-rose-400 focus-visible:ring-rose-200"
+          }
         />
+        {!amountValid && limits && (
+          <span className="text-[11px] text-rose-600">
+            OneGate accepts R{fmt(limits.min)}–R{fmt(limits.max)} for{" "}
+            {slug} ({limits.action_time})
+          </span>
+        )}
       </Field>
       <Field label="First name">
         <Input
@@ -3172,20 +3261,60 @@ function PayoutTestForm({
           onChange={(e) => setForm({ ...form, mobile: e.target.value })}
         />
       </Field>
-      <Field label="Account number (bank methods only)">
+      <Field
+        label={
+          bankRequired
+            ? "Account number (required)"
+            : "Account number (bank methods only)"
+        }
+      >
         <Input
+          required={bankRequired}
           value={form.account_number}
           onChange={(e) =>
             setForm({ ...form, account_number: e.target.value })
           }
+          className={
+            bankRequired && !(form.account_number ?? "").trim()
+              ? "border-rose-400 focus-visible:ring-rose-200"
+              : ""
+          }
         />
       </Field>
-      <Field label="Branch code (bank methods only)">
-        <Input
-          value={form.branch_code}
-          onChange={(e) => setForm({ ...form, branch_code: e.target.value })}
-        />
-      </Field>
+      {bankRequired ? (
+        <Field label="Participating bank → branch code">
+          <Select
+            value={selectedBankName}
+            onValueChange={(name) =>
+              setForm({ ...form, branch_code: participatingBanks![name] ?? "" })
+            }
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Select participating bank" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(participatingBanks!).map(([name, code]) => (
+                <SelectItem key={name} value={name}>
+                  {name} · {code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {bankRequired && !form.branch_code && (
+            <span className="text-[11px] text-rose-600">
+              Pick a {slug === "payshap-account" ? "PayShap" : "RTC"}{" "}
+              participating bank
+            </span>
+          )}
+        </Field>
+      ) : (
+        <Field label="Branch code (bank methods only)">
+          <Input
+            value={form.branch_code}
+            onChange={(e) => setForm({ ...form, branch_code: e.target.value })}
+          />
+        </Field>
+      )}
       <Field
         label={
           rsaIdRequired ? "ID number (required for this method)" : "ID number (optional)"

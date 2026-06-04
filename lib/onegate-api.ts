@@ -313,6 +313,15 @@ export interface OneGateConstants {
   payment_types: string[];
   voucher_payment_types: string[];
   rsa_id_required_payout_methods: string[];
+  /** Per-method payout bounds (ZAR rand) from OneGate's UAT feedback. */
+  payout_amount_limits: Record<
+    string,
+    { min: string; max: string; action_time: string }
+  >;
+  /** Bank name → universal branch code for PayShap account payouts. */
+  payshap_participating_banks: Record<string, string>;
+  /** Bank name → universal branch code for RTC payouts. */
+  rtc_participating_banks: Record<string, string>;
   payout_status_map: Record<string, string>;
   terminal_statuses: string[];
   success_statuses: string[];
