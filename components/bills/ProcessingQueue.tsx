@@ -29,6 +29,7 @@ import {
   useReversePayment,
 } from '@/hooks/use-bills';
 import { paymentEventsApi } from '@/lib/bills-api';
+import { launchOneGateCheckout } from '@/lib/onegate-checkout';
 import { useBankAccounts } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
@@ -43,6 +44,7 @@ import {
   Building2,
   Phone,
   CreditCard,
+  ExternalLink,
   Banknote,
   Check,
   X,
@@ -288,6 +290,47 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         event.id,
         payNowAmount || undefined,
       );
+
+      // OneGate self-hosted: embed the V4 checkout widget in-page so the
+      // payer never leaves Centry. Falls back to opening the hosted page
+      // when the provider didn't return widget coordinates (e.g. Ozow).
+      if (result.service_url && result.payment_key) {
+        setIsPayNowDialogOpen(false);
+        try {
+          await launchOneGateCheckout({
+            serviceUrl: result.service_url,
+            paymentKey: result.payment_key,
+          });
+          // Resolved → transaction completed. The webhook reconciles the
+          // authoritative status; refetch so the queue reflects it.
+          toast.success('Payment completed');
+          setSelectedPayments(new Set());
+          refetch();
+        } catch (err: any) {
+          // Embedded checkout didn't complete — generating the link moved the
+          // event to SENT_PAYMENT, so return it to the approved (retryable)
+          // state instead of leaving it stuck as "Sent".
+          try {
+            await paymentEventsApi.revertToApproved(
+              event.id,
+              err?.cancelled ? 'checkout_cancelled' : 'checkout_failed',
+            );
+          } catch (revertErr) {
+            console.error('Failed to revert payment to approved:', revertErr);
+          }
+          refetch();
+          if (err?.cancelled) {
+            toast.info('Payment cancelled');
+          } else {
+            // Surface the real reason: widget transactionError → `error`,
+            // thrown/validation/timeout → `message`, plus any `reason`.
+            console.error('OneGate checkout failed:', err);
+            toast.error(err?.error || err?.reason || err?.message || 'Payment failed');
+          }
+        }
+        return;
+      }
+
       if (result.payment_link) {
         window.open(result.payment_link, '_blank', 'noopener,noreferrer');
         toast.success('Payment link opened in a new tab');
@@ -298,6 +341,36 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       }
     } catch (error: any) {
       toast.error(error?.message || 'Failed to generate payment link');
+    } finally {
+      setPayNowLoading(false);
+    }
+  };
+
+  // Redirect flow: open OneGate's hosted checkout page in a new tab instead of
+  // embedding the widget. Works without OneGate whitelisting our origin, so
+  // it's the reliable path while the embedded (self-hosted) checkout is being
+  // enabled. The webhook reconciles the outcome.
+  const handleRedirectCheckout = async () => {
+    if (!isHostedCheckoutPayout) return;
+    const event = selectedPaymentsData[0];
+    if (!event) return;
+    setPayNowLoading(true);
+    try {
+      const result = await paymentEventsApi.generatePaymentLink(
+        event.id,
+        payNowAmount || undefined,
+      );
+      if (result.payment_link) {
+        window.open(result.payment_link, '_blank', 'noopener,noreferrer');
+        toast.success('Hosted checkout opened in a new tab');
+        setIsPayNowDialogOpen(false);
+        setSelectedPayments(new Set());
+        refetch();
+      } else {
+        toast.error('Provider did not return a payment link');
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to open checkout');
     } finally {
       setPayNowLoading(false);
     }
@@ -1115,8 +1188,9 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           <DialogHeader>
             <DialogTitle>Pay Now</DialogTitle>
             <DialogDescription>
-              Confirm the amount and open the hosted checkout. The payer
-              completes card or EFT details on the provider's page.
+              Confirm the amount, then pay in-page (embedded checkout) or open
+              the hosted checkout page in a new tab. The payer completes card or
+              EFT details either way.
             </DialogDescription>
           </DialogHeader>
           {selectedPaymentsData[0] && (
@@ -1156,37 +1230,59 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             </div>
           )}
           <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsPayNowDialogOpen(false)}
-              disabled={payNowLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleGeneratePaymentLink}
+            {(() => {
               // Allow amount=0 — vouchers (1Voucher / BluVoucher / OTT etc.)
-              // require amount=0 on the provider's hosted page; the value
-              // is captured from the PIN. Only reject empty strings,
-              // non-numeric input, or strictly negative numbers.
-              disabled={
-                payNowLoading ||
+              // require amount=0 on the provider's hosted page; the value is
+              // captured from the PIN. Only reject empty strings, non-numeric
+              // input, or strictly negative numbers.
+              const amountInvalid =
                 payNowAmount === '' ||
                 !Number.isFinite(parseFloat(payNowAmount)) ||
-                parseFloat(payNowAmount) < 0
-              }
-              className="text-white"
-              style={{ backgroundColor: STATUS_COLORS.success.bg }}
-            >
-              {payNowLoading ? (
-                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-              ) : (
-                <CreditCard className="h-4 w-4 mr-1.5" />
-              )}
-              Open Checkout
-            </Button>
+                parseFloat(payNowAmount) < 0;
+              return (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsPayNowDialogOpen(false)}
+                    disabled={payNowLoading}
+                  >
+                    Cancel
+                  </Button>
+                  {/* Redirect flow — opens OneGate's hosted page in a new tab.
+                      Works without origin whitelisting; the webhook reconciles. */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRedirectCheckout}
+                    disabled={payNowLoading || amountInvalid}
+                  >
+                    {payNowLoading ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <ExternalLink className="h-4 w-4 mr-1.5" />
+                    )}
+                    Redirect checkout
+                  </Button>
+                  {/* Embedded flow — in-page widget (requires OneGate to
+                      whitelist this origin / enable self-hosted checkout). */}
+                  <Button
+                    size="sm"
+                    onClick={handleGeneratePaymentLink}
+                    disabled={payNowLoading || amountInvalid}
+                    className="text-white"
+                    style={{ backgroundColor: STATUS_COLORS.success.bg }}
+                  >
+                    {payNowLoading ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4 mr-1.5" />
+                    )}
+                    Pay in-page
+                  </Button>
+                </>
+              );
+            })()}
           </DialogFooter>
         </DialogContent>
       </Dialog>

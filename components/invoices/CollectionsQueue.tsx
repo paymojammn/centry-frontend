@@ -13,6 +13,7 @@ import { useCollectionEvents } from '@/hooks/use-invoices';
 import { useApprovePayments, useRejectPayments } from '@/hooks/use-bills';
 import { useHasPermission } from '@/hooks/use-user';
 import { api } from '@/lib/api';
+import { launchOneGateCheckout } from '@/lib/onegate-checkout';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -81,6 +82,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
   const [statusFilter, setStatusFilter] = useState('all');
   const [copied, setCopied] = useState('');
   const [generatingId, setGeneratingId] = useState<number | null>(null);
+  const [collectingId, setCollectingId] = useState<number | null>(null);
   const [actingId, setActingId] = useState<number | null>(null);
   const [sendLinkTarget, setSendLinkTarget] = useState<any | null>(null);
 
@@ -91,7 +93,12 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
   const generateLinkMutation = useMutation({
     mutationFn: async (eventId: number) => {
       setGeneratingId(eventId);
-      return api.post<{ success: boolean; payment_link: string }>(`/api/v1/xero/payments/${eventId}/generate-link/`, {});
+      // as_session → a self-hosted Centry checkout link (embeds the OneGate
+      // V4 widget) the customer pays on, instead of the provider's page.
+      return api.post<{ success: boolean; payment_link: string }>(
+        `/api/v1/xero/payments/${eventId}/generate-link/`,
+        { as_session: true },
+      );
     },
     onSuccess: (data, eventId) => {
       if (data.payment_link) {
@@ -105,6 +112,65 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
     onError: (err: Error) => toast.error(err?.message || 'Failed to generate payment link'),
     onSettled: () => setGeneratingId(null),
   });
+
+  // MOTO ("mail order / telephone order"): staff take the payment on the
+  // customer's behalf by embedding the OneGate V4 widget in-page, rather than
+  // sending a link. Falls back to opening the hosted page when the provider
+  // returns no widget coordinates (e.g. Ozow).
+  const handleCollectNow = async (event: any) => {
+    setCollectingId(event.id);
+    try {
+      const data = await api.post<{
+        success: boolean;
+        payment_link: string;
+        service_url?: string;
+        payment_key?: string;
+      }>(`/api/v1/xero/payments/${event.id}/generate-link/`, {});
+
+      if (data.service_url && data.payment_key) {
+        setSendLinkTarget(null);
+        try {
+          await launchOneGateCheckout({
+            serviceUrl: data.service_url,
+            paymentKey: data.payment_key,
+            firstName: event.customer_name || undefined,
+          });
+          // Resolved → completed. Webhook reconciles the authoritative
+          // status; invalidate so the queue reflects it.
+          toast.success('Payment completed');
+          queryClient.invalidateQueries({ queryKey: ['collection-events'] });
+        } catch (err: any) {
+          // Embedded checkout didn't complete — generating the link moved the
+          // event to SENT_PAYMENT, so return it to the approved (retryable)
+          // state instead of leaving it stuck as "Sent".
+          try {
+            await api.post(`/api/v1/xero/payments/${event.id}/revert-to-approved/`, {
+              reason: err?.cancelled ? 'checkout_cancelled' : 'checkout_failed',
+            });
+          } catch (revertErr) {
+            console.error('Failed to revert collection to approved:', revertErr);
+          }
+          queryClient.invalidateQueries({ queryKey: ['collection-events'] });
+          if (err?.cancelled) {
+            toast.info('Payment cancelled');
+          } else {
+            console.error('OneGate checkout failed:', err);
+            toast.error(err?.error || err?.reason || err?.message || 'Payment failed');
+          }
+        }
+      } else if (data.payment_link) {
+        window.open(data.payment_link, '_blank', 'noopener,noreferrer');
+        toast.success('Payment page opened in a new tab');
+        setSendLinkTarget(null);
+      } else {
+        toast.error('Provider did not return payment details');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to start collection');
+    } finally {
+      setCollectingId(null);
+    }
+  };
 
   const handleApprove = async (eventId: number) => {
     setActingId(eventId);
@@ -478,16 +544,33 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
               variant="outline"
               size="sm"
               onClick={() => setSendLinkTarget(null)}
-              disabled={generatingId === sendLinkTarget?.id}
+              disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
             >
               Cancel
             </Button>
+            {/* MOTO: take the payment now on the customer's behalf. OneGate
+                only — embeds the V4 widget in-page. */}
+            {sendLinkTarget?.method === 'onegate' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => sendLinkTarget && handleCollectNow(sendLinkTarget)}
+                disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
+              >
+                {collectingId === sendLinkTarget?.id ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4 mr-1.5" />
+                )}
+                Collect now
+              </Button>
+            )}
             <Button
               size="sm"
               onClick={() => sendLinkTarget && generateLinkMutation.mutate(sendLinkTarget.id, {
                 onSuccess: () => setSendLinkTarget(null),
               })}
-              disabled={generatingId === sendLinkTarget?.id}
+              disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
               className="text-white"
               style={{ backgroundColor: '#5C8A65' }}
             >

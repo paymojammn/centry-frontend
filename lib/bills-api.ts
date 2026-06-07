@@ -278,21 +278,47 @@ export const paymentEventsApi = {
   },
 
   /**
-   * Generate a hosted-checkout payment link for an approved Ozow/OneGate
-   * bill payment. Returns a payment_link URL the final payer opens to
-   * complete the transaction on the provider's hosted page.
+   * Generate a checkout payment for an approved Ozow/OneGate bill payment.
+   *
+   * Returns a `payment_link` (the provider's hosted page) plus, for OneGate,
+   * the self-hosted V4 widget coordinates `service_url` (serviceUrl) and
+   * `payment_key` (paymentKey). When both are present the caller can embed
+   * the checkout in-page via `launchOneGateCheckout`; otherwise it falls back
+   * to opening `payment_link`.
    */
   async generatePaymentLink(
     paymentEventId: number,
     amount?: string,
     paymentType?: string,
-  ): Promise<{ success: boolean; payment_link: string; amount?: string; existing?: boolean }> {
+  ): Promise<{
+    success: boolean;
+    payment_link: string;
+    service_url?: string;
+    payment_key?: string;
+    amount?: string;
+    existing?: boolean;
+  }> {
     return await api.post(
       `${PAYMENTS_BASE_URL}/${paymentEventId}/generate-link/`,
       {
         ...(amount ? { amount } : {}),
         ...(paymentType ? { payment_type: paymentType } : {}),
       }
+    );
+  },
+
+  /**
+   * Revert an in-flight hosted-checkout payment back to the approved
+   * (PROCESSING) state after the embedded checkout fails or is cancelled,
+   * so it can be retried instead of staying stuck as "Sent".
+   */
+  async revertToApproved(
+    paymentEventId: number,
+    reason?: string,
+  ): Promise<{ success: boolean; id: number; provider_status: string }> {
+    return await api.post(
+      `${PAYMENTS_BASE_URL}/${paymentEventId}/revert-to-approved/`,
+      reason ? { reason } : {},
     );
   },
 

@@ -85,6 +85,19 @@ export interface ValrInlineData {
   valr_payment_id: string;
 }
 
+/** OneGate EFTsecure V4 self-hosted checkout coordinates. */
+export interface OneGateCheckoutInlineData {
+  payment_type: 'onegate_checkout';
+  /** serviceUrl — origin from the payment-key API. */
+  service_url: string;
+  /** paymentKey from the payment-key API. */
+  payment_key: string;
+  /** Force the widget to a specific method ('eft' | 'credit_card' | …); '' = let user choose. */
+  force_payment_type?: string;
+}
+
+export type CheckoutInlineData = ValrInlineData | OneGateCheckoutInlineData;
+
 export interface InitiatePaymentResponse {
   payment_id: string;
   status: string;
@@ -92,7 +105,7 @@ export interface InitiatePaymentResponse {
   requires_redirect: boolean;
   requires_otp: boolean;
   message: string | null;
-  inline_data?: ValrInlineData;
+  inline_data?: CheckoutInlineData;
 }
 
 export interface PaymentStatusResponse {

@@ -17,6 +17,7 @@ import {
   CustomerFormData,
 } from '@/components/checkout';
 import { ValrInlineData } from '@/lib/checkout-api';
+import { launchOneGateCheckout } from '@/lib/onegate-checkout';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -129,11 +130,29 @@ export default function CheckoutPage() {
         ...customerData,
       });
 
-      if (result.requires_redirect && result.authorization_url) {
-        if (isEmbedded) {
-          postToParent('centry:checkout:redirect', { url: result.authorization_url });
-        } else {
-          window.location.href = result.authorization_url;
+      // OneGate self-hosted: embed the V4 checkout widget in-page. Stays on
+      // 'processing' (status polling confirms completion via webhook). Falls
+      // through to the redirect branch below if coordinates are missing.
+      if (result.inline_data?.payment_type === 'onegate_checkout') {
+        const og = result.inline_data;
+        try {
+          await launchOneGateCheckout({
+            serviceUrl: og.service_url,
+            paymentKey: og.payment_key,
+            paymentType: og.force_payment_type || undefined,
+            firstName: checkoutInfo?.session.customer_name || undefined,
+          });
+          // Resolved → completed; let status polling flip to success.
+        } catch (err: any) {
+          if (err?.cancelled) {
+            handleRetry();
+          } else {
+            console.error('OneGate checkout failed:', err);
+            setStep('failed');
+            const msg = err?.error || err?.reason || err?.message || 'Payment failed';
+            setPaymentError(msg);
+            postToParent('centry:checkout:error', { message: msg });
+          }
         }
         return;
       }
@@ -141,6 +160,15 @@ export default function CheckoutPage() {
       if (result.inline_data?.payment_type === 'valr_pay') {
         setValrInlineData(result.inline_data);
         setStep('valr_qr');
+        return;
+      }
+
+      if (result.requires_redirect && result.authorization_url) {
+        if (isEmbedded) {
+          postToParent('centry:checkout:redirect', { url: result.authorization_url });
+        } else {
+          window.location.href = result.authorization_url;
+        }
         return;
       }
     } catch (error) {
