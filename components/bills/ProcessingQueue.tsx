@@ -29,7 +29,7 @@ import {
   useReversePayment,
 } from '@/hooks/use-bills';
 import { paymentEventsApi } from '@/lib/bills-api';
-import { launchOneGateCheckout } from '@/lib/onegate-checkout';
+import { launchOneGateCheckout, openOneGateHostedModal } from '@/lib/onegate-checkout';
 import { useBankAccounts } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
@@ -364,6 +364,35 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         window.open(result.payment_link, '_blank', 'noopener,noreferrer');
         toast.success('Hosted checkout opened in a new tab');
         setIsPayNowDialogOpen(false);
+        setSelectedPayments(new Set());
+        refetch();
+      } else {
+        toast.error('Provider did not return a payment link');
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to open checkout');
+    } finally {
+      setPayNowLoading(false);
+    }
+  };
+
+  // Option B: embed OneGate's hosted checkout page (…/pay/hosted?payment_key=…)
+  // in an in-page modal. Unlike the official widget (which posts to the
+  // bare-origin endpoint and hits OneGate's login), the hosted URL renders the
+  // real checkout today. Outcome reconciled by the webhook.
+  const handleHostedModalCheckout = async () => {
+    if (!isHostedCheckoutPayout) return;
+    const event = selectedPaymentsData[0];
+    if (!event) return;
+    setPayNowLoading(true);
+    try {
+      const result = await paymentEventsApi.generatePaymentLink(
+        event.id,
+        payNowAmount || undefined,
+      );
+      if (result.payment_link) {
+        setIsPayNowDialogOpen(false);
+        await openOneGateHostedModal({ checkoutUrl: result.payment_link });
         setSelectedPayments(new Set());
         refetch();
       } else {
@@ -1264,11 +1293,11 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                     )}
                     Redirect checkout
                   </Button>
-                  {/* Embedded flow — in-page widget (requires OneGate to
-                      whitelist this origin / enable self-hosted checkout). */}
+                  {/* Embedded flow B — in-page modal that iframes OneGate's
+                      hosted checkout page. Works without origin whitelisting. */}
                   <Button
                     size="sm"
-                    onClick={handleGeneratePaymentLink}
+                    onClick={handleHostedModalCheckout}
                     disabled={payNowLoading || amountInvalid}
                     className="text-white"
                     style={{ backgroundColor: STATUS_COLORS.success.bg }}
@@ -1279,6 +1308,21 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       <CreditCard className="h-4 w-4 mr-1.5" />
                     )}
                     Pay in-page
+                  </Button>
+                  {/* Embedded flow A — official widget (requires OneGate to
+                      whitelist this origin / enable self-hosted checkout). */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGeneratePaymentLink}
+                    disabled={payNowLoading || amountInvalid}
+                  >
+                    {payNowLoading ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4 mr-1.5" />
+                    )}
+                    Widget
                   </Button>
                 </>
               );

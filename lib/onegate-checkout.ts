@@ -155,3 +155,134 @@ export async function launchOneGateCheckout(
 
   return checkout.init();
 }
+
+/* ------------------------------------------------------------------ *
+ * Option B — embed OneGate's hosted checkout page directly.
+ *
+ * The official widget POSTs the key to OneGate's bare-origin endpoint
+ * (`/?checkout=1`), which redirects unrecognised origins to a login page.
+ * The hosted URL (`…/pay/hosted?payment_key=…`) instead renders the real
+ * checkout, and is iframe-able today. This opens it in an in-page modal so
+ * the payer never leaves the app. Completion is reconciled by the webhook;
+ * the promise resolves when the modal is closed.
+ * ------------------------------------------------------------------ */
+
+const HOSTED_MODAL_STYLE_ID = 'onegate-hosted-modal-styles';
+
+function injectHostedModalCss() {
+  if (typeof document === 'undefined' || document.getElementById(HOSTED_MODAL_STYLE_ID)) return;
+  const css = `
+    .ogh-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:2147483647;
+      display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s ease;}
+    .ogh-overlay.ogh-open{opacity:1;}
+    .ogh-modal{position:relative;width:480px;max-width:calc(100vw - 32px);height:680px;
+      max-height:calc(100vh - 48px);background:#fff;border-radius:16px;overflow:hidden;
+      box-shadow:0 24px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;}
+    .ogh-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+      border-bottom:1px solid #eef0f2;font:600 14px system-ui,sans-serif;color:#1c1c1e;}
+    .ogh-close{appearance:none;border:none;background:transparent;cursor:pointer;font-size:20px;
+      line-height:1;color:#6b6b6f;padding:4px 8px;border-radius:8px;}
+    .ogh-close:hover{background:#f4f4f5;color:#1c1c1e;}
+    .ogh-body{position:relative;flex:1;}
+    .ogh-iframe{width:100%;height:100%;border:0;background:#fff;}
+    .ogh-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+    .ogh-spin{width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:${BRAND_PRIMARY};
+      border-radius:50%;animation:ogh-spin 1s linear infinite;}
+    @keyframes ogh-spin{to{transform:rotate(360deg);}}
+    body.ogh-open{overflow:hidden!important;}
+    @media (max-width:520px){.ogh-modal{width:100vw;height:100vh;max-width:100vw;max-height:100vh;border-radius:0;}}
+  `;
+  const style = document.createElement('style');
+  style.id = HOSTED_MODAL_STYLE_ID;
+  style.appendChild(document.createTextNode(css));
+  document.head.appendChild(style);
+}
+
+export interface OpenHostedModalParams {
+  /** The hosted checkout URL — `payment_link` from the backend (…/pay/hosted?payment_key=…). */
+  checkoutUrl: string;
+  /** Modal heading. */
+  title?: string;
+}
+
+/**
+ * Open OneGate's hosted checkout in an in-page modal iframe. Resolves when the
+ * user closes the modal (the webhook is the source of truth for the outcome).
+ */
+export function openOneGateHostedModal(params: OpenHostedModalParams): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      reject(new Error('Hosted checkout can only open in the browser'));
+      return;
+    }
+    if (!params.checkoutUrl) {
+      reject(new Error('checkoutUrl is required'));
+      return;
+    }
+
+    injectHostedModalCss();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'ogh-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+
+    const modal = document.createElement('div');
+    modal.className = 'ogh-modal';
+
+    const header = document.createElement('div');
+    header.className = 'ogh-header';
+    const titleEl = document.createElement('span');
+    titleEl.textContent = params.title || 'Complete payment';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'ogh-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.innerHTML = '&times;';
+    header.appendChild(titleEl);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.className = 'ogh-body';
+    const loader = document.createElement('div');
+    loader.className = 'ogh-loader';
+    const spin = document.createElement('div');
+    spin.className = 'ogh-spin';
+    loader.appendChild(spin);
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'ogh-iframe';
+    iframe.setAttribute('allow', 'payment https://payments.onegate.co.za https://pay.google.com');
+    iframe.addEventListener('load', () => {
+      if (loader.parentNode) loader.parentNode.removeChild(loader);
+    });
+    iframe.src = params.checkoutUrl;
+
+    body.appendChild(loader);
+    body.appendChild(iframe);
+    modal.appendChild(header);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    document.body.classList.add('ogh-open');
+    window.requestAnimationFrame(() => overlay.classList.add('ogh-open'));
+
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener('keydown', onKey);
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      document.body.classList.remove('ogh-open');
+      resolve();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') cleanup();
+    };
+
+    closeBtn.addEventListener('click', cleanup);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) cleanup();
+    });
+    document.addEventListener('keydown', onKey);
+  });
+}
