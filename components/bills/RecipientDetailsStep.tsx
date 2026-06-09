@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
 import { useOzowBanks } from '@/hooks/use-ozow';
+import { useOneGatePayoutMethods } from '@/hooks/use-onegate';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
@@ -50,6 +51,14 @@ interface RecipientDetails {
   bank_group_id?: string;
   branch_code?: string;
   customer_bank_reference?: string;
+  // OneGate OTT-Payouts: when source is a OneGate ProviderAccount, bills pay
+  // the supplier OUT via a payout rail (eWallet / voucher / bank). The method
+  // is picked from the account's live methods; `requires_id` mirrors the
+  // chosen method's `rsa_id_required` so the modal can gate on id_number.
+  payout_method_slug?: string;
+  mobile?: string;
+  id_number?: string;
+  requires_id?: boolean;
 }
 
 interface RecipientDetailsStepProps {
@@ -395,6 +404,18 @@ export default function RecipientDetailsStep({
   // /getavailablebanks list directly. The selected bank carries both the
   // bankGroupId (UUID for the Ozow API) and the universalBranchCode.
   const isOzow = sourceProvider === 'ozow' && Boolean(sourceProviderAccountId);
+  // OneGate OTT-Payouts rail — pays suppliers OUT via eWallet / voucher / bank.
+  // Methods are fetched live (per account) so the picker reflects exactly what
+  // this merchant is enabled for; each carries rsa_id_required.
+  const isOnegate = sourceProvider === 'onegate' && Boolean(sourceProviderAccountId);
+  // Custom rails replace Centry's internal bank registry UI with the provider's
+  // own picker. Both Ozow and OneGate are custom rails.
+  const isCustomRail = isOzow || isOnegate;
+
+  const { data: onegateMethods = [], isLoading: onegateMethodsLoading } = useOneGatePayoutMethods(
+    sourceProviderAccountId,
+    { enabled: isOnegate },
+  );
 
   const defaultLocalCountry = sourceCountryCodes?.[0] || 'UG';
 
@@ -483,6 +504,13 @@ export default function RecipientDetailsStep({
         r.customer_bank_reference?.trim()
       );
     }
+    if (isOnegate) {
+      // OTT-Payouts: a chosen method + recipient name + mobile. ID number is
+      // required only when the method needs it (rsa_id_required → requires_id).
+      if (!r.payout_method_slug || !r.account_name?.trim() || !r.mobile?.trim()) return false;
+      if (r.requires_id && !r.id_number?.trim()) return false;
+      return true;
+    }
     const baseOk = !!(r.recipient_bank_id && (r.account_number || r.iban) && r.account_name);
     if (!baseOk) return false;
     if (r.recipient_type === 'international') {
@@ -514,7 +542,7 @@ export default function RecipientDetailsStep({
   return (
     <div className="space-y-4">
       {/* Transfer type toggle — hide for single-country providers (e.g. Ozow = ZA only) */}
-      {!isOzow && paymentMethod === 'bank_account' && (!sourceCountryCodes || sourceCountryCodes.length !== 1) && (
+      {!isCustomRail && paymentMethod === 'bank_account' && (!sourceCountryCodes || sourceCountryCodes.length !== 1) && (
         <div className="grid grid-cols-2 gap-2">
           {([
             { key: 'bank' as const, icon: Building2, label: 'Local Transfer' },
@@ -616,8 +644,65 @@ export default function RecipientDetailsStep({
                 </>
               ) : null}
 
+              {/* OneGate OTT-Payouts rail: pick the payout method (live, per
+                  account) + recipient details. Pays the supplier OUT. */}
+              {isOnegate ? (
+                <>
+                  <SearchableSelect
+                    label="Payout method"
+                    placeholder={onegateMethodsLoading ? 'Loading methods…' : 'Select payout method'}
+                    value={r?.payout_method_slug || ''}
+                    displayValue={
+                      onegateMethods.find((m) => m.slug === r?.payout_method_slug)?.name || ''
+                    }
+                    options={onegateMethods.map((m) => ({
+                      value: m.slug,
+                      label: m.name,
+                      hint: m.rsa_id_required ? 'needs ID' : undefined,
+                    }))}
+                    loading={onegateMethodsLoading}
+                    onSelect={(slug) => {
+                      const method = onegateMethods.find((m) => m.slug === slug);
+                      update(bill.id, {
+                        recipient_type: 'bank',
+                        payout_method_slug: slug,
+                        requires_id: Boolean(method?.rsa_id_required),
+                        // Prefill recipient name from the vendor when empty.
+                        account_name: r?.account_name || bill.vendor_name || '',
+                      });
+                    }}
+                  />
+                  <TextField
+                    label="Recipient name"
+                    value={r?.account_name || ''}
+                    onChange={(v) => update(bill.id, { account_name: v })}
+                    placeholder={bill.vendor_name || 'Supplier name'}
+                  />
+                  <TextField
+                    label="Recipient mobile"
+                    value={r?.mobile || ''}
+                    onChange={(v) => update(bill.id, { mobile: v.replace(/[^0-9+]/g, '') })}
+                    placeholder="27821234567"
+                    maxLength={15}
+                    hint="OneGate sends the voucher PIN / eWallet credit to this number."
+                  />
+                  {r?.requires_id ? (
+                    <TextField
+                      label="Recipient ID number"
+                      value={r?.id_number || ''}
+                      onChange={(v) =>
+                        update(bill.id, { id_number: v.replace(/[^0-9]/g, '').slice(0, 13) })
+                      }
+                      placeholder="13-digit SA ID"
+                      maxLength={13}
+                      hint="Required by OneGate for this payout method."
+                    />
+                  ) : null}
+                </>
+              ) : null}
+
               {/* International: country selector */}
-              {!isOzow && recipientType === 'international' && (
+              {!isCustomRail && recipientType === 'international' && (
                 <SearchableSelect
                   label="Country"
                   placeholder="Search country..."
@@ -640,7 +725,7 @@ export default function RecipientDetailsStep({
               )}
 
               {/* Bank selector — non-Ozow path uses Centry's internal bank registry */}
-              {!isOzow && (
+              {!isCustomRail && (
                 <SearchableSelect
                   label="Bank"
                   placeholder="Search bank..."
@@ -663,7 +748,7 @@ export default function RecipientDetailsStep({
                   }}
                 />
               )}
-              {!isOzow && r?.swift_code && (
+              {!isCustomRail && r?.swift_code && (
                 <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
               )}
 
@@ -671,7 +756,7 @@ export default function RecipientDetailsStep({
                   (ClrSysMmbId); international shows the same picker but treats
                   it as optional since foreign banks typically aren't seeded
                   with branches in our BankBranch table. */}
-              {!isOzow && r?.recipient_bank_id && (
+              {!isCustomRail && r?.recipient_bank_id && (
                 <BranchSelector
                   bankId={r.recipient_bank_id}
                   value={r.recipient_bank_branch_id}
@@ -686,7 +771,7 @@ export default function RecipientDetailsStep({
               )}
 
               {/* Account fields — Ozow has its own block above */}
-              {!isOzow && (
+              {!isCustomRail && (
                 recipientType === 'international' ? (
                   <>
                     <div className="grid grid-cols-2 gap-3">

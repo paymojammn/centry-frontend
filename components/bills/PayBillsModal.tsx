@@ -67,6 +67,13 @@ interface RecipientDetails {
   bank_group_id?: string;
   branch_code?: string;
   customer_bank_reference?: string;
+  // OneGate OTT-Payouts fields (only set when source is a OneGate ProviderAccount).
+  // Bills pay the supplier OUT via the chosen payout rail; requires_id mirrors
+  // the method's rsa_id_required so we can gate the id_number requirement.
+  payout_method_slug?: string;
+  mobile?: string;
+  id_number?: string;
+  requires_id?: boolean;
 }
 
 export default function PayBillsModal({
@@ -130,7 +137,11 @@ export default function PayBillsModal({
   // Hosted-checkout providers — recipient bank details are collected on the
   // provider's hosted page by the final payer, not in this modal. Submission
   // creates a PENDING_APPROVAL event with bill+provider only.
-  const isHostedCheckoutSource = isOzowSource || isOnegateSource;
+  //
+  // OneGate is NOT hosted-checkout for bills: bills pay the supplier OUT via
+  // OTT-Payouts, so the modal collects the supplier's payout details (method +
+  // mobile + ID) in the recipients step, same as a bank rail.
+  const isHostedCheckoutSource = isOzowSource;
   // ProviderAccount path = anything that's not a BankAccount. The bills UI
   // routes BankAccount sources via bank_account_id and ProviderAccount sources
   // via provider_account_id (see submit handler below).
@@ -144,6 +155,15 @@ export default function PayBillsModal({
     // on the provider's hosted page after approval.
     if (isHostedCheckoutSource) return true;
     if (recipients.size !== bills.length) return false;
+    // OneGate OTT-Payouts rail: a chosen method + recipient name + mobile,
+    // plus an ID number when the method requires it (requires_id).
+    if (isOnegateSource) {
+      for (const r of recipients.values()) {
+        if (!r.payout_method_slug || !r.account_name?.trim() || !r.mobile?.trim()) return false;
+        if (r.requires_id && !r.id_number?.trim()) return false;
+      }
+      return true;
+    }
     for (const r of recipients.values()) {
       if (!r.recipient_bank_id || !(r.account_number || r.iban) || !r.account_name) return false;
       if (r.recipient_type === 'international') {
@@ -159,7 +179,7 @@ export default function PayBillsModal({
       }
     }
     return true;
-  }, [recipients, bills.length, isHostedCheckoutSource]);
+  }, [recipients, bills.length, isHostedCheckoutSource, isOnegateSource]);
 
   // Initialize amounts
   useEffect(() => {
@@ -346,6 +366,12 @@ export default function PayBillsModal({
           bank_group_id: r.bank_group_id,
           branch_code: r.branch_code,
           customer_bank_reference: r.customer_bank_reference,
+          // OneGate OTT-Payouts — backend carries these into provider_payload
+          // (see BillPaymentService.PROVIDER_PAYOUT_PAYLOAD_KEYS) for
+          // _execute_onegate_payout.
+          payout_method_slug: r.payout_method_slug,
+          mobile: r.mobile,
+          id_number: r.id_number,
         }));
       }
 
@@ -371,8 +397,9 @@ export default function PayBillsModal({
   const handleSourceSelect = (source: PaymentSource) => {
     setSelectedSource(source);
     // Hosted-checkout providers don't need upfront recipient details — the
-    // final payer fills them in on the provider's page after approval.
-    const hostedCheckout = source.provider === 'ozow' || source.provider === 'onegate';
+    // final payer fills them in on the provider's page after approval. OneGate
+    // bills are OTT-Payouts (money OUT), so they DO need the recipients step.
+    const hostedCheckout = source.provider === 'ozow';
     setStep(hostedCheckout ? 'confirm' : 'recipients');
   };
 
@@ -487,7 +514,11 @@ export default function PayBillsModal({
           {/* Step 2: Recipient Details */}
           {step === 'recipients' && selectedSource && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Enter recipient bank details for each bill.</p>
+              <p className="text-sm text-muted-foreground">
+                {isOnegateSource
+                  ? 'Choose how each supplier is paid out and enter their details.'
+                  : 'Enter recipient bank details for each bill.'}
+              </p>
               <RecipientDetailsStep
                 bills={bills}
                 recipients={recipients}
