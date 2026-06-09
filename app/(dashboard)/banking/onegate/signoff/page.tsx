@@ -58,6 +58,7 @@ import {
   type SignoffBadge,
 } from "@/lib/onegate-api";
 import { exportOnegateSignoffExcel, exportOnegateSignoffPDF } from "@/lib/onegate-signoff-export";
+import OttPayoutsSection from "./OttPayoutsSection";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1230,6 +1231,9 @@ export default function OnegateSignoffPage() {
             </div>
           )}
         </section>
+
+        {/* OTT Payouts (REST) — DB-catalog driven test, mirrors the bill modal */}
+        <OttPayoutsSection accountId={accountId} />
       </div>
     </div>
   );

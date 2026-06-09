@@ -108,6 +108,39 @@ export interface OneGatePayoutTestPayload {
   branch_code?: string;
   id_number?: string;
   email?: string;
+  id_type?: string;
+  date_of_birth?: string;
+  title?: string;
+  nationality?: string;
+  country_of_issue?: string;
+}
+
+/** DB-backed OTT payout method (from /payout-catalog/). */
+export interface OneGatePayoutCatalogMethod {
+  slug: string;
+  name: string;
+  description: string;
+  currency: string;
+  min_amount: string;
+  max_amount: string;
+  action_time: string;
+  rsa_id_required: boolean;
+  requires_bank_account: boolean;
+}
+
+/** A bank participating in account-based payouts (RTC / PayShap). */
+export interface OneGatePayoutCatalogBank {
+  name: string;
+  branch_code: string;
+  supports_rtc: boolean;
+  supports_payshap: boolean;
+  note: string;
+}
+
+export interface OneGatePayoutCatalogResponse {
+  success: boolean;
+  methods: OneGatePayoutCatalogMethod[];
+  banks: OneGatePayoutCatalogBank[];
 }
 
 export interface OneGatePayoutTestResponse {
@@ -379,6 +412,11 @@ export const onegateApi = {
       `${ONEGATE_BASE}/accounts/${accountId}/signoff/payout-test/`,
       body,
     );
+  },
+
+  /** DB-backed OTT payout catalog (methods + participating banks). */
+  async getPayoutCatalog(): Promise<OneGatePayoutCatalogResponse> {
+    return api.get<OneGatePayoutCatalogResponse>(`${ONEGATE_BASE}/payout-catalog/`);
   },
 
   /** GET persisted sign-off intent map. */
