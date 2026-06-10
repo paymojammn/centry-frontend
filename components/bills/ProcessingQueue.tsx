@@ -59,7 +59,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import EditPayoutDialog from './EditPayoutDialog';
+import PayBillsModal from './PayBillsModal';
+import type { Bill } from '@/types/bill';
 import {
   Select,
   SelectContent,
@@ -1094,9 +1095,10 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                         isRowProviderPayout(payment) && (
                           <>
                             {/* Edit recipient details before re-running — only
-                                for OneGate payouts (which carry editable
-                                payout_details). */}
-                            {(payment.method as string) === 'onegate_payout' && (
+                                for a FAILED OneGate payout (not approved/sent or
+                                successful ones, whose details are locked). */}
+                            {(payment.method as string) === 'onegate_payout' &&
+                              payment.provider_status === 'ERROR_PAYMENT' && (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -1161,6 +1163,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                   </td>
                   <td className="whitespace-nowrap">
                     {getStatusBadge(payment.provider_status)}
+                    {payment.provider_status === 'ERROR_PAYMENT' && payment.payout_error && (
+                      <div
+                        className="text-xs text-destructive mt-1 max-w-[160px] truncate"
+                        title={payment.payout_error}
+                      >
+                        {payment.payout_error.replace(/^Payout failed:\s*/i, '')}
+                      </div>
+                    )}
                     {payment.rejection_reason && (
                       <div className="text-xs text-destructive mt-1 max-w-[120px] truncate" title={payment.rejection_reason}>
                         {payment.rejection_reason}
@@ -1190,12 +1200,29 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
         </div>
       )}
 
-      {/* Edit payout details (OneGate) before re-run */}
-      <EditPayoutDialog
-        event={editingEvent}
-        open={!!editingEvent}
+      {/* Edit a failed OneGate payout's details before re-run — reuses the
+          bill-payments modal in edit mode (recipients step, pre-filled). */}
+      <PayBillsModal
+        isOpen={!!editingEvent}
         onClose={() => setEditingEvent(null)}
-        onSaved={(eventId, rerun) => {
+        organizationId={organizationId || ''}
+        bills={
+          editingEvent
+            ? [
+                {
+                  id: editingEvent.id,
+                  vendor_name: editingEvent.vendor_name,
+                  invoice_number: editingEvent.bill_number,
+                  currency_code: editingEvent.currency,
+                  currency: editingEvent.currency,
+                  amount_due: editingEvent.amount,
+                  amount: editingEvent.amount,
+                } as unknown as Bill,
+              ]
+            : []
+        }
+        editEvent={editingEvent}
+        onEdited={(eventId, rerun) => {
           refetch();
           if (rerun) handleSendRow(eventId);
         }}

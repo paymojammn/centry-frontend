@@ -8,15 +8,16 @@ import {
   AlertCircle,
   ArrowLeft,
   Send,
+  Save,
   Building2,
   Sparkles,
 } from 'lucide-react';
-import type { Bill } from '@/types/bill';
+import type { Bill, PaymentEvent } from '@/types/bill';
 import { usePaymentSources } from '@/hooks/use-payment-sources';
 import type { PaymentSource } from '@/types/payment-sources';
 import PaymentSourcePicker from '@/components/shared/PaymentSourcePicker';
 import RecipientDetailsStep from './RecipientDetailsStep';
-import { billsApi } from '@/lib/bills-api';
+import { billsApi, paymentEventsApi } from '@/lib/bills-api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,11 @@ interface PayBillsModalProps {
   bills: Bill[];
   organizationId: string;
   countryCode?: string;
+  // Edit-existing-payout mode: when set, the modal opens on the recipients
+  // step pre-filled from the event's saved details and SAVES (PATCH) instead
+  // of creating a payment. Used to fix a failed OneGate payout before re-run.
+  editEvent?: PaymentEvent | null;
+  onEdited?: (eventId: number, rerun: boolean) => void;
 }
 
 type PaymentStep = 'source' | 'recipients' | 'confirm' | 'result';
@@ -90,7 +96,10 @@ export default function PayBillsModal({
   onClose,
   bills,
   organizationId,
+  editEvent = null,
+  onEdited,
 }: PayBillsModalProps) {
+  const isEditMode = !!editEvent;
   const queryClient = useQueryClient();
   const { data: sourcesData, isLoading: sourcesLoading } = usePaymentSources(organizationId);
   const sources = useMemo(() => {
@@ -221,6 +230,73 @@ export default function PayBillsModal({
       setAckUncleared(false);
     }
   }, [isOpen]);
+
+  // Edit mode: pre-select the event's source, pre-fill the recipient from its
+  // saved payout_details, and jump straight to the recipients step.
+  useEffect(() => {
+    if (!isOpen || !isEditMode || !editEvent) return;
+    const bill0 = bills[0];
+    if (selectedSource || !sources.length || !bill0) return; // seed once
+    const billId = bill0.id;
+    const src = sources.find(
+      (s: PaymentSource) => String(s.id) === String(editEvent.provider_account_id),
+    );
+    if (!src) return; // wait for sources to load (or let the user pick manually)
+    setSelectedSource(src);
+    const d = editEvent.payout_details || {};
+    setRecipients(
+      new Map([
+        [
+          billId,
+          {
+            bill_id: billId,
+            recipient_type: 'bank',
+            payout_method_slug: d.payout_method_slug || '',
+            first_name: d.first_name || '',
+            surname: d.surname || '',
+            title: d.title || '',
+            account_name: d.account_name || '',
+            mobile: d.mobile || '',
+            id_type: d.id_type || '',
+            id_number: d.id_number || '',
+            date_of_birth: d.date_of_birth || '',
+            nationality: d.nationality || '',
+            country_of_issue: d.country_of_issue || '',
+            email: d.email || '',
+            account_number: d.account_number || '',
+            branch_code: d.branch_code || '',
+          },
+        ],
+      ]),
+    );
+    setStep('recipients');
+  }, [isOpen, isEditMode, editEvent, sources, bills, selectedSource]);
+
+  // Edit mode: save the corrected recipient details (PATCH), optionally re-run.
+  const editPayoutMutation = useMutation({
+    mutationFn: async ({ rerun }: { rerun: boolean }) => {
+      const bill0 = bills[0];
+      const r = bill0 ? recipients.get(bill0.id) : undefined;
+      const keys = [
+        'payout_method_slug', 'first_name', 'surname', 'title', 'account_name',
+        'mobile', 'id_type', 'id_number', 'date_of_birth', 'nationality',
+        'country_of_issue', 'email', 'account_number', 'branch_code',
+      ] as const;
+      const details: Record<string, string> = {};
+      for (const k of keys) {
+        const v = r?.[k];
+        if (v != null) details[k] = String(v);
+      }
+      if (editEvent) await paymentEventsApi.updatePayoutDetails(editEvent.id, details);
+      return { rerun };
+    },
+    onSuccess: ({ rerun }) => {
+      toast.success('Payout details updated');
+      if (editEvent) onEdited?.(editEvent.id, rerun);
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e?.message || 'Failed to save payout details'),
+  });
 
   // Fetch an FX quote whenever currencies differ + amount changes.
   const needsFx = Boolean(selectedSource && selectedSource.currency && selectedSource.currency !== currency);
@@ -458,7 +534,9 @@ export default function PayBillsModal({
                 <Send className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground tracking-tight">Pay Bills</h2>
+                <h2 className="text-base font-semibold text-foreground tracking-tight">
+                  {isEditMode ? 'Edit payout details' : 'Pay Bills'}
+                </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {bills.length} bill{bills.length > 1 ? 's' : ''}
                   <span className="mx-1.5 text-muted-foreground/40">•</span>
@@ -478,8 +556,9 @@ export default function PayBillsModal({
           </div>
         </div>
 
-        {/* Step indicator — pill chips with sage accent */}
-        {!['result'].includes(step) && (
+        {/* Step indicator — pill chips with sage accent. Hidden in edit mode
+            (single recipients step). */}
+        {!isEditMode && !['result'].includes(step) && (
           <div className="flex items-center gap-2 px-5 py-3 border-y border-border bg-muted/30 shrink-0">
             {(isHostedCheckoutSource ? ['Source', 'Review'] : ['Source', 'Recipients', 'Review']).map((label, i, arr) => {
               const stepIndex = isHostedCheckoutSource
@@ -548,13 +627,40 @@ export default function PayBillsModal({
                 sourceProvider={selectedSource.provider}
                 sourceProviderAccountId={isProviderAccountSource ? String(selectedSource.id) : undefined}
               />
-              <Button
-                onClick={() => setStep('confirm')}
-                disabled={!allRecipientsComplete}
-                className="w-full"
-              >
-                Continue to Review
-              </Button>
+              {isEditMode ? (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => editPayoutMutation.mutate({ rerun: false })}
+                    disabled={!allRecipientsComplete || editPayoutMutation.isPending}
+                    className="flex-1"
+                  >
+                    {editPayoutMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-1.5" />
+                    )}
+                    Save
+                  </Button>
+                  <Button
+                    onClick={() => editPayoutMutation.mutate({ rerun: true })}
+                    disabled={!allRecipientsComplete || editPayoutMutation.isPending}
+                    className="flex-1 text-white"
+                    style={{ backgroundColor: '#5C8A65' }}
+                  >
+                    <Send className="h-4 w-4 mr-1.5" />
+                    Save &amp; Re-run
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setStep('confirm')}
+                  disabled={!allRecipientsComplete}
+                  className="w-full"
+                >
+                  Continue to Review
+                </Button>
+              )}
             </div>
           )}
 

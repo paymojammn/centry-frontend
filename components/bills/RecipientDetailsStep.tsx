@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
 import { contactsApi } from '@/lib/contacts-api';
 import { useOzowBanks } from '@/hooks/use-ozow';
-import { useOneGatePayoutMethods } from '@/hooks/use-onegate';
+import { useOneGatePayoutMethods, useOneGatePayoutBanks } from '@/hooks/use-onegate';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
@@ -442,6 +442,7 @@ export default function RecipientDetailsStep({
     sourceProviderAccountId,
     { enabled: isOnegate },
   );
+  const { data: onegateBanks = [] } = useOneGatePayoutBanks({ enabled: isOnegate });
 
   // Keep requires_id / requires_bank in sync with the chosen method once the
   // live methods load. Lets a pre-filled recipient (e.g. the edit-before-rerun
@@ -828,22 +829,54 @@ export default function RecipientDetailsStep({
                         />
                       </div>
                       {r?.requires_bank ? (
-                        <div className="grid grid-cols-2 gap-3">
+                        <>
+                          {/* Pick the recipient's bank — auto-fills the correct
+                              universal branch code (PayShap/RTC reject a wrong
+                              one). Filtered to banks that support the chosen
+                              method. */}
+                          {(() => {
+                            const slug = r?.payout_method_slug || '';
+                            const banks = onegateBanks.filter((b) =>
+                              slug === 'rtc-payments'
+                                ? b.supports_rtc
+                                : slug === 'payshap-account'
+                                  ? b.supports_payshap
+                                  : true,
+                            );
+                            return (
+                              <SearchableSelect
+                                label="Recipient bank"
+                                placeholder="Select bank"
+                                value={r?.branch_code || ''}
+                                displayValue={
+                                  onegateBanks.find((b) => b.branch_code === r?.branch_code)?.name ||
+                                  ''
+                                }
+                                options={banks.map((b) => ({
+                                  value: b.branch_code,
+                                  label: b.name,
+                                  hint: b.branch_code,
+                                }))}
+                                onSelect={(code) => {
+                                  const bank = onegateBanks.find((b) => b.branch_code === code);
+                                  update(bill.id, {
+                                    branch_code: code,
+                                    bank_name: bank?.name || '',
+                                  });
+                                }}
+                              />
+                            );
+                          })()}
                           <TextField
                             label="Account number"
                             value={r?.account_number || ''}
-                            onChange={(v) => update(bill.id, { account_number: v.replace(/[^0-9]/g, '') })}
+                            onChange={(v) =>
+                              update(bill.id, { account_number: v.replace(/[^0-9]/g, '') })
+                            }
                             placeholder="Bank account number"
                             maxLength={20}
                           />
-                          <TextField
-                            label="Branch code"
-                            value={r?.branch_code || ''}
-                            onChange={(v) => update(bill.id, { branch_code: v.replace(/[^0-9]/g, '').slice(0, 6) })}
-                            placeholder="Universal branch code"
-                            maxLength={6}
-                          />
-                        </div>
+                        </>
                       ) : null}
                     </>
                   ) : null}
