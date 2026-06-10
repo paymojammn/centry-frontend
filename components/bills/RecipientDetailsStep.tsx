@@ -24,7 +24,7 @@ import {
 import type { Bill } from '@/types/bill';
 import type { PaymentSourceType } from '@/types/payment-sources';
 
-interface RecipientDetails {
+export interface RecipientDetails {
   bill_id: number;
   recipient_type: 'bank' | 'international';
   recipient_bank_id?: number;
@@ -53,12 +53,21 @@ interface RecipientDetails {
   customer_bank_reference?: string;
   // OneGate OTT-Payouts: when source is a OneGate ProviderAccount, bills pay
   // the supplier OUT via a payout rail (eWallet / voucher / bank). The method
-  // is picked from the account's live methods; `requires_id` mirrors the
-  // chosen method's `rsa_id_required` so the modal can gate on id_number.
+  // is picked from the account's live methods; `requires_id` / `requires_bank`
+  // mirror the chosen method's flags so the modal can require fields per method.
   payout_method_slug?: string;
+  first_name?: string;
+  surname?: string;
+  title?: string;
   mobile?: string;
+  id_type?: string;
   id_number?: string;
+  date_of_birth?: string; // YYYYMMDD
+  nationality?: string;
+  country_of_issue?: string;
+  email?: string;
   requires_id?: boolean;
+  requires_bank?: boolean;
 }
 
 interface RecipientDetailsStepProps {
@@ -96,6 +105,23 @@ const CHARGES_BEARER_OPTIONS = [
   { value: 'DEBT', label: 'Ours / Debtor (DEBT)' },
   { value: 'CRED', label: 'Beneficiary (CRED)' },
 ];
+
+// OneGate OTT-Payout recipient option lists.
+const ONEGATE_ID_TYPE_OPTIONS = [
+  { value: 'RSAID', label: 'RSA ID' },
+  { value: 'PASSPT', label: 'Passport' },
+];
+const ONEGATE_TITLE_OPTIONS = ['Mr', 'Mrs', 'Ms', 'Dr', 'Prof'].map((t) => ({ value: t, label: t }));
+
+/** Derive YYYYMMDD from an SA ID's first 6 digits (YYMMDD). '' when too short. */
+function dobFromSaId(idNumber: string): string {
+  const d = (idNumber || '').replace(/\D/g, '');
+  if (d.length < 6) return '';
+  const yy = parseInt(d.slice(0, 2), 10);
+  const pivot = new Date().getFullYear() % 100;
+  const century = yy > pivot ? '19' : '20';
+  return `${century}${d.slice(0, 6)}`;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Searchable Combobox                                                */
@@ -417,6 +443,27 @@ export default function RecipientDetailsStep({
     { enabled: isOnegate },
   );
 
+  // Keep requires_id / requires_bank in sync with the chosen method once the
+  // live methods load. Lets a pre-filled recipient (e.g. the edit-before-rerun
+  // dialog) validate correctly without the user re-picking the method.
+  useEffect(() => {
+    if (!isOnegate || !onegateMethods.length) return;
+    let changed = false;
+    const updated = new Map(recipients);
+    for (const [billId, r] of updated) {
+      if (!r.payout_method_slug) continue;
+      const m = onegateMethods.find((x) => x.slug === r.payout_method_slug);
+      if (!m) continue;
+      const reqId = Boolean(m.rsa_id_required);
+      const reqBank = Boolean(m.requires_bank_account);
+      if (r.requires_id !== reqId || r.requires_bank !== reqBank) {
+        updated.set(billId, { ...r, requires_id: reqId, requires_bank: reqBank });
+        changed = true;
+      }
+    }
+    if (changed) onRecipientsChange(updated);
+  }, [isOnegate, onegateMethods, recipients, onRecipientsChange]);
+
   const defaultLocalCountry = sourceCountryCodes?.[0] || 'UG';
 
   const handleRecipientTypeChange = (newType: 'bank' | 'international') => {
@@ -505,10 +552,14 @@ export default function RecipientDetailsStep({
       );
     }
     if (isOnegate) {
-      // OTT-Payouts: a chosen method + recipient name + mobile. ID number is
-      // required only when the method needs it (rsa_id_required → requires_id).
-      if (!r.payout_method_slug || !r.account_name?.trim() || !r.mobile?.trim()) return false;
-      if (r.requires_id && !r.id_number?.trim()) return false;
+      // OTT-Payouts: required fields adapt to the chosen method. Always need a
+      // method + name + mobile + title + nationality + country_of_issue; ID +
+      // DOB only for RSA-ID methods; account + branch only for bank methods.
+      if (!r.payout_method_slug) return false;
+      if (!r.first_name?.trim() || !r.surname?.trim() || !r.mobile?.trim()) return false;
+      if (!r.title?.trim() || !r.nationality?.trim() || !r.country_of_issue?.trim()) return false;
+      if (r.requires_id && (!r.id_number?.trim() || !r.date_of_birth?.trim())) return false;
+      if (r.requires_bank && (!r.account_number?.trim() || !r.branch_code?.trim())) return false;
       return true;
     }
     const baseOk = !!(r.recipient_bank_id && (r.account_number || r.iban) && r.account_name);
@@ -645,7 +696,9 @@ export default function RecipientDetailsStep({
               ) : null}
 
               {/* OneGate OTT-Payouts rail: pick the payout method (live, per
-                  account) + recipient details. Pays the supplier OUT. */}
+                  account), then capture the recipient's full OTT-Payout details.
+                  Field requirements adapt to the chosen method (RSA-ID methods
+                  need ID/DOB; bank methods need account_number/branch_code). */}
               {isOnegate ? (
                 <>
                   <SearchableSelect
@@ -658,45 +711,141 @@ export default function RecipientDetailsStep({
                     options={onegateMethods.map((m) => ({
                       value: m.slug,
                       label: m.name,
-                      hint: m.rsa_id_required ? 'needs ID' : undefined,
+                      hint: m.requires_bank_account ? 'needs bank a/c' : m.rsa_id_required ? 'needs ID' : undefined,
                     }))}
                     loading={onegateMethodsLoading}
                     onSelect={(slug) => {
                       const method = onegateMethods.find((m) => m.slug === slug);
+                      // Prefill name from the vendor and sensible KYC defaults.
+                      const [vFirst, ...vRest] = (bill.vendor_name || '').trim().split(/\s+/);
                       update(bill.id, {
                         recipient_type: 'bank',
                         payout_method_slug: slug,
                         requires_id: Boolean(method?.rsa_id_required),
-                        // Prefill recipient name from the vendor when empty.
-                        account_name: r?.account_name || bill.vendor_name || '',
+                        requires_bank: Boolean(method?.requires_bank_account),
+                        first_name: r?.first_name || vFirst || '',
+                        surname: r?.surname || vRest.join(' ') || '',
+                        title: r?.title || 'Mr',
+                        id_type: r?.id_type || 'RSAID',
+                        nationality: r?.nationality || 'ZA',
+                        country_of_issue: r?.country_of_issue || 'ZA',
                       });
                     }}
                   />
-                  <TextField
-                    label="Recipient name"
-                    value={r?.account_name || ''}
-                    onChange={(v) => update(bill.id, { account_name: v })}
-                    placeholder={bill.vendor_name || 'Supplier name'}
-                  />
-                  <TextField
-                    label="Recipient mobile"
-                    value={r?.mobile || ''}
-                    onChange={(v) => update(bill.id, { mobile: v.replace(/[^0-9+]/g, '') })}
-                    placeholder="27821234567"
-                    maxLength={15}
-                    hint="OneGate sends the voucher PIN / eWallet credit to this number."
-                  />
-                  {r?.requires_id ? (
-                    <TextField
-                      label="Recipient ID number"
-                      value={r?.id_number || ''}
-                      onChange={(v) =>
-                        update(bill.id, { id_number: v.replace(/[^0-9]/g, '').slice(0, 13) })
-                      }
-                      placeholder="13-digit SA ID"
-                      maxLength={13}
-                      hint="Required by OneGate for this payout method."
-                    />
+                  {r?.payout_method_slug ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <TextField
+                          label="First name"
+                          value={r?.first_name || ''}
+                          onChange={(v) => update(bill.id, { first_name: v })}
+                          placeholder="First name"
+                        />
+                        <TextField
+                          label="Surname"
+                          value={r?.surname || ''}
+                          onChange={(v) => update(bill.id, { surname: v })}
+                          placeholder="Surname"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <SearchableSelect
+                          label="Title"
+                          placeholder="Title"
+                          value={r?.title || ''}
+                          displayValue={r?.title || ''}
+                          options={ONEGATE_TITLE_OPTIONS}
+                          onSelect={(v) => update(bill.id, { title: v })}
+                        />
+                        <TextField
+                          label="Recipient mobile"
+                          value={r?.mobile || ''}
+                          onChange={(v) => update(bill.id, { mobile: v.replace(/[^0-9+]/g, '') })}
+                          placeholder="27821234567"
+                          maxLength={15}
+                          hint="International format."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <SearchableSelect
+                          label="ID type"
+                          placeholder="ID type"
+                          value={r?.id_type || ''}
+                          displayValue={
+                            ONEGATE_ID_TYPE_OPTIONS.find((o) => o.value === r?.id_type)?.label || ''
+                          }
+                          options={ONEGATE_ID_TYPE_OPTIONS}
+                          onSelect={(v) => update(bill.id, { id_type: v })}
+                        />
+                        <TextField
+                          label={r?.requires_id ? 'ID / Passport number' : 'ID / Passport number (optional)'}
+                          value={r?.id_number || ''}
+                          onChange={(v) => {
+                            const cleaned =
+                              (r?.id_type || 'RSAID') === 'RSAID'
+                                ? v.replace(/[^0-9]/g, '').slice(0, 13)
+                                : v.slice(0, 20);
+                            // Auto-fill DOB from an SA ID when not set yet.
+                            const patch: Partial<RecipientDetails> = { id_number: cleaned };
+                            if ((r?.id_type || 'RSAID') === 'RSAID' && !r?.date_of_birth) {
+                              const dob = dobFromSaId(cleaned);
+                              if (dob) patch.date_of_birth = dob;
+                            }
+                            update(bill.id, patch);
+                          }}
+                          placeholder={(r?.id_type || 'RSAID') === 'RSAID' ? '13-digit SA ID' : 'Passport number'}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <TextField
+                          label="Date of birth"
+                          value={r?.date_of_birth || ''}
+                          onChange={(v) => update(bill.id, { date_of_birth: v.replace(/[^0-9]/g, '').slice(0, 8) })}
+                          placeholder="YYYYMMDD"
+                          maxLength={8}
+                        />
+                        <TextField
+                          label="Nationality"
+                          value={r?.nationality || ''}
+                          onChange={(v) => update(bill.id, { nationality: v.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2) })}
+                          placeholder="ZA"
+                          maxLength={2}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <TextField
+                          label="Country of issue"
+                          value={r?.country_of_issue || ''}
+                          onChange={(v) => update(bill.id, { country_of_issue: v.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2) })}
+                          placeholder="ZA"
+                          maxLength={2}
+                        />
+                        <TextField
+                          label="Email (optional)"
+                          value={r?.email || ''}
+                          onChange={(v) => update(bill.id, { email: v })}
+                          placeholder="recipient@email.com"
+                        />
+                      </div>
+                      {r?.requires_bank ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          <TextField
+                            label="Account number"
+                            value={r?.account_number || ''}
+                            onChange={(v) => update(bill.id, { account_number: v.replace(/[^0-9]/g, '') })}
+                            placeholder="Bank account number"
+                            maxLength={20}
+                          />
+                          <TextField
+                            label="Branch code"
+                            value={r?.branch_code || ''}
+                            onChange={(v) => update(bill.id, { branch_code: v.replace(/[^0-9]/g, '').slice(0, 6) })}
+                            placeholder="Universal branch code"
+                            maxLength={6}
+                          />
+                        </div>
+                      ) : null}
+                    </>
                   ) : null}
                 </>
               ) : null}

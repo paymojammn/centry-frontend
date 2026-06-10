@@ -87,6 +87,8 @@ export interface OneGatePayoutRow {
   total: number;
   /** True when OneGate requires id_number for this payout method. */
   rsa_id_required: boolean;
+  /** True when this method needs a bank account_number + branch_code. */
+  requires_bank_account?: boolean;
   /** Most-recent local OneGatePayout rows (max 5, newest first). */
   references: OneGateTestRef[];
   status: SignoffBadge;

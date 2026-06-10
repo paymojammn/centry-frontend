@@ -55,9 +55,11 @@ import {
   Ban,
   ThumbsDown,
   RotateCcw,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import EditPayoutDialog from './EditPayoutDialog';
 import {
   Select,
   SelectContent,
@@ -191,19 +193,66 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       p.method?.endsWith('_payout') || ['ozow_payout', 'onegate_payout', 'paystack_payout', 'netcash_payout'].includes(p.method || '')
     );
 
-  // Hosted-checkout payouts (Ozow/OneGate) use a different UX: the final
-  // payer enters the amount, gets a redirect URL, completes on the provider's
-  // page. Restrict to a single selected event since the action opens a dialog
-  // per payment.
+  // Hosted-checkout payouts (Ozow) use a different UX: the final payer enters
+  // the amount, gets a redirect URL, completes on the provider's page.
+  // Restrict to a single selected event since the action opens a dialog per
+  // payment. OneGate bills are OTT-Payouts (money OUT, server-to-server) — they
+  // are NOT hosted checkout, so the embedded-widget / in-page "Pay Now" UX is
+  // disabled for them; they go through the standard "Send payment" provider
+  // payout flow instead.
   const isHostedCheckoutPayout = canGenerateFile &&
     selectedPaymentsData.length === 1 &&
-    ['ozow_payout', 'onegate_payout'].includes(selectedPaymentsData[0]?.method || '');
+    ['ozow_payout'].includes(selectedPaymentsData[0]?.method || '');
 
   // Check if all selected can be denied (PENDING_APPROVAL or PROCESSING status) + user has approve permission
   const canDeny = hasApprovePermission && selectedPaymentsData.length > 0 &&
     selectedPaymentsData.every((p: PaymentEvent) =>
       p.provider_status === 'PENDING_APPROVAL' || p.provider_status === 'PROCESSING'
     );
+
+  // Per-row actions (single payment) so each row has Accept / Reject inline
+  // (like the invoices queue), plus Send / Re-run for provider payouts. A
+  // payout that dropped half-way stays in PROCESSING; Re-run sends it again —
+  // the backend now mints a fresh reference per attempt, so the retry isn't
+  // rejected as a duplicate.
+  const [editingEvent, setEditingEvent] = useState<PaymentEvent | null>(null);
+
+  const isRowProviderPayout = (p: PaymentEvent) =>
+    !!p.method &&
+    (p.method.endsWith('_payout') ||
+      ['ozow_payout', 'onegate_payout', 'paystack_payout', 'netcash_payout'].includes(p.method));
+
+  const handleApproveRow = async (id: number) => {
+    try {
+      await approvePayments.mutateAsync([id]);
+      toast.success('Payment approved');
+    } catch (e: any) {
+      toast.error(e?.message || 'Approve failed');
+    }
+  };
+
+  const handleRejectRow = async (id: number) => {
+    try {
+      await rejectPayments.mutateAsync({ ids: [id], reason: '' });
+      toast.success('Payment rejected');
+    } catch (e: any) {
+      toast.error(e?.message || 'Reject failed');
+    }
+  };
+
+  const handleSendRow = async (id: number) => {
+    try {
+      const result: any = await sendProviderPayout.mutateAsync([id]);
+      const r = result?.results?.find((x: any) => x.id === id) || result?.results?.[0];
+      if (r && r.success === false) {
+        toast.error(r.error || 'Payout failed');
+      } else {
+        toast.success('Payout sent');
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Send failed');
+    }
+  };
 
   const handleApprove = async () => {
     if (!canApprove) return;
@@ -909,6 +958,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 <th className="cell-currency">Ccy</th>
                 <th className="text-right">Amount</th>
                 <th>Created</th>
+                <th>Reference</th>
                 <th className="text-right pr-6">Actions</th>
                 <th>Status</th>
               </tr>
@@ -988,26 +1038,126 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                       </span>
                     )}
                   </td>
+                  <td className="whitespace-nowrap cell-muted">
+                    {payment.provider_reference ? (
+                      <span className="text-xs font-mono" title={payment.provider_reference}>
+                        {payment.provider_reference}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap text-right pr-6">
-                    {hasApprovePermission && payment.provider_status !== 'REVERSED' && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openReverseDialog(payment);
-                        }}
-                        className="h-7 px-2 text-xs"
-                        title="Reverse this payment — restores the bill to payable status"
-                      >
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        Reverse
-                      </Button>
-                    )}
-                    {payment.provider_status === 'REVERSED' && (
-                      <span className="text-[11px] text-muted-foreground">Reversed</span>
-                    )}
+                    <div className="flex items-center justify-end gap-1.5">
+                      {/* PENDING_APPROVAL → Accept / Reject inline */}
+                      {hasApprovePermission && payment.provider_status === 'PENDING_APPROVAL' && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApproveRow(payment.id);
+                            }}
+                            disabled={approvePayments.isPending}
+                            className="h-7 px-2 text-xs"
+                            title="Approve this payment"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Accept
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectRow(payment.id);
+                            }}
+                            disabled={rejectPayments.isPending}
+                            className="h-7 px-2 text-xs"
+                            title="Reject this payment"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      {/* Provider payout → Send / Re-run. A dropped payout stays
+                          in PROCESSING; a provider-rejected one lands in
+                          ERROR_PAYMENT (bill auto-reversed). Both are re-runnable:
+                          the backend re-reserves the bill and re-sends with a
+                          fresh reference. */}
+                      {hasApprovePermission &&
+                        ['PROCESSING', 'ERROR_PAYMENT'].includes(payment.provider_status) &&
+                        isRowProviderPayout(payment) && (
+                          <>
+                            {/* Edit recipient details before re-running — only
+                                for OneGate payouts (which carry editable
+                                payout_details). */}
+                            {(payment.method as string) === 'onegate_payout' && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingEvent(payment);
+                                }}
+                                className="h-7 px-2 text-xs"
+                                title="Edit the recipient payout details before re-running"
+                              >
+                                <Pencil className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendRow(payment.id);
+                              }}
+                              disabled={sendProviderPayout.isPending}
+                              className="h-7 px-2 text-xs"
+                              title={
+                                payment.provider_status === 'ERROR_PAYMENT'
+                                  ? 'Re-run this payout (the previous attempt was rejected)'
+                                  : payment.provider_reference
+                                    ? 'Re-run this payout (a previous attempt did not complete)'
+                                    : 'Send this payout'
+                              }
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              {payment.provider_status === 'ERROR_PAYMENT' ||
+                              payment.provider_reference
+                                ? 'Re-run'
+                                : 'Send'}
+                            </Button>
+                          </>
+                        )}
+                      {hasApprovePermission && payment.provider_status !== 'REVERSED' && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openReverseDialog(payment);
+                          }}
+                          className="h-7 px-2 text-xs"
+                          title="Reverse this payment — restores the bill to payable status"
+                        >
+                          <RotateCcw className="h-3 w-3 mr-1" />
+                          Reverse
+                        </Button>
+                      )}
+                      {payment.provider_status === 'REVERSED' && (
+                        <span className="text-[11px] text-muted-foreground">Reversed</span>
+                      )}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap">
                     {getStatusBadge(payment.provider_status)}
@@ -1039,6 +1189,17 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           </table>
         </div>
       )}
+
+      {/* Edit payout details (OneGate) before re-run */}
+      <EditPayoutDialog
+        event={editingEvent}
+        open={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
+        onSaved={(eventId, rerun) => {
+          refetch();
+          if (rerun) handleSendRow(eventId);
+        }}
+      />
 
       {/* Reject Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>

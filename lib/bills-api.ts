@@ -278,6 +278,17 @@ export const paymentEventsApi = {
   },
 
   /**
+   * Edit a provider payout's recipient details before a re-run.
+   * Allowed only while the event is PROCESSING or ERROR_PAYMENT.
+   */
+  async updatePayoutDetails(paymentEventId: number, details: Record<string, string>): Promise<any> {
+    return await api.patch<any>(
+      `${PAYMENTS_BASE_URL}/${paymentEventId}/payout-details/`,
+      details
+    );
+  },
+
+  /**
    * Generate a checkout payment for an approved Ozow/OneGate bill payment.
    *
    * Returns a `payment_link` (the provider's hosted page) plus, for OneGate,

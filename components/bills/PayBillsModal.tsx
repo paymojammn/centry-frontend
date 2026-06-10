@@ -68,12 +68,21 @@ interface RecipientDetails {
   branch_code?: string;
   customer_bank_reference?: string;
   // OneGate OTT-Payouts fields (only set when source is a OneGate ProviderAccount).
-  // Bills pay the supplier OUT via the chosen payout rail; requires_id mirrors
-  // the method's rsa_id_required so we can gate the id_number requirement.
+  // Bills pay the supplier OUT via the chosen payout rail; requires_id /
+  // requires_bank mirror the method's flags so we can gate required fields.
   payout_method_slug?: string;
+  first_name?: string;
+  surname?: string;
+  title?: string;
   mobile?: string;
+  id_type?: string;
   id_number?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  country_of_issue?: string;
+  email?: string;
   requires_id?: boolean;
+  requires_bank?: boolean;
 }
 
 export default function PayBillsModal({
@@ -155,12 +164,15 @@ export default function PayBillsModal({
     // on the provider's hosted page after approval.
     if (isHostedCheckoutSource) return true;
     if (recipients.size !== bills.length) return false;
-    // OneGate OTT-Payouts rail: a chosen method + recipient name + mobile,
-    // plus an ID number when the method requires it (requires_id).
+    // OneGate OTT-Payouts rail: required fields adapt to the chosen method
+    // (ID + DOB for RSA-ID methods, account + branch for bank methods).
     if (isOnegateSource) {
       for (const r of recipients.values()) {
-        if (!r.payout_method_slug || !r.account_name?.trim() || !r.mobile?.trim()) return false;
-        if (r.requires_id && !r.id_number?.trim()) return false;
+        if (!r.payout_method_slug) return false;
+        if (!r.first_name?.trim() || !r.surname?.trim() || !r.mobile?.trim()) return false;
+        if (!r.title?.trim() || !r.nationality?.trim() || !r.country_of_issue?.trim()) return false;
+        if (r.requires_id && (!r.id_number?.trim() || !r.date_of_birth?.trim())) return false;
+        if (r.requires_bank && (!r.account_number?.trim() || !r.branch_code?.trim())) return false;
       }
       return true;
     }
@@ -370,8 +382,16 @@ export default function PayBillsModal({
           // (see BillPaymentService.PROVIDER_PAYOUT_PAYLOAD_KEYS) for
           // _execute_onegate_payout.
           payout_method_slug: r.payout_method_slug,
+          first_name: r.first_name,
+          surname: r.surname,
+          title: r.title,
           mobile: r.mobile,
+          id_type: r.id_type,
           id_number: r.id_number,
+          date_of_birth: r.date_of_birth,
+          nationality: r.nationality,
+          country_of_issue: r.country_of_issue,
+          email: r.email,
         }));
       }
 

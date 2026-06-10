@@ -194,6 +194,9 @@ export interface PaymentEvent {
   provider_status: PaymentEventStatus;
   status_display: string;
   provider_reference: string;
+  // OneGate OTT-Payout recipient details (editable before re-run)
+  payout_details?: Record<string, string> | null;
+  provider_account_id?: string | null;
   // Xero sync
   xero_payment_id: string;
   synced_to_xero: boolean;
