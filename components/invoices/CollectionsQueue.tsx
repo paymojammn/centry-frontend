@@ -13,7 +13,6 @@ import { useCollectionEvents } from '@/hooks/use-invoices';
 import { useApprovePayments, useRejectPayments } from '@/hooks/use-bills';
 import { useHasPermission } from '@/hooks/use-user';
 import { api } from '@/lib/api';
-import { launchOneGateCheckout } from '@/lib/onegate-checkout';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -62,6 +61,21 @@ const METHOD_ICONS: Record<string, typeof Smartphone> = {
   onegate: CreditCard,
 };
 
+// OneGate payment_type options offered on the hosted-checkout page. 'all'
+// lets the customer pick any enabled method; the rest route straight to a
+// specific method. Slugs must match OneGate's payment_type values.
+const ONEGATE_PAYMENT_TYPES: { value: string; label: string }[] = [
+  { value: 'all', label: 'All payment methods' },
+  { value: 'eft', label: 'EFT' },
+  { value: 'credit_card', label: 'Credit card' },
+  { value: 'ott_voucher', label: 'OTT-Voucher' },
+  { value: 'bluvoucher', label: 'BluVoucher' },
+  { value: 'onevoucher', label: '1Voucher' },
+  { value: 'kazangvoucher', label: 'EasyPay Voucher (Kazang)' },
+  { value: 'shop2shop_voucher', label: 'EasyLoad Voucher (Shop2Shop)' },
+  { value: 'ozow_eft', label: 'Ozow EFT' },
+];
+
 interface CollectionsQueueProps {
   organizationId: string | null;
 }
@@ -82,28 +96,32 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
   const [statusFilter, setStatusFilter] = useState('all');
   const [copied, setCopied] = useState('');
   const [generatingId, setGeneratingId] = useState<number | null>(null);
-  const [collectingId, setCollectingId] = useState<number | null>(null);
   const [actingId, setActingId] = useState<number | null>(null);
   const [sendLinkTarget, setSendLinkTarget] = useState<any | null>(null);
+  // Which OneGate payment_type to offer the customer on the hosted-checkout
+  // page. 'all' shows every enabled method; a specific slug (eft, credit_card,
+  // ott_voucher, …) takes the customer straight to that method.
+  const [paymentType, setPaymentType] = useState('all');
 
   const hasApprovePermission = useHasPermission('payments.approve');
   const approvePayments = useApprovePayments();
   const rejectPayments = useRejectPayments();
 
   const generateLinkMutation = useMutation({
-    mutationFn: async (eventId: number) => {
+    mutationFn: async ({ eventId, paymentType: pt }: { eventId: number; paymentType: string }) => {
       setGeneratingId(eventId);
-      // as_session → a self-hosted Centry checkout link (embeds the OneGate
-      // V4 widget) the customer pays on, instead of the provider's page.
+      // Generate the provider's hosted-checkout URL (no as_session → not the
+      // self-hosted in-page embed). ``payment_type`` controls which method(s)
+      // the customer is offered on that page ('all' = every enabled method).
       return api.post<{ success: boolean; payment_link: string }>(
         `/api/v1/xero/payments/${eventId}/generate-link/`,
-        { as_session: true },
+        { payment_type: pt },
       );
     },
-    onSuccess: (data, eventId) => {
+    onSuccess: (data, variables) => {
       if (data.payment_link) {
         navigator.clipboard.writeText(data.payment_link);
-        setCopied(String(eventId));
+        setCopied(String(variables.eventId));
         setTimeout(() => setCopied(''), 3000);
         toast.success('Payment link copied to clipboard');
       }
@@ -112,65 +130,6 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
     onError: (err: Error) => toast.error(err?.message || 'Failed to generate payment link'),
     onSettled: () => setGeneratingId(null),
   });
-
-  // MOTO ("mail order / telephone order"): staff take the payment on the
-  // customer's behalf by embedding the OneGate V4 widget in-page, rather than
-  // sending a link. Falls back to opening the hosted page when the provider
-  // returns no widget coordinates (e.g. Ozow).
-  const handleCollectNow = async (event: any) => {
-    setCollectingId(event.id);
-    try {
-      const data = await api.post<{
-        success: boolean;
-        payment_link: string;
-        service_url?: string;
-        payment_key?: string;
-      }>(`/api/v1/xero/payments/${event.id}/generate-link/`, {});
-
-      if (data.service_url && data.payment_key) {
-        setSendLinkTarget(null);
-        try {
-          await launchOneGateCheckout({
-            serviceUrl: data.service_url,
-            paymentKey: data.payment_key,
-            firstName: event.customer_name || undefined,
-          });
-          // Resolved → completed. Webhook reconciles the authoritative
-          // status; invalidate so the queue reflects it.
-          toast.success('Payment completed');
-          queryClient.invalidateQueries({ queryKey: ['collection-events'] });
-        } catch (err: any) {
-          // Embedded checkout didn't complete — generating the link moved the
-          // event to SENT_PAYMENT, so return it to the approved (retryable)
-          // state instead of leaving it stuck as "Sent".
-          try {
-            await api.post(`/api/v1/xero/payments/${event.id}/revert-to-approved/`, {
-              reason: err?.cancelled ? 'checkout_cancelled' : 'checkout_failed',
-            });
-          } catch (revertErr) {
-            console.error('Failed to revert collection to approved:', revertErr);
-          }
-          queryClient.invalidateQueries({ queryKey: ['collection-events'] });
-          if (err?.cancelled) {
-            toast.info('Payment cancelled');
-          } else {
-            console.error('OneGate checkout failed:', err);
-            toast.error(err?.error || err?.reason || err?.message || 'Payment failed');
-          }
-        }
-      } else if (data.payment_link) {
-        window.open(data.payment_link, '_blank', 'noopener,noreferrer');
-        toast.success('Payment page opened in a new tab');
-        setSendLinkTarget(null);
-      } else {
-        toast.error('Provider did not return payment details');
-      }
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to start collection');
-    } finally {
-      setCollectingId(null);
-    }
-  };
 
   const handleApprove = async (eventId: number) => {
     setActingId(eventId);
@@ -536,6 +495,29 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                     </span>
                   </div>
                 )}
+
+                {t.method === 'onegate' && (
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      Payment method to offer the customer
+                    </label>
+                    <select
+                      value={paymentType}
+                      onChange={(e) => setPaymentType(e.target.value)}
+                      className="w-full h-10 px-3 border border-border rounded-lg text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                    >
+                      {ONEGATE_PAYMENT_TYPES.map((pt) => (
+                        <option key={pt.value} value={pt.value}>
+                          {pt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Choose a specific method, or “All payment methods” to let the customer pick on
+                      OneGate&apos;s hosted page.
+                    </p>
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -544,33 +526,20 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
               variant="outline"
               size="sm"
               onClick={() => setSendLinkTarget(null)}
-              disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
+              disabled={generatingId === sendLinkTarget?.id}
             >
               Cancel
             </Button>
-            {/* MOTO: take the payment now on the customer's behalf. OneGate
-                only — embeds the V4 widget in-page. */}
-            {sendLinkTarget?.method === 'onegate' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => sendLinkTarget && handleCollectNow(sendLinkTarget)}
-                disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
-              >
-                {collectingId === sendLinkTarget?.id ? (
-                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                ) : (
-                  <CreditCard className="h-4 w-4 mr-1.5" />
-                )}
-                Collect now
-              </Button>
-            )}
             <Button
               size="sm"
-              onClick={() => sendLinkTarget && generateLinkMutation.mutate(sendLinkTarget.id, {
-                onSuccess: () => setSendLinkTarget(null),
-              })}
-              disabled={generatingId === sendLinkTarget?.id || collectingId === sendLinkTarget?.id}
+              onClick={() =>
+                sendLinkTarget &&
+                generateLinkMutation.mutate(
+                  { eventId: sendLinkTarget.id, paymentType },
+                  { onSuccess: () => setSendLinkTarget(null) },
+                )
+              }
+              disabled={generatingId === sendLinkTarget?.id}
               className="text-white"
               style={{ backgroundColor: '#5C8A65' }}
             >
