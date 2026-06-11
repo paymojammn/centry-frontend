@@ -448,7 +448,7 @@ export default function InvoicesPage() {
                       <col className="w-[48px]" />{/* Ccy */}
                       <col />{/* Amount */}
                       <col />{/* Status */}
-                      <col className="w-8" />{/* chevron */}
+                      <col className="w-[110px]" />{/* Collect action */}
                     </colgroup>
                     <thead>
                       <tr>
@@ -478,7 +478,7 @@ export default function InvoicesPage() {
                         <th className="cell-currency">Ccy</th>
                         <th className="text-right">Amount</th>
                         <th>Status</th>
-                        <th className="w-8"></th>
+                        <th className="text-right pr-4"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -550,8 +550,31 @@ export default function InvoicesPage() {
                               ).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </td>
                             <td>{getStatusBadge(inv.status)}</td>
-                            <td>
-                              <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                            <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1.5">
+                                {canCollect && isCollectable && (
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
+                                    style={{ backgroundColor: 'var(--foreground)' }}
+                                    onClick={() => {
+                                      setSelectedInvoices(new Set([inv.id]));
+                                      setIsCollectModalOpen(true);
+                                    }}
+                                  >
+                                    <CreditCard className="h-3 w-3 mr-1" />
+                                    Collect
+                                  </Button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => router.push(`/invoices/${inv.id}`)}
+                                  aria-label="View invoice details"
+                                  className="p-1 rounded-md text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
