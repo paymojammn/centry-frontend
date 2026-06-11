@@ -561,11 +561,6 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
     });
   };
 
-  const selectAllByStatus = (status: PaymentEventStatus) => {
-    const matching = payments.filter((p: PaymentEvent) => p.provider_status === status);
-    setSelectedPayments(new Set(matching.map((p: PaymentEvent) => p.id)));
-  };
-
   const getStatusIcon = (status: PaymentEventStatus) => {
     switch (status) {
       case 'PENDING_APPROVAL':
@@ -682,80 +677,50 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
 
   return (
     <div>
-      {/* Stats Row - Compact inline pills */}
+      {/* Status pills — stats + filter (mirrors the collections queue) */}
       {stats && (
-        <div className="px-4 py-3 border-b border-border flex items-center gap-6 flex-wrap">
+        <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => { setStatusFilter('PENDING_APPROVAL'); selectAllByStatus('PENDING_APPROVAL'); }}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            onClick={() => setStatusFilter('all')}
+            className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+              statusFilter === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+            }`}
           >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Pending Approval</span>
-            <span className="text-sm font-normal text-foreground">{stats.pending_approval}</span>
+            All ({stats.total})
           </button>
-
-          <button
-            onClick={() => { setStatusFilter('PROCESSING'); selectAllByStatus('PROCESSING'); }}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Ready for File</span>
-            <span className="text-sm font-normal text-foreground">{stats.processing}</span>
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.pending.bg }}
-            />
-            <span className="text-sm text-muted-foreground">File Sent</span>
-            <span className="text-sm font-normal text-foreground">{stats.pending}</span>
-          </div>
-
-          <button
-            onClick={() => { setStatusFilter('ACCEPTED_BANK'); selectAllByStatus('ACCEPTED_BANK'); }}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.accepted.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Accepted by Bank</span>
-            <span className="text-sm font-normal text-foreground">{stats.accepted}</span>
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.sent.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Processing</span>
-            <span className="text-sm font-normal text-foreground">{stats.sent}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.success.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Successful</span>
-            <span className="text-sm font-normal text-foreground">{stats.success}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
-            />
-            <span className="text-sm text-muted-foreground">Failed</span>
-            <span className="text-sm font-normal text-foreground">{(stats.failed || 0) + (stats.rejected || 0)}</span>
-          </div>
+          {[
+            { value: 'PENDING_APPROVAL', label: 'Pending Approval', count: stats.pending_approval, color: STATUS_COLORS.pending_approval.bg },
+            { value: 'PROCESSING', label: 'Ready for File', count: stats.processing, color: STATUS_COLORS.processing.bg },
+            { value: 'PENDING', label: 'File Sent', count: stats.pending, color: STATUS_COLORS.pending.bg },
+            { value: 'ACCEPTED_BANK', label: 'Accepted by Bank', count: stats.accepted, color: STATUS_COLORS.accepted.bg },
+            { value: 'SENT_PAYMENT', label: 'Processing', count: stats.sent, color: STATUS_COLORS.sent.bg },
+            { value: 'SUCCESS_PAYMENT', label: 'Successful', count: stats.success, color: STATUS_COLORS.success.bg },
+            { value: 'FAILED_PAYMENT', label: 'Failed', count: (stats.failed || 0) + (stats.rejected || 0), color: STATUS_COLORS.failed.bg },
+          ].map((p) => (
+            <button
+              key={p.value}
+              onClick={() => setStatusFilter(statusFilter === p.value ? 'all' : (p.value as PaymentEventStatus))}
+              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                statusFilter === p.value ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+              style={statusFilter === p.value ? { backgroundColor: p.color } : undefined}
+            >
+              {p.label} ({p.count})
+            </button>
+          ))}
+          {providers.length > 1 && (
+            <select
+              value={providerFilter}
+              onChange={(ev) => setProviderFilter(ev.target.value)}
+              aria-label="Filter by provider"
+              className="ml-auto h-7 rounded-md border border-border bg-card px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="all">All providers</option>
+              {providers.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          )}
         </div>
       )}
 
@@ -772,85 +737,6 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="pl-9 h-9 bg-card border-border text-sm text-foreground"
             />
           </div>
-          {providers.length > 1 && (
-            <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="w-[150px] h-9 bg-card border-border text-sm">
-                <SelectValue placeholder="All Providers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Providers</SelectItem>
-                {providers.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => setStatusFilter(val as PaymentEventStatus | 'all')}
-          >
-            <SelectTrigger className="w-[160px] h-9 bg-card border-border text-sm">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="PENDING_APPROVAL">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending_approval.bg }} />
-                  Pending Approval
-                </span>
-              </SelectItem>
-              <SelectItem value="PROCESSING">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.processing.bg }} />
-                  Ready for File
-                </span>
-              </SelectItem>
-              <SelectItem value="PENDING">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending.bg }} />
-                  File Sent
-                </span>
-              </SelectItem>
-              <SelectItem value="ACCEPTED_BANK">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.accepted.bg }} />
-                  Accepted by Bank
-                </span>
-              </SelectItem>
-              <SelectItem value="SENT_PAYMENT">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.sent.bg }} />
-                  Processing
-                </span>
-              </SelectItem>
-              <SelectItem value="SUCCESS_PAYMENT">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.success.bg }} />
-                  Successful
-                </span>
-              </SelectItem>
-              <SelectItem value="FAILED_PAYMENT">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.failed.bg }} />
-                  Failed
-                </span>
-              </SelectItem>
-              <SelectItem value="REJECTED">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.failed.bg }} />
-                  Rejected
-                </span>
-              </SelectItem>
-              <SelectItem value="REVERSED">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending.bg }} />
-                  Reversed
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
           <Button onClick={() => refetch()} variant="ghost" size="sm" className="h-9 px-2">
             <RefreshCw className="h-4 w-4" />
           </Button>
