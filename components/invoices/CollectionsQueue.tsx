@@ -86,6 +86,17 @@ const ONEGATE_PAYMENT_TYPES: { value: string; label: string }[] = [
   { value: 'ozow_eft', label: 'Ozow EFT' },
 ];
 
+// Voucher payment types are sent to OneGate with amount 0 — the customer
+// enters the voucher PIN and its value is captured on the hosted page (mirrors
+// the backend VOUCHER_PAYMENT_TYPES, which forces amount 0 on the payment key).
+const VOUCHER_PAYMENT_TYPE_VALUES = new Set([
+  'ott_voucher',
+  'bluvoucher',
+  'onevoucher',
+  'kazangvoucher',
+  'shop2shop_voucher',
+]);
+
 interface CollectionsQueueProps {
   organizationId: string | null;
 }
@@ -476,6 +487,9 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
           </DialogHeader>
           {sendLinkTarget && (() => {
             const t = sendLinkTarget;
+            // Vouchers are charged at amount 0 (customer enters the PIN), so
+            // reflect that in the dialog the moment a voucher type is picked.
+            const isVoucher = t.method === 'onegate' && VOUCHER_PAYMENT_TYPE_VALUES.has(paymentType);
             const stale = t.fx_rate && isFxStale(t.fx_fetched_at);
             const settleCcy = t.fx_source_currency || 'ZAR';
             const settleAmt = t.fx_source_amount
@@ -497,13 +511,15 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
 
                 <div className="rounded-md border border-border px-3 py-2 text-sm space-y-1">
                   <div className="flex justify-between text-foreground">
-                    <span className="text-muted-foreground">Invoice amount</span>
-                    <span className="font-normal">
+                    <span className="text-muted-foreground">{isVoucher ? 'Amount' : 'Invoice amount'}</span>
+                    <span className="font-normal tabular-nums">
                       {cleanCurrency(t.currency)}{' '}
-                      {parseFloat(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {isVoucher
+                        ? '0.00'
+                        : parseFloat(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
-                  {t.fx_rate && settleAmt && (
+                  {!isVoucher && t.fx_rate && settleAmt && (
                     <>
                       <div className="flex justify-between text-foreground">
                         <span className="text-muted-foreground">Customer pays</span>
@@ -520,6 +536,11 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         </span>
                       </div>
                     </>
+                  )}
+                  {isVoucher && (
+                    <div className="text-[11px] text-muted-foreground">
+                      Voucher redemption — the link is generated with amount 0; the customer enters the voucher PIN and its value is captured on the hosted page.
+                    </div>
                   )}
                 </div>
 
