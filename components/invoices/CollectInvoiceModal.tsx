@@ -378,24 +378,24 @@ export default function CollectInvoiceModal({
                 const activeRate = fxMode === 'manual' ? (manualRateValid ? manualRateNum : null) : autoRateNum;
                 const activeConverted = fxMode === 'manual' ? manualConverted : (fxQuote ? parseFloat(fxQuote.converted_amount) : 0);
                 return (
-                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                  <div className="border border-border rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
-                        <AlertCircle className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
                         Currency conversion required
                       </div>
-                      <div className="inline-flex rounded-md border border-amber-200 bg-white overflow-hidden text-[11px]">
+                      <div className="inline-flex rounded-lg border border-border overflow-hidden text-[11px]">
                         <button
                           type="button"
                           onClick={() => { setFxMode('auto'); setFxConfirmed(false); }}
-                          className={`px-2 py-1 ${fxMode === 'auto' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                          className={`px-2.5 py-1 transition-colors ${fxMode === 'auto' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           Auto rate
                         </button>
                         <button
                           type="button"
                           onClick={() => { setFxMode('manual'); setFxConfirmed(false); }}
-                          className={`px-2 py-1 border-l border-amber-200 ${fxMode === 'manual' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                          className={`px-2.5 py-1 border-l border-border transition-colors ${fxMode === 'manual' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           My own rate
                         </button>
@@ -403,9 +403,9 @@ export default function CollectInvoiceModal({
                     </div>
 
                     {fxMode === 'auto' && fxLoading && (
-                      <div className="flex items-center gap-2 text-xs text-amber-800">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Fetching rate...
+                        Fetching rate…
                       </div>
                     )}
                     {fxMode === 'auto' && fxError && (
@@ -415,8 +415,8 @@ export default function CollectInvoiceModal({
                     )}
 
                     {fxMode === 'manual' && (
-                      <div className="space-y-1">
-                        <label className="block text-[11px] text-amber-900">
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] text-muted-foreground">
                           Rate (1 {currency} = ? {selectedSource!.currency})
                         </label>
                         <Input
@@ -426,13 +426,13 @@ export default function CollectInvoiceModal({
                           value={fxManualRate}
                           onChange={(e) => { setFxManualRate(e.target.value); setFxConfirmed(false); }}
                           placeholder={autoRateNum ? String(autoRateNum) : 'Enter rate'}
-                          className="h-8 text-sm"
+                          className="h-9 text-sm"
                         />
                         {!manualRateValid && fxManualRate && (
                           <p className="text-[11px] text-destructive">Rate must be a positive number.</p>
                         )}
                         {deviationWarn && (
-                          <p className="text-[11px] text-amber-700">
+                          <p className="text-[11px] text-muted-foreground">
                             Your rate differs from the market quote
                             {autoRateNum ? ` (${autoRateNum.toLocaleString(undefined, { maximumFractionDigits: 4 })})` : ''}
                             {' '}by {deviationPct.toFixed(1)}%. Double-check before confirming.
@@ -443,28 +443,33 @@ export default function CollectInvoiceModal({
 
                     {activeRate !== null && activeRate > 0 && (
                       <>
-                        <div className="text-xs text-amber-900 space-y-0.5">
-                          <div>
-                            Invoice: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <div className="space-y-1.5 pt-3 border-t border-border text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Invoice</span>
+                            <span className="font-medium text-foreground tabular-nums">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                           </div>
-                          <div>
-                            Customer will pay: <span className="font-medium">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Customer will pay</span>
+                            <span className="font-medium text-foreground tabular-nums">
                               {selectedSource!.currency} {activeConverted.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </span>
                           </div>
-                          <div className="text-[11px] text-amber-700">
-                            Rate: 1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
-                            {' '}&middot; {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                            <span>Rate</span>
+                            <span className="tabular-nums">
+                              1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
+                              {' '}· {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                            </span>
                           </div>
                         </div>
-                        <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                        <label className="flex items-start gap-2 text-xs cursor-pointer">
                           <input
                             type="checkbox"
                             checked={fxConfirmed}
                             onChange={(e) => setFxConfirmed(e.target.checked)}
-                            className="mt-0.5"
+                            className="mt-0.5 accent-foreground"
                           />
-                          <span>
+                          <span className="text-muted-foreground">
                             I confirm this rate. The customer will be charged in {selectedSource!.currency} on the provider's page.
                           </span>
                         </label>
@@ -543,7 +548,7 @@ export default function CollectInvoiceModal({
                     {/* Ozow payment link — copy or send to customer */}
                     {hasPaymentLink && (
                       <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3 space-y-2.5">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-primary">
+                        <p className="text-[10px] uppercase tracking-wider font-medium text-primary">
                           Payment link — send to customer
                         </p>
                         <div className="flex items-center gap-2">
