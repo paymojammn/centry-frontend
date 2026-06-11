@@ -94,8 +94,22 @@ interface ProcessingQueueProps {
   organizationId: string | null;
 }
 
+// Customer-facing provider names for the Provider column. Falls back to the
+// backend method_display when a method isn't mapped here.
+const PROVIDER_NAMES: Record<string, string> = {
+  onegate_payout: 'OneGate',
+  ozow_payout: 'Ozow',
+  paystack_payout: 'Paystack',
+  netcash_payout: 'Netcash',
+};
+
+// The provider label for a payment — used by the Provider column and filter.
+const providerOf = (p: { method?: string; method_display?: string | null }): string =>
+  PROVIDER_NAMES[p.method || ''] || p.method_display || p.method || '—';
+
 export default function ProcessingQueue({ organizationId }: ProcessingQueueProps) {
   const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>('all');
+  const [providerFilter, setProviderFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayments, setSelectedPayments] = useState<Set<number>>(new Set());
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
@@ -149,9 +163,13 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   // matching the bills queue: instant, no debounce. Status is filtered
   // server-side via the `filters` above; search narrows the visible rows.
   const filteredPayments = useMemo(() => {
-    if (!searchQuery.trim()) return payments;
+    let list: PaymentEvent[] = payments;
+    if (providerFilter !== 'all') {
+      list = list.filter((p: PaymentEvent) => providerOf(p) === providerFilter);
+    }
+    if (!searchQuery.trim()) return list;
     const query = searchQuery.toLowerCase();
-    return payments.filter((p: PaymentEvent) =>
+    return list.filter((p: PaymentEvent) =>
       p.vendor_name?.toLowerCase().includes(query) ||
       p.bill_number?.toLowerCase().includes(query) ||
       p.bill_reference?.toLowerCase().includes(query) ||
@@ -159,7 +177,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
       p.bank_name?.toLowerCase().includes(query) ||
       p.note?.toLowerCase().includes(query)
     );
-  }, [payments, searchQuery]);
+  }, [payments, searchQuery, providerFilter]);
+
+  // Providers present in the fetched payments, for the provider filter.
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of payments) set.add(providerOf(p));
+    return Array.from(set).sort();
+  }, [payments]);
 
   // Get selected payments data
   const selectedPaymentsData = useMemo(() => {
@@ -747,6 +772,19 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               className="pl-9 h-9 bg-card border-border text-sm text-foreground"
             />
           </div>
+          {providers.length > 1 && (
+            <Select value={providerFilter} onValueChange={setProviderFilter}>
+              <SelectTrigger className="w-[150px] h-9 bg-card border-border text-sm">
+                <SelectValue placeholder="All Providers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Providers</SelectItem>
+                {providers.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val as PaymentEventStatus | 'all')}
@@ -955,7 +993,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                 )}
                 <th>Vendor</th>
                 <th>Bill</th>
-                <th>Method</th>
+                <th>Provider</th>
                 <th className="cell-currency">Ccy</th>
                 <th className="text-right">Amount</th>
                 <th>Created</th>
@@ -1008,7 +1046,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                         {getMethodIcon(payment.method)}
                       </span>
                       <div>
-                        <div>{payment.method_display}</div>
+                        <div>{PROVIDER_NAMES[payment.method] || payment.method_display}</div>
                         {payment.phone_number && (
                           <span className="cell-sub">{payment.phone_number}</span>
                         )}

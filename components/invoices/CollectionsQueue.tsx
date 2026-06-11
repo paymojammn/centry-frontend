@@ -67,6 +67,10 @@ const PROVIDER_NAMES: Record<string, string> = {
   ozow_eft: 'Ozow',
 };
 
+// The provider label for an event — used by the Provider column and filter.
+const providerOf = (e: { method?: string; method_display?: string }): string =>
+  PROVIDER_NAMES[e.method || ''] || e.method_display || e.method || '—';
+
 // OneGate payment_type options offered on the hosted-checkout page. 'all'
 // lets the customer pick any enabled method; the rest route straight to a
 // specific method. Slugs must match OneGate's payment_type values.
@@ -100,6 +104,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
   const queryClient = useQueryClient();
   const { data: events, isLoading } = useCollectionEvents(organizationId || undefined);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [providerFilter, setProviderFilter] = useState('all');
   const [copied, setCopied] = useState('');
   const [generatingId, setGeneratingId] = useState<number | null>(null);
   const [actingId, setActingId] = useState<number | null>(null);
@@ -170,19 +175,32 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
 
   const collections = events || [];
 
-  const filtered = useMemo(() => {
-    if (statusFilter === 'all') return collections;
-    return collections.filter((e: any) => e.provider_status === statusFilter);
-  }, [collections, statusFilter]);
+  // Providers present in the current collections, for the provider filter.
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of collections) set.add(providerOf(e));
+    return Array.from(set).sort();
+  }, [collections]);
 
-  // Status counts
+  // Apply the provider filter first so the status pills/counts reflect it.
+  const byProvider = useMemo(() => {
+    if (providerFilter === 'all') return collections;
+    return collections.filter((e: any) => providerOf(e) === providerFilter);
+  }, [collections, providerFilter]);
+
+  const filtered = useMemo(() => {
+    if (statusFilter === 'all') return byProvider;
+    return byProvider.filter((e: any) => e.provider_status === statusFilter);
+  }, [byProvider, statusFilter]);
+
+  // Status counts (within the selected provider)
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const e of collections) {
+    for (const e of byProvider) {
       c[e.provider_status] = (c[e.provider_status] || 0) + 1;
     }
     return c;
-  }, [collections]);
+  }, [byProvider]);
 
   const copyLink = (link: string, id: string) => {
     navigator.clipboard.writeText(link);
@@ -228,7 +246,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             statusFilter === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
           }`}
         >
-          All ({collections.length})
+          All ({byProvider.length})
         </button>
         {Object.entries(counts).map(([status, count]) => {
           const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
@@ -247,6 +265,19 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             </button>
           );
         })}
+        {providers.length > 1 && (
+          <select
+            value={providerFilter}
+            onChange={(ev) => setProviderFilter(ev.target.value)}
+            aria-label="Filter by provider"
+            className="ml-auto h-7 rounded-md border border-border bg-card px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="all">All providers</option>
+            {providers.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Table */}
