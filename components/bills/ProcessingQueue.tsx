@@ -857,8 +857,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               onClick={handleGenerateFileClick}
               disabled={generateFile.isPending}
               size="sm"
-              className="h-8 text-white"
-              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
+              className="h-8 text-white hover:opacity-90"
+              style={{ backgroundColor: 'var(--foreground)' }}
             >
               <FileDown className="h-4 w-4 mr-1.5" />
               Generate File
@@ -869,8 +869,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             <Button
               onClick={handleOpenPayNow}
               size="sm"
-              className="h-8 text-white"
-              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+              className="h-8 text-white hover:opacity-90"
+              style={{ backgroundColor: 'var(--foreground)' }}
             >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Pay Now
@@ -882,8 +882,8 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
               onClick={handleSendProviderPayout}
               disabled={sendProviderPayout.isPending}
               size="sm"
-              className="h-8 text-white"
-              style={{ backgroundColor: STATUS_COLORS.success.bg }}
+              className="h-8 text-white hover:opacity-90"
+              style={{ backgroundColor: 'var(--foreground)' }}
             >
               {sendProviderPayout.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending...</>
@@ -1062,7 +1062,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                               handleApproveRow(payment.id);
                             }}
                             disabled={approvePayments.isPending}
-                            className="h-7 px-2 text-xs"
+                            className="h-7 px-2 text-xs border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-700"
                             title="Approve this payment"
                           >
                             <Check className="h-3 w-3 mr-1" />
@@ -1077,7 +1077,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                               handleRejectRow(payment.id);
                             }}
                             disabled={rejectPayments.isPending}
-                            className="h-7 px-2 text-xs"
+                            className="h-7 px-2 text-xs border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-700"
                             title="Reject this payment"
                           >
                             <X className="h-3 w-3 mr-1" />
@@ -1116,14 +1116,14 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
                             )}
                             <Button
                               type="button"
-                              variant="outline"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSendRow(payment.id);
                               }}
                               disabled={sendProviderPayout.isPending}
-                              className="h-7 px-2 text-xs"
+                              className="h-7 px-2 text-xs text-white hover:opacity-90"
+                              style={{ backgroundColor: 'var(--foreground)' }}
                               title={
                                 payment.provider_status === 'ERROR_PAYMENT'
                                   ? 'Re-run this payout (the previous attempt was rejected)'

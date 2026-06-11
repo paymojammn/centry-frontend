@@ -364,7 +364,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         <button
                           onClick={() => setSendLinkTarget(e)}
                           disabled={generatingId === e.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-normal rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-normal rounded-md bg-foreground text-background hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
                           {generatingId === e.id ? (
                             <><Loader2 className="h-3 w-3 animate-spin" /> Generating...</>
@@ -540,8 +540,8 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                 )
               }
               disabled={generatingId === sendLinkTarget?.id}
-              className="text-white"
-              style={{ backgroundColor: '#5C8A65' }}
+              className="text-white hover:opacity-90"
+              style={{ backgroundColor: 'var(--foreground)' }}
             >
               {generatingId === sendLinkTarget?.id ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
