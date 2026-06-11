@@ -444,7 +444,7 @@ export default function InvoicesPage() {
                       {canCollect && <col className="w-10" />}
                       <col className="w-[180px]" />{/* Customer — half width */}
                       <col />{/* Invoice */}
-                      <col />{/* Due Date */}
+                      <col className="w-[120px]" />{/* Due Date */}
                       <col className="w-[48px]" />{/* Ccy */}
                       <col />{/* Amount */}
                       <col />{/* Status */}
