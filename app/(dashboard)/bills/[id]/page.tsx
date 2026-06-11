@@ -102,7 +102,12 @@ export default function BillDetailPage() {
           {/* Bill Summary */}
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Bill Summary</h2>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+                <span className="flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <FileText className="h-4 w-4" />
+                </span>
+                Bill Summary
+              </h2>
             </div>
             <div className="p-6 space-y-4">
               <InfoRow 
@@ -136,7 +141,12 @@ export default function BillDetailPage() {
           {/* Financial Details */}
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Financial Details</h2>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+                <span className="flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <DollarSign className="h-4 w-4" />
+                </span>
+                Financial Details
+              </h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-center pb-4 border-b border-border">
@@ -179,7 +189,12 @@ export default function BillDetailPage() {
           {/* Payments & provider responses */}
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Payments</h2>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+                <span className="flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <CreditCard className="h-4 w-4" />
+                </span>
+                Payments
+              </h2>
               <span className="text-xs text-muted-foreground">
                 {payments.length} attempt{payments.length === 1 ? '' : 's'}
               </span>
@@ -199,7 +214,12 @@ export default function BillDetailPage() {
           {/* Vendor Info */}
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Vendor</h2>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+                <span className="flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Building2 className="h-4 w-4" />
+                </span>
+                Vendor
+              </h2>
             </div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -217,7 +237,12 @@ export default function BillDetailPage() {
           {/* Organization Info */}
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Organization</h2>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+                <span className="flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Building2 className="h-4 w-4" />
+                </span>
+                Organization
+              </h2>
             </div>
             <div className="p-6 space-y-3">
               <InfoRow 
@@ -271,8 +296,8 @@ function PaymentEventCard({ p }: { p: PaymentEvent }) {
     <div className="rounded-xl border border-border p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex items-center justify-center size-8 rounded-lg bg-background ring-1 ring-border shrink-0">
-            <CreditCard className="h-4 w-4 text-foreground" />
+          <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 shrink-0">
+            <CreditCard className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
             <div className="text-sm font-medium text-foreground truncate">
