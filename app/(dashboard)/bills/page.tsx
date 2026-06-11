@@ -25,7 +25,6 @@ import {
   Building2,
   RefreshCw,
   Receipt,
-  Send,
   CreditCard,
   AlertCircle,
   Clock,
@@ -582,7 +581,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
         <colgroup>
           {canCreatePayment && <col className="w-10" />}
           <col />
-          <col className="w-[80px]" />{/* Invoice — narrow */}
+          <col className="w-[40px]" />{/* Invoice — narrow */}
           <col />
           <col className="w-[48px]" />
           <col />
@@ -680,11 +679,11 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     {canCreatePayment && canPay && (
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="h-7 px-2.5 text-xs font-normal"
+                        className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
+                        style={{ backgroundColor: 'var(--foreground)' }}
                         onClick={() => onPayOne(bill.id)}
                       >
-                        <Send className="h-3 w-3 mr-1" />
+                        <CreditCard className="h-3 w-3 mr-1" />
                         Pay
                       </Button>
                     )}
