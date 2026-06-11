@@ -581,7 +581,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
       <table className="w-full table-professional">
         <colgroup>
           {canCreatePayment && <col className="w-10" />}
-          <col className="w-[240px]" />{/* Vendor */}
+          <col />{/* Vendor — flexible */}
           <col className="w-[72px]" />{/* Invoice */}
           <col />
           <col className="w-[48px]" />
