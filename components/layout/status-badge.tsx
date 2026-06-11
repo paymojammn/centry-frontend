@@ -73,7 +73,7 @@ export function StatusBadge({
   };
 
   const getVariantStyles = () => {
-    const textColor = color.bg === '#9B9B9F' ? color.text : color.bg;
+    const textColor = color.bg;
 
     switch (variant) {
       case 'outline':
@@ -160,7 +160,7 @@ interface StatusIndicatorProps {
 export function StatusIndicator({ status, label, showDot = true }: StatusIndicatorProps) {
   const color = getStatusColor(status);
   const displayLabel = label || formatStatusLabel(status);
-  const textColor = color.bg === '#9B9B9F' ? color.text : color.bg;
+  const textColor = color.bg;
 
   return (
     <span className="inline-flex items-center gap-2">

@@ -372,8 +372,8 @@ export default function BillsPage() {
                     <Button
                       onClick={() => setIsPayModalOpen(true)}
                       size="sm"
-                      className="w-full text-white btn-press"
-                      style={{ backgroundColor: STATUS_COLORS.paid.bg }}
+                      className="w-full text-white btn-press hover:opacity-90"
+                      style={{ backgroundColor: 'var(--foreground)' }}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Pay Selected

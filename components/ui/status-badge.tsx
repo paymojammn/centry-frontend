@@ -6,7 +6,7 @@
  */
 
 import { cn } from '@/lib/utils';
-import { STATUS_COLORS, getStatusColor } from '@/lib/theme';
+import { getStatusColor } from '@/lib/theme';
 
 export type StatusType =
   | 'draft'
@@ -87,7 +87,12 @@ function formatStatusLabel(status: string): string {
     error: 'Error',
   };
 
-  return labelMap[statusLower] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return (
+    labelMap[statusLower] ||
+    // Lowercase first so all-caps statuses (e.g. "RECONCILE") become Title
+    // Case ("Reconcile") like the rest, instead of shouty caps.
+    statusLower.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+  );
 }
 
 // Status dot - for inline use in dropdowns/selects
