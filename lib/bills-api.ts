@@ -201,6 +201,9 @@ export const paymentEventsApi = {
     if (filters?.synced_to_xero !== undefined) {
       params.append('synced_to_xero', String(filters.synced_to_xero));
     }
+    if (filters?.bill_id !== undefined) {
+      params.append('bill_id', String(filters.bill_id));
+    }
 
     const queryString = params.toString();
     const url = queryString ? `${PAYMENTS_BASE_URL}/?${queryString}` : `${PAYMENTS_BASE_URL}/`;

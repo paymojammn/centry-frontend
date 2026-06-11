@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useBill } from '@/hooks/use-bills';
+import { useBill, usePaymentEvents } from '@/hooks/use-bills';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -17,9 +17,13 @@ import {
   Download,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  CreditCard,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/ui/status-badge';
+import type { PaymentEvent } from '@/types/bill';
 
 export default function BillDetailPage() {
   const params = useParams();
@@ -27,6 +31,7 @@ export default function BillDetailPage() {
   const billId = parseInt(params?.id as string);
   
   const { data: bill, isLoading, error } = useBill(billId);
+  const { data: payments = [] } = usePaymentEvents({ bill_id: billId, direction: 'OUT' });
 
   if (isLoading) {
     return <BillDetailSkeleton />;
@@ -165,6 +170,23 @@ export default function BillDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Payments & provider responses */}
+          <div className="bg-card border border-border rounded-lg shadow-sm">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Payments</h2>
+              <span className="text-xs text-muted-foreground">
+                {payments.length} attempt{payments.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="p-6 space-y-3">
+              {payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No payment attempts yet.</p>
+              ) : (
+                payments.map((p) => <PaymentEventCard key={p.id} p={p} />)
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -219,6 +241,71 @@ export default function BillDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ----- Payment attempt + provider response -----
+function cleanCcy(c?: string): string {
+  return c ? String(c).split('.').pop() || c : '';
+}
+
+function PaymentEventCard({ p }: { p: PaymentEvent }) {
+  const d = p.payout_details || {};
+  const recipient = `${d.first_name || ''} ${d.surname || ''}`.trim() || d.account_name || '';
+  const rows: Array<[string, string]> = [];
+  if (p.provider_reference) rows.push(['Reference', p.provider_reference]);
+  if (d.payout_method_slug) rows.push(['Payout method', d.payout_method_slug]);
+  if (recipient) rows.push(['Recipient', recipient]);
+  if (d.mobile) rows.push(['Mobile', d.mobile]);
+  if (d.account_number) rows.push(['Account', `••${d.account_number.slice(-4)}`]);
+  if (p.approved_by_name) rows.push(['Approved by', p.approved_by_name]);
+  if (p.bank_status_description) rows.push(['Bank status', p.bank_status_description]);
+
+  return (
+    <div className="rounded-xl border border-border p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center justify-center size-8 rounded-lg bg-background ring-1 ring-border shrink-0">
+            <CreditCard className="h-4 w-4 text-foreground" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-foreground truncate">
+              {p.method_display || p.method}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {p.created_at ? new Date(p.created_at).toLocaleString() : ''}
+              {p.created_by_name ? ` · ${p.created_by_name}` : ''}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm font-medium text-foreground tabular-nums">
+            {cleanCcy(p.currency)} {parseFloat(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </span>
+          <StatusBadge status={p.provider_status} size="sm" />
+        </div>
+      </div>
+
+      {/* Provider failure reason */}
+      {p.provider_status === 'ERROR_PAYMENT' && p.payout_error && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span>{p.payout_error.replace(/^Payout failed:\s*/i, '')}</span>
+        </div>
+      )}
+
+      {/* Request / response details */}
+      {rows.length > 0 && (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs pt-1 border-t border-border">
+          {rows.map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-muted-foreground shrink-0">{k}</span>
+              <span className="text-foreground truncate text-right" title={v}>{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

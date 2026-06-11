@@ -303,4 +303,5 @@ export interface PaymentEventFilters {
   status?: PaymentEventStatus;
   method?: PaymentMethod;
   synced_to_xero?: boolean;
+  bill_id?: number;
 }

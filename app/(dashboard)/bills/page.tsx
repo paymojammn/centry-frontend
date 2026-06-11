@@ -525,6 +525,7 @@ interface BillsTableProps {
 }
 
 function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSelectAll, onPayOne }: BillsTableProps) {
+  const router = useRouter();
   const payableBills = bills.filter(bill => bill.status === 'AUTHORISED');
   const allPayableSelected = payableBills.length > 0 && payableBills.every(bill => selectedBills.has(bill.id));
   const somePayableSelected = payableBills.some(bill => selectedBills.has(bill.id)) && !allPayableSelected;
@@ -621,8 +622,12 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
             return (
               <tr
                 key={bill.id}
-                className={`${isSelected ? 'is-selected' : ''} ${!canPay || !canCreatePayment ? 'opacity-60' : 'cursor-pointer'}`}
-                onClick={() => canCreatePayment && canPay && onSelectBill(bill.id)}
+                className={`${isSelected ? 'is-selected' : ''} cursor-pointer`}
+                onClick={() =>
+                  canCreatePayment && canPay
+                    ? onSelectBill(bill.id)
+                    : router.push(`/bills/${bill.id}`)
+                }
               >
                 {canCreatePayment && (
                   <td onClick={(e) => e.stopPropagation()}>
@@ -671,17 +676,27 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                   {getStatusBadge(bill.status)}
                 </td>
                 <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
-                  {canCreatePayment && canPay && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2.5 text-xs font-normal"
-                      onClick={() => onPayOne(bill.id)}
+                  <div className="flex items-center justify-end gap-1.5">
+                    {canCreatePayment && canPay && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2.5 text-xs font-normal"
+                        onClick={() => onPayOne(bill.id)}
+                      >
+                        <Send className="h-3 w-3 mr-1" />
+                        Pay
+                      </Button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/bills/${bill.id}`)}
+                      aria-label="View bill details"
+                      className="p-1 rounded-md text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
                     >
-                      <Send className="h-3 w-3 mr-1" />
-                      Pay
-                    </Button>
-                  )}
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
