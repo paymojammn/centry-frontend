@@ -477,7 +477,7 @@ export default function InvoicesPage() {
                         <th>Due Date</th>
                         <th className="cell-currency">Ccy</th>
                         <th className="text-right">Amount</th>
-                        <th>Status</th>
+                        <th className="text-center">Status</th>
                         <th className="text-right pr-4"></th>
                       </tr>
                     </thead>
@@ -549,7 +549,7 @@ export default function InvoicesPage() {
                                 inv.status === 'PAID' ? inv.total : inv.amount_due
                               ).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </td>
-                            <td>{getStatusBadge(inv.status)}</td>
+                            <td className="text-center">{getStatusBadge(inv.status)}</td>
                             <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1.5">
                                 {canCollect && isCollectable && (
