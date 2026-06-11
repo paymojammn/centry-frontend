@@ -80,7 +80,8 @@ function isDueSoon(dueDate: string): boolean {
 
 export default function InvoicesPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState<InvoiceFilters>({ status: 'all' });
+  // Default to outstanding so the collectable invoices show first.
+  const [filters, setFilters] = useState<InvoiceFilters>({ status: 'outstanding' });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);

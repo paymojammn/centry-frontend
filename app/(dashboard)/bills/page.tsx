@@ -88,7 +88,8 @@ function isDueSoon(dueDate: string): boolean {
 }
 
 export default function BillsPage() {
-  const [filters, setFilters] = useState<BillFilters>({ status: 'all' });
+  // Default to outstanding (awaiting payment) so the actionable bills show first.
+  const [filters, setFilters] = useState<BillFilters>({ status: 'awaiting_payment' });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBills, setSelectedBills] = useState<Set<number>>(new Set());
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
