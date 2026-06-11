@@ -31,7 +31,12 @@ export default function BillDetailPage() {
   const billId = parseInt(params?.id as string);
   
   const { data: bill, isLoading, error } = useBill(billId);
-  const { data: payments = [] } = usePaymentEvents({ bill_id: billId, direction: 'OUT' });
+  // The payments list endpoint can return a raw array or a paginated
+  // { results: [...] } envelope — normalise to an array either way.
+  const { data: paymentsResponse } = usePaymentEvents({ bill_id: billId, direction: 'OUT' });
+  const payments: PaymentEvent[] = Array.isArray(paymentsResponse)
+    ? paymentsResponse
+    : (paymentsResponse as { results?: PaymentEvent[] } | undefined)?.results || [];
 
   if (isLoading) {
     return <BillDetailSkeleton />;
