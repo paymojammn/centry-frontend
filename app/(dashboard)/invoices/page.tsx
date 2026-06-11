@@ -440,6 +440,16 @@ export default function InvoicesPage() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full table-professional">
+                    <colgroup>
+                      {canCollect && <col className="w-10" />}
+                      <col className="w-[180px]" />{/* Customer — half width */}
+                      <col />{/* Invoice */}
+                      <col />{/* Due Date */}
+                      <col className="w-[48px]" />{/* Ccy */}
+                      <col />{/* Amount */}
+                      <col />{/* Status */}
+                      <col className="w-8" />{/* chevron */}
+                    </colgroup>
                     <thead>
                       <tr>
                         {canCollect && (
