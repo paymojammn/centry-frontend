@@ -61,6 +61,12 @@ const METHOD_ICONS: Record<string, typeof Smartphone> = {
   onegate: CreditCard,
 };
 
+// Customer-facing provider names for the Provider column. Falls back to the
+// backend method_display when a method isn't mapped here.
+const PROVIDER_NAMES: Record<string, string> = {
+  ozow_eft: 'Ozow',
+};
+
 // OneGate payment_type options offered on the hosted-checkout page. 'all'
 // lets the customer pick any enabled method; the rest route straight to a
 // specific method. Slugs must match OneGate's payment_type values.
@@ -250,7 +256,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             <tr>
               <th>Customer</th>
               <th>Invoice</th>
-              <th>Method</th>
+              <th>Provider</th>
               <th className="cell-currency">Ccy</th>
               <th className="text-right">Amount</th>
               <th>Payment Link</th>
@@ -286,7 +292,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                   <td>
                     <div className="flex items-center gap-2">
                       <MethodIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>{e.method_display || e.method}</span>
+                      <span>{PROVIDER_NAMES[e.method] || e.method_display || e.method}</span>
                     </div>
                   </td>
 
