@@ -10,7 +10,6 @@ import {
   Send,
   Save,
   Building2,
-  Sparkles,
 } from 'lucide-react';
 import type { Bill, PaymentEvent } from '@/types/bill';
 import { usePaymentSources } from '@/hooks/use-payment-sources';
@@ -514,33 +513,31 @@ export default function PayBillsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Header — branded gradient strip with icon */}
-        <div className="relative shrink-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-card to-card pointer-events-none" />
-          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-primary/8 blur-2xl pointer-events-none" />
-          <div className="relative flex items-start justify-between p-5">
+      <div className="relative bg-card rounded-2xl shadow-xl ring-1 ring-foreground/10 w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header — charcoal (sidebar) bar + white text, minimalist */}
+        <div className="shrink-0 bg-foreground text-background">
+          <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3 min-w-0">
               {step !== 'source' && step !== 'result' && (
                 <button
                   onClick={goBack}
                   aria-label="Back"
-                  className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                  className="-ml-1.5 p-1.5 rounded-lg text-background/55 hover:text-background hover:bg-background/10 transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                  <ArrowLeft className="h-4 w-4" />
                 </button>
               )}
-              <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 ring-1 ring-primary/20 shrink-0">
-                <Send className="h-5 w-5 text-primary" />
+              <div className="flex items-center justify-center size-9 rounded-xl bg-background shrink-0">
+                <Send className="h-4 w-4 text-foreground" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground tracking-tight">
-                  {isEditMode ? 'Edit payout details' : 'Pay Bills'}
+                <h2 className="text-[15px] font-medium leading-none tracking-[-0.01em]">
+                  {isEditMode ? 'Edit payout details' : 'Pay bills'}
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="mt-1.5 text-[11px] tracking-wide text-background/50">
                   {bills.length} bill{bills.length > 1 ? 's' : ''}
-                  <span className="mx-1.5 text-muted-foreground/40">•</span>
-                  <span className="font-semibold text-foreground tabular-nums">
+                  <span className="mx-1.5 text-background/25">·</span>
+                  <span className="font-medium tabular-nums text-background/80">
                     {currency} {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </span>
                 </p>
@@ -549,9 +546,9 @@ export default function PayBillsModal({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors shrink-0"
+              className="-mr-1.5 p-1.5 rounded-lg text-background/55 hover:text-background hover:bg-background/10 transition-colors shrink-0"
             >
-              <X className="h-5 w-5 text-muted-foreground" />
+              <X className="h-[18px] w-[18px]" />
             </button>
           </div>
         </div>
@@ -559,7 +556,7 @@ export default function PayBillsModal({
         {/* Step indicator — pill chips with sage accent. Hidden in edit mode
             (single recipients step). */}
         {!isEditMode && !['result'].includes(step) && (
-          <div className="flex items-center gap-2 px-5 py-3 border-y border-border bg-muted/30 shrink-0">
+          <div className="flex items-center gap-2 px-6 py-3.5 border-b border-border shrink-0">
             {(isHostedCheckoutSource ? ['Source', 'Review'] : ['Source', 'Recipients', 'Review']).map((label, i, arr) => {
               const stepIndex = isHostedCheckoutSource
                 ? (step === 'source' ? 0 : 1)
@@ -567,21 +564,21 @@ export default function PayBillsModal({
               const isActive = stepIndex === i;
               const isDone = stepIndex > i;
               return (
-                <div key={label} className="flex items-center gap-2 flex-1">
-                  <div className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${isActive ? 'text-foreground' : isDone ? 'text-primary' : 'text-muted-foreground/50'}`}>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                <div key={label} className="flex items-center gap-2 flex-1 last:flex-none">
+                  <div className={`flex items-center gap-2 text-[12px] tracking-tight transition-colors ${isActive ? 'font-medium text-foreground' : isDone ? 'font-medium text-primary' : 'font-normal text-muted-foreground/50'}`}>
+                    <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-medium transition-all ${
                       isDone
-                        ? 'bg-primary text-white shadow-sm shadow-primary/30'
+                        ? 'bg-primary text-primary-foreground'
                         : isActive
-                          ? 'bg-foreground text-card ring-2 ring-foreground/10 ring-offset-2 ring-offset-card'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-foreground text-background'
+                          : 'bg-muted text-muted-foreground/60'
                     }`}>
-                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                      {isDone ? <CheckCircle className="w-3 h-3" /> : i + 1}
                     </span>
                     <span className="hidden sm:inline">{label}</span>
                   </div>
                   {i < arr.length - 1 && (
-                    <div className={`flex-1 h-0.5 rounded-full transition-colors ${isDone ? 'bg-primary' : 'bg-border'}`} />
+                    <div className={`flex-1 h-px transition-colors ${isDone ? 'bg-primary/40' : 'bg-border'}`} />
                   )}
                 </div>
               );
@@ -590,7 +587,7 @@ export default function PayBillsModal({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Step 1: Select Source */}
           {step === 'source' && (
             <div>
@@ -668,9 +665,9 @@ export default function PayBillsModal({
           {step === 'confirm' && selectedSource && (
             <div className="space-y-4">
               {/* Source summary — branded card with provider initials */}
-              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-gradient-to-br from-card to-muted/30">
-                <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10 ring-1 ring-primary/15 shrink-0">
-                  <Building2 className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30">
+                <div className="flex items-center justify-center size-9 rounded-lg bg-background ring-1 ring-border shrink-0">
+                  <Building2 className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Paying from</p>
@@ -732,19 +729,13 @@ export default function PayBillsModal({
                 })}
               </div>
 
-              {/* Total — branded gradient bar */}
-              <div className="relative overflow-hidden rounded-xl border border-primary/20">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-card to-primary/5" />
-                <div className="relative flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Total to pay</span>
-                  </div>
-                  <span className="text-xl font-bold text-foreground tabular-nums">
-                    <span className="text-xs font-semibold text-muted-foreground/80 mr-1">{currency}</span>
-                    {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
+              {/* Total — charcoal anchor bar */}
+              <div className="flex items-center justify-between rounded-xl bg-foreground px-4 py-3.5 text-background">
+                <span className="text-[11px] uppercase tracking-wider font-medium text-background/55">Total to pay</span>
+                <span className="text-xl font-medium tabular-nums">
+                  <span className="text-xs font-normal text-background/55 mr-1">{currency}</span>
+                  {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
               </div>
 
               {/* FX Quote — only shown when source currency differs from bill currency */}
@@ -760,24 +751,24 @@ export default function PayBillsModal({
                 const activeRate = fxMode === 'manual' ? (manualRateValid ? manualRateNum : null) : autoRateNum;
                 const activeConverted = fxMode === 'manual' ? manualConverted : (fxQuote ? parseFloat(fxQuote.converted_amount) : 0);
                 return (
-                  <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
+                  <div className="border border-border rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
-                        <AlertCircle className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
                         Currency conversion required
                       </div>
-                      <div className="inline-flex rounded-md border border-amber-200 bg-white overflow-hidden text-[11px]">
+                      <div className="inline-flex rounded-lg border border-border overflow-hidden text-[11px]">
                         <button
                           type="button"
                           onClick={() => { setFxMode('auto'); setFxConfirmed(false); }}
-                          className={`px-2 py-1 ${fxMode === 'auto' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                          className={`px-2.5 py-1 transition-colors ${fxMode === 'auto' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           Auto rate
                         </button>
                         <button
                           type="button"
                           onClick={() => { setFxMode('manual'); setFxConfirmed(false); }}
-                          className={`px-2 py-1 border-l border-amber-200 ${fxMode === 'manual' ? 'bg-amber-100 text-amber-900 font-medium' : 'text-amber-700 hover:bg-amber-50'}`}
+                          className={`px-2.5 py-1 border-l border-border transition-colors ${fxMode === 'manual' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           My own rate
                         </button>
@@ -785,9 +776,9 @@ export default function PayBillsModal({
                     </div>
 
                     {fxMode === 'auto' && fxLoading && (
-                      <div className="flex items-center gap-2 text-xs text-amber-800">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Fetching rate...
+                        Fetching rate…
                       </div>
                     )}
                     {fxMode === 'auto' && fxError && (
@@ -797,8 +788,8 @@ export default function PayBillsModal({
                     )}
 
                     {fxMode === 'manual' && (
-                      <div className="space-y-1">
-                        <label className="block text-[11px] text-amber-900">
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] text-muted-foreground">
                           Rate (1 {currency} = ? {selectedSource!.currency})
                         </label>
                         <Input
@@ -808,13 +799,13 @@ export default function PayBillsModal({
                           value={fxManualRate}
                           onChange={(e) => { setFxManualRate(e.target.value); setFxConfirmed(false); }}
                           placeholder={autoRateNum ? String(autoRateNum) : 'Enter rate'}
-                          className="h-8 text-sm"
+                          className="h-9 text-sm"
                         />
                         {!manualRateValid && fxManualRate && (
                           <p className="text-[11px] text-destructive">Rate must be a positive number.</p>
                         )}
                         {deviationWarn && (
-                          <p className="text-[11px] text-amber-700">
+                          <p className="text-[11px] text-muted-foreground">
                             Your rate differs from the market quote
                             {autoRateNum ? ` (${autoRateNum.toLocaleString(undefined, { maximumFractionDigits: 4 })})` : ''}
                             {' '}by {deviationPct.toFixed(1)}%. Double-check before confirming.
@@ -825,28 +816,33 @@ export default function PayBillsModal({
 
                     {activeRate !== null && activeRate > 0 && (
                       <>
-                        <div className="text-xs text-amber-900 space-y-0.5">
-                          <div>
-                            Bill: <span className="font-medium">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <div className="space-y-1.5 pt-3 border-t border-border text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Bill</span>
+                            <span className="font-medium text-foreground tabular-nums">{currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                           </div>
-                          <div>
-                            Will debit: <span className="font-medium">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Will debit</span>
+                            <span className="font-medium text-foreground tabular-nums">
                               {selectedSource!.currency} {activeConverted.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </span>
                           </div>
-                          <div className="text-[11px] text-amber-700">
-                            Rate: 1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
-                            {' '}&middot; {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                            <span>Rate</span>
+                            <span className="tabular-nums">
+                              1 {currency} = {activeRate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selectedSource!.currency}
+                              {' '}· {fxMode === 'manual' ? 'manual' : `via ${fxQuote?.provider}`}
+                            </span>
                           </div>
                         </div>
-                        <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                        <label className="flex items-start gap-2 text-xs cursor-pointer">
                           <input
                             type="checkbox"
                             checked={fxConfirmed}
                             onChange={(e) => setFxConfirmed(e.target.checked)}
-                            className="mt-0.5"
+                            className="mt-0.5 accent-foreground"
                           />
-                          <span>
+                          <span className="text-muted-foreground">
                             I confirm this rate and understand the source account will be debited in {selectedSource!.currency}.
                           </span>
                         </label>

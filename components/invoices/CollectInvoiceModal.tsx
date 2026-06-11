@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Download,
   Building2,
-  Sparkles,
   Copy as CopyIcon,
   Mail,
   ExternalLink,
@@ -212,31 +211,29 @@ export default function CollectInvoiceModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Header — branded gradient strip with icon */}
-        <div className="relative shrink-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-card to-card pointer-events-none" />
-          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-primary/8 blur-2xl pointer-events-none" />
-          <div className="relative flex items-start justify-between p-5">
+      <div className="relative bg-card rounded-2xl shadow-xl ring-1 ring-foreground/10 w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header — charcoal (sidebar) bar + white text, minimalist */}
+        <div className="shrink-0 bg-foreground text-background">
+          <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3 min-w-0">
               {step !== 'source' && step !== 'result' && (
                 <button
                   onClick={() => setStep(step === 'review' ? (selectedSource?.requires_phone ? 'details' : 'source') : 'source')}
                   aria-label="Back"
-                  className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                  className="-ml-1.5 p-1.5 rounded-lg text-background/55 hover:text-background hover:bg-background/10 transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                  <ArrowLeft className="h-4 w-4" />
                 </button>
               )}
-              <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 ring-1 ring-primary/20 shrink-0">
-                <Download className="h-5 w-5 text-primary" />
+              <div className="flex items-center justify-center size-9 rounded-xl bg-background shrink-0">
+                <Download className="h-4 w-4 text-foreground" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground tracking-tight">Collect Payment</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <h2 className="text-[15px] font-medium leading-none tracking-[-0.01em]">Collect payment</h2>
+                <p className="mt-1.5 text-[11px] tracking-wide text-background/50">
                   {invoices.length} invoice{invoices.length > 1 ? 's' : ''}
-                  <span className="mx-1.5 text-muted-foreground/40">•</span>
-                  <span className="font-semibold text-foreground tabular-nums">
+                  <span className="mx-1.5 text-background/25">·</span>
+                  <span className="font-medium tabular-nums text-background/80">
                     {currency} {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </span>
                 </p>
@@ -245,35 +242,35 @@ export default function CollectInvoiceModal({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors shrink-0"
+              className="-mr-1.5 p-1.5 rounded-lg text-background/55 hover:text-background hover:bg-background/10 transition-colors shrink-0"
             >
-              <X className="h-5 w-5 text-muted-foreground" />
+              <X className="h-[18px] w-[18px]" />
             </button>
           </div>
         </div>
 
-        {/* Step indicator — pill chips with sage accent */}
+        {/* Step indicator — minimalist */}
         {step !== 'result' && (
-          <div className="flex items-center gap-2 px-5 py-3 border-y border-border bg-muted/30 shrink-0">
+          <div className="flex items-center gap-2 px-6 py-3.5 border-b border-border shrink-0">
             {stepLabels.map((label, i, arr) => {
               const isActive = stepIndex === i;
               const isDone = stepIndex > i;
               return (
-                <div key={label} className="flex items-center gap-2 flex-1">
-                  <div className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${isActive ? 'text-foreground' : isDone ? 'text-primary' : 'text-muted-foreground/50'}`}>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                <div key={label} className="flex items-center gap-2 flex-1 last:flex-none">
+                  <div className={`flex items-center gap-2 text-[12px] tracking-tight transition-colors ${isActive ? 'font-medium text-foreground' : isDone ? 'font-medium text-primary' : 'font-normal text-muted-foreground/50'}`}>
+                    <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-medium transition-all ${
                       isDone
-                        ? 'bg-primary text-white shadow-sm shadow-primary/30'
+                        ? 'bg-primary text-primary-foreground'
                         : isActive
-                          ? 'bg-foreground text-card ring-2 ring-foreground/10 ring-offset-2 ring-offset-card'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-foreground text-background'
+                          : 'bg-muted text-muted-foreground/60'
                     }`}>
-                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                      {isDone ? <CheckCircle className="w-3 h-3" /> : i + 1}
                     </span>
                     <span className="hidden sm:inline">{label}</span>
                   </div>
                   {i < arr.length - 1 && (
-                    <div className={`flex-1 h-0.5 rounded-full transition-colors ${isDone ? 'bg-primary' : 'bg-border'}`} />
+                    <div className={`flex-1 h-px transition-colors ${isDone ? 'bg-primary/40' : 'bg-border'}`} />
                   )}
                 </div>
               );
@@ -324,9 +321,9 @@ export default function CollectInvoiceModal({
           {step === 'review' && (
             <div className="space-y-4">
               {/* Source summary — branded card */}
-              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-gradient-to-br from-card to-muted/30">
-                <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10 ring-1 ring-primary/15 shrink-0">
-                  <Building2 className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30">
+                <div className="flex items-center justify-center size-9 rounded-lg bg-background ring-1 ring-border shrink-0">
+                  <Building2 className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Collecting via</p>
@@ -359,19 +356,13 @@ export default function CollectInvoiceModal({
                   </div>
                 ))}
               </div>
-              {/* Total — branded gradient bar */}
-              <div className="relative overflow-hidden rounded-xl border border-primary/20">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-card to-primary/5" />
-                <div className="relative flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Total to collect</span>
-                  </div>
-                  <span className="text-xl font-bold text-foreground tabular-nums">
-                    <span className="text-xs font-semibold text-muted-foreground/80 mr-1">{currency}</span>
-                    {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
+              {/* Total — charcoal anchor bar */}
+              <div className="flex items-center justify-between rounded-xl bg-foreground px-4 py-3.5 text-background">
+                <span className="text-[11px] uppercase tracking-wider font-medium text-background/55">Total to collect</span>
+                <span className="text-xl font-medium tabular-nums">
+                  <span className="text-xs font-normal text-background/55 mr-1">{currency}</span>
+                  {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
               </div>
 
               {/* FX Quote — shown when source settle currency differs from invoice currency */}

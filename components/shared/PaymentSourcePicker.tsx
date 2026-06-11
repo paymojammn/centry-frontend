@@ -18,13 +18,6 @@ const PROVIDER_ICONS: Record<string, typeof Smartphone> = {
   netcash: CreditCard,
 };
 
-const PROVIDER_COLORS: Record<string, string> = {
-  mtn: '#FFCC00',
-  airtel: '#ED1C24',
-  ozow: '#00A8E8',
-  paystack: '#00C3F7',
-  netcash: '#00A651',
-};
 
 interface PaymentSourcePickerProps {
   sources: PaymentSource[];
@@ -68,7 +61,6 @@ export default function PaymentSourcePicker({
           ? Building2
           : PROVIDER_ICONS[source.provider] || Wallet;
         const isSelected = selectedId === source.id;
-        const color = PROVIDER_COLORS[source.provider];
 
         return (
           <button
@@ -76,18 +68,12 @@ export default function PaymentSourcePicker({
             onClick={() => onSelect(source)}
             className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
               isSelected
-                ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
-                : 'border-border hover:border-[rgb(var(--brand-dark))]/40 hover:shadow-sm'
+                ? 'border-foreground ring-1 ring-foreground bg-muted/30'
+                : 'border-border hover:border-foreground/40 hover:shadow-sm'
             }`}
           >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: color ? `${color}15` : undefined }}
-            >
-              <Icon
-                className="w-5 h-5"
-                style={{ color: color || 'var(--foreground)' }}
-              />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-background ring-1 ring-border">
+              <Icon className="w-5 h-5 text-foreground" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{source.name}</p>
