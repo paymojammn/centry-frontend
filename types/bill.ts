@@ -199,6 +199,8 @@ export interface PaymentEvent {
   provider_account_id?: string | null;
   // Last provider failure reason (shown on ERROR_PAYMENT rows)
   payout_error?: string | null;
+  // Hosted-checkout link for collections (Ozow/OneGate redirect URL)
+  payment_link?: string | null;
   // Xero sync
   xero_payment_id: string;
   synced_to_xero: boolean;
@@ -304,4 +306,5 @@ export interface PaymentEventFilters {
   method?: PaymentMethod;
   synced_to_xero?: boolean;
   bill_id?: number;
+  invoice_id?: number;
 }

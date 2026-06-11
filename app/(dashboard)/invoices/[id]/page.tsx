@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useInvoice } from '@/hooks/use-invoices';
+import { usePaymentEvents } from '@/hooks/use-bills';
 import {
   ArrowLeft,
   Building2,
@@ -9,24 +10,18 @@ import {
   FileText,
   DollarSign,
   CheckCircle2,
-  Clock,
   Send,
   Receipt,
   Loader2,
   AlertCircle,
   User,
   Mail,
+  CreditCard,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
-
-const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  DRAFT: { color: '#6B8FB8', bg: '#6B8FB8/10', label: 'Draft' },
-  SUBMITTED: { color: '#b08b00', bg: '#fed652/10', label: 'Sent' },
-  AUTHORISED: { color: '#f77f00', bg: '#f77f00/10', label: 'Outstanding' },
-  PAID: { color: '#5C8A65', bg: '#5C8A65/10', label: 'Paid' },
-  VOIDED: { color: '#bec3c6', bg: '#bec3c6/10', label: 'Voided' },
-};
+import type { PaymentEvent } from '@/types/bill';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -39,6 +34,12 @@ export default function InvoiceDetailPage() {
   const router = useRouter();
   const invoiceId = Number(params.id);
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
+  // Collection attempts (direction IN) for this invoice + their provider
+  // responses. Endpoint may return a raw array or a { results } envelope.
+  const { data: collectionsResponse } = usePaymentEvents({ invoice_id: invoiceId, direction: 'IN' });
+  const collections: PaymentEvent[] = Array.isArray(collectionsResponse)
+    ? collectionsResponse
+    : (collectionsResponse as { results?: PaymentEvent[] } | undefined)?.results || [];
 
   if (isLoading) {
     return (
@@ -63,7 +64,6 @@ export default function InvoiceDetailPage() {
   }
 
   const currency = cleanCurrencyCode(invoice.currency);
-  const statusConfig = STATUS_CONFIG[invoice.status] || STATUS_CONFIG.DRAFT;
   const statusMap: Record<string, string> = {
     DRAFT: 'draft',
     SUBMITTED: 'awaiting_approval',
@@ -120,7 +120,7 @@ export default function InvoiceDetailPage() {
             {/* Amount card */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Invoice Summary</h2>
+                <h2 className="text-lg font-semibold text-foreground">Invoice Summary</h2>
                 {invoice.sent_to_contact && (
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                     <Mail className="h-3 w-3" /> Sent to customer
@@ -150,17 +150,34 @@ export default function InvoiceDetailPage() {
             {/* Reference info */}
             {invoice.reference && (
               <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">Reference</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Reference</h2>
                 <p className="text-sm text-foreground">{invoice.reference}</p>
               </div>
             )}
+
+            {/* Collections & provider responses */}
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">Collections</h2>
+                <span className="text-xs text-muted-foreground">
+                  {collections.length} attempt{collections.length === 1 ? '' : 's'}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {collections.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No collection attempts yet.</p>
+                ) : (
+                  collections.map((p) => <CollectionEventCard key={p.id} p={p} />)
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Customer */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">Customer</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Customer</h2>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                   <User className="h-5 w-5 text-muted-foreground" />
@@ -174,7 +191,7 @@ export default function InvoiceDetailPage() {
 
             {/* Dates */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">Dates</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Dates</h2>
               <div className="space-y-3">
                 <InfoRow icon={Calendar} label="Issue Date" value={formatDate(invoice.date)} />
                 <InfoRow icon={Calendar} label="Due Date" value={formatDate(invoice.due_date || '')} />
@@ -183,7 +200,7 @@ export default function InvoiceDetailPage() {
 
             {/* Details */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">Details</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Details</h2>
               <div className="space-y-3">
                 <InfoRow icon={FileText} label="Invoice Number" value={invoice.invoice_number || '-'} />
                 <InfoRow icon={Receipt} label="Type" value={invoice.invoice_type === 'ACCREC' ? 'Sales Invoice' : 'Bill'} />
@@ -193,6 +210,80 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ----- Collection attempt + provider response -----
+function cleanCcy(c?: string): string {
+  return c ? String(c).split('.').pop() || c : '';
+}
+
+function CollectionEventCard({ p }: { p: PaymentEvent }) {
+  const link = p.payment_link && p.payment_link.startsWith('http') ? p.payment_link : '';
+  const failed = p.provider_status === 'ERROR_PAYMENT' || p.provider_status === 'FAILED_PAYMENT';
+  const errorMsg = failed ? p.payout_error || p.rejection_reason || '' : '';
+  const rows: Array<[string, string]> = [];
+  if (p.provider_reference) rows.push(['Reference', p.provider_reference]);
+  if (p.approved_by_name) rows.push(['Approved by', p.approved_by_name]);
+  if (p.bank_status_description) rows.push(['Bank status', p.bank_status_description]);
+
+  return (
+    <div className="rounded-xl border border-border p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center justify-center size-8 rounded-lg bg-background ring-1 ring-border shrink-0">
+            <CreditCard className="h-4 w-4 text-foreground" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-foreground truncate">
+              {p.method_display || p.method}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {p.created_at ? new Date(p.created_at).toLocaleString() : ''}
+              {p.created_by_name ? ` · ${p.created_by_name}` : ''}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm font-medium text-foreground tabular-nums">
+            {cleanCcy(p.currency)} {parseFloat(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </span>
+          <StatusBadge status={p.provider_status} size="sm" />
+        </div>
+      </div>
+
+      {errorMsg && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span>{errorMsg.replace(/^Payout failed:\s*/i, '')}</span>
+        </div>
+      )}
+
+      {link && (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-xs hover:bg-muted transition-colors"
+        >
+          <span className="text-muted-foreground truncate">{link}</span>
+          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        </a>
+      )}
+
+      {rows.length > 0 && (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs pt-1 border-t border-border">
+          {rows.map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-muted-foreground shrink-0">{k}</span>
+              <span className="text-foreground truncate text-right" title={v}>
+                {v}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

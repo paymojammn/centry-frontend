@@ -204,6 +204,9 @@ export const paymentEventsApi = {
     if (filters?.bill_id !== undefined) {
       params.append('bill_id', String(filters.bill_id));
     }
+    if (filters?.invoice_id !== undefined) {
+      params.append('invoice_id', String(filters.invoice_id));
+    }
 
     const queryString = params.toString();
     const url = queryString ? `${PAYMENTS_BASE_URL}/?${queryString}` : `${PAYMENTS_BASE_URL}/`;
