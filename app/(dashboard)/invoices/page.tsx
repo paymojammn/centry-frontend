@@ -14,7 +14,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { useInvoices, useCollectionEvents } from '@/hooks/use-invoices';
+import { useInvoices, useCollectionEvents, useInvoiceStats } from '@/hooks/use-invoices';
 import { useSyncInvoices, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
@@ -34,18 +34,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { StatusBadge, StatusDot } from '@/components/ui/status-badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
-import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, getStatusColor, formatCompactNumber } from '@/lib/theme';
 import { useCurrentUser } from '@/hooks/use-user';
 import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
 import CollectionsQueue from '@/components/invoices/CollectionsQueue';
@@ -108,6 +101,7 @@ export default function InvoicesPage() {
 
   const invoiceFilters = { ...filters, organization: selectedOrganizationId || undefined };
   const { data: invoicesResponse, isLoading, error } = useInvoices(invoiceFilters);
+  const { data: invoiceStats } = useInvoiceStats(selectedOrganizationId || undefined);
   const { data: collectionEvents } = useCollectionEvents(
     selectedOrganizationId || undefined,
   );
@@ -382,38 +376,44 @@ export default function InvoicesPage() {
         <ContentCard noPadding className="animate-fade-in">
           {activeTab === 'invoices' ? (
             <div>
-              {/* Toolbar */}
-              <div className="px-4 py-3 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                    <Input
-                      placeholder="Search customers, invoices..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 bg-card border-border text-sm text-foreground"
-                    />
-                  </div>
-                  <Select value={filters.status || 'all'} onValueChange={(v) => setFilters({ ...filters, status: v })}>
-                    <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">
-                        <span className="flex items-center gap-2"><StatusDot status="draft" /> Draft</span>
-                      </SelectItem>
-                      <SelectItem value="sent">
-                        <span className="flex items-center gap-2"><StatusDot status="awaiting_approval" /> Sent</span>
-                      </SelectItem>
-                      <SelectItem value="outstanding">
-                        <span className="flex items-center gap-2"><StatusDot status="awaiting_payment" /> Outstanding</span>
-                      </SelectItem>
-                      <SelectItem value="paid">
-                        <span className="flex items-center gap-2"><StatusDot status="paid" /> Paid</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Status pills + search (mirrors the processing/collections queues) */}
+              <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setFilters({ ...filters, status: 'all' })}
+                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                    (filters.status || 'all') === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  All ({invoiceStats?.total_invoices ?? 0})
+                </button>
+                {[
+                  { value: 'draft', label: 'Draft', count: invoiceStats?.draft_count, colorKey: 'draft' },
+                  { value: 'sent', label: 'Sent', count: invoiceStats?.sent_count, colorKey: 'awaiting_approval' },
+                  { value: 'outstanding', label: 'Outstanding', count: invoiceStats?.outstanding_count, colorKey: 'awaiting_payment' },
+                  { value: 'paid', label: 'Paid', count: invoiceStats?.paid_count, colorKey: 'paid' },
+                ].map((p) => {
+                  const active = filters.status === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      onClick={() => setFilters({ ...filters, status: p.value })}
+                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                        active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                      style={active ? { backgroundColor: getStatusColor(p.colorKey).bg } : undefined}
+                    >
+                      {p.label} ({p.count ?? 0})
+                    </button>
+                  );
+                })}
+                <div className="ml-auto relative w-56 max-w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                  <Input
+                    placeholder="Search customers, invoices..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+                  />
                 </div>
               </div>
 

@@ -14,7 +14,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { useBills } from '@/hooks/use-bills';
+import { useBills, useBillStats } from '@/hooks/use-bills';
 import { usePaymentPipelineStats } from '@/hooks/use-banking';
 import { useSyncBills, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
@@ -37,21 +37,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { BillFilters, Bill } from '@/types/bill';
 import PayBillsModal from '@/components/bills/PayBillsModal';
 import ProcessingQueue from '@/components/bills/ProcessingQueue';
-import { StatusBadge, StatusDot } from '@/components/ui/status-badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
-import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, getStatusColor, formatCompactNumber } from '@/lib/theme';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -176,6 +169,7 @@ export default function BillsPage() {
 
   const { data: billsResponse, isLoading, error } = useBills(billFilters);
   const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined);
+  const { data: billStats } = useBillStats(selectedOrganizationId || undefined);
   const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
 
@@ -391,56 +385,45 @@ export default function BillsPage() {
         <ContentCard noPadding className="animate-fade-in">
           {activeTab === 'bills' ? (
             <div>
-              {/* Filters - Clean toolbar */}
-              <div className="px-4 py-3 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                    <Input
-                      placeholder="Search vendors, invoices..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 bg-card border-border text-sm text-foreground"
-                    />
-                  </div>
-                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[140px] h-9 bg-card border-border text-sm text-foreground">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">
-                        <span className="flex items-center gap-2">
-                          <StatusDot status="draft" />
-                          Draft
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="awaiting_approval">
-                        <span className="flex items-center gap-2">
-                          <StatusDot status="awaiting_approval" />
-                          Awaiting Approval
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="awaiting_payment">
-                        <span className="flex items-center gap-2">
-                          <StatusDot status="awaiting_payment" />
-                          Awaiting Payment
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="paid">
-                        <span className="flex items-center gap-2">
-                          <StatusDot status="paid" />
-                          Paid
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="repeating">
-                        <span className="flex items-center gap-2">
-                          <StatusDot status="repeating" />
-                          Repeating
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Status pills + search (mirrors the processing/collections queues) */}
+              <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => handleStatusChange('all')}
+                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                    (filters.status || 'all') === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  All ({billStats?.total_all ?? 0})
+                </button>
+                {[
+                  { value: 'draft', label: 'Draft', count: billStats?.total_draft },
+                  { value: 'awaiting_approval', label: 'Awaiting Approval', count: billStats?.total_awaiting_approval },
+                  { value: 'awaiting_payment', label: 'Awaiting Payment', count: billStats?.total_awaiting_payment },
+                  { value: 'paid', label: 'Paid', count: billStats?.total_paid },
+                  { value: 'repeating', label: 'Repeating', count: billStats?.total_repeating },
+                ].map((p) => {
+                  const active = filters.status === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      onClick={() => handleStatusChange(p.value)}
+                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                        active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                      style={active ? { backgroundColor: getStatusColor(p.value).bg } : undefined}
+                    >
+                      {p.label} ({p.count ?? 0})
+                    </button>
+                  );
+                })}
+                <div className="ml-auto relative w-56 max-w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                  <Input
+                    placeholder="Search vendors, invoices..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+                  />
                 </div>
               </div>
 

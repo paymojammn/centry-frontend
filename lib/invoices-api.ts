@@ -41,6 +41,9 @@ export interface InvoiceStats {
   overdue_count: number;
   total_paid: string;
   total_invoices: number;
+  draft_count?: number;
+  sent_count?: number;
+  paid_count?: number;
 }
 
 export interface InvoiceFilters {
