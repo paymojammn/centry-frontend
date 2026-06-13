@@ -28,7 +28,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ContactImportDialog } from '@/components/contact-import-dialog';
 import { PageHeader } from '@/components/layout/page-header';
-import { StatsBar } from '@/components/layout/stats-bar';
+import { StatCard } from '@/components/layout/stat-card';
 import { PageContainer } from '@/components/layout/page-container';
 import { LoadingState } from '@/components/layout/loading-state';
 import { EmptyState } from '@/components/layout/empty-state';
@@ -128,14 +128,6 @@ export default function VendorsPage() {
   // Prefer the global stats endpoint; fall back to the current page tally.
   const s = contactStats ?? stats;
 
-  // Stats bar data
-  const statsBarData = [
-    { label: 'Total', value: s.total, color: 'rgb(var(--brand-primary))' },
-    { label: 'Suppliers', value: s.suppliers, color: '#6B8FB8' },
-    { label: 'Customers', value: s.customers, color: 'rgb(var(--brand-primary))' },
-    { label: 'Active', value: s.active, color: '#fed652' },
-  ];
-
   const typePills = [
     { value: 'all', label: 'All', count: s.total, color: undefined as string | undefined },
     { value: 'supplier', label: 'Suppliers', count: s.suppliers, color: '#6B8FB8' },
@@ -165,9 +157,33 @@ export default function VendorsPage() {
         </Button>
       </PageHeader>
 
-      <StatsBar stats={statsBarData} />
-
       <PageContainer>
+        {/* Summary cards (bills-page style) */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
+          <StatCard label="Total" value={s.total} icon={Users} variant="accent" />
+          <StatCard
+            label="Suppliers"
+            value={s.suppliers}
+            icon={Package}
+            iconColor="#6B8FB8"
+            iconBgColor="#EAF1F8"
+          />
+          <StatCard
+            label="Customers"
+            value={s.customers}
+            icon={ShoppingCart}
+            iconColor="#5C8A65"
+            iconBgColor="#E8F5E5"
+          />
+          <StatCard
+            label="Active"
+            value={s.active}
+            icon={CheckCircle}
+            iconColor="#b87a00"
+            iconBgColor="#FFF6E0"
+          />
+        </div>
+
         <div className="animate-fade-in-up">
           <div className="bg-card rounded-xl border border-border/80 shadow-sm overflow-hidden">
             {/* Type pills + search (same concept as the bills/invoices lists) */}
