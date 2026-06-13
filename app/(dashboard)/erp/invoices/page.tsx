@@ -172,6 +172,15 @@ export default function InvoicesPage() {
     }
   }, [organizations, selectedOrganizationId]);
 
+  // Deep-link: ?status=<pill> pre-selects a status filter (e.g. the dashboard
+  // Invoice Inflows cards link here with status=paid).
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status) setFilters((prev) => ({ ...prev, status: status as InvoiceFilters['status'] }));
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!selectedOrganizationId) return;
     const conn = erpConnections?.find(

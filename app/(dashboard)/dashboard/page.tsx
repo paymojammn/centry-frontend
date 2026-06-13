@@ -352,8 +352,20 @@ export default function DashboardPage() {
   // Project this month's realized outflow to a full-month burn rate.
   const burnRate = dayOfMonth > 0 ? (outflows / dayOfMonth) * daysInMonth : 0;
   // Sparkline heartbeats — full 6-month inflow / outflow history.
-  const inflowSpark = mtdSeries.map((p) => p.inflow);
   const outflowSpark = mtdSeries.map((p) => p.outflow);
+
+  // Invoice inflows split by currency (FX is never summed): the org's primary
+  // non-USD operating currency and USD, each with its own 6-month sparkline.
+  const usdCcyData = cashFlowSeries.find((c) => c.currency === 'USD');
+  const localCcyData = cashFlowSeries.find((c) => c.currency !== 'USD');
+  const localCurrency =
+    localCcyData?.currency || (mtdCurrency !== 'USD' ? mtdCurrency : 'UGX');
+  const lastInflowOf = (s?: { inflow: number }[]) =>
+    s && s.length ? s[s.length - 1].inflow || 0 : 0;
+  const localInflow = lastInflowOf(localCcyData?.series);
+  const usdInflow = lastInflowOf(usdCcyData?.series);
+  const localInflowSpark = (localCcyData?.series || []).map((p) => p.inflow);
+  const usdInflowSpark = (usdCcyData?.series || []).map((p) => p.inflow);
 
   // Action items — Centry-internal counters only
   // Matches the /erp/bills processing-queue "Failed" pill (OUT payment events:
@@ -461,15 +473,26 @@ export default function DashboardPage() {
                 {mtdCurrency}
               </span>
             </div>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
               <MetricTile
-                label="Invoice Inflows"
-                value={`${mtdCurrency} ${formatCompact(inflows)}`}
+                label={`Invoice Inflows · ${localCurrency}`}
+                value={`${localCurrency} ${formatCompact(localInflow)}`}
                 hint="Collected this month"
                 icon={ArrowDownRight}
                 tone="success"
-                sparkline={inflowSpark.length >= 2 ? inflowSpark : undefined}
+                sparkline={localInflowSpark.length >= 2 ? localInflowSpark : undefined}
                 sparklineKind="area"
+                onClick={() => router.push('/erp/invoices?status=paid')}
+              />
+              <MetricTile
+                label="Invoice Inflows · USD"
+                value={`USD ${formatCompact(usdInflow)}`}
+                hint="Collected this month"
+                icon={ArrowDownRight}
+                tone="success"
+                sparkline={usdInflowSpark.length >= 2 ? usdInflowSpark : undefined}
+                sparklineKind="area"
+                onClick={() => router.push('/erp/invoices?status=paid')}
               />
               <MetricTile
                 label="Bill Outflows"
