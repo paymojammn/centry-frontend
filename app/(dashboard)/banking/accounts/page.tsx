@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { BankAccountsList } from "@/components/banking/bank-accounts-list";
 import { BankAccountForm } from "@/components/banking/bank-account-form";
+import { StatCard } from "@/components/layout/stat-card";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useSyncAccounts, useERPConnections } from "@/hooks/use-erp";
 import {
@@ -100,21 +101,32 @@ export default function BankAccountsPage() {
     setActiveProviderName(orgConnection?.provider_app?.provider?.name || 'ERP');
   }, [selectedOrganizationId, erpConnections]);
 
-  // Calculate stats
+  // Calculate stats — balances are split by currency (summing across
+  // currencies is meaningless), so we surface the org's local currency and USD.
   const stats = useMemo(() => {
-    const totalBalance = accounts.reduce((sum, acc) => sum + (parseFloat(String(acc.balance)) || 0), 0);
-    const activeAccounts = accounts.filter(acc => acc.is_active).length;
-    const defaultAccount = accounts.find(acc => acc.is_default);
-    const primaryCurrency = accounts[0]?.currency ? cleanCurrencyCode(accounts[0].currency) : 'UGX';
+    const selectedOrg = organizations.find((o: any) => o.id === selectedOrganizationId);
+    const nonUsd = accounts.find((a) => cleanCurrencyCode(a.currency) !== 'USD');
+    const localCurrency =
+      (selectedOrg?.primary_currency && cleanCurrencyCode(selectedOrg.primary_currency) !== 'USD'
+        ? cleanCurrencyCode(selectedOrg.primary_currency)
+        : nonUsd
+          ? cleanCurrencyCode(nonUsd.currency)
+          : selectedOrg?.primary_currency
+            ? cleanCurrencyCode(selectedOrg.primary_currency)
+            : 'UGX');
+    const sumFor = (ccy: string) =>
+      accounts
+        .filter((a) => cleanCurrencyCode(a.currency) === ccy)
+        .reduce((sum, a) => sum + (parseFloat(String(a.balance)) || 0), 0);
 
     return {
-      totalBalance,
-      activeAccounts,
+      localCurrency,
+      balanceLocal: sumFor(localCurrency),
+      balanceUSD: sumFor('USD'),
+      activeAccounts: accounts.filter((acc) => acc.is_active).length,
       totalAccounts: accounts.length,
-      defaultAccount,
-      primaryCurrency,
     };
-  }, [accounts]);
+  }, [accounts, organizations, selectedOrganizationId]);
 
   const handleAddAccount = () => {
     setSelectedAccount(null);
@@ -188,35 +200,35 @@ export default function BankAccountsPage() {
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="bg-card border-b border-border">
-        <div className="px-6 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Total Balance:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-normal bg-primary/10 text-primary">
-                {stats.primaryCurrency} {formatCurrencyAmount(stats.totalBalance)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Accounts:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
-                {stats.totalAccounts}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Active:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-normal bg-primary/5 text-primary">
-                {stats.activeAccounts}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Default:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
-                {stats.defaultAccount ? stats.defaultAccount.account_name : 'None'}
-              </span>
-            </div>
-          </div>
+      {/* Summary cards */}
+      <div className="px-6 pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+          <StatCard
+            label={`Balance · ${stats.localCurrency}`}
+            value={stats.balanceLocal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            subtext={`${stats.localCurrency} ${formatCurrencyAmount(stats.balanceLocal)}`}
+            icon={CreditCard}
+            variant="accent"
+          />
+          <StatCard
+            label="Balance · USD"
+            value={stats.balanceUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            subtext={`USD ${formatCurrencyAmount(stats.balanceUSD)}`}
+            icon={CreditCard}
+            variant="info"
+          />
+          <StatCard
+            label="Accounts"
+            value={stats.totalAccounts}
+            icon={Landmark}
+            variant="default"
+          />
+          <StatCard
+            label="Active"
+            value={stats.activeAccounts}
+            icon={CheckCircle2}
+            variant="success"
+          />
         </div>
       </div>
 
