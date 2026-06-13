@@ -168,9 +168,10 @@ export default function VendorsPage() {
       <StatsBar stats={statsBarData} />
 
       <PageContainer>
-        <div className="space-y-4 animate-fade-in-up">
-          {/* Type pills + search (same concept as the bills/invoices lists) */}
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+        <div className="animate-fade-in-up">
+          <div className="bg-card rounded-xl border border-border/80 shadow-sm overflow-hidden">
+            {/* Type pills + search (same concept as the bills/invoices lists) */}
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
             {typePills.map((p) => {
               const active = (filters.type || 'all') === p.value;
               return (
@@ -199,10 +200,9 @@ export default function VendorsPage() {
                 className="pl-9 h-9 bg-card border-border text-sm text-foreground"
               />
             </div>
-          </div>
+            </div>
 
-          {/* Contacts Table */}
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+            {/* Contacts Table */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
