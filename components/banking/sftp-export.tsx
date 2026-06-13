@@ -14,7 +14,7 @@ import {
   Clock,
   Loader2,
   AlertCircle,
-  Eye,
+  Download,
 } from "lucide-react";
 import {
   useBankAccounts,
@@ -28,6 +28,7 @@ import {
   type LocalExportFile,
   type SFTPCredential,
 } from "@/hooks/use-banking";
+import { api } from "@/lib/api";
 
 interface SFTPExportProps {
   organizationId?: string;
@@ -61,6 +62,7 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
   const [uploadingFileId, setUploadingFileId] = useState<number | undefined>();
   const [uploadingLocalFile, setUploadingLocalFile] = useState<string | undefined>();
+  const [downloadingFileId, setDownloadingFileId] = useState<number | undefined>();
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
@@ -140,6 +142,24 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
       if (result.task_id) setActiveTaskId(result.task_id);
     } catch (error) {
       setUploadingFileId(undefined);
+    }
+  };
+
+  const handleDownloadFile = async (exportFile: BankPaymentExport) => {
+    try {
+      setDownloadingFileId(exportFile.id);
+      const blob = await api.get<Blob>(
+        `/api/v1/banking/exports/files/${exportFile.id}/`,
+        { responseType: "blob" }
+      );
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = exportFile.file_name || "export.xml";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingFileId(undefined);
     }
   };
 
@@ -347,9 +367,9 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                   </td>
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onSelectExport?.(exportFile.id); }} className="h-8 btn-press">
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
+                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDownloadFile(exportFile); }} disabled={downloadingFileId === exportFile.id} className="h-8 btn-press">
+                        {downloadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Download className="h-3 w-3 mr-1" />}
+                        Download
                       </Button>
                       <Button
                         size="sm"
@@ -500,8 +520,8 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
                     {exportFile.sftp_uploaded_at ? formatDate(exportFile.sftp_uploaded_at) : "-"}
                   </td>
                   <td className="px-6 py-3">
-                    <Button variant="outline" size="sm" onClick={() => onSelectExport?.(exportFile.id)} className="h-8 btn-press">
-                      <Eye className="h-3 w-3" />
+                    <Button variant="outline" size="sm" onClick={() => handleDownloadFile(exportFile)} disabled={downloadingFileId === exportFile.id} className="h-8 btn-press">
+                      {downloadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
                     </Button>
                   </td>
                 </tr>
