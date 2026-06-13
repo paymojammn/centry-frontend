@@ -93,6 +93,8 @@ const STATUS_COLORS = {
 
 interface ProcessingQueueProps {
   organizationId: string | null;
+  /** Initial status-pill filter (e.g. deep-linked from the dashboard). */
+  initialStatus?: string;
 }
 
 // Customer-facing provider names for the Provider column. Falls back to the
@@ -108,8 +110,10 @@ const PROVIDER_NAMES: Record<string, string> = {
 const providerOf = (p: { method?: string; method_display?: string | null }): string =>
   PROVIDER_NAMES[p.method || ''] || p.method_display || p.method || '—';
 
-export default function ProcessingQueue({ organizationId }: ProcessingQueueProps) {
-  const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>('PENDING_APPROVAL');
+export default function ProcessingQueue({ organizationId, initialStatus }: ProcessingQueueProps) {
+  const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>(
+    (initialStatus as PaymentEventStatus) || 'PENDING_APPROVAL'
+  );
   const [providerFilter, setProviderFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayments, setSelectedPayments] = useState<Set<number>>(new Set());

@@ -146,6 +146,21 @@ export default function BillsPage() {
     router.replace(qs ? `/erp/bills?${qs}` : '/erp/bills', { scroll: false });
   }, [searchParams, router]);
 
+  // Deep-link support: ?tab=processing opens the Bill Payments queue, and
+  // ?queue_status=<pill> pre-selects a processing-queue status filter (used by
+  // the dashboard's Awaiting Approval / Failed Bill Payments cards).
+  const [queueInitialStatus, setQueueInitialStatus] = useState<string | undefined>();
+  const queueDeepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (queueDeepLinkHandled.current) return;
+    if (searchParams.get('tab') === 'processing') {
+      queueDeepLinkHandled.current = true;
+      setActiveTab('processing');
+      const qStatus = searchParams.get('queue_status');
+      if (qStatus) setQueueInitialStatus(qStatus);
+    }
+  }, [searchParams]);
+
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
   const { data: user } = useCurrentUser();
 
@@ -486,7 +501,7 @@ export default function BillsPage() {
               )}
             </div>
           ) : (
-            <ProcessingQueue organizationId={selectedOrganizationId} />
+            <ProcessingQueue organizationId={selectedOrganizationId} initialStatus={queueInitialStatus} />
           )}
         </ContentCard>
       </div>

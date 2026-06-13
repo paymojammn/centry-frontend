@@ -27,7 +27,7 @@ import {
   useAuditStats,
   usePipelineOverview,
 } from '@/hooks/use-reports';
-import { useExpenseStats } from '@/hooks/use-expenses';
+import { useInvoiceStats } from '@/hooks/use-invoices';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -39,7 +39,7 @@ import {
   Flame,
   Landmark,
   Loader2,
-  Receipt,
+  FileText,
   RefreshCw,
   Scale,
   Send,
@@ -168,11 +168,13 @@ export default function DashboardPage() {
 
   // Data hooks
   const { data: payables, isLoading: loadingPayables } = usePayables({ status: 'awaiting_payment', organization: orgId });
-  const { data: pipelineStats } = usePaymentPipelineStats(orgId);
+  // Outgoing bill-payment pipeline — scope to OUT so the stage counts don't
+  // include incoming invoice collections (IN).
+  const { data: pipelineStats } = usePaymentPipelineStats(orgId, 'OUT');
   const { data: bankResponseStats } = useBankResponseStats(orgId);
   const { data: bankAccountsData } = useBankAccounts(orgId);
   const { data: sftpCredsData } = useAllSFTPCredentials(orgId);
-  const { data: expenseStats } = useExpenseStats(orgId);
+  const { data: invoiceStats } = useInvoiceStats(orgId);
   // Live system activity counters for the "Today" pulse card.
   const { data: auditStats } = useAuditStats(orgId, 1);
   // Outward-payment data — drives Latest Payment Events, Payments by
@@ -238,6 +240,7 @@ export default function DashboardPage() {
     balance: number | null;
     accepted: number;
     acceptedCount: number;
+    pending: number;
     monthly: number;
     runwayDays: number | null;
     iconKind: 'bank' | 'provider';
@@ -260,6 +263,8 @@ export default function DashboardPage() {
     .filter((b) => sftpBankAccountIds.size === 0 || sftpBankAccountIds.has(b.bank_account_id))
     .map((b) => {
       const accepted = parseFloat(b.accepted_amount || '0') || 0;
+      // Pending = sent to the bank but not yet accepted (in pain.002 limbo).
+      const pending = Math.max((parseFloat(b.sent_amount || '0') || 0) - accepted, 0);
       const monthly = (accepted / periodDays) * 30;
       const ba = bankBalanceById.get(b.bank_account_id);
       const balance = ba ? ba.balance : null;
@@ -273,6 +278,7 @@ export default function DashboardPage() {
         balance,
         accepted,
         acceptedCount: b.accepted_count,
+        pending,
         monthly,
         runwayDays: days,
         iconKind: 'bank' as const,
@@ -281,6 +287,7 @@ export default function DashboardPage() {
 
   const providerCards: FundingCard[] = (pipelineOverview?.provider_accounts || []).map((p) => {
     const accepted = parseFloat(p.period_completed_amount || '0') || 0;
+    const pending = parseFloat(p.period_inflight_amount || '0') || 0;
     const monthly = (accepted / periodDays) * 30;
     const balance = parseFloat(p.balance || '0');
     const currency = (p.currency || 'UGX').toUpperCase();
@@ -293,6 +300,7 @@ export default function DashboardPage() {
       balance: Number.isFinite(balance) ? balance : null,
       accepted,
       acceptedCount: p.period_completed_count,
+      pending,
       monthly,
       runwayDays: days,
       iconKind: 'provider' as const,
@@ -324,12 +332,13 @@ export default function DashboardPage() {
   const outflows = mtdPoint?.outflow || 0;
   const netFlow = inflows - outflows;
   const prevNet = mtdPrev ? mtdPrev.inflow - mtdPrev.outflow : 0;
+  // Real period-over-period change. With no prior-month baseline the change is
+  // undefined (not a fabricated 100%); NaN trips the Number.isFinite guard so
+  // the trend indicator is hidden rather than invented.
   const netFlowChange =
     prevNet !== 0
       ? Math.round(((netFlow - prevNet) / Math.abs(prevNet)) * 1000) / 10
-      : netFlow > 0
-      ? 100
-      : 0;
+      : NaN;
   const nowDate = new Date();
   const dayOfMonth = nowDate.getDate();
   const daysInMonth = new Date(
@@ -344,8 +353,11 @@ export default function DashboardPage() {
   const outflowSpark = mtdSeries.map((p) => p.outflow);
 
   // Action items — Centry-internal counters only
+  // Matches the /erp/bills processing-queue "Failed" pill (OUT payment events:
+  // FAILED_PAYMENT + ERROR_PAYMENT + REJECTED).
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
-  const pendingExpenses = Number((expenseStats as any)?.pending_manager_count || 0) + Number((expenseStats as any)?.pending_finance_count || 0);
+  // Outstanding sales invoices awaiting payment.
+  const pendingInvoices = Number(invoiceStats?.outstanding_count || 0);
 
   // Pipeline — full lifecycle from approval through reconciliation
   const bankAccepted = bankResponseStats?.successful_transactions || 0;
@@ -389,7 +401,7 @@ export default function DashboardPage() {
                   label: 'Awaiting Approval',
                   count: pipelineStats?.pending_approval || 0,
                   icon: CreditCard,
-                  href: '/payments/processing',
+                  href: '/erp/bills?tab=processing&queue_status=PENDING_APPROVAL',
                   tone: 'warning' as const,
                 },
                 {
@@ -400,17 +412,17 @@ export default function DashboardPage() {
                   tone: 'accent' as const,
                 },
                 {
-                  label: 'Failed Payments',
-                  count: failedPayments + bankRejected,
+                  label: 'Failed Bill Payments',
+                  count: failedPayments,
                   icon: Zap,
-                  href: '/payments',
+                  href: '/erp/bills?tab=processing&queue_status=FAILED_PAYMENT,ERROR_PAYMENT,REJECTED',
                   tone: 'danger' as const,
                 },
                 {
-                  label: 'Pending Expenses',
-                  count: pendingExpenses,
-                  icon: Receipt,
-                  href: '/expenses',
+                  label: 'Pending Invoices',
+                  count: pendingInvoices,
+                  icon: FileText,
+                  href: '/erp/invoices',
                   tone: 'warning' as const,
                 },
               ]).map((item) => (
@@ -443,7 +455,7 @@ export default function DashboardPage() {
             </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <MetricTile
-                label="Inflows"
+                label="Invoice Inflows"
                 value={`${mtdCurrency} ${formatCompact(inflows)}`}
                 hint="Collected this month"
                 icon={ArrowDownRight}
@@ -452,7 +464,7 @@ export default function DashboardPage() {
                 sparklineKind="area"
               />
               <MetricTile
-                label="Outflows"
+                label="Bill Outflows"
                 value={`${mtdCurrency} ${formatCompact(outflows)}`}
                 hint="Paid out this month"
                 icon={ArrowUpRight}
@@ -463,7 +475,7 @@ export default function DashboardPage() {
               <MetricTile
                 label="Net position"
                 value={`${netFlow >= 0 ? '+' : '−'}${mtdCurrency} ${formatCompact(Math.abs(netFlow))}`}
-                hint="Inflows − outflows"
+                hint="Invoice Inflows − Bill Outflows"
                 icon={Scale}
                 tone={netFlow >= 0 ? 'success' : 'danger'}
                 trend={
@@ -526,7 +538,7 @@ export default function DashboardPage() {
                     <MetricTile
                       key={c.key}
                       label={`${c.bankName} · ${c.accountName || '—'}`}
-                      value={`${c.currency} ${formatCompact(c.accepted)}`}
+                      value={`Pending ${c.currency} ${formatCompact(c.pending)}`}
                       hint={balanceLine}
                       footer={
                         <span className="text-[11px] text-muted-foreground">
