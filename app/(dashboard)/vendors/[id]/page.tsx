@@ -1,16 +1,18 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { contactsApi } from '@/lib/contacts-api';
+import { useUpdateContactDetails } from '@/hooks/use-contacts';
+import BankAccountsSection from '@/components/vendors/BankAccountsSection';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   Phone,
   Mail,
   Building2,
-  CreditCard,
   ExternalLink,
   Calendar,
   User,
@@ -20,6 +22,9 @@ import {
   Loader2,
   AlertCircle,
   Copy,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,9 +38,9 @@ interface VendorDetailPageProps {
 function getContactInitials(name: string): string {
   if (!name) return '?';
   const words = name.split(' ').filter(Boolean);
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
+  const a = words[0]?.[0] ?? '';
+  const b = words[1]?.[0] ?? '';
+  if (a && b) return (a + b).toUpperCase();
   return name.substring(0, 2).toUpperCase();
 }
 
@@ -49,11 +54,29 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
     retry: 1,
   });
 
-  const { data: paymentDetails, isLoading: loadingPayment } = useQuery({
-    queryKey: ['contact-payment', id],
-    queryFn: () => contactsApi.getContactPaymentDetails(id),
-    enabled: !!contact,
-  });
+  const updateDetails = useUpdateContactDetails(Number(id));
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+
+  const startEdit = () => {
+    setEditEmail(contact?.email_address || '');
+    setEditPhone(contact?.phone || '');
+    setEditingInfo(true);
+  };
+
+  const saveInfo = () => {
+    updateDetails.mutate(
+      { email_address: editEmail.trim() || null, phone: editPhone.trim() },
+      {
+        onSuccess: () => {
+          toast.success('Contact updated');
+          setEditingInfo(false);
+        },
+        onError: (e: Error) => toast.error(e?.message || 'Could not update contact'),
+      },
+    );
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -223,13 +246,67 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Contact Information */}
             <div className="bg-card rounded-lg border border-border">
-              <div className="px-6 py-4 border-b border-border">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground/60" />
                   <h3 className="text-sm font-medium text-foreground">Contact Information</h3>
                 </div>
+                {!editingInfo && (
+                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={startEdit}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Edit
+                  </Button>
+                )}
               </div>
               <div className="px-6 py-4 space-y-4">
+                {editingInfo && (
+                  <div className="rounded-xl border border-border p-3 space-y-3 bg-muted/20">
+                    <div>
+                      <label className="block text-[11px] text-muted-foreground mb-1">Email</label>
+                      <Input
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="email@vendor.com"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-muted-foreground mb-1">Phone</label>
+                      <Input
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="Phone number"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-xs"
+                        onClick={() => setEditingInfo(false)}
+                        disabled={updateDetails.isPending}
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs text-white hover:opacity-90"
+                        style={{ backgroundColor: 'var(--foreground)' }}
+                        onClick={saveInfo}
+                        disabled={updateDetails.isPending}
+                      >
+                        {updateDetails.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5 mr-1" />
+                        )}
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {/* Email */}
                 {contact.email_address && (
                   <div className="flex items-start gap-3">
@@ -337,106 +414,22 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
               </div>
             </div>
 
-            {/* Payment Details */}
-            <div className="bg-card rounded-lg border border-border">
-              <div className="px-6 py-4 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-muted-foreground/60" />
-                  <h3 className="text-sm font-medium text-foreground">Payment Details</h3>
-                </div>
-              </div>
-              <div className="px-6 py-4 space-y-4">
-                {loadingPayment ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
-                  </div>
-                ) : paymentDetails ? (
-                  <>
-                    {/* Bank Account Name */}
-                    {paymentDetails.bank_account_name && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bank Account Name</p>
-                        <p className="text-sm text-foreground mt-0.5">{paymentDetails.bank_account_name}</p>
-                      </div>
-                    )}
+            {/* Bank accounts (Centry-managed, used to pay this vendor) + Xero ref */}
+            <div className="space-y-6">
+              <BankAccountsSection contactId={contact.id} />
 
-                    {/* Bank Account Number */}
-                    {paymentDetails.bank_account_number && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bank Account Number</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <code className="text-sm text-foreground font-mono bg-muted px-2 py-0.5 rounded">
-                            {paymentDetails.bank_account_number}
-                          </code>
-                          <button
-                            onClick={() => copyToClipboard(paymentDetails.bank_account_number || '', 'Account number')}
-                            className="text-muted-foreground/60 hover:text-muted-foreground"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bank Account Details */}
-                    {paymentDetails.bank_account_details && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bank Details</p>
-                        <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">
-                          {paymentDetails.bank_account_details}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Tax Type & Currency */}
-                    <div className="flex gap-4">
-                      {paymentDetails.accounts_payable_tax_type && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">Tax Type</p>
-                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
-                            {paymentDetails.accounts_payable_tax_type}
-                          </span>
-                        </div>
-                      )}
-                      {paymentDetails.default_currency && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">Currency</p>
-                          <span className="inline-flex mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
-                            {paymentDetails.default_currency}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* No bank details warning */}
-                    {!paymentDetails.bank_account_details &&
-                     !paymentDetails.bank_account_number &&
-                     !paymentDetails.bank_account_name && (
-                      <div className="rounded-lg bg-[#D4B35A]/10 border border-[#D4B35A]/20 px-4 py-3">
-                        <p className="text-sm text-[#D4B35A]">
-                          No bank account details found. Import contacts CSV from Xero to update.
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground/60">No payment details available</p>
-                )}
-
-                {/* ERP Contact ID */}
-                <div className="pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground">Xero Contact ID</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded font-mono truncate flex-1">
-                      {contact.contact_id}
-                    </code>
-                    <button
-                      onClick={() => copyToClipboard(contact.contact_id, 'Contact ID')}
-                      className="text-muted-foreground/60 hover:text-muted-foreground"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+              <div className="bg-card rounded-lg border border-border px-6 py-4">
+                <p className="text-xs text-muted-foreground">Xero Contact ID</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded font-mono truncate flex-1">
+                    {contact.contact_id}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(contact.contact_id, 'Contact ID')}
+                    className="text-muted-foreground/60 hover:text-muted-foreground"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </div>

@@ -54,6 +54,49 @@ export interface ContactsFilters {
   organization?: string;
 }
 
+export interface BankOption {
+  id: number;
+  name: string;
+  short_name: string;
+  code: string;
+  swift_code: string;
+  country_code?: string;
+  country_name?: string;
+}
+
+export interface BankBranchOption {
+  id: number;
+  branch_code: string;
+  branch_name: string;
+  is_head_office: boolean;
+}
+
+export interface ContactBankAccount {
+  id: number;
+  contact: number;
+  bank: number;
+  bank_name: string;
+  branch: number | null;
+  branch_code: string | null;
+  branch_name: string | null;
+  account_name: string;
+  account_number: string;
+  currency: string;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContactBankAccountInput {
+  contact: number;
+  bank: number;
+  branch?: number | null;
+  account_name: string;
+  account_number: string;
+  currency?: string;
+  is_primary?: boolean;
+}
+
 export const contactsApi = {
   /**
    * Get all contacts for the user's organization
@@ -84,6 +127,54 @@ export const contactsApi = {
       `${XERO_BASE_URL}/contacts/${id}/`
     );
     return response;
+  },
+
+  /** Update editable contact fields (phone, email) in Centry. */
+  async updateContactDetails(
+    id: number,
+    data: { phone?: string; email_address?: string | null },
+  ): Promise<Contact> {
+    return await api.patch<Contact>(`${XERO_BASE_URL}/contacts/${id}/details/`, data);
+  },
+
+  /** A vendor's bank accounts (account + bank + branch). */
+  async getContactBankAccounts(contactId: number): Promise<ContactBankAccount[]> {
+    const res = await api.get<ContactBankAccount[] | { results: ContactBankAccount[] }>(
+      `${XERO_BASE_URL}/contact-bank-accounts/?contact=${contactId}`,
+    );
+    return Array.isArray(res) ? res : res.results || [];
+  },
+
+  async createContactBankAccount(data: ContactBankAccountInput): Promise<ContactBankAccount> {
+    return await api.post<ContactBankAccount>(`${XERO_BASE_URL}/contact-bank-accounts/`, data);
+  },
+
+  async updateContactBankAccount(
+    id: number,
+    data: Partial<ContactBankAccountInput>,
+  ): Promise<ContactBankAccount> {
+    return await api.patch<ContactBankAccount>(
+      `${XERO_BASE_URL}/contact-bank-accounts/${id}/`,
+      data,
+    );
+  },
+
+  async deleteContactBankAccount(id: number): Promise<void> {
+    await api.del(`${XERO_BASE_URL}/contact-bank-accounts/${id}/`);
+  },
+
+  /** Banks + branches from banking_integrations, for the account picker. */
+  async getBanks(search?: string): Promise<BankOption[]> {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    const res = await api.get<{ banks: BankOption[] }>(`/api/v1/banking/banks/${qs}`);
+    return res.banks || [];
+  },
+
+  async getBankBranches(bankId: number): Promise<BankBranchOption[]> {
+    const res = await api.get<{ branches: BankBranchOption[] }>(
+      `/api/v1/banking/banks/${bankId}/branches/`,
+    );
+    return res.branches || [];
   },
 
   /**

@@ -14,13 +14,6 @@ import { useOrganizations } from '@/hooks/use-organization';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Search,
   Phone,
   Mail,
@@ -91,6 +84,14 @@ export default function VendorsPage() {
     enabled: !!selectedOrganizationId,
   });
 
+  // Global counts for the type-filter pills (the list is paginated, so the
+  // per-page tally below isn't the true total).
+  const { data: contactStats } = useQuery({
+    queryKey: ['contact-stats', selectedOrganizationId],
+    queryFn: () => contactsApi.getContactStats({ organization: selectedOrganizationId || undefined }),
+    enabled: !!selectedOrganizationId,
+  });
+
   // Calculate stats from contacts
   const stats = useMemo(() => {
     const contacts = contactsData?.results || [];
@@ -124,12 +125,21 @@ export default function VendorsPage() {
     return <LoadingState fullPage />;
   }
 
+  // Prefer the global stats endpoint; fall back to the current page tally.
+  const s = contactStats ?? stats;
+
   // Stats bar data
   const statsBarData = [
-    { label: 'Total', value: stats.total, color: 'rgb(var(--brand-primary))' },
-    { label: 'Suppliers', value: stats.suppliers, color: '#6B8FB8' },
-    { label: 'Customers', value: stats.customers, color: 'rgb(var(--brand-primary))' },
-    { label: 'Active', value: stats.active, color: '#fed652' },
+    { label: 'Total', value: s.total, color: 'rgb(var(--brand-primary))' },
+    { label: 'Suppliers', value: s.suppliers, color: '#6B8FB8' },
+    { label: 'Customers', value: s.customers, color: 'rgb(var(--brand-primary))' },
+    { label: 'Active', value: s.active, color: '#fed652' },
+  ];
+
+  const typePills = [
+    { value: 'all', label: 'All', count: s.total, color: undefined as string | undefined },
+    { value: 'supplier', label: 'Suppliers', count: s.suppliers, color: '#6B8FB8' },
+    { value: 'customer', label: 'Customers', count: s.customers, color: '#5C8A65' },
   ];
 
   return (
@@ -159,29 +169,35 @@ export default function VendorsPage() {
 
       <PageContainer>
         <div className="space-y-4 animate-fade-in-up">
-          {/* Filters */}
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                <Input
-                  placeholder="Search contacts..."
-                  value={filters.search}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 h-8 bg-muted border-border text-sm"
-                />
-              </div>
-
-              <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
-                <SelectTrigger className="w-[140px] h-8 bg-muted border-border text-sm">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="supplier">Suppliers</SelectItem>
-                  <SelectItem value="customer">Customers</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Type pills + search (same concept as the bills/invoices lists) */}
+          <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+            {typePills.map((p) => {
+              const active = (filters.type || 'all') === p.value;
+              return (
+                <button
+                  key={p.value}
+                  onClick={() => handleTypeChange(p.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                    active
+                      ? p.color
+                        ? 'text-white'
+                        : 'bg-foreground text-card'
+                      : 'bg-muted text-muted-foreground hover:text-foreground'
+                  }`}
+                  style={active && p.color ? { backgroundColor: p.color } : undefined}
+                >
+                  {p.label} ({p.count})
+                </button>
+              );
+            })}
+            <div className="ml-auto relative w-56 max-w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                placeholder="Search contacts..."
+                value={filters.search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+              />
             </div>
           </div>
 
