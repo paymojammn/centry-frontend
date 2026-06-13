@@ -18,6 +18,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { PILL_COLORS } from '@/lib/theme';
 import {
   usePaymentEvents,
   usePaymentEventStats,
@@ -689,13 +690,13 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             All ({stats.total})
           </button>
           {[
-            { value: 'PENDING_APPROVAL', label: 'Pending Approval', count: stats.pending_approval, color: STATUS_COLORS.pending_approval.bg },
-            { value: 'PROCESSING', label: 'Ready for File', count: stats.processing, color: STATUS_COLORS.processing.bg },
-            { value: 'PENDING', label: 'File Sent', count: stats.pending, color: STATUS_COLORS.pending.bg },
-            { value: 'ACCEPTED_BANK', label: 'Accepted by Bank', count: stats.accepted, color: STATUS_COLORS.accepted.bg },
-            { value: 'SENT_PAYMENT', label: 'Processing', count: stats.sent, color: STATUS_COLORS.sent.bg },
-            { value: 'SUCCESS_PAYMENT', label: 'Successful', count: stats.success, color: STATUS_COLORS.success.bg },
-            { value: 'FAILED_PAYMENT', label: 'Failed', count: (stats.failed || 0) + (stats.rejected || 0), color: STATUS_COLORS.failed.bg },
+            { value: 'PENDING_APPROVAL', label: 'Pending Approval', count: stats.pending_approval, color: PILL_COLORS.pending_approval },
+            { value: 'PROCESSING', label: 'Ready for File', count: stats.processing, color: PILL_COLORS.processing },
+            { value: 'PENDING', label: 'File Sent', count: stats.pending, color: PILL_COLORS.pending },
+            { value: 'ACCEPTED_BANK', label: 'Accepted by Bank', count: stats.accepted, color: PILL_COLORS.accepted },
+            { value: 'SENT_PAYMENT', label: 'Processing', count: stats.sent, color: PILL_COLORS.sent_payment },
+            { value: 'SUCCESS_PAYMENT', label: 'Successful', count: stats.success, color: PILL_COLORS.success_payment },
+            { value: 'FAILED_PAYMENT', label: 'Failed', count: (stats.failed || 0) + (stats.rejected || 0), color: PILL_COLORS.failed_payment },
           ].map((p) => (
             <button
               key={p.value}

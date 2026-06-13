@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { PILL_COLORS } from '@/lib/theme';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollectionEvents } from '@/hooks/use-invoices';
 import { useApprovePayments, useRejectPayments } from '@/hooks/use-bills';
@@ -270,7 +271,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                   ? 'text-white'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               }`}
-              style={statusFilter === status ? { backgroundColor: cfg.bg } : undefined}
+              style={statusFilter === status ? { backgroundColor: PILL_COLORS[status.toLowerCase()] ?? cfg.bg } : undefined}
             >
               {cfg.label} ({count})
             </button>

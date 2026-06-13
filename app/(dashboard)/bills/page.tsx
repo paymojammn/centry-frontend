@@ -44,7 +44,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
-import { STATUS_COLORS, getStatusColor, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, PILL_COLORS, formatCompactNumber } from '@/lib/theme';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -410,7 +410,7 @@ export default function BillsPage() {
                       className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
                         active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
                       }`}
-                      style={active ? { backgroundColor: getStatusColor(p.value).bg } : undefined}
+                      style={active ? { backgroundColor: PILL_COLORS[p.value] } : undefined}
                     >
                       {p.label} ({p.count ?? 0})
                     </button>

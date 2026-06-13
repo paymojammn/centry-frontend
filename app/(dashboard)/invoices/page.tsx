@@ -38,7 +38,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
-import { STATUS_COLORS, getStatusColor, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, PILL_COLORS, formatCompactNumber } from '@/lib/theme';
 import { useCurrentUser } from '@/hooks/use-user';
 import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
 import CollectionsQueue from '@/components/invoices/CollectionsQueue';
@@ -387,10 +387,10 @@ export default function InvoicesPage() {
                   All ({invoiceStats?.total_invoices ?? 0})
                 </button>
                 {[
-                  { value: 'draft', label: 'Draft', count: invoiceStats?.draft_count, colorKey: 'draft' },
-                  { value: 'sent', label: 'Sent', count: invoiceStats?.sent_count, colorKey: 'awaiting_approval' },
-                  { value: 'outstanding', label: 'Outstanding', count: invoiceStats?.outstanding_count, colorKey: 'awaiting_payment' },
-                  { value: 'paid', label: 'Paid', count: invoiceStats?.paid_count, colorKey: 'paid' },
+                  { value: 'draft', label: 'Draft', count: invoiceStats?.draft_count },
+                  { value: 'sent', label: 'Sent', count: invoiceStats?.sent_count },
+                  { value: 'outstanding', label: 'Outstanding', count: invoiceStats?.outstanding_count },
+                  { value: 'paid', label: 'Paid', count: invoiceStats?.paid_count },
                 ].map((p) => {
                   const active = filters.status === p.value;
                   return (
@@ -400,7 +400,7 @@ export default function InvoicesPage() {
                       className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
                         active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
                       }`}
-                      style={active ? { backgroundColor: getStatusColor(p.colorKey).bg } : undefined}
+                      style={active ? { backgroundColor: PILL_COLORS[p.value] } : undefined}
                     >
                       {p.label} ({p.count ?? 0})
                     </button>

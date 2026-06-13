@@ -12,6 +12,35 @@
  * - #B85C5C Soft Red - Failed
  */
 
+// Single vivid palette for the status-filter PILLS — uniform across the app
+// (bills/invoices list pages and the processing/collections queues). Keyed by
+// every status the filter bars use, mapped to the shared role colours:
+// yellow=approval, blue=draft/processing, orange=outstanding/sent, green=paid,
+// grey=neutral, red=failed, teal=accepted.
+export const PILL_COLORS: Record<string, string> = {
+  // document statuses (bills / invoices lists)
+  draft: '#6B8FB8',
+  awaiting_approval: '#fed652',
+  awaiting_payment: '#f77f00',
+  sent: '#fed652',
+  outstanding: '#f77f00',
+  paid: '#5C8A65',
+  repeating: '#bec3c6',
+  // payment-event statuses (processing / collections queues)
+  pending_approval: '#fed652',
+  processing: '#6B8FB8',
+  pending: '#bec3c6',
+  accepted: '#2A9D8F',
+  sent_payment: '#f77f00',
+  success: '#5C8A65',
+  success_payment: '#5C8A65',
+  failed: '#dc2626',
+  failed_payment: '#dc2626',
+  error_payment: '#dc2626',
+  rejected: '#dc2626',
+  reversed: '#bec3c6',
+};
+
 // Primary status colors used across bills, payments, and expenses
 export const STATUS_COLORS = {
   draft: {
