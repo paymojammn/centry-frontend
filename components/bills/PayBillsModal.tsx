@@ -95,6 +95,7 @@ export default function PayBillsModal({
   onClose,
   bills,
   organizationId,
+  countryCode,
   editEvent = null,
   onEdited,
 }: PayBillsModalProps) {
@@ -621,6 +622,7 @@ export default function PayBillsModal({
                 onRecipientsChange={setRecipients}
                 paymentMethod={selectedSource.type}
                 sourceCountryCodes={selectedSource.country_codes}
+                orgCountryCode={countryCode}
                 sourceProvider={selectedSource.provider}
                 sourceProviderAccountId={isProviderAccountSource ? String(selectedSource.id) : undefined}
               />

@@ -76,6 +76,7 @@ export interface ContactBankAccount {
   contact: number;
   bank: number;
   bank_name: string;
+  bank_country_code: string | null;
   branch: number | null;
   branch_code: string | null;
   branch_name: string | null;
@@ -164,9 +165,21 @@ export const contactsApi = {
   },
 
   /** Banks + branches from banking_integrations, for the account picker. */
-  async getBanks(search?: string): Promise<BankOption[]> {
-    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
-    const res = await api.get<{ banks: BankOption[] }>(`/api/v1/banking/banks/${qs}`);
+  async getBankCountries(): Promise<{ id: number; code: string; name: string }[]> {
+    const res = await api.get<{ countries: { id: number; code: string; name: string }[] }>(
+      `/api/v1/banking/bank-countries/`,
+    );
+    return res.countries || [];
+  },
+
+  async getBanks(country?: string, search?: string): Promise<BankOption[]> {
+    const params = new URLSearchParams();
+    if (country) params.append('country', country);
+    if (search) params.append('search', search);
+    const qs = params.toString();
+    const res = await api.get<{ banks: BankOption[] }>(
+      `/api/v1/banking/banks/${qs ? `?${qs}` : ''}`,
+    );
     return res.banks || [];
   },
 

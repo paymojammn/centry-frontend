@@ -82,6 +82,8 @@ interface RecipientDetailsStepProps {
   paymentMethod: PaymentSourceType;
   /** ISO country codes the selected provider supports, e.g. ['ZA'] for Ozow. */
   sourceCountryCodes?: string[];
+  /** The org's primary country code — the local-transfer country fallback. */
+  orgCountryCode?: string;
   /** Provider code on the selected source (e.g. 'ozow') — drives Ozow rail UI. */
   sourceProvider?: string;
   /** ProviderAccount UUID for the selected Ozow source — needed to scope the bank list. */
@@ -420,6 +422,7 @@ export default function RecipientDetailsStep({
   onRecipientsChange,
   paymentMethod,
   sourceCountryCodes,
+  orgCountryCode,
   sourceProvider,
   sourceProviderAccountId,
 }: RecipientDetailsStepProps) {
@@ -470,7 +473,9 @@ export default function RecipientDetailsStep({
     if (changed) onRecipientsChange(updated);
   }, [isOnegate, onegateMethods, recipients, onRecipientsChange]);
 
-  const defaultLocalCountry = sourceCountryCodes?.[0] || 'UG';
+  // Local-transfer country: the payment source's country, else the org's
+  // primary country of operation, else UG as a last resort.
+  const defaultLocalCountry = sourceCountryCodes?.[0] || orgCountryCode || 'UG';
 
   const handleRecipientTypeChange = (newType: 'bank' | 'international') => {
     setRecipientType(newType);

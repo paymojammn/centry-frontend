@@ -20,10 +20,19 @@ export function useContactBankAccounts(contactId: number | undefined) {
   });
 }
 
-export function useBanks(search?: string) {
+export function useBankCountries() {
+  return useQuery<{ id: number; code: string; name: string }[], Error>({
+    queryKey: ['bank-countries'],
+    queryFn: () => contactsApi.getBankCountries(),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useBanks(country?: string, search?: string) {
   return useQuery<BankOption[], Error>({
-    queryKey: ['banks', search || ''],
-    queryFn: () => contactsApi.getBanks(search),
+    queryKey: ['banks', country || '', search || ''],
+    queryFn: () => contactsApi.getBanks(country, search),
+    enabled: !!country,
     staleTime: 60 * 60 * 1000,
   });
 }

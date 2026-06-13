@@ -3,34 +3,29 @@
 /**
  * Vendor bank accounts — list + add/edit/delete. Each account is tied to a
  * Bank and Branch from banking_integrations (the branch supplies the
- * branch_code used in payment files).
+ * branch_code used in payment files). The add/edit form cascades:
+ * country -> bank (searchable) -> branch (searchable).
  */
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  Star,
-  CreditCard,
-  Check,
-  X,
-} from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Star, CreditCard, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   useContactBankAccounts,
   useCreateContactBankAccount,
   useUpdateContactBankAccount,
   useDeleteContactBankAccount,
+  useBankCountries,
   useBanks,
   useBankBranches,
 } from '@/hooks/use-contacts';
 import type { ContactBankAccount } from '@/lib/contacts-api';
 
 interface FormState {
+  country: string;
   bank: number | '';
   branch: number | '';
   account_name: string;
@@ -40,6 +35,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
+  country: '',
   bank: '',
   branch: '',
   account_name: '',
@@ -48,20 +44,25 @@ const EMPTY: FormState = {
   is_primary: false,
 };
 
-const selectCls =
-  'w-full h-9 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary disabled:opacity-50';
-
 export default function BankAccountsSection({ contactId }: { contactId: number }) {
   const { data: accounts = [], isLoading } = useContactBankAccounts(contactId);
   const create = useCreateContactBankAccount(contactId);
   const update = useUpdateContactBankAccount(contactId);
   const remove = useDeleteContactBankAccount(contactId);
-  const { data: banks = [] } = useBanks();
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
-  const { data: branches = [] } = useBankBranches(form.bank ? Number(form.bank) : undefined);
+
+  const { data: countries = [], isLoading: countriesLoading } = useBankCountries();
+  const { data: banks = [], isLoading: banksLoading } = useBanks(form.country || undefined);
+  const { data: branches = [], isLoading: branchesLoading } = useBankBranches(
+    form.bank ? Number(form.bank) : undefined,
+  );
+
+  const selectedCountry = countries.find((c) => c.code === form.country);
+  const selectedBank = banks.find((b) => b.id === form.bank);
+  const selectedBranch = branches.find((b) => b.id === form.branch);
 
   const openAdd = () => {
     setForm(EMPTY);
@@ -71,6 +72,7 @@ export default function BankAccountsSection({ contactId }: { contactId: number }
 
   const openEdit = (a: ContactBankAccount) => {
     setForm({
+      country: a.bank_country_code || '',
       bank: a.bank,
       branch: a.branch ?? '',
       account_name: a.account_name,
@@ -198,46 +200,52 @@ export default function BankAccountsSection({ contactId }: { contactId: number }
             <div className="text-xs font-medium text-foreground">
               {editingId ? 'Edit bank account' : 'New bank account'}
             </div>
+
+            <SearchableSelect
+              label="Bank country"
+              placeholder="Select country…"
+              value={form.country}
+              displayValue={selectedCountry?.name || ''}
+              onSelect={(code) => setForm((f) => ({ ...f, country: code, bank: '', branch: '' }))}
+              options={countries.map((c) => ({ value: c.code, label: c.name }))}
+              loading={countriesLoading}
+            />
+
+            <SearchableSelect
+              label="Bank"
+              placeholder={form.country ? 'Select bank…' : 'Pick a country first'}
+              value={form.bank}
+              displayValue={selectedBank ? selectedBank.short_name || selectedBank.name : ''}
+              onSelect={(id) => setForm((f) => ({ ...f, bank: Number(id), branch: '' }))}
+              options={banks.map((b) => ({
+                value: String(b.id),
+                label: b.short_name || b.name,
+                hint: b.swift_code || undefined,
+              }))}
+              loading={banksLoading}
+              disabled={!form.country}
+            />
+
+            <SearchableSelect
+              label="Branch"
+              placeholder={form.bank ? 'Select branch…' : 'Pick a bank first'}
+              value={form.branch}
+              displayValue={
+                selectedBranch
+                  ? `${selectedBranch.branch_name || selectedBranch.branch_code} (${selectedBranch.branch_code})`
+                  : ''
+              }
+              onSelect={(id) => setForm((f) => ({ ...f, branch: Number(id) }))}
+              options={branches.map((b) => ({
+                value: String(b.id),
+                label: `${b.branch_name || b.branch_code} (${b.branch_code})`,
+              }))}
+              loading={branchesLoading}
+              disabled={!form.bank}
+              optional
+            />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] text-muted-foreground mb-1">Bank</label>
-                <select
-                  value={form.bank}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      bank: e.target.value ? Number(e.target.value) : '',
-                      branch: '',
-                    }))
-                  }
-                  className={selectCls}
-                >
-                  <option value="">Select bank…</option>
-                  {banks.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.short_name || b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] text-muted-foreground mb-1">Branch</label>
-                <select
-                  value={form.branch}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, branch: e.target.value ? Number(e.target.value) : '' }))
-                  }
-                  disabled={!form.bank}
-                  className={selectCls}
-                >
-                  <option value="">{form.bank ? 'Select branch…' : 'Pick a bank first'}</option>
-                  {branches.map((br) => (
-                    <option key={br.id} value={br.id}>
-                      {(br.branch_name || br.branch_code) + ` (${br.branch_code})`}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div>
                 <label className="block text-[11px] text-muted-foreground mb-1">Account name</label>
                 <Input
@@ -275,6 +283,7 @@ export default function BankAccountsSection({ contactId }: { contactId: number }
                 Primary account (used when paying this vendor)
               </label>
             </div>
+
             <div className="flex items-center justify-end gap-2 pt-1">
               <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={close} disabled={saving}>
                 <X className="h-3.5 w-3.5 mr-1" />

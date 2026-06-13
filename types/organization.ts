@@ -16,6 +16,8 @@ export interface Organization {
   currency?: string;
   primary_currency: string;
   supported_currencies: string[];
+  country_code?: string | null;
+  country_name?: string | null;
   industry?: string;
   company_size?: string;
   timezone: string;

@@ -492,7 +492,10 @@ export default function BillsPage() {
         }}
         bills={selectedBillsData}
         organizationId={selectedOrganizationId || ''}
-        countryCode="UG"
+        countryCode={
+          organizations.find((o: { id: string; country_code?: string | null }) => o.id === selectedOrganizationId)
+            ?.country_code || 'UG'
+        }
       />
     </div>
   );
