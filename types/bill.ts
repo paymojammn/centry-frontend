@@ -251,6 +251,7 @@ export interface PaymentEventStats {
   success: number;
   failed: number;
   rejected: number;
+  reversed: number;
   total_amount_pending_approval: string;
   total_amount_processing: string;
   total_amount_pending: string;

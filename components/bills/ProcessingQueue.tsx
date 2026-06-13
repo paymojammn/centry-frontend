@@ -698,7 +698,10 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
             { value: 'ACCEPTED_BANK', label: 'Accepted by Bank', count: stats.accepted, color: PILL_COLORS.accepted },
             { value: 'SENT_PAYMENT', label: 'Processing', count: stats.sent, color: PILL_COLORS.sent_payment },
             { value: 'SUCCESS_PAYMENT', label: 'Successful', count: stats.success, color: PILL_COLORS.success_payment },
-            { value: 'FAILED_PAYMENT', label: 'Failed', count: (stats.failed || 0) + (stats.rejected || 0), color: PILL_COLORS.failed_payment },
+            // "Failed" bundles failed + error + rejected so the count matches the
+            // rows shown (the list filter accepts this comma-separated group).
+            { value: 'FAILED_PAYMENT,ERROR_PAYMENT,REJECTED', label: 'Failed', count: (stats.failed || 0) + (stats.rejected || 0), color: PILL_COLORS.failed_payment },
+            { value: 'REVERSED', label: 'Reversed', count: stats.reversed || 0, color: PILL_COLORS.reversed },
           ].map((p) => (
             <button
               key={p.value}
