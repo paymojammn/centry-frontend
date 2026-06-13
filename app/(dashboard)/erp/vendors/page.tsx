@@ -40,6 +40,7 @@ export default function VendorsPage() {
   const [activeProviderName, setActiveProviderName] = useState<string>('ERP');
   const [filters, setFilters] = useState<ContactsFilters>({
     search: '',
+    type: 'supplier',
   });
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
