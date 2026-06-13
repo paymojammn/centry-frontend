@@ -429,7 +429,6 @@ export default function RecipientDetailsStep({
   // recipient and to offer "save for future use".
   const [savedByContact, setSavedByContact] = useState<Record<number, ContactBankAccount[]>>({});
   const [savingFor, setSavingFor] = useState<number | null>(null);
-  const [savedOk, setSavedOk] = useState<Set<number>>(new Set());
   const autoFilledRef = useRef<Set<number>>(new Set());
 
   // Ozow rail: skip Centry's internal bank/branch lookups and use Ozow's
@@ -595,7 +594,6 @@ export default function RecipientDetailsStep({
         ...prev,
         [bill.contact_id!]: [...(prev[bill.contact_id!] || []), created],
       }));
-      setSavedOk((prev) => new Set(prev).add(bill.id));
       toast.success('Bank account saved for future payments');
     } catch (e) {
       toast.error((e as Error)?.message || 'Could not save account');
@@ -704,61 +702,32 @@ export default function RecipientDetailsStep({
             </div>
 
             <div className="p-4 space-y-3">
-              {/* Saved vendor accounts — load a saved one (bank + branch + number)
-                  or save the entered details for future payments. */}
-              {!isCustomRail && bill.contact_id && (() => {
-                const accts = savedByContact[bill.contact_id] || [];
-                const isSavedAcct = accts.some((a) => a.account_number === r?.account_number);
-                const canSave =
-                  !!(r?.recipient_bank_id && r?.account_number && r?.account_name) && !isSavedAcct;
-                return (
-                  <div className="space-y-2">
-                    {accts.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[11px] text-muted-foreground">Saved accounts:</span>
-                        {accts.map((a) => {
-                          const active = r?.account_number === a.account_number;
-                          return (
-                            <button
-                              key={a.id}
-                              type="button"
-                              onClick={() => applySaved(bill, a)}
-                              className={`px-2 py-1 rounded-md text-[11px] border transition-colors ${
-                                active
-                                  ? 'border-foreground bg-foreground text-card'
-                                  : 'border-border text-muted-foreground hover:text-foreground'
-                              }`}
-                            >
-                              {a.bank_name} ••{a.account_number.slice(-4)}
-                              {a.is_primary ? ' ★' : ''}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {canSave && (
-                      <button
-                        type="button"
-                        onClick={() => saveForFuture(bill)}
-                        disabled={savingFor === bill.id}
-                        className="w-full flex items-center justify-center gap-2 h-9 text-xs font-medium text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50"
-                      >
-                        {savingFor === bill.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Save className="w-3.5 h-3.5" />
-                        )}
-                        Save this account for future payments
-                      </button>
-                    )}
-                    {savedOk.has(bill.id) && !canSave && (
-                      <p className="text-[11px] text-primary flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Saved for future use
-                      </p>
-                    )}
+              {/* Load a saved account for this vendor (bank + branch + number). */}
+              {!isCustomRail &&
+                bill.contact_id &&
+                (savedByContact[bill.contact_id]?.length ?? 0) > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] text-muted-foreground">Saved accounts:</span>
+                    {(savedByContact[bill.contact_id] || []).map((a) => {
+                      const active = r?.account_number === a.account_number;
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => applySaved(bill, a)}
+                          className={`px-2 py-1 rounded-md text-[11px] border transition-colors ${
+                            active
+                              ? 'border-foreground bg-foreground text-card'
+                              : 'border-border text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {a.bank_name} ••{a.account_number.slice(-4)}
+                          {a.is_primary ? ' ★' : ''}
+                        </button>
+                      );
+                    })}
                   </div>
-                );
-              })()}
+                )}
 
               {/* Ozow rail: replaces bank+branch combo with Ozow's own list */}
               {isOzow ? (
@@ -1093,6 +1062,35 @@ export default function RecipientDetailsStep({
                   <>
                     <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={undefined} />
                     <TextField label="Account Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Account holder name" />
+                    {/* Save the entered account to the supplier for next time */}
+                    {!isCustomRail && bill.contact_id && (() => {
+                      const accts = savedByContact[bill.contact_id] || [];
+                      const isSavedAcct = accts.some((a) => a.account_number === r?.account_number);
+                      if (isSavedAcct) {
+                        return (
+                          <p className="text-[11px] text-primary flex items-center gap-1.5">
+                            <Check className="w-3 h-3" /> Saved to {bill.vendor_name || 'supplier'}
+                          </p>
+                        );
+                      }
+                      const canSave = !!(r?.recipient_bank_id && r?.account_number?.trim() && r?.account_name?.trim());
+                      if (!canSave) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => saveForFuture(bill)}
+                          disabled={savingFor === bill.id}
+                          className="w-full flex items-center justify-center gap-2 h-9 text-xs font-medium text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50"
+                        >
+                          {savingFor === bill.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Save className="w-3.5 h-3.5" />
+                          )}
+                          Save this account to {bill.vendor_name || 'the supplier'}
+                        </button>
+                      );
+                    })()}
                   </>
                 )
               )}
