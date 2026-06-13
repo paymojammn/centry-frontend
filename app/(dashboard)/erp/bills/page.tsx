@@ -316,7 +316,7 @@ export default function BillsPage() {
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
-              Processing Queue
+              Bill Payments
             </button>
           </nav>
         </div>
