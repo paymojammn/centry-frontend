@@ -25,7 +25,7 @@ interface StatCardProps {
     value: number;
     isPositive?: boolean;
   };
-  variant?: 'default' | 'accent' | 'warning' | 'danger' | 'success';
+  variant?: 'default' | 'accent' | 'warning' | 'danger' | 'success' | 'info';
   children?: ReactNode;
   onClick?: () => void;
   className?: string;

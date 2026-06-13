@@ -11,7 +11,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Tone = "default" | "accent" | "success" | "warning" | "danger";
+type Tone = "default" | "accent" | "success" | "warning" | "danger" | "info";
 
 interface MetricTileProps {
   label: string;
@@ -40,7 +40,7 @@ const TONE_STYLES: Record<
   { accent: string; spark: string; iconBg: string; iconColor: string }
 > = {
   default: {
-    accent: "",
+    accent: "border-l-4 border-l-muted-foreground/25",
     spark: "rgb(var(--muted-foreground))",
     iconBg: "bg-muted/60",
     iconColor: "text-muted-foreground",
@@ -68,6 +68,12 @@ const TONE_STYLES: Record<
     spark: "#ef4444",
     iconBg: "bg-red-500/10",
     iconColor: "text-red-600",
+  },
+  info: {
+    accent: "border-l-4 border-l-blue-500",
+    spark: "#3b82f6",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600",
   },
 };
 

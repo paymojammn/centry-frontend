@@ -161,27 +161,9 @@ export default function VendorsPage() {
         {/* Summary cards (bills-page style) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
           <StatCard label="Total" value={s.total} icon={Users} variant="accent" />
-          <StatCard
-            label="Suppliers"
-            value={s.suppliers}
-            icon={Package}
-            iconColor="#6B8FB8"
-            iconBgColor="#EAF1F8"
-          />
-          <StatCard
-            label="Customers"
-            value={s.customers}
-            icon={ShoppingCart}
-            iconColor="#5C8A65"
-            iconBgColor="#E8F5E5"
-          />
-          <StatCard
-            label="Active"
-            value={s.active}
-            icon={CheckCircle}
-            iconColor="#b87a00"
-            iconBgColor="#FFF6E0"
-          />
+          <StatCard label="Suppliers" value={s.suppliers} icon={Package} variant="info" />
+          <StatCard label="Customers" value={s.customers} icon={ShoppingCart} variant="success" />
+          <StatCard label="Active" value={s.active} icon={CheckCircle} variant="warning" />
         </div>
 
         <div className="animate-fade-in-up">
