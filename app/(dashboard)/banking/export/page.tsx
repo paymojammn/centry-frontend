@@ -17,6 +17,7 @@ import { SFTPExport } from "@/components/banking/sftp-export";
 import { Pain002Inbox } from "@/components/banking/pain002-inbox";
 import { Pain002Status } from "@/components/banking/pain002-status";
 import { BankStatements } from "@/components/banking/bank-statements";
+import { ExportTransactionList } from "@/components/banking/export-transaction-list";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
 import {
@@ -238,12 +239,32 @@ export default function BankingExportPage() {
           />
         )}
         {activeTab === "sftp-export" && (
-          <SFTPExport
-            organizationId={selectedOrganizationId || undefined}
-            onExportComplete={handleExportComplete}
-            onSelectExport={handleSelectExport}
-            selectedExportId={selectedExportId}
-          />
+          <div className="space-y-6">
+            <SFTPExport
+              organizationId={selectedOrganizationId || undefined}
+              onExportComplete={handleExportComplete}
+              onSelectExport={handleSelectExport}
+              selectedExportId={selectedExportId}
+            />
+            {selectedExportId && (
+              <div className="space-y-2">
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setSelectedExportId(undefined)}
+                  >
+                    Close details
+                  </Button>
+                </div>
+                <ExportTransactionList
+                  exportId={selectedExportId}
+                  organizationId={selectedOrganizationId || undefined}
+                />
+              </div>
+            )}
+          </div>
         )}
         {activeTab === "inbox" && (
           <Pain002Inbox organizationId={selectedOrganizationId || undefined} />
