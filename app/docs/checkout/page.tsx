@@ -4,9 +4,9 @@ import {
   DocsSection,
   DocsCard,
   Endpoint,
-  ParamTable,
 } from '@/components/docs/docs-layout';
 import { CodeBlock, TabbedCodeBlock } from '@/components/docs/code-block';
+import { SchemaEndpointTable, SchemaParamTable } from '@/components/docs/schema-table';
 import {
   Code2,
   CreditCard,
@@ -583,27 +583,11 @@ if (payment.requires_redirect) {
         {/* API Reference */}
         <DocsSection id="api-reference" title="API Reference" description="Complete endpoint documentation">
           <p className="text-muted-foreground text-sm mb-4">
-            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.getcentry.io</code>
+            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.getcentry.io</code>{' '}
+            (production) · <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://staging-api.getcentry.io</code> (sandbox)
           </p>
-          <div className="overflow-x-auto rounded-xl border border-border mb-4">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Endpoint</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Auth</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Description</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-xs">
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-blue-600 font-bold">POST</span> /checkout/sessions/</td><td className="px-4 py-2.5 text-muted-foreground">API Key</td><td className="px-4 py-2.5 text-muted-foreground">Create a checkout session</td></tr>
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-emerald-600 font-bold">GET</span> /checkout/sessions/{'{id}'}/</td><td className="px-4 py-2.5 text-muted-foreground">API Key</td><td className="px-4 py-2.5 text-muted-foreground">Get session details</td></tr>
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-emerald-600 font-bold">GET</span> /checkout/{'{token}'}/</td><td className="px-4 py-2.5 text-muted-foreground">Session Token</td><td className="px-4 py-2.5 text-muted-foreground">Get checkout info (public)</td></tr>
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-emerald-600 font-bold">GET</span> /checkout/{'{token}'}/methods/</td><td className="px-4 py-2.5 text-muted-foreground">Session Token</td><td className="px-4 py-2.5 text-muted-foreground">List payment methods for a country</td></tr>
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-blue-600 font-bold">POST</span> /checkout/{'{token}'}/pay/</td><td className="px-4 py-2.5 text-muted-foreground">Session Token</td><td className="px-4 py-2.5 text-muted-foreground">Initiate a payment</td></tr>
-                <tr className="hover:bg-muted/30"><td className="px-4 py-2.5 font-mono"><span className="text-emerald-600 font-bold">GET</span> /checkout/{'{token}'}/status/</td><td className="px-4 py-2.5 text-muted-foreground">Session Token</td><td className="px-4 py-2.5 text-muted-foreground">Poll payment status</td></tr>
-              </tbody>
-            </table>
-          </div>
+          {/* Rendered from the live OpenAPI schema — see app/docs/_generated and `npm run sync:docs`. */}
+          <SchemaEndpointTable />
         </DocsSection>
 
         {/* Create Session */}
@@ -622,50 +606,58 @@ if (payment.requires_redirect) {
               </p>
             </div>
 
-            <ParamTable
-              params={[
-                { name: 'amount', type: 'string', required: true, description: 'Payment amount (e.g., "5000.00")' },
-                { name: 'currency', type: 'string', required: true, description: 'ISO 4217 currency code (NGN, KES, ZAR, UGX, GHS, TZS, RWF)' },
-                { name: 'reference', type: 'string', required: true, description: 'Your unique order/invoice reference (max 100 chars, unique per org)' },
-                { name: 'success_url', type: 'string', required: true, description: 'Redirect URL after successful payment' },
-                { name: 'cancel_url', type: 'string', required: true, description: 'Redirect URL if customer cancels' },
-                { name: 'webhook_url', type: 'string', required: false, description: 'URL to receive webhook notifications' },
-                { name: 'description', type: 'string', required: false, description: 'Payment description shown to customer' },
-                { name: 'customer', type: 'object', required: false, description: 'Customer info: {email, phone, name}. Email required for card payments.' },
-                { name: 'metadata', type: 'object', required: false, description: 'Custom key-value pairs returned in webhooks' },
-                { name: 'allowed_countries', type: 'string[]', required: false, description: 'Restrict to specific countries (e.g., ["NG", "ZA"]). Omit for all enabled countries.' },
-                { name: 'allowed_providers', type: 'string[]', required: false, description: 'Restrict to specific providers (e.g., ["paystack", "onegate"]). Omit for all enabled providers.' },
-                { name: 'expiry_minutes', type: 'integer', required: false, description: 'Session timeout in minutes (5-1440, default 60)' },
-              ]}
-            />
+            {/* Params rendered from the OpenAPI schema; copy in _param-descriptions.json. Refresh with `npm run sync:docs`. */}
+            <SchemaParamTable opKey="POST /api/v1/checkout/sessions/" />
           </div>
         </DocsSection>
 
         {/* Get Session */}
         <DocsSection id="get-session" title="Get Session" description="Retrieve a checkout session by ID">
           <div className="space-y-6">
-            <Endpoint method="GET" path="/api/v1/checkout/sessions/{session_id}/" description="Retrieve details of an existing checkout session. Requires API key." />
+            <Endpoint method="GET" path="/api/v1/checkout/sessions/{session_id}/" description="Retrieve details of an existing checkout session. Requires API key. The session is wrapped under a top-level `session` key." />
             <CodeBlock
               language="json"
-              filename="Response"
+              filename="Response — 200 OK"
               code={`{
-  "id": "cs_1a2b3c4d5e6f",
-  "reference": "ORDER-12345",
-  "amount": "5000.00",
-  "currency": "NGN",
-  "status": "completed",
-  "payment": {
-    "provider": "paystack",
-    "method": "card",
-    "provider_reference": "PAY_xyz789",
-    "status": "success"
-  },
-  "customer": {
-    "email": "customer@example.com"
-  },
-  "metadata": {"order_id": "12345"},
-  "created_at": "2024-01-15T12:00:00Z",
-  "completed_at": "2024-01-15T12:05:00Z"
+  "success": true,
+  "session": {
+    "id": "cs_1a2b3c4d5e6f",
+    "reference": "ORDER-12345",
+    "session_token": "tok_xyz789",
+    "checkout_url": "https://checkout.getcentry.io/checkout/tok_xyz789",
+    "amount": "5000.00",
+    "currency": "NGN",
+    "description": "",
+    "status": "completed",
+    "customer": {
+      "email": "customer@example.com",
+      "phone": "+2348012345678",
+      "name": "Jane Doe",
+      "country": "NG"
+    },
+    "metadata": {"order_id": "12345"},
+    "success_url": "https://yoursite.com/success",
+    "cancel_url": "https://yoursite.com/cancel",
+    "webhook_url": "https://yoursite.com/webhooks/centry",
+    "allowed_countries": [],
+    "allowed_providers": [],
+    "expires_at": "2024-01-15T13:00:00Z",
+    "created_at": "2024-01-15T12:00:00Z",
+    "completed_at": "2024-01-15T12:05:00Z",
+    "payments": [
+      {
+        "id": "pay_abc123",
+        "provider": "paystack",
+        "payment_method": "card",
+        "centry_reference": "cen_def456",
+        "provider_reference": "PAY_xyz789",
+        "status": "success",
+        "authorization_url": null,
+        "created_at": "2024-01-15T12:01:00Z",
+        "completed_at": "2024-01-15T12:05:00Z"
+      }
+    ]
+  }
 }`}
             />
           </div>
@@ -719,14 +711,7 @@ if (payment.requires_redirect) {
         <DocsSection id="initiate-payment" title="Initiate Payment" description="Start a payment with a specific provider and method">
           <div className="space-y-6">
             <Endpoint method="POST" path="/api/v1/checkout/{session_token}/pay/" description="Initiates payment with the selected provider. Returns a redirect URL or inline payment data." />
-            <ParamTable
-              params={[
-                { name: 'country', type: 'string', required: true, description: 'ISO country code (e.g., "ZA", "NG")' },
-                { name: 'provider', type: 'string', required: true, description: 'Provider code (e.g., "onegate", "ozow_legacy")' },
-                { name: 'payment_method', type: 'string', required: true, description: 'Method code from the methods endpoint (e.g., "credit_card", "eft", "card")' },
-                { name: 'customer', type: 'object', required: false, description: '{email, phone} — email required for card payments' },
-              ]}
-            />
+            <SchemaParamTable opKey="POST /api/v1/checkout/{session_token}/pay/" />
             <TabbedCodeBlock
               tabs={[
                 {
@@ -882,21 +867,30 @@ if (payment.requires_redirect) {
                 language="json"
                 filename="POST to your webhook_url"
                 code={`{
-  "id": "evt_550e8400-...",
   "event": "session.completed",
-  "created": 1713090900,
-  "livemode": true,
+  "timestamp": "2024-01-15T12:05:00Z",
   "data": {
     "session": {
       "id": "cs_abc123",
       "reference": "ORDER-12345",
       "amount": "5000.00",
       "currency": "NGN",
-      "status": "completed"
+      "status": "completed",
+      "customer": {
+        "email": "customer@example.com",
+        "phone": "+2348012345678",
+        "name": "Jane Doe",
+        "country": "NG"
+      },
+      "metadata": {"order_id": "12345"},
+      "created_at": "2024-01-15T12:00:00Z",
+      "completed_at": "2024-01-15T12:05:00Z"
     },
     "payment": {
+      "id": "pay_abc123",
       "provider": "paystack",
-      "method": "card",
+      "payment_method": "card",
+      "centry_reference": "cen_def456",
       "provider_reference": "PAY_xyz789",
       "status": "success"
     }
@@ -908,14 +902,15 @@ if (payment.requires_redirect) {
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
                 <strong>Headers:</strong>{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">Centry-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>{' '}
-                (HMAC-SHA256 with replay window),{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Event</code>
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Signature: sha256=&lt;hex&gt;</code>{' '}
+                (HMAC-SHA256 — see verification below),{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Timestamp: &lt;unix&gt;</code>,{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Event: &lt;event&gt;</code>
               </p>
               <p>
                 <strong>Retries:</strong> on non-2xx or timeout we retry at <strong>+1m, +5m,
-                +30m, +2h, +24h</strong> (6 attempts total). Centry expects a 2xx within ~10s —
-                process async if your handler is slow.
+                +30m, +2h, +24h</strong> (up to 5 attempts total). The delivery timeout is 30s, but
+                you should still return a 2xx quickly and process async if your handler is slow.
               </p>
               <p>
                 <strong>URL safety:</strong> webhook URLs that resolve to private (RFC1918),
@@ -934,39 +929,51 @@ if (payment.requires_redirect) {
             <div id="webhook-verification">
               <h4 className="font-semibold text-foreground mb-3">Signature verification</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                Three checks, in order: parse the header, reject if{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">t</code> is more than 5
-                minutes off (replay guard), then constant-time compare your recomputed HMAC to{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">v1</code>. Use the{' '}
-                <strong>raw request body bytes</strong> — re-encoding the JSON will break the
-                signature.
+                The{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Signature</code>{' '}
+                header is{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">sha256=&lt;hex&gt;</code>,
+                where the hex is an HMAC-SHA256 of the JSON payload re-serialized in{' '}
+                <strong>canonical form — compact separators and sorted keys</strong> (
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">json.dumps(payload, separators=(&quot;,&quot;,&quot;:&quot;), sort_keys=True)</code>),
+                signed with your webhook secret. Recompute it the same way and constant-time
+                compare against the header. Strip the{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">sha256=</code> prefix first.
               </p>
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3 mb-3">
+                <AlertTriangle className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-600">
+                  Centry signs the <strong>canonically re-serialized</strong> JSON (sorted keys,
+                  no whitespace), <em>not</em> the raw request bytes. Parse the body to an object,
+                  then re-dump it with sorted keys before computing the HMAC. The separate{' '}
+                  <code className="text-[11px]">X-Centry-Timestamp</code> header is provided for
+                  your own replay logging; it is not part of the signed string.
+                </p>
+              </div>
               <TabbedCodeBlock
                 tabs={[
                   {
                     label: 'Python',
                     language: 'python',
-                    code: `import hmac, hashlib, time
+                    code: `import hmac, hashlib, json
 
-def verify_centry_webhook(raw_body: bytes, header_value: str, secret: str,
-                          tolerance: int = 300) -> bool:
-    parts = dict(p.split("=", 1) for p in header_value.split(",") if "=" in p)
-    try:
-        ts = int(parts.get("t", ""))
-    except ValueError:
+def verify_centry_webhook(raw_body: bytes, header_value: str, secret: str) -> bool:
+    if not header_value.startswith("sha256="):
         return False
-    if abs(time.time() - ts) > tolerance:
-        return False
+    received = header_value[len("sha256="):]
+    # Centry signs the CANONICAL JSON: sorted keys, compact separators.
+    payload = json.loads(raw_body)
+    canonical = json.dumps(payload, separators=(",", ":"), sort_keys=True)
     expected = hmac.new(
-        secret.encode(),
-        f"{ts}.".encode() + raw_body,
+        secret.encode("utf-8"),
+        canonical.encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
-    return hmac.compare_digest(expected, parts.get("v1", ""))
+    return hmac.compare_digest(expected, received)
 
 # Django / Flask handler
-body = request.body  # raw bytes — never request.json before verifying
-header = request.headers.get("Centry-Signature", "")
+body = request.body  # raw bytes
+header = request.headers.get("X-Centry-Signature", "")
 if not verify_centry_webhook(body, header, WEBHOOK_SECRET):
     return HttpResponseBadRequest("invalid signature")
 
@@ -979,21 +986,34 @@ if event["event"] == "session.completed":
                     language: 'javascript',
                     code: `const crypto = require('crypto');
 
-function verifyCentryWebhook(rawBody, headerValue, secret, toleranceSec = 300) {
-  const parts = Object.fromEntries(
-    headerValue.split(',').map(p => p.split('=').map(s => s.trim()))
-  );
-  const t = parseInt(parts.t, 10);
-  if (!t || Math.abs(Date.now() / 1000 - t) > toleranceSec) return false;
+// Stable stringify: sort object keys recursively, then JSON.stringify
+// with no whitespace — matches Python's json.dumps(sort_keys=True,
+// separators=(",", ":")).
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object') {
+    return Object.keys(value).sort().reduce((acc, k) => {
+      acc[k] = canonicalize(value[k]);
+      return acc;
+    }, {});
+  }
+  return value;
+}
 
+function verifyCentryWebhook(rawBody, headerValue, secret) {
+  if (!headerValue || !headerValue.startsWith('sha256=')) return false;
+  const received = headerValue.slice('sha256='.length);
+
+  const payload = JSON.parse(rawBody);
+  const canonical = JSON.stringify(canonicalize(payload));
   const expected = crypto
     .createHmac('sha256', secret)
-    .update(\`\${t}.\${rawBody}\`)
+    .update(canonical, 'utf8')
     .digest('hex');
 
   return crypto.timingSafeEqual(
     Buffer.from(expected, 'hex'),
-    Buffer.from(parts.v1 || '', 'hex'),
+    Buffer.from(received, 'hex'),
   );
 }
 
@@ -1001,7 +1021,7 @@ function verifyCentryWebhook(rawBody, headerValue, secret, toleranceSec = 300) {
 app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, res) => {
   const ok = verifyCentryWebhook(
     req.body.toString('utf8'),
-    req.get('Centry-Signature'),
+    req.get('X-Centry-Signature'),
     process.env.CENTRY_WEBHOOK_SECRET,
   );
   if (!ok) return res.status(400).send('invalid signature');
@@ -1180,6 +1200,37 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
 
         {/* Error Codes */}
         <DocsSection id="errors" title="Error Codes" description="API error response reference">
+          <p className="text-muted-foreground text-sm mb-4">
+            Errors come back as a JSON object with{' '}
+            <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">success: false</code>.
+            Most carry a machine-readable{' '}
+            <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">code</code> and a
+            human-readable <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">error</code>{' '}
+            message. Request-body validation failures are the exception: they return a field-keyed{' '}
+            <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">errors</code> object instead.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3 mb-6">
+            <CodeBlock
+              language="json"
+              filename="Service / not-found error"
+              code={`{
+  "success": false,
+  "error": "Session not found",
+  "code": "SESSION_NOT_FOUND"
+}`}
+            />
+            <CodeBlock
+              language="json"
+              filename="Validation error (400)"
+              code={`{
+  "success": false,
+  "errors": {
+    "currency": ["Currency must be one of: NGN, ZAR, ..."],
+    "amount": ["A valid number is required."]
+  }
+}`}
+            />
+          </div>
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b border-border">
@@ -1191,16 +1242,18 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               </thead>
               <tbody className="divide-y divide-border">
                 {[
-                  { code: 'invalid_request', status: '400', desc: 'The request body is malformed or missing required fields' },
-                  { code: 'authentication_failed', status: '401', desc: 'Invalid or missing API key' },
-                  { code: 'forbidden', status: '403', desc: 'API key does not have permission for this action' },
-                  { code: 'not_found', status: '404', desc: 'The requested resource does not exist' },
-                  { code: 'duplicate_reference', status: '409', desc: 'A session with this reference already exists' },
-                  { code: 'country_not_enabled', status: '400', desc: 'No providers configured for the selected country' },
-                  { code: 'provider_not_enabled', status: '400', desc: 'Provider not enabled for this country in your config' },
+                  { code: 'INVALID_AMOUNT', status: '400', desc: 'Amount is negative or not a valid decimal' },
+                  { code: 'INVALID_CURRENCY', status: '400', desc: 'Currency is not one of the supported ISO 4217 codes' },
+                  { code: 'DUPLICATE_REFERENCE', status: '400', desc: 'A session with this reference already exists for your org' },
+                  { code: 'SESSION_NOT_FOUND', status: '404', desc: 'No session matches the given ID or token' },
+                  { code: 'SESSION_EXPIRED', status: '400', desc: 'The session passed its expiry time before payment' },
+                  { code: 'INVALID_STATE', status: '400', desc: 'The session is not in a state that allows this action' },
+                  { code: 'MISSING_COUNTRY', status: '400', desc: 'The country query parameter is required' },
+                  { code: 'COUNTRY_NOT_ENABLED', status: '400', desc: 'No providers are configured for the selected country' },
+                  { code: 'PROVIDER_NOT_ENABLED', status: '400', desc: 'Provider not enabled for this country in your config' },
+                  { code: 'METHOD_NOT_SUPPORTED', status: '400', desc: 'The payment method is not supported by that provider' },
                   { code: 'rate_limit_exceeded', status: '429', desc: 'Too many requests — slow down' },
-                  { code: 'provider_error', status: '502', desc: 'The payment provider returned an error' },
-                  { code: 'internal_error', status: '500', desc: 'Something went wrong on our end' },
+                  { code: 'internal_error', status: '500', desc: 'Something went wrong on our end (no code field)' },
                 ].map((err) => (
                   <tr key={err.code} className="hover:bg-muted/30">
                     <td className="px-4 py-3"><code className="text-xs font-mono text-destructive">{err.code}</code></td>
@@ -1216,25 +1269,36 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
         {/* Rate Limits */}
         <DocsSection id="rate-limits" title="Rate Limits" description="API request limits">
           <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Limits are enforced <strong>per API key</strong>, by operation type — not by plan tier.
+              The defaults below are server-configurable; high-volume merchants can request a
+              higher per-key limit. Exceeding a limit returns{' '}
+              <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">429</code> with a{' '}
+              <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">Retry-After</code> header.
+            </p>
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Plan</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Requests/min</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Sessions/day</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">Operation</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">Default limit</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">Applies to</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Sandbox</td><td className="px-4 py-3 text-muted-foreground">60</td><td className="px-4 py-3 text-muted-foreground">100</td></tr>
-                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Starter</td><td className="px-4 py-3 text-muted-foreground">120</td><td className="px-4 py-3 text-muted-foreground">1,000</td></tr>
-                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Business</td><td className="px-4 py-3 text-muted-foreground">300</td><td className="px-4 py-3 text-muted-foreground">10,000</td></tr>
-                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Enterprise</td><td className="px-4 py-3 text-muted-foreground">Custom</td><td className="px-4 py-3 text-muted-foreground">Unlimited</td></tr>
+                <tbody className="divide-y divide-border text-xs">
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Pay-in</td><td className="px-4 py-3 text-muted-foreground">60 / min</td><td className="px-4 py-3 text-muted-foreground">Creating charges &amp; checkout payments</td></tr>
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Payout</td><td className="px-4 py-3 text-muted-foreground">10 / min</td><td className="px-4 py-3 text-muted-foreground">Payout endpoints (money out)</td></tr>
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Merchant API</td><td className="px-4 py-3 text-muted-foreground">60 / min</td><td className="px-4 py-3 text-muted-foreground">General merchant key (mk_) calls</td></tr>
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Sensitive burst</td><td className="px-4 py-3 text-muted-foreground">5 / min</td><td className="px-4 py-3 text-muted-foreground">High-risk payment operations</td></tr>
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Authenticated (default)</td><td className="px-4 py-3 text-muted-foreground">1,000 / hour</td><td className="px-4 py-3 text-muted-foreground">Other authenticated requests</td></tr>
+                  <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-foreground font-medium">Anonymous</td><td className="px-4 py-3 text-muted-foreground">100 / hour</td><td className="px-4 py-3 text-muted-foreground">Unauthenticated requests</td></tr>
                 </tbody>
               </table>
             </div>
             <p className="text-sm text-muted-foreground">
-              Rate limit headers: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">X-RateLimit-Remaining</code>, <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">X-RateLimit-Reset</code>
+              Each API key can also carry a custom per-key{' '}
+              <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">rate_limit</code>{' '}
+              override set on the key itself.
             </p>
           </div>
         </DocsSection>
@@ -1243,14 +1307,19 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
         <DocsSection id="testing" title="Testing & Sandbox" description="Test your integration before going live">
           <div className="space-y-6">
             <p className="text-muted-foreground text-sm">
-              Use the sandbox environment to test without processing real payments.
-              Sandbox API keys start with <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_test_</code>.
+              Use the sandbox environment to test without processing real payments. Point your
+              integration at the sandbox base URL and use a key issued from the sandbox dashboard
+              at <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">staging.getcentry.io</code>.
+              Checkout API keys use the <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_</code> prefix in
+              both environments — the environment is determined by which base URL (and dashboard)
+              the key was created in, not by the prefix. Provider sandbox/live mode is configured
+              per provider account in your dashboard.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox</div>
-                <code className="text-xs font-mono text-foreground">https://sandbox.getcentry.io</code>
+                <code className="text-xs font-mono text-foreground">https://staging-api.getcentry.io</code>
               </div>
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Production</div>

@@ -5,7 +5,7 @@
  *
  * Usage:
  * 1. Include this script on your page:
- *    <script src="https://checkout.centry.io/widget/centry-checkout.js"></script>
+ *    <script src="https://checkout.getcentry.io/widget/centry-checkout.js"></script>
  *
  * 2. Initialize and open checkout:
  *    CentryCheckout.open({
@@ -19,7 +19,7 @@
 (function(window, document) {
   'use strict';
 
-  var CHECKOUT_BASE_URL = 'https://checkout.centry.io';
+  var CHECKOUT_BASE_URL = 'https://checkout.getcentry.io';
 
   // Allow override for development
   if (window.CENTRY_CHECKOUT_URL) {

@@ -1,0 +1,24 @@
+{
+  "_note": "Curated parameter descriptions, merged into the OpenAPI snapshot by scripts/sync-openapi-docs.mjs. Keyed by 'METHOD path'. The schema is the source of truth for which params exist and their type/required; this only supplies human copy. A param with no entry here falls back to the schema description (often empty).",
+  "POST /api/v1/checkout/sessions/": {
+    "amount": "Payment amount as a decimal string (e.g., \"5000.00\"). 0 is allowed for voucher-redemption flows; negative amounts are rejected.",
+    "currency": "ISO 4217 currency code. One of: NGN, ZAR, UGX, KES, GHS, TZS, RWF, XOF, XAF.",
+    "reference": "Your unique order/invoice reference (max 100 chars, unique per org).",
+    "success_url": "Redirect URL after successful payment.",
+    "cancel_url": "Redirect URL if customer cancels.",
+    "webhook_url": "URL to receive webhook notifications.",
+    "description": "Payment description shown to customer.",
+    "customer": "Customer info: {email, phone, name}. Email required for card payments.",
+    "metadata": "Custom key-value pairs returned in webhooks.",
+    "allowed_countries": "Restrict to specific countries (e.g., [\"NG\", \"ZA\"]). Omit for all enabled countries.",
+    "allowed_providers": "Restrict to specific providers (e.g., [\"paystack\", \"onegate\"]). Omit for all enabled providers.",
+    "expiry_minutes": "Session timeout in minutes (5–1440, default 60).",
+    "mode": "\"hosted\" (redirect to Centry checkout page, default) or \"embedded\" (you render your own UI — see Headless / Embedded Checkout)."
+  },
+  "POST /api/v1/checkout/{session_token}/pay/": {
+    "country": "ISO country code (e.g., \"ZA\", \"NG\").",
+    "provider": "Provider code (e.g., \"onegate\", \"ozow_legacy\").",
+    "payment_method": "Method code from the methods endpoint (e.g., \"credit_card\", \"eft\", \"card\").",
+    "customer": "{email, phone} — email required for card payments."
+  }
+}

@@ -148,7 +148,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 API Reference
               </Link>
               <a
-                href="https://github.com/centry"
+                href="https://github.com/paymojammn"
                 className="text-sm text-white/60 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all flex items-center gap-1"
                 target="_blank"
                 rel="noopener noreferrer"

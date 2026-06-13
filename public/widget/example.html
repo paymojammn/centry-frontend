@@ -159,11 +159,11 @@
     <div class="card">
       <h2>Integration Guide</h2>
       <p style="margin-bottom: 1rem;">1. Include the Centry Checkout script:</p>
-      <pre><code>&lt;<span class="highlight">script</span> src=<span class="string">"https://checkout.centry.io/widget/centry-checkout.js"</span>&gt;&lt;/<span class="highlight">script</span>&gt;</code></pre>
+      <pre><code>&lt;<span class="highlight">script</span> src=<span class="string">"https://checkout.getcentry.io/widget/centry-checkout.js"</span>&gt;&lt;/<span class="highlight">script</span>&gt;</code></pre>
 
       <p style="margin-bottom: 1rem; margin-top: 1.5rem;">2. Create a checkout session via your backend:</p>
       <pre><code><span class="comment">// Server-side (Node.js example)</span>
-<span class="highlight">const</span> response = <span class="highlight">await</span> fetch(<span class="string">'https://api.centry.io/api/v1/checkout/sessions/'</span>, {
+<span class="highlight">const</span> response = <span class="highlight">await</span> fetch(<span class="string">'https://api.getcentry.io/api/v1/checkout/sessions/'</span>, {
   method: <span class="string">'POST'</span>,
   headers: {
     <span class="string">'Authorization'</span>: <span class="string">`Api-Key ${YOUR_API_KEY}`</span>,
