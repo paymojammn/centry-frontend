@@ -21,6 +21,7 @@ import {
   useBankResponseStats,
   useBankAccounts,
   useAllSFTPCredentials,
+  useExportStats,
 } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
@@ -175,6 +176,8 @@ export default function DashboardPage() {
   const { data: bankAccountsData } = useBankAccounts(orgId);
   const { data: sftpCredsData } = useAllSFTPCredentials(orgId);
   const { data: invoiceStats } = useInvoiceStats(orgId);
+  // Bank payment-export files awaiting SFTP upload (the Pay tab "Ready" pill).
+  const { data: exportStats } = useExportStats({ organizationId: orgId || undefined });
   // Live system activity counters for the "Today" pulse card.
   const { data: auditStats } = useAuditStats(orgId, 1);
   // Outward-payment data — drives Latest Payment Events, Payments by
@@ -358,6 +361,11 @@ export default function DashboardPage() {
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
   // Outstanding sales invoices awaiting payment.
   const pendingInvoices = Number(invoiceStats?.outstanding_count || 0);
+  // Bank files generated but not yet uploaded (matches the export Pay tab
+  // "Ready" pill: status generated or pending).
+  const bankFilesReady = (exportStats?.by_status || [])
+    .filter((s) => s.status === 'pending' || s.status === 'generated')
+    .reduce((sum, s) => sum + (s.count || 0), 0);
 
   // Pipeline — full lifecycle from approval through reconciliation
   const bankAccepted = bankResponseStats?.successful_transactions || 0;
@@ -405,10 +413,10 @@ export default function DashboardPage() {
                   tone: 'warning' as const,
                 },
                 {
-                  label: 'Ready for Export',
-                  count: pipelineStats?.processing || 0,
+                  label: 'Bank Files',
+                  count: bankFilesReady,
                   icon: Send,
-                  href: '/banking/export',
+                  href: '/banking/export?tab=sftp-export&status=ready',
                   tone: 'accent' as const,
                 },
                 {

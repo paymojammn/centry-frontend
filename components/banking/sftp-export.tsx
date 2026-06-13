@@ -30,6 +30,8 @@ interface SFTPExportProps {
   onExportComplete?: () => void;
   onSelectExport?: (exportId: number) => void;
   selectedExportId?: number;
+  /** Initial status-pill filter (All/Ready/Uploaded), e.g. deep-linked in. */
+  initialStatus?: string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -69,13 +71,13 @@ function renderStatusBadge(status: string) {
   );
 }
 
-export function SFTPExport({ organizationId, onExportComplete }: SFTPExportProps) {
+export function SFTPExport({ organizationId, onExportComplete, initialStatus }: SFTPExportProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
   const [uploadingFileId, setUploadingFileId] = useState<number | undefined>();
   const [downloadingFileId, setDownloadingFileId] = useState<number | undefined>();
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(initialStatus || "all");
   const [fileSearch, setFileSearch] = useState("");
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);

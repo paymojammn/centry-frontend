@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -71,6 +72,19 @@ export default function BankingExportPage() {
   const [fileSearch, setFileSearch] = useState("");
   const [fileStatusFilter, setFileStatusFilter] = useState("all");
   const [fileAccountFilter, setFileAccountFilter] = useState("all");
+
+  // Deep-link: ?tab=<tab> opens a tab, ?status=<pill> pre-selects the Pay
+  // tab's status filter (used by the dashboard "Bank Files" card).
+  const searchParams = useSearchParams();
+  const [payInitialStatus, setPayInitialStatus] = useState<string | undefined>();
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) setActiveTab(tab);
+    const status = searchParams.get("status");
+    if (status) setPayInitialStatus(status);
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: organizationsResponse, isLoading: orgsLoading } =
     useOrganizations();
@@ -217,6 +231,7 @@ export default function BankingExportPage() {
               onExportComplete={handleExportComplete}
               onSelectExport={handleSelectExport}
               selectedExportId={selectedExportId}
+              initialStatus={payInitialStatus}
             />
             {selectedExportId && (
               <div className="space-y-2">
