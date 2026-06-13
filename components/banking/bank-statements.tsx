@@ -23,9 +23,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ContentCard } from "@/components/layout/content-card";
+import { StatCard } from "@/components/layout/stat-card";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { PILL_COLORS } from "@/lib/theme";
+
+// Strip a "CurrencyCode.UGX"-style prefix down to the bare ISO code.
+function cleanCurrencyCode(currency: string | null | undefined): string {
+  if (!currency) return "USD";
+  if (currency.includes(".")) return currency.split(".").pop() || currency;
+  return currency;
+}
+
+function formatBalanceAmount(num: number): string {
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 import {
   useBankAccounts,
   useBankImports,
@@ -94,9 +109,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
   const [isPulling, setIsPulling] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const [refreshingAccountId, setRefreshingAccountId] = useState<number | null>(
-    null
-  );
+  const [refreshingAll, setRefreshingAll] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
 
@@ -150,6 +163,28 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   const statusCount = (pred: (s: string) => boolean) =>
     accountStatements.filter((row) => pred(row.status)).length;
+
+  // Balances are split by currency (summing across currencies is meaningless),
+  // so we surface one card for the local currency and one for USD.
+  const balanceStats = useMemo(() => {
+    const nonUsd = bankAccounts.find(
+      (a) => cleanCurrencyCode(a.currency) !== "USD"
+    );
+    const localCurrency = nonUsd ? cleanCurrencyCode(nonUsd.currency) : "UGX";
+    const sumFor = (ccy: string) =>
+      bankAccounts
+        .filter((a) => cleanCurrencyCode(a.currency) === ccy)
+        .reduce(
+          (sum, a) =>
+            sum + (a.balance != null ? parseFloat(String(a.balance)) || 0 : 0),
+          0
+        );
+    return {
+      localCurrency,
+      balanceLocal: sumFor(localCurrency),
+      balanceUSD: sumFor("USD"),
+    };
+  }, [bankAccounts]);
 
   const filteredStatements = useMemo(() => {
     const q = search.toLowerCase();
@@ -213,24 +248,25 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
     }
   };
 
-  const handleRefreshBalance = async (acct: BankAccount) => {
-    setRefreshingAccountId(acct.id);
+  const handleRefreshAllBalances = async () => {
+    setRefreshingAll(true);
+    let refreshed = 0;
     try {
-      const result = await refreshBalance.mutateAsync({ accountId: acct.id });
+      for (const acct of bankAccounts) {
+        try {
+          await refreshBalance.mutateAsync({ accountId: acct.id });
+          refreshed += 1;
+        } catch {
+          // Account may have no imported statement yet — skip it.
+        }
+      }
       toast.success(
-        `Balance refreshed from ${result.source_filename}: ${formatCurrency(
-          parseFloat(result.balance),
-          result.currency
-        )}`
+        `Refreshed ${refreshed} of ${bankAccounts.length} balance${
+          bankAccounts.length === 1 ? "" : "s"
+        } from the latest statements`
       );
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to refresh balance";
-      toast.error(msg);
     } finally {
-      setRefreshingAccountId(null);
+      setRefreshingAll(false);
     }
   };
 
@@ -256,87 +292,55 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Account balances — one chip per active account, sized for any number */}
+      {/* Balance summary — split by currency (local + USD), like the Accounts page */}
       {accountsLoading ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <Skeleton className="h-24 w-full rounded-xl" />
         </div>
       ) : bankAccounts.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {bankAccounts.map((acct) => {
-            const isRefreshing = refreshingAccountId === acct.id;
-            return (
-              <ContentCard key={acct.id}>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground truncate">
-                      {acct.account_name} · {acct.account_number}
-                    </p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <Wallet className="h-4 w-4 text-muted-foreground/60" />
-                      <span className="text-lg font-normal tabular-nums text-foreground">
-                        {acct.balance != null
-                          ? formatCurrency(
-                              parseFloat(acct.balance),
-                              acct.currency
-                            )
-                          : "—"}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                        Available
-                      </span>
-                    </div>
-                    {acct.booked_balance != null &&
-                      acct.balance != null &&
-                      acct.booked_balance !== acct.balance && (
-                        <div className="mt-0.5 flex items-baseline gap-1.5">
-                          <span className="text-xs tabular-nums text-muted-foreground">
-                            {formatCurrency(
-                              parseFloat(acct.booked_balance),
-                              acct.currency
-                            )}
-                          </span>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                            Booked
-                          </span>
-                        </div>
-                      )}
-                    <p className="mt-0.5 text-[11px] text-muted-foreground/70">
-                      {acct.balance_as_of_date
-                        ? `As of ${format(
-                            new Date(acct.balance_as_of_date),
-                            "dd MMM yyyy"
-                          )}`
-                        : acct.last_balance_update
-                        ? `Updated ${format(
-                            new Date(acct.last_balance_update),
-                            "dd MMM yyyy HH:mm"
-                          )}`
-                        : "Never updated from statement"}
-                    </p>
-                  </div>
-                  {hasBankingExport && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRefreshBalance(acct)}
-                      disabled={isRefreshing}
-                      title="Recompute balance from the most recent imported statement"
-                      className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                      {isRefreshing ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      )}
-                      <span className="ml-1.5 text-xs">Refresh</span>
-                    </Button>
-                  )}
-                </div>
-              </ContentCard>
-            );
-          })}
+        <div className="space-y-3">
+          {hasBankingExport && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefreshAllBalances}
+                disabled={refreshingAll}
+                title="Recompute balances from the most recent imported statements"
+                className="h-8 text-muted-foreground hover:text-foreground"
+              >
+                {refreshingAll ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                Refresh balances
+              </Button>
+            </div>
+          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            <StatCard
+              label={`Balance · ${balanceStats.localCurrency}`}
+              value={balanceStats.balanceLocal.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
+              subtext={`${balanceStats.localCurrency} ${formatBalanceAmount(
+                balanceStats.balanceLocal
+              )}`}
+              icon={Wallet}
+              variant="accent"
+            />
+            <StatCard
+              label="Balance · USD"
+              value={balanceStats.balanceUSD.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
+              subtext={`USD ${formatBalanceAmount(balanceStats.balanceUSD)}`}
+              icon={Wallet}
+              variant="info"
+            />
+          </div>
         </div>
       ) : null}
 
