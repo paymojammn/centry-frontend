@@ -399,7 +399,10 @@ export default function BillsPage() {
                 {[
                   { value: 'draft', label: 'Draft', count: billStats?.total_draft },
                   { value: 'awaiting_approval', label: 'Awaiting Approval', count: billStats?.total_awaiting_approval },
-                  { value: 'awaiting_payment', label: 'Awaiting Payment', count: billStats?.total_awaiting_payment },
+                  // The awaiting_payment filter returns ALL authorised bills with a
+                  // balance due (overdue included), so the count must match: use
+                  // total_authorised, not total_awaiting_payment (which excludes overdue).
+                  { value: 'awaiting_payment', label: 'Awaiting Payment', count: billStats?.total_authorised },
                   { value: 'paid', label: 'Paid', count: billStats?.total_paid },
                   { value: 'repeating', label: 'Repeating', count: billStats?.total_repeating },
                 ].map((p) => {
