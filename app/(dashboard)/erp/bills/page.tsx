@@ -254,7 +254,7 @@ export default function BillsPage() {
   const organizationCurrency = currentOrganization?.primary_currency || currentOrganization?.currency || 'UGX';
 
   const handleStatusChange = (status: string) => {
-    const validStatuses = ['all', 'draft', 'awaiting_approval', 'awaiting_payment', 'paid', 'repeating'];
+    const validStatuses = ['all', 'draft', 'awaiting_approval', 'awaiting_payment', 'reconcile', 'paid', 'repeating'];
     if (validStatuses.includes(status)) {
       setFilters(prev => ({
         ...prev,
@@ -403,6 +403,8 @@ export default function BillsPage() {
                   // balance due (overdue included), so the count must match: use
                   // total_authorised, not total_awaiting_payment (which excludes overdue).
                   { value: 'awaiting_payment', label: 'Awaiting Payment', count: billStats?.total_authorised },
+                  // Bills paid via the pipeline, awaiting bank-statement reconciliation.
+                  { value: 'reconcile', label: 'Reconcile', count: billStats?.total_reconcile },
                   { value: 'paid', label: 'Paid', count: billStats?.total_paid },
                   { value: 'repeating', label: 'Repeating', count: billStats?.total_repeating },
                 ].map((p) => {

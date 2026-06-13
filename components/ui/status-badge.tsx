@@ -73,6 +73,7 @@ function formatStatusLabel(status: string): string {
     authorised: 'Awaiting Payment',
     awaiting_payment: 'Awaiting Payment',
     processing: 'Processing',
+    reconcile: 'Reconcile',
     paid: 'Paid',
     success: 'Success',
     approved: 'Approved',

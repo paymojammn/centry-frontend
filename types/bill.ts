@@ -45,6 +45,7 @@ export interface BillStats {
   total_awaiting_payment_amount: string;
   total_awaiting_payment_ugx: string;
   total_awaiting_payment_usd: string;
+  total_reconcile: number;
   total_paid: number;
   total_repeating: number;
   overdue_count: number;
@@ -56,7 +57,7 @@ export interface BillStats {
 }
 
 export interface BillFilters {
-  status?: 'all' | 'draft' | 'awaiting_approval' | 'awaiting_payment' | 'paid' | 'repeating';
+  status?: 'all' | 'draft' | 'awaiting_approval' | 'awaiting_payment' | 'reconcile' | 'paid' | 'repeating';
   organization?: string; // Organization UUID
 }
 

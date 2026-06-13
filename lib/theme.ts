@@ -79,6 +79,13 @@ export const STATUS_COLORS = {
     light: '#FAEAEA',
     border: '#9E3B3B',
   },
+  // Paid through the pipeline, awaiting bank-statement reconciliation
+  reconcile: {
+    bg: '#2A7E78',
+    text: '#ffffff',
+    light: '#E3F1EF',
+    border: '#2A7E78',
+  },
 } as const;
 
 // Processing queue specific status colors
@@ -192,6 +199,8 @@ export function getStatusColor(status: string) {
     case 'awaiting_payment':
     case 'processing':
       return STATUS_COLORS.awaiting_payment;
+    case 'reconcile':
+      return STATUS_COLORS.reconcile;
     case 'paid':
     case 'success':
     case 'approved':
