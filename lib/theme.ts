@@ -40,6 +40,10 @@ export const PILL_COLORS: Record<string, string> = {
   error_payment: '#dc2626',
   rejected: '#dc2626',
   reversed: '#bec3c6',
+  // bank export-file statuses (outbox)
+  generated: '#6B8FB8',
+  uploaded: '#2A9D8F',
+  processed: '#5C8A65',
 };
 
 // Primary status colors used across bills, payments, and expenses

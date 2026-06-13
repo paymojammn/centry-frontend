@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { BankingExportOverview } from "@/components/banking/banking-export-overview";
@@ -21,17 +20,14 @@ import { BankStatements } from "@/components/banking/bank-statements";
 import { ExportTransactionList } from "@/components/banking/export-transaction-list";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
-import {
-  ContentCard,
-  ContentCardHeader,
-} from "@/components/layout/content-card";
+import { ContentCard } from "@/components/layout/content-card";
 import {
   FolderOpen,
   Search,
   Download,
   X,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { PILL_COLORS } from "@/lib/theme";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
 import { useHasPermission } from "@/hooks/use-user";
@@ -94,18 +90,23 @@ export default function BankingExportPage() {
   );
   const bankAccounts = (bankAccountsData as any)?.results || [];
 
+  // Fetch all statuses for the org/account so the status-pill counts stay
+  // accurate; status is filtered client-side (matches the other grids).
   const { data: exportsData, isLoading: exportsLoading } =
     useBankPaymentExports({
       organizationId: selectedOrganizationId || undefined,
-      status: fileStatusFilter !== "all" ? fileStatusFilter : undefined,
       bankAccountId:
         fileAccountFilter !== "all" ? Number(fileAccountFilter) : undefined,
     });
 
   const exports = exportsData?.results || [];
 
-  // Client-side search filter
+  const fileStatusCount = (s: string) =>
+    exports.filter((e) => e.status === s).length;
+
+  // Client-side status + search filter
   const filteredExports = exports.filter((e) => {
+    if (fileStatusFilter !== "all" && e.status !== fileStatusFilter) return false;
     if (!fileSearch) return true;
     const q = fileSearch.toLowerCase();
     return (
@@ -252,78 +253,75 @@ export default function BankingExportPage() {
         )}
         {activeTab === "files" && (
           <div className="space-y-5">
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-[180px] max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search files..."
-                  value={fileSearch}
-                  onChange={(e) => setFileSearch(e.target.value)}
-                  className="pl-10 h-9"
-                />
-              </div>
-
-              <Select
-                value={fileAccountFilter}
-                onValueChange={setFileAccountFilter}
-              >
-                <SelectTrigger className="w-[160px] h-9">
-                  <SelectValue placeholder="All accounts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All accounts</SelectItem>
-                  {bankAccounts.map((a: any) => (
-                    <SelectItem key={a.id} value={a.id.toString()}>
-                      {a.account_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={fileStatusFilter}
-                onValueChange={setFileStatusFilter}
-              >
-                <SelectTrigger className="w-[150px] h-9">
-                  <SelectValue placeholder="All status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="uploaded">Uploaded</SelectItem>
-                  <SelectItem value="processed">Processed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {hasFileFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFileFilters}
-                  className="h-9 text-muted-foreground"
-                >
-                  <X className="h-3.5 w-3.5 mr-1" />
-                  Clear
-                </Button>
-              )}
-            </div>
-
-            {/* Table */}
+            {/* Table — status pills header + grid (bills-grid style) */}
             <ContentCard noPadding>
-              <ContentCardHeader>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-normal text-foreground">
-                    Outbox
-                  </h3>
-                  {!exportsLoading && (
-                    <Badge variant="secondary" className="text-xs">
-                      {filteredExports.length}
-                    </Badge>
+              <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+                {([
+                  { value: "all", label: "All", count: exports.length },
+                  { value: "pending", label: "Pending", count: fileStatusCount("pending") },
+                  { value: "uploaded", label: "Uploaded", count: fileStatusCount("uploaded") },
+                  { value: "processed", label: "Processed", count: fileStatusCount("processed") },
+                  { value: "failed", label: "Failed", count: fileStatusCount("failed") },
+                ]).map((p) => {
+                  const active = fileStatusFilter === p.value;
+                  const color = p.value === "all" ? undefined : PILL_COLORS[p.value];
+                  return (
+                    <button
+                      key={p.value}
+                      onClick={() => setFileStatusFilter(p.value)}
+                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                        active
+                          ? color
+                            ? "text-white"
+                            : "bg-foreground text-card"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                      style={active && color ? { backgroundColor: color } : undefined}
+                    >
+                      {p.label} ({p.count})
+                    </button>
+                  );
+                })}
+
+                <div className="ml-auto flex items-center gap-2 flex-wrap">
+                  <Select
+                    value={fileAccountFilter}
+                    onValueChange={setFileAccountFilter}
+                  >
+                    <SelectTrigger className="w-[160px] h-9">
+                      <SelectValue placeholder="All accounts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All accounts</SelectItem>
+                      {bankAccounts.map((a: any) => (
+                        <SelectItem key={a.id} value={a.id.toString()}>
+                          {a.account_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="relative w-44">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                    <Input
+                      placeholder="Search files..."
+                      value={fileSearch}
+                      onChange={(e) => setFileSearch(e.target.value)}
+                      className="pl-9 h-9"
+                    />
+                  </div>
+                  {hasFileFilters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFileFilters}
+                      className="h-9 text-muted-foreground"
+                    >
+                      <X className="h-3.5 w-3.5 mr-1" />
+                      Clear
+                    </Button>
                   )}
                 </div>
-              </ContentCardHeader>
+              </div>
 
               {exportsLoading ? (
                 <div className="p-6 space-y-3">
