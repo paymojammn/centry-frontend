@@ -363,7 +363,7 @@ export default function ReportsPage() {
                   <SectionTitle
                     icon={<CreditCard className="h-4 w-4" />}
                     title="Payments by Channel"
-                    subtitle="Bank (SFTP) and each provider account"
+                    subtitle="By bank account and payment provider"
                   />
                 </ContentCardHeader>
                 <ContentCardBody>
