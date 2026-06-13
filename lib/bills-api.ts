@@ -223,9 +223,16 @@ export const paymentEventsApi = {
   /**
    * Get payment event statistics
    */
-  async getPaymentEventStats(organizationId?: string): Promise<PaymentEventStats> {
+  async getPaymentEventStats(
+    organizationId?: string,
+    direction?: 'IN' | 'OUT'
+  ): Promise<PaymentEventStats> {
     const params = new URLSearchParams();
     if (organizationId) params.append('organization', organizationId);
+    // Stats must be scoped to the same direction as the queue list, otherwise
+    // the pill counts include the other queue's events (e.g. OUT bill payments
+    // counting IN collections too).
+    if (direction) params.append('direction', direction);
     const queryString = params.toString();
 
     const url = queryString

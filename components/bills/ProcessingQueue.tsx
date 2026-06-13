@@ -139,7 +139,9 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   };
 
   const { data: paymentsResponse, isLoading, error, refetch } = usePaymentEvents(filters);
-  const { data: stats } = usePaymentEventStats(organizationId || undefined);
+  // Bills processing queue is outgoing payments — scope stats to OUT so the
+  // pill counts match the direction=OUT list (collections IN events excluded).
+  const { data: stats } = usePaymentEventStats(organizationId || undefined, 'OUT');
   // Only fetch bank accounts if user can generate files (avoids 403 for users without banking.view)
   const { data: bankAccountsData } = useBankAccounts(
     hasExportPermission ? (organizationId || undefined) : undefined

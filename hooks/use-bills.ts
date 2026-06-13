@@ -90,11 +90,12 @@ export function usePaymentEvent(id: number): UseQueryResult<PaymentEvent, Error>
  * Hook to fetch payment event statistics
  */
 export function usePaymentEventStats(
-  organizationId?: string
+  organizationId?: string,
+  direction?: 'IN' | 'OUT'
 ): UseQueryResult<PaymentEventStats, Error> {
   return useQuery({
-    queryKey: ['payment-event-stats', organizationId],
-    queryFn: () => paymentEventsApi.getPaymentEventStats(organizationId),
+    queryKey: ['payment-event-stats', organizationId, direction],
+    queryFn: () => paymentEventsApi.getPaymentEventStats(organizationId, direction),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 }
