@@ -314,11 +314,9 @@ export default function DashboardPage() {
     (a, b) => b.accepted - a.accepted
   );
 
-  // Month-to-date cash flow — single-currency summary so we never sum
-  // across FX. We pick the org's primary operating currency (highest
-  // 6-month volume in cash_flow_series) and read its current-month bucket.
-  // The monthly TruncMonth bucket for the current month *is* month-to-date,
-  // since it only contains transactions from the 1st through today.
+  // Cash flow — all-time successful Centry collections (IN) and bill payments
+  // (OUT) per currency, so every tile matches the Invoice/Bill Payments "Paid"
+  // pills. FX is never summed: we render one row per currency (local + USD).
   const cashFlowSeries = pipelineOverview?.cash_flow_series || [];
   const primaryCcyData =
     cashFlowSeries.length > 0
@@ -327,21 +325,12 @@ export default function DashboardPage() {
             b.total_inflow + b.total_outflow - (a.total_inflow + a.total_outflow)
         )[0]
       : null;
-  const mtdCurrency = primaryCcyData?.currency || 'UGX';
-  const mtdSeries = primaryCcyData?.series || [];
-  const mtdPoint = mtdSeries[mtdSeries.length - 1];
-  const mtdPrev = mtdSeries[mtdSeries.length - 2];
-  const inflows = mtdPoint?.inflow || 0;
-  const outflows = mtdPoint?.outflow || 0;
-  const netFlow = inflows - outflows;
-  const prevNet = mtdPrev ? mtdPrev.inflow - mtdPrev.outflow : 0;
-  // Real period-over-period change. With no prior-month baseline the change is
-  // undefined (not a fabricated 100%); NaN trips the Number.isFinite guard so
-  // the trend indicator is hidden rather than invented.
-  const netFlowChange =
-    prevNet !== 0
-      ? Math.round(((netFlow - prevNet) / Math.abs(prevNet)) * 1000) / 10
-      : NaN;
+  const localCurrency =
+    cashFlowSeries.find((c) => c.currency !== 'USD')?.currency ||
+    (primaryCcyData && primaryCcyData.currency !== 'USD'
+      ? primaryCcyData.currency
+      : 'UGX');
+
   const nowDate = new Date();
   const dayOfMonth = nowDate.getDate();
   const daysInMonth = new Date(
@@ -349,23 +338,27 @@ export default function DashboardPage() {
     nowDate.getMonth() + 1,
     0
   ).getDate();
-  // Project this month's realized outflow to a full-month burn rate.
-  const burnRate = dayOfMonth > 0 ? (outflows / dayOfMonth) * daysInMonth : 0;
-  // Sparkline heartbeats — full 6-month inflow / outflow history.
-  const outflowSpark = mtdSeries.map((p) => p.outflow);
 
-  // Invoice inflows split by currency (FX is never summed): the org's primary
-  // non-USD operating currency and USD, each with its own 6-month sparkline.
-  const usdCcyData = cashFlowSeries.find((c) => c.currency === 'USD');
-  const localCcyData = cashFlowSeries.find((c) => c.currency !== 'USD');
-  const localCurrency =
-    localCcyData?.currency || (mtdCurrency !== 'USD' ? mtdCurrency : 'UGX');
-  const lastInflowOf = (s?: { inflow: number }[]) =>
-    s && s.length ? s[s.length - 1].inflow || 0 : 0;
-  const localInflow = lastInflowOf(localCcyData?.series);
-  const usdInflow = lastInflowOf(usdCcyData?.series);
-  const localInflowSpark = (localCcyData?.series || []).map((p) => p.inflow);
-  const usdInflowSpark = (usdCcyData?.series || []).map((p) => p.inflow);
+  const inflowsByCcy = pipelineOverview?.inflows_by_currency || {};
+  const outflowsByCcy = pipelineOverview?.outflows_by_currency || {};
+  const cashFlowFor = (ccy: string) => {
+    const inflow = Number(inflowsByCcy[ccy] || 0);
+    const outflow = Number(outflowsByCcy[ccy] || 0);
+    const series = cashFlowSeries.find((c) => c.currency === ccy)?.series || [];
+    // Burn rate = this month's realized outflow projected to a full month.
+    const monthOutflow = series.length ? series[series.length - 1].outflow || 0 : 0;
+    const burn = dayOfMonth > 0 ? (monthOutflow / dayOfMonth) * daysInMonth : 0;
+    return {
+      ccy,
+      inflow,
+      outflow,
+      net: inflow - outflow,
+      burn,
+      inflowSpark: series.map((p) => p.inflow),
+      outflowSpark: series.map((p) => p.outflow),
+    };
+  };
+  const cashFlowCurrencies = [localCurrency, 'USD'];
 
   // Action items — Centry-internal counters only
   // Matches the /erp/bills processing-queue "Failed" pill (OUT payment events:
@@ -459,69 +452,67 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ─── Section 2: Month-to-date cash flow ─── */}
-          {/* Single-currency summary (org's primary operating currency) so
-              UGX and USD never get summed. Sourced from cash_flow_series
-              (XeroPaymentEvent realized IN/OUT) — the current-month bucket
-              is month-to-date. Sparklines show the 6-month history. */}
+          {/* ─── Section 2: Cash flow ─── */}
+          {/* All-time successful Centry collections (IN) and bill payments (OUT)
+              per currency — each tile matches the Invoice/Bill Payments "Paid"
+              pills. One row per currency (local + USD); FX is never summed.
+              Sparklines show the 6-month trend; Burn rate projects this month's
+              realized outflow to a full month. */}
           <div>
             <div className="flex items-baseline justify-between mb-3">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Month-to-date cash flow
+                Cash flow
               </h2>
               <span className="text-[11px] text-muted-foreground">
-                {mtdCurrency}
+                Through Centry · per currency
               </span>
             </div>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-              <MetricTile
-                label={`Invoice Inflows · ${localCurrency}`}
-                value={`${localCurrency} ${formatCompact(localInflow)}`}
-                hint="Collected this month"
-                icon={ArrowDownRight}
-                tone="success"
-                sparkline={localInflowSpark.length >= 2 ? localInflowSpark : undefined}
-                sparklineKind="area"
-                onClick={() => router.push('/erp/invoices?status=paid')}
-              />
-              <MetricTile
-                label="Invoice Inflows · USD"
-                value={`USD ${formatCompact(usdInflow)}`}
-                hint="Collected this month"
-                icon={ArrowDownRight}
-                tone="success"
-                sparkline={usdInflowSpark.length >= 2 ? usdInflowSpark : undefined}
-                sparklineKind="area"
-                onClick={() => router.push('/erp/invoices?status=paid')}
-              />
-              <MetricTile
-                label="Bill Outflows"
-                value={`${mtdCurrency} ${formatCompact(outflows)}`}
-                hint="Paid out this month"
-                icon={ArrowUpRight}
-                tone="warning"
-                sparkline={outflowSpark.length >= 2 ? outflowSpark : undefined}
-                sparklineKind="area"
-              />
-              <MetricTile
-                label="Net position"
-                value={`${netFlow >= 0 ? '+' : '−'}${mtdCurrency} ${formatCompact(Math.abs(netFlow))}`}
-                hint="Invoice Inflows − Bill Outflows"
-                icon={Scale}
-                tone={netFlow >= 0 ? 'success' : 'danger'}
-                trend={
-                  Number.isFinite(netFlowChange)
-                    ? { value: netFlowChange, positiveIsGood: true }
-                    : undefined
-                }
-              />
-              <MetricTile
-                label="Burn rate"
-                value={`${mtdCurrency} ${formatCompact(burnRate)}/mo`}
-                hint="Projected monthly spend"
-                icon={Flame}
-                tone="danger"
-              />
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              {cashFlowCurrencies.flatMap((ccy) => {
+                const r = cashFlowFor(ccy);
+                return [
+                  <MetricTile
+                    key={`inflow-${ccy}`}
+                    label={`Invoice Inflows · ${ccy}`}
+                    value={`${ccy} ${formatCompact(r.inflow)}`}
+                    hint="Collected through Centry"
+                    icon={ArrowDownRight}
+                    tone="success"
+                    sparkline={r.inflowSpark.length >= 2 ? r.inflowSpark : undefined}
+                    sparklineKind="area"
+                    onClick={() => router.push('/erp/invoices?status=paid')}
+                  />,
+                  <MetricTile
+                    key={`outflow-${ccy}`}
+                    label={`Bill Outflows · ${ccy}`}
+                    value={`${ccy} ${formatCompact(r.outflow)}`}
+                    hint="Paid through Centry"
+                    icon={ArrowUpRight}
+                    tone="warning"
+                    sparkline={r.outflowSpark.length >= 2 ? r.outflowSpark : undefined}
+                    sparklineKind="area"
+                    onClick={() =>
+                      router.push('/erp/bills?tab=processing&queue_status=SUCCESS_PAYMENT')
+                    }
+                  />,
+                  <MetricTile
+                    key={`net-${ccy}`}
+                    label={`Net Position · ${ccy}`}
+                    value={`${r.net >= 0 ? '+' : '−'}${ccy} ${formatCompact(Math.abs(r.net))}`}
+                    hint="Inflows − Outflows"
+                    icon={Scale}
+                    tone={r.net >= 0 ? 'success' : 'danger'}
+                  />,
+                  <MetricTile
+                    key={`burn-${ccy}`}
+                    label={`Burn rate · ${ccy}`}
+                    value={`${ccy} ${formatCompact(r.burn)}/mo`}
+                    hint="Projected monthly spend"
+                    icon={Flame}
+                    tone="danger"
+                  />,
+                ];
+              })}
             </div>
           </div>
 

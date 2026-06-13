@@ -361,6 +361,10 @@ export interface PipelineOverview {
   provider_accounts: PipelineProviderAccount[];
   channels: PipelineChannel[];
   cash_flow_series: CashFlowSeries[];
+  // All-time successful Centry collections (IN) / bill payments (OUT) by clean
+  // currency — matches the Invoice/Bill Payments "Paid" pills.
+  inflows_by_currency: Record<string, string>;
+  outflows_by_currency: Record<string, string>;
   recent_transactions: PipelineRecentTransaction[];
 }
 
