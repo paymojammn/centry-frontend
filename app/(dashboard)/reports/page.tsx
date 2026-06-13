@@ -469,10 +469,12 @@ export default function ReportsPage() {
             const rows: OutcomeRow[] = [];
             for (const b of overview?.by_bank || []) {
               rows.push({
-                key: `b:${b.bank_account_id}`,
+                // A bank account appears once per currency, so the key (and
+                // sub-label) must include currency to stay unique.
+                key: `b:${b.bank_account_id}:${b.currency}`,
                 kind: "bank",
                 name: b.bank_name,
-                sub: b.account_name,
+                sub: `${b.account_name} · ${b.currency}`,
                 completed: b.accepted_count,
                 failed: b.rejected_count,
                 in_flight: Math.max(
@@ -490,10 +492,10 @@ export default function ReportsPage() {
                 continue;
               }
               rows.push({
-                key: `p:${a.account_id}`,
+                key: `p:${a.account_id}:${a.currency}`,
                 kind: "provider",
                 name: a.account_name,
-                sub: a.provider,
+                sub: `${a.provider} · ${a.currency}`,
                 completed: a.period_completed_count,
                 failed: a.period_failed_count,
                 in_flight: a.period_inflight_count,
