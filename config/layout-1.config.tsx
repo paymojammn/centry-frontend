@@ -75,17 +75,6 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Audit Trail", path: "/reports/audit" },
     ],
   },
-  { heading: "Settings" },
-  {
-    title: "Account",
-    icon: Settings,
-    path: "/account/profile",
-  },
-  {
-    title: "Organizations",
-    icon: Briefcase,
-    path: "/organizations",
-  },
 ];
 
 // Simplified MENU_MEGA - using only available icons
