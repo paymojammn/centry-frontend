@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/layout/page-header";
 import { BankingExportOverview } from "@/components/banking/banking-export-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
 import { Pain002Inbox } from "@/components/banking/pain002-inbox";
@@ -25,7 +26,6 @@ import {
   ContentCardHeader,
 } from "@/components/layout/content-card";
 import {
-  Building2,
   BarChart3,
   Upload,
   FileCheck,
@@ -171,39 +171,19 @@ export default function BankingExportPage() {
   }, [hasBankingExport]);
 
   return (
-    <div className="min-h-screen bg-muted">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-normal text-foreground">Export</h1>
-            <Select
-              value={selectedOrganizationId || undefined}
-              onValueChange={setSelectedOrganizationId}
-              disabled={orgsLoading || !organizations?.length}
-            >
-              <SelectTrigger className="w-[200px] h-9 text-sm bg-muted border-border">
-                <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
-                <SelectValue placeholder="Select org" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations?.map((org: any) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{org.name}</span>
-                      {org.external_id?.startsWith("xero_") && (
-                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                          Xero
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
+      <PageHeader
+        title="Export"
+        subtitle="Generate, upload and reconcile bank payment files"
+        breadcrumbs={[
+          { label: "Banking", href: "/banking" },
+          { label: "Export" },
+        ]}
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      />
 
       {/* Tabs */}
       <div className="bg-card border-b border-border">

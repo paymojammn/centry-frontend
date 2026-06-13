@@ -4,20 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { BankAccountsList } from "@/components/banking/bank-accounts-list";
 import { BankAccountForm } from "@/components/banking/bank-account-form";
 import { StatCard } from "@/components/layout/stat-card";
+import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useSyncAccounts, useERPConnections } from "@/hooks/use-erp";
 import {
-  Building2,
   Plus,
   RefreshCw,
   Landmark,
@@ -150,55 +143,40 @@ export default function BankAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-normal text-foreground">Bank Accounts</h1>
-
-            <div className="flex items-center gap-2">
-              <Select
-                value={selectedOrganizationId || undefined}
-                onValueChange={setSelectedOrganizationId}
-                disabled={orgsLoading || !organizations?.length}
-              >
-                <SelectTrigger className="w-[200px] h-9 bg-muted border-border">
-                  <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations?.map((org: any) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {activeConnectionId && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSyncAccounts}
-                  disabled={isSyncing}
-                  className="h-9"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : `Sync from ${activeProviderName}`}
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={handleAddAccount}
-                className="h-9 bg-primary hover:bg-primary/90"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Account
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
+      <PageHeader
+        title="Bank Accounts"
+        subtitle="Manage your organization's bank accounts"
+        breadcrumbs={[
+          { label: "Banking", href: "/banking" },
+          { label: "Accounts" },
+        ]}
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        isLoadingOrgs={orgsLoading}
+      >
+        {activeConnectionId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncAccounts}
+            disabled={isSyncing}
+            className="h-9"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : `Sync from ${activeProviderName}`}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          onClick={handleAddAccount}
+          className="h-9 bg-primary hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Account
+        </Button>
+      </PageHeader>
 
       {/* Summary cards */}
       <div className="px-6 pt-6">
