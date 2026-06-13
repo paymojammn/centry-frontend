@@ -52,7 +52,7 @@ export default function BillDetailPage() {
           {billId && (
             <p className="text-sm text-muted-foreground">Bill ID: {billId}</p>
           )}
-          <Button onClick={() => router.push('/bills')} className="mt-4">
+          <Button onClick={() => router.push('/erp/bills')} className="mt-4">
             Back to Bills
           </Button>
         </div>
@@ -79,7 +79,7 @@ export default function BillDetailPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/bills')}
+          onClick={() => router.push('/erp/bills')}
           aria-label="Back to bills"
         >
           <ArrowLeft className="h-5 w-5" />

@@ -851,7 +851,7 @@ export default function DashboardPage() {
                       : `${openBills.length} open`
                   }
                   right={
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary h-8" onClick={() => router.push('/bills')}>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary h-8" onClick={() => router.push('/erp/bills')}>
                       View all <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   }
@@ -881,7 +881,7 @@ export default function DashboardPage() {
                   </div>
                   {openBills.length > 8 && (
                     <ContentCardFooter>
-                      <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary h-8" onClick={() => router.push('/bills')}>
+                      <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary h-8" onClick={() => router.push('/erp/bills')}>
                         View {openBills.length - 8} more <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
                     </ContentCardFooter>
@@ -960,7 +960,7 @@ export default function DashboardPage() {
       {/* ─── Quick Actions Bar ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-sm border-t border-border shadow-lg">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-center gap-3">
-          <Button size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/bills')}>
+          <Button size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/erp/bills')}>
             <CreditCard className="h-3.5 w-3.5" /> Pay Bills
           </Button>
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/banking/export')}>

@@ -27,8 +27,9 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: Wallet,
     requiredRole: "finance",
     children: [
-      { title: "Invoices", path: "/invoices" },
-      { title: "Bills", path: "/bills" },
+      { title: "Invoices", path: "/erp/invoices" },
+      { title: "Bills", path: "/erp/bills" },
+      { title: "Vendors", path: "/erp/vendors" },
     ],
   },
   {
@@ -63,7 +64,6 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Transactions", path: "/banking/transactions" },
       { title: "Sync to ERP", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
-      { title: "Vendors", path: "/vendors" },
     ],
   },
   {
@@ -103,7 +103,7 @@ export const MENU_MEGA: MenuConfig = [
         children: [
           {
             children: [
-              { title: "Bills & Expenses", icon: FileText, path: "/bills" },
+              { title: "Bills & Expenses", icon: FileText, path: "/erp/bills" },
               { title: "Payments", icon: TrendingUp, path: "/payments" },
               { title: "Banking", icon: Building, path: "/banking" },
             ],
@@ -205,7 +205,7 @@ export const MENU_MEGA_MOBILE: MenuConfig = [
   {
     title: "Financial",
     children: [
-      { title: "Bills", icon: FileText, path: "/bills" },
+      { title: "Bills", icon: FileText, path: "/erp/bills" },
       { title: "Payments", icon: TrendingUp, path: "/payments" },
       { title: "Banking", icon: Building, path: "/banking" },
     ],

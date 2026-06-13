@@ -39,10 +39,10 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   // Main
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard', keywords: ['home', 'overview', 'stats'], section: 'Main' },
-  { icon: FileText, label: 'Bills', path: '/bills', keywords: ['invoices', 'payables', 'vendor'], section: 'Main' },
+  { icon: FileText, label: 'Bills', path: '/erp/bills', keywords: ['invoices', 'payables', 'vendor'], section: 'Main' },
   { icon: CreditCard, label: 'Payments', path: '/payments', keywords: ['pay', 'transfer', 'send'], section: 'Main' },
   { icon: Receipt, label: 'Expenses', path: '/expenses', keywords: ['spend', 'cost', 'claims'], section: 'Main' },
-  { icon: Users, label: 'Vendors', path: '/vendors', keywords: ['suppliers', 'contacts'], section: 'Main' },
+  { icon: Users, label: 'Vendors', path: '/erp/vendors', keywords: ['suppliers', 'contacts'], section: 'Main' },
   { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main' },
   // Banking
   { icon: FileUp, label: 'Export Payments', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },

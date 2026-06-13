@@ -15,6 +15,19 @@ const nextConfig = {
   // Django requires trailing slashes (APPEND_SLASH = False)
   skipTrailingSlashRedirect: true,
 
+  // Bills/Invoices/Vendors moved under the /erp/ namespace. Keep old links and
+  // provider payment-return URLs working (query string is preserved by Next.js).
+  async redirects() {
+    return [
+      { source: '/bills', destination: '/erp/bills', permanent: true },
+      { source: '/bills/:id*', destination: '/erp/bills/:id*', permanent: true },
+      { source: '/invoices', destination: '/erp/invoices', permanent: true },
+      { source: '/invoices/:id*', destination: '/erp/invoices/:id*', permanent: true },
+      { source: '/vendors', destination: '/erp/vendors', permanent: true },
+      { source: '/vendors/:id*', destination: '/erp/vendors/:id*', permanent: true },
+    ];
+  },
+
   // Environment variables - ensure API URL is available
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',

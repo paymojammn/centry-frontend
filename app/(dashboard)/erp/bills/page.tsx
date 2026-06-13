@@ -143,7 +143,7 @@ export default function BillsPage() {
       remaining.delete(k);
     }
     const qs = remaining.toString();
-    router.replace(qs ? `/bills?${qs}` : '/bills', { scroll: false });
+    router.replace(qs ? `/erp/bills?${qs}` : '/erp/bills', { scroll: false });
   }, [searchParams, router]);
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
@@ -612,7 +612,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                 onClick={() =>
                   canCreatePayment && canPay
                     ? onSelectBill(bill.id)
-                    : router.push(`/bills/${bill.id}`)
+                    : router.push(`/erp/bills/${bill.id}`)
                 }
               >
                 {canCreatePayment && (
@@ -676,7 +676,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     )}
                     <button
                       type="button"
-                      onClick={() => router.push(`/bills/${bill.id}`)}
+                      onClick={() => router.push(`/erp/bills/${bill.id}`)}
                       aria-label="View bill details"
                       className="p-1 rounded-md text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
                     >

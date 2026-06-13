@@ -163,7 +163,7 @@ export default function InvoicesPage() {
       remaining.delete(k);
     }
     const qs = remaining.toString();
-    router.replace(qs ? `/invoices?${qs}` : '/invoices', { scroll: false });
+    router.replace(qs ? `/erp/invoices?${qs}` : '/erp/invoices', { scroll: false });
   }, [searchParams, router]);
 
   useEffect(() => {
@@ -499,7 +499,7 @@ export default function InvoicesPage() {
                                   return next;
                                 });
                               } else {
-                                router.push(`/invoices/${inv.id}`);
+                                router.push(`/erp/invoices/${inv.id}`);
                               }
                             }}
                           >
@@ -569,7 +569,7 @@ export default function InvoicesPage() {
                                 )}
                                 <button
                                   type="button"
-                                  onClick={() => router.push(`/invoices/${inv.id}`)}
+                                  onClick={() => router.push(`/erp/invoices/${inv.id}`)}
                                   aria-label="View invoice details"
                                   className="p-1 rounded-md text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
                                 >

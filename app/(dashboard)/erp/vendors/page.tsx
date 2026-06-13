@@ -293,7 +293,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
           <tr
             key={contact.id}
             className="cursor-pointer"
-            onClick={() => router.push(`/vendors/${contact.id}`)}
+            onClick={() => router.push(`/erp/vendors/${contact.id}`)}
           >
             <td className="cell-primary">
               <div className="flex items-center gap-3">

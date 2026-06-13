@@ -99,7 +99,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
         <div className="text-center">
           <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
           <p className="text-sm font-medium text-foreground mb-1">Contact not found</p>
-          <Button variant="outline" size="sm" onClick={() => router.push('/vendors')}>
+          <Button variant="outline" size="sm" onClick={() => router.push('/erp/vendors')}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Contacts
           </Button>
         </div>
@@ -150,7 +150,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
-              <Button variant="ghost" size="sm" onClick={() => router.push('/vendors')}>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/erp/vendors')}>
                 <ArrowLeft className="h-4 w-4 mr-2" /> Contacts
               </Button>
               <div className="h-6 w-px bg-border" />

@@ -55,7 +55,7 @@ export default function InvoiceDetailPage() {
         <div className="text-center">
           <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
           <p className="text-sm font-medium text-foreground mb-1">Invoice not found</p>
-          <Button variant="outline" size="sm" onClick={() => router.push('/invoices')}>
+          <Button variant="outline" size="sm" onClick={() => router.push('/erp/invoices')}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Invoices
           </Button>
         </div>
@@ -90,7 +90,7 @@ export default function InvoiceDetailPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => router.push('/invoices')}>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/erp/invoices')}>
                 <ArrowLeft className="h-4 w-4 mr-2" /> Invoices
               </Button>
               <div className="h-6 w-px bg-border" />
