@@ -78,14 +78,24 @@ export default function ThroughputReportPage() {
 
   // Pull channel options from pipeline overview (bank accounts + provider accounts)
   const { data: overview } = usePipelineOverview(organizationId, startDate, endDate);
+  // by_bank is split per currency, so dedupe bank accounts by id to avoid
+  // duplicate option keys (e.g. bank:2 for both the UGX and USD rows).
+  const bankOptions = Array.from(
+    new Map(
+      (overview?.by_bank || []).map((b) => [
+        b.bank_account_id,
+        {
+          value: `bank:${b.bank_account_id}`,
+          label: `Bank · ${b.bank_name}${b.account_name ? " · " + b.account_name : ""}`,
+        },
+      ])
+    ).values()
+  );
   const channelOptions = [
     { value: "all", label: "All channels" },
     { value: "bank", label: "Banks (all)" },
     { value: "provider", label: "Provider accounts (all)" },
-    ...((overview?.by_bank || []).map((b) => ({
-      value: `bank:${b.bank_account_id}`,
-      label: `Bank · ${b.bank_name}${b.account_name ? " · " + b.account_name : ""}`,
-    }))),
+    ...bankOptions,
     ...((overview?.provider_accounts || []).map((a) => ({
       value: `provider:${a.account_id}`,
       label: `Provider · ${a.account_name} (${a.provider})`,
