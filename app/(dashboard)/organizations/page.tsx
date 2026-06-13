@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/layout/page-header';
+import { StatCard } from '@/components/layout/stat-card';
 
 export default function OrganizationsPage() {
   const { data, isLoading, error } = useOrganizations();
@@ -75,29 +76,27 @@ export default function OrganizationsPage() {
         </Button>
       </PageHeader>
 
-      {/* Stats Bar */}
-      <div className="bg-card border-b border-border">
-        <div className="px-6 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Organizations:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/10 text-primary">
-                {stats.total}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Members:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
-                {stats.totalMembers}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Connections:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-primary/5 text-primary">
-                {stats.totalConnections}
-              </span>
-            </div>
-          </div>
+      {/* Summary cards */}
+      <div className="px-6 pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in-up">
+          <StatCard
+            label="Organizations"
+            value={stats.total}
+            icon={Building2}
+            variant="accent"
+          />
+          <StatCard
+            label="Members"
+            value={stats.totalMembers}
+            icon={Users}
+            variant="info"
+          />
+          <StatCard
+            label="Connections"
+            value={stats.totalConnections}
+            icon={Globe}
+            variant="success"
+          />
         </div>
       </div>
 
