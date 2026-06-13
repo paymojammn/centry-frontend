@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
   Building2,
-  Plus,
   Search,
   Users,
   Globe,
@@ -69,12 +68,7 @@ export default function OrganizationsPage() {
         title="Organizations"
         subtitle="Manage your organizations and teams"
         breadcrumbs={[{ label: "Organizations" }]}
-      >
-        <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 btn-press">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Organization
-        </Button>
-      </PageHeader>
+      />
 
       {/* Summary cards */}
       <div className="px-6 pt-6">
@@ -140,14 +134,8 @@ export default function OrganizationsPage() {
               <p className="text-xs text-muted-foreground/60 mt-1">
                 {searchQuery
                   ? 'Try adjusting your search query'
-                  : 'Create one or ask to be invited'}
+                  : 'Ask an administrator to be invited'}
               </p>
-              {!searchQuery && (
-                <Button size="sm" className="mt-4 bg-primary hover:bg-primary/90 btn-press">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Organization
-                </Button>
-              )}
             </div>
           )}
         </div>
