@@ -45,6 +45,7 @@ import {
 } from "@/hooks/use-payment-requests";
 import type { PaymentRequest, PaymentRecipient } from "@/types/payment-request";
 import { StatusBadge } from "@/components/layout/status-badge";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface LocalRecipient {
   id: string;
@@ -245,21 +246,16 @@ export default function NewPaymentPage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
+      <PageHeader
+        title="New Payment"
+        subtitle="Send payments to individuals or multiple recipients at once"
+        breadcrumbs={[
+          { label: "Payments", href: "/payments/new" },
+          { label: "New" },
+        ]}
+      />
       <div className="py-8 px-4">
         <div className="space-y-6">
-          {/* Header */}
-          <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 bg-primary/10 rounded-lg">
-                <Smartphone className="h-6 w-6 text-primary" />
-              </div>
-              <h1 className="text-3xl font-semibold text-foreground">Send Mobile Money</h1>
-            </div>
-            <p className="text-muted-foreground ml-12">
-              Send payments to individuals or multiple recipients at once
-            </p>
-          </div>
-
           {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

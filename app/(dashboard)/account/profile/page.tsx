@@ -30,6 +30,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { getInitials } from "@/lib/theme";
 import { useCurrentUser } from "@/hooks/use-user";
 import type { UserProfile } from "@/hooks/use-user";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -109,12 +110,8 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-        <div className="bg-card border-b border-border sticky top-0 z-10">
-          <div className="max-w-4xl mx-auto px-6 py-4">
-            <h1 className="text-xl font-semibold text-foreground">Profile</h1>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-6 py-6">
+        <PageHeader title="Profile" />
+        <div className="px-6 py-6">
           <EmptyState
             icon={User}
             title="Profile not found"
@@ -133,52 +130,50 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      {/* Header */}
-      <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Profile</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Manage your account details</p>
-            </div>
-            {!isEditing ? (
-              <Button
-                size="sm"
-                onClick={handleEdit}
-                className="h-8 bg-primary hover:bg-primary/90 btn-press"
-              >
-                Edit Profile
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
-                  disabled={updateMutation.isPending}
-                  className="h-8 btn-press"
-                >
-                  <X className="h-3.5 w-3.5 mr-1.5" />
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={updateMutation.isPending}
-                  className="h-8 bg-primary hover:bg-primary/90 btn-press"
-                >
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  {updateMutation.isPending ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            )}
+      <PageHeader
+        title="Profile"
+        subtitle="Manage your account details"
+        breadcrumbs={[
+          { label: "Account", href: "/account/profile" },
+          { label: "Profile" },
+        ]}
+      >
+        {!isEditing ? (
+          <Button
+            size="sm"
+            onClick={handleEdit}
+            className="h-8 bg-primary hover:bg-primary/90 btn-press"
+          >
+            Edit Profile
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              disabled={updateMutation.isPending}
+              className="h-8 btn-press"
+            >
+              <X className="h-3.5 w-3.5 mr-1.5" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={updateMutation.isPending}
+              className="h-8 bg-primary hover:bg-primary/90 btn-press"
+            >
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              {updateMutation.isPending ? "Saving..." : "Save"}
+            </Button>
           </div>
-        </div>
-      </div>
+        )}
+      </PageHeader>
 
       {/* Stats Bar */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-4xl mx-auto px-6 py-3">
+        <div className="px-6 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-medium text-sm">
@@ -217,7 +212,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="px-6">
           <div className="flex gap-1">
             {tabs.map((tab) => (
               <button
@@ -237,7 +232,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-6 animate-fade-in-up">
+      <div className="px-6 py-6 animate-fade-in-up">
         {activeTab === 'personal' && (
           <div className="bg-card rounded-xl border border-border/80 shadow-sm">
             <div className="px-6 py-4 border-b border-border">

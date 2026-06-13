@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function OrganizationsPage() {
   const { data, isLoading, error } = useOrganizations();
@@ -42,12 +43,12 @@ export default function OrganizationsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-muted">
-        <div className="bg-card border-b border-border sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[rgb(var(--page-bg))]">
+        <PageHeader
+          title="Organizations"
+          subtitle="Manage your organizations and teams"
+          breadcrumbs={[{ label: "Organizations" }]}
+        />
         <div className="px-6 py-6">
           <div className="bg-card rounded-lg border border-border text-center py-12">
             <Building2 className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
@@ -63,21 +64,16 @@ export default function OrganizationsPage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      {/* Header */}
-      <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Organizations</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Manage your organizations and teams</p>
-            </div>
-            <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 btn-press">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Organization
-            </Button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Organizations"
+        subtitle="Manage your organizations and teams"
+        breadcrumbs={[{ label: "Organizations" }]}
+      >
+        <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 btn-press">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Organization
+        </Button>
+      </PageHeader>
 
       {/* Stats Bar */}
       <div className="bg-card border-b border-border">

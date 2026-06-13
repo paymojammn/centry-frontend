@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   Table,
   TableBody,
@@ -33,7 +34,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Shield,
   Activity,
   AlertTriangle,
   CheckCircle2,
@@ -268,24 +268,14 @@ export default function SecurityPage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      {/* Header */}
-      <div className="bg-card/95 backdrop-blur-sm border-b border-border/80 shadow-sm sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">Security</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Manage your account security and monitor activity
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Security"
+        subtitle="Manage your account security and monitor activity"
+        breadcrumbs={[
+          { label: "Account", href: "/account/profile" },
+          { label: "Security" },
+        ]}
+      />
 
       <div className="px-6 py-6 space-y-6 animate-fade-in-up">
 

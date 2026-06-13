@@ -16,7 +16,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AlertCircle,
-  Building2,
   ChevronDown,
   ChevronRight,
   ExternalLink,
@@ -58,6 +57,7 @@ import {
   type SignoffBadge,
 } from "@/lib/onegate-api";
 import { exportOnegateSignoffExcel, exportOnegateSignoffPDF } from "@/lib/onegate-signoff-export";
+import { PageHeader } from "@/components/layout/page-header";
 import OttPayoutsSection from "./OttPayoutsSection";
 
 // ---------------------------------------------------------------------------
@@ -639,16 +639,47 @@ export default function OnegateSignoffPage() {
 
   // -------- Render --------
   return (
-    <div className="min-h-screen bg-muted">
-      <Header
-        organizationId={organizationId}
-        onOrganizationChange={setOrganizationId}
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
+      <PageHeader
+        title="OneGate Sign-off"
+        subtitle="Complete one paid transaction per deposit / payout method you'll use in production. Sandbox-only."
+        breadcrumbs={[
+          { label: "Banking", href: "/banking" },
+          { label: "OneGate Sign-off" },
+        ]}
         organizations={organizations}
-        accountId={accountId}
-        onAccountChange={setAccountId}
-        accounts={onegateAccounts}
-        accountsLoading={accountsLoading}
-      />
+        selectedOrganizationId={organizationId}
+        onOrganizationChange={setOrganizationId}
+      >
+        <Select
+          value={accountId || undefined}
+          onValueChange={setAccountId}
+          disabled={accountsLoading || onegateAccounts.length === 0}
+        >
+          <SelectTrigger className="w-[280px] h-9 bg-card border-border">
+            <SelectValue placeholder="Select OneGate account" />
+          </SelectTrigger>
+          <SelectContent>
+            {onegateAccounts.map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                <span className="flex items-center gap-2">
+                  <span>{a.name}</span>
+                  <span
+                    className={
+                      "text-[10px] font-mono px-1.5 py-0.5 rounded " +
+                      (a.active_environment === "sandbox"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-rose-100 text-rose-800")
+                    }
+                  >
+                    {a.active_environment}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PageHeader>
 
       <div className="px-6 py-6 space-y-6">
         {selectedAccount && !isSandbox && (
@@ -1238,10 +1269,6 @@ export default function OnegateSignoffPage() {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // <TestCaseSection> — uniform renderer for every sign-off test case.
@@ -2790,86 +2817,6 @@ function ReconForm({
         With both toggles off the test only lists + looks up — safe to
         re-run repeatedly. Toggle one on to additionally exercise the
         destructive endpoint.
-      </div>
-    </div>
-  );
-}
-
-function Header({
-  organizationId,
-  onOrganizationChange,
-  organizations,
-  accountId,
-  onAccountChange,
-  accounts,
-  accountsLoading,
-}: {
-  organizationId: string | null;
-  onOrganizationChange: (id: string) => void;
-  organizations: any[];
-  accountId: string | null;
-  onAccountChange: (id: string) => void;
-  accounts: ProviderAccount[];
-  accountsLoading: boolean;
-}) {
-  return (
-    <div className="bg-card border-b border-border sticky top-0 z-10">
-      <div className="px-6 py-4 flex items-center gap-4 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">
-            OneGate Sign-off
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Complete one paid transaction per deposit / payout method you'll
-            use in production. Sandbox-only.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <Select
-            value={organizationId || undefined}
-            onValueChange={onOrganizationChange}
-          >
-            <SelectTrigger className="w-[220px] h-9 bg-muted border-border">
-              <Building2 className="h-4 w-4 text-muted-foreground/60 mr-2" />
-              <SelectValue placeholder="Select organization" />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations?.map((org: any) => (
-                <SelectItem key={org.id} value={org.id}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={accountId || undefined}
-            onValueChange={onAccountChange}
-            disabled={accountsLoading || accounts.length === 0}
-          >
-            <SelectTrigger className="w-[280px] h-9 bg-muted border-border">
-              <SelectValue placeholder="Select OneGate account" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  <span className="flex items-center gap-2">
-                    <span>{a.name}</span>
-                    <span
-                      className={
-                        "text-[10px] font-mono px-1.5 py-0.5 rounded " +
-                        (a.active_environment === "sandbox"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-rose-100 text-rose-800")
-                      }
-                    >
-                      {a.active_environment}
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
     </div>
   );

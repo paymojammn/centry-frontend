@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +23,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import {
-  ArrowLeft,
   Shield,
   Mail,
   MessageSquare,
@@ -41,6 +39,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/layout/loading-state";
+import { PageHeader } from "@/components/layout/page-header";
 import { getApiUrl } from "@/config/api";
 
 interface TwoFASettings {
@@ -327,30 +326,18 @@ export default function TwoFactorSettingsPage() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/account/profile"
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">
-                Two-Factor Authentication
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Add an extra layer of security to your account
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Two-Factor Authentication"
+        subtitle="Add an extra layer of security to your account"
+        breadcrumbs={[
+          { label: "Account", href: "/account/profile" },
+          { label: "Security", href: "/account/profile" },
+          { label: "Two-Factor" },
+        ]}
+      />
 
       {/* Status Banner */}
-      <div className="max-w-3xl mx-auto px-6 py-4">
+      <div className="px-6 py-4">
         <Card
           className={`p-4 border ${
             settings?.is_2fa_enabled
@@ -395,7 +382,7 @@ export default function TwoFactorSettingsPage() {
       </div>
 
       {/* Methods */}
-      <div className="max-w-3xl mx-auto px-6 pb-6">
+      <div className="px-6 pb-6">
         <Card className="divide-y divide-border">
           {methods.map((method) => {
             const Icon = getMethodIcon(method);
