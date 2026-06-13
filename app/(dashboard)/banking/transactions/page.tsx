@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,10 +15,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankAccounts } from "@/hooks/use-banking";
-import {
-  ContentCard,
-  ContentCardHeader,
-} from "@/components/layout/content-card";
+import { ContentCard } from "@/components/layout/content-card";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   DropdownMenu,
@@ -36,7 +32,12 @@ import {
   FileText,
   FileSpreadsheet,
   Printer,
+  CheckCircle2,
+  Clock,
+  XCircle,
 } from "lucide-react";
+import { StatCard } from "@/components/layout/stat-card";
+import { PILL_COLORS } from "@/lib/theme";
 import { formatCurrency } from "@/lib/utils";
 import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
 import { format } from "date-fns";
@@ -139,6 +140,21 @@ export default function BankTransactionsPage() {
   });
 
   const payments = data?.results || [];
+
+  // Summary + pill counts/amounts (from all payments, so totals stay accurate).
+  const statusCount = (statuses: string[]) =>
+    payments.filter((p) => statuses.includes(p.provider_status)).length;
+  const fmtAmount = (list: PaymentEvent[]) => {
+    const total = list.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+    if (!total) return "—";
+    const ccy = list[0]?.currency ? String(list[0].currency).split(".").pop() : "";
+    return `${ccy} ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  };
+  const statusAmount = (statuses: string[]) =>
+    fmtAmount(payments.filter((p) => statuses.includes(p.provider_status)));
+  const PAID = ["SUCCESS_PAYMENT"];
+  const IN_FLIGHT = ["PENDING_APPROVAL", "PROCESSING", "SENT_PAYMENT", "PENDING"];
+  const FAILED = ["FAILED_PAYMENT", "ERROR_PAYMENT", "REJECTED"];
 
   const hasFilters =
     statusFilter !== "all" ||
@@ -282,89 +298,126 @@ export default function BankTransactionsPage() {
       </PageHeader>
 
       <div className="px-6 py-8 space-y-5">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-9"
-            />
-          </div>
-
-          <Select value={accountFilter} onValueChange={setAccountFilter}>
-            <SelectTrigger className="w-[160px] h-9">
-              <SelectValue placeholder="All accounts" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All accounts</SelectItem>
-              {bankAccounts.map((a: any) => (
-                <SelectItem key={a.id} value={a.id.toString()}>
-                  {a.account_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[170px] h-9">
-              <SelectValue placeholder="All status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All status</SelectItem>
-              <SelectItem value="PENDING_APPROVAL">Pending Approval</SelectItem>
-              <SelectItem value="PROCESSING">Ready for File</SelectItem>
-              <SelectItem value="SENT_PAYMENT">Sent to Bank</SelectItem>
-              <SelectItem value="SUCCESS_PAYMENT">Paid</SelectItem>
-              <SelectItem value="FAILED_PAYMENT">Failed</SelectItem>
-              <SelectItem value="ERROR_PAYMENT">Error</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="h-9 w-[135px]"
+        {/* Summary cards (bills-page style) */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+          <StatCard
+            label="Total payments"
+            value={payments.length}
+            subtext={fmtAmount(payments)}
+            icon={ArrowUpFromLine}
+            variant="accent"
           />
-          <span className="text-xs text-muted-foreground">to</span>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="h-9 w-[135px]"
+          <StatCard
+            label="Paid"
+            value={statusCount(PAID)}
+            subtext={statusAmount(PAID)}
+            icon={CheckCircle2}
+            iconColor="#5C8A65"
+            iconBgColor="#E8F5E5"
+            variant="success"
           />
-
-          {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-9 text-muted-foreground"
-            >
-              <X className="h-3.5 w-3.5 mr-1" />
-              Clear
-            </Button>
-          )}
+          <StatCard
+            label="In progress"
+            value={statusCount(IN_FLIGHT)}
+            subtext={statusAmount(IN_FLIGHT)}
+            icon={Clock}
+            iconColor="#b87a00"
+            iconBgColor="#FFF6E0"
+            variant="warning"
+          />
+          <StatCard
+            label="Failed"
+            value={statusCount(FAILED)}
+            subtext={statusAmount(FAILED)}
+            icon={XCircle}
+            iconColor="#dc2626"
+            iconBgColor="#FEE2E2"
+            variant={statusCount(FAILED) > 0 ? "danger" : "default"}
+          />
         </div>
 
-        {/* Table */}
+        {/* Table card — status pills header + grid (bills-grid style) */}
         <ContentCard noPadding>
-          <ContentCardHeader>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">
-                Outgoing Payments
-              </h3>
-              {!isLoading && (
-                <Badge variant="secondary" className="text-xs">
-                  {filteredPayments.length}
-                </Badge>
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+            {([
+              { value: "all", label: "All", count: payments.length },
+              { value: "PENDING_APPROVAL", label: "Pending Approval", count: statusCount(["PENDING_APPROVAL"]) },
+              { value: "PROCESSING", label: "Ready for File", count: statusCount(["PROCESSING"]) },
+              { value: "SENT_PAYMENT", label: "Sent to Bank", count: statusCount(["SENT_PAYMENT"]) },
+              { value: "SUCCESS_PAYMENT", label: "Paid", count: statusCount(["SUCCESS_PAYMENT"]) },
+              { value: "FAILED_PAYMENT", label: "Failed", count: statusCount(["FAILED_PAYMENT"]) },
+              { value: "ERROR_PAYMENT", label: "Error", count: statusCount(["ERROR_PAYMENT"]) },
+              { value: "REJECTED", label: "Rejected", count: statusCount(["REJECTED"]) },
+            ]).map((p) => {
+              const active = statusFilter === p.value;
+              const color = p.value === "all" ? undefined : PILL_COLORS[p.value.toLowerCase()];
+              return (
+                <button
+                  key={p.value}
+                  onClick={() => setStatusFilter(p.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                    active
+                      ? color
+                        ? "text-white"
+                        : "bg-foreground text-card"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={active && color ? { backgroundColor: color } : undefined}
+                >
+                  {p.label} ({p.count})
+                </button>
+              );
+            })}
+
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <Select value={accountFilter} onValueChange={setAccountFilter}>
+                <SelectTrigger className="w-[150px] h-9 text-sm">
+                  <SelectValue placeholder="All accounts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All accounts</SelectItem>
+                  {bankAccounts.map((a: any) => (
+                    <SelectItem key={a.id} value={a.id.toString()}>
+                      {a.account_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative w-44">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                <Input
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-9 w-[135px] text-sm"
+              />
+              <span className="text-xs text-muted-foreground">to</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-9 w-[135px] text-sm"
+              />
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-9 text-muted-foreground"
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Clear
+                </Button>
               )}
             </div>
-          </ContentCardHeader>
+          </div>
 
           {isLoading ? (
             <div className="p-6 space-y-3">
