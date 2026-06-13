@@ -7,13 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizations } from "@/hooks/use-organization";
 import {
@@ -144,21 +137,15 @@ export default function BankReconciliationPage() {
     results: TransactionStatus[];
     total_count: number;
   }>({
-    queryKey: [
-      "bank-response-transactions",
-      statusFilter,
-      selectedOrganizationId,
-    ],
+    queryKey: ["bank-response-transactions", selectedOrganizationId],
     queryFn: async () => {
       const p = new URLSearchParams();
       if (selectedOrganizationId)
         p.append("organization", selectedOrganizationId);
-      if (statusFilter !== "all") p.append("status", statusFilter);
-      const result = await api.get(
+      // Status is filtered client-side so the pill/tile counts stay accurate.
+      return api.get(
         `/api/v1/banking/export-statuses/all-transactions/?${p.toString()}`
       );
-      console.log("[Recon] Fetched transactions:", result);
-      return result;
     },
     enabled: !!selectedOrganizationId,
   });
@@ -167,6 +154,14 @@ export default function BankReconciliationPage() {
 
   // Client-side filtering
   const filtered = transactions.filter((t) => {
+    // Status (ACSP + ACWC both count as "Accepted")
+    if (statusFilter !== "all") {
+      if (statusFilter === "ACSP") {
+        if (t.status !== "ACSP" && t.status !== "ACWC") return false;
+      } else if (t.status !== statusFilter) {
+        return false;
+      }
+    }
     // Search
     if (search) {
       const q = search.toLowerCase();
@@ -515,98 +510,122 @@ export default function BankReconciliationPage() {
           )}
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Filters — status + ERP-sync pills with search/date (bills-grid style) */}
+        <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+          {([
+            { value: "all", label: "All", count: counts.accepted + counts.rejected + counts.pending, color: undefined as string | undefined },
+            { value: "ACSP", label: "Accepted", count: counts.accepted, color: "#5C8A65" },
+            { value: "RJCT", label: "Rejected", count: counts.rejected, color: "#dc2626" },
+            { value: "PDNG", label: "Pending", count: counts.pending, color: "#fed652" },
+          ]).map((p) => {
+            const active = statusFilter === p.value;
+            return (
+              <button
+                key={p.value}
+                onClick={() => setStatusFilter(p.value)}
+                className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  active
+                    ? p.color
+                      ? "text-white"
+                      : "bg-foreground text-card"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                style={active && p.color ? { backgroundColor: p.color } : undefined}
+              >
+                {p.label} ({p.count})
+              </button>
+            );
+          })}
+
+          <span className="hidden sm:block h-5 w-px bg-border mx-1" />
+
+          {([
+            { value: "all", label: "All ERP" },
+            { value: "synced", label: "Synced" },
+            { value: "unsynced", label: "Not synced" },
+          ]).map((p) => {
+            const active = syncedFilter === p.value;
+            return (
+              <button
+                key={p.value}
+                onClick={() => setSyncedFilter(p.value)}
+                className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  active ? "bg-foreground text-card" : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <div className="relative w-44">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
             <Input
-              placeholder="Search vendor, bill, reference..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-9"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="h-9 w-[135px] text-sm"
             />
+            <span className="text-xs text-muted-foreground">to</span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="h-9 w-[135px] text-sm"
+            />
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStatusFilter("all");
+                  setSyncedFilter("all");
+                  setStartDate("");
+                  setEndDate("");
+                  setSearch("");
+                }}
+                className="h-9 text-muted-foreground"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Clear
+              </Button>
+            )}
           </div>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px] h-9">
-              <SelectValue placeholder="All status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All status</SelectItem>
-              <SelectItem value="ACSP">Accepted</SelectItem>
-              <SelectItem value="RJCT">Rejected</SelectItem>
-              <SelectItem value="PDNG">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={syncedFilter} onValueChange={setSyncedFilter}>
-            <SelectTrigger className="w-[150px] h-9">
-              <SelectValue placeholder="All ERP" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">ERP sync</SelectItem>
-              <SelectItem value="synced">Synced to ERP</SelectItem>
-              <SelectItem value="unsynced">Not synced</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="h-9 w-[135px]"
-          />
-          <span className="text-xs text-muted-foreground">to</span>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="h-9 w-[135px]"
-          />
-
-          {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setStatusFilter("all");
-                setSyncedFilter("all");
-                setStartDate("");
-                setEndDate("");
-                setSearch("");
-              }}
-              className="h-9 text-muted-foreground"
-            >
-              <X className="h-3.5 w-3.5 mr-1" />
-              Clear
-            </Button>
-          )}
-
-          {selectableIds.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={selectAll}
-              className="h-9 ml-auto"
-            >
-              {selectedValid.length === selectableIds.length
-                ? "Deselect all"
-                : `Select all accepted (${selectableIds.length})`}
-            </Button>
-          )}
         </div>
 
         {/* Table */}
         <ContentCard noPadding>
           <ContentCardHeader>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-normal text-foreground">
-                Bank Responses
-              </h3>
-              {!isLoading && (
-                <Badge variant="secondary" className="text-xs">
-                  {filtered.length}
-                </Badge>
+            <div className="flex items-center justify-between w-full gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-normal text-foreground">
+                  Bank Responses
+                </h3>
+                {!isLoading && (
+                  <Badge variant="secondary" className="text-xs">
+                    {filtered.length}
+                  </Badge>
+                )}
+              </div>
+              {selectableIds.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  className="h-8 text-xs"
+                >
+                  {selectedValid.length === selectableIds.length
+                    ? "Deselect all"
+                    : `Select all accepted (${selectableIds.length})`}
+                </Button>
               )}
             </div>
           </ContentCardHeader>
