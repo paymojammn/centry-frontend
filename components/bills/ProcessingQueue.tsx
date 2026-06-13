@@ -109,7 +109,7 @@ const providerOf = (p: { method?: string; method_display?: string | null }): str
   PROVIDER_NAMES[p.method || ''] || p.method_display || p.method || '—';
 
 export default function ProcessingQueue({ organizationId }: ProcessingQueueProps) {
-  const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<PaymentEventStatus | 'all'>('PENDING_APPROVAL');
   const [providerFilter, setProviderFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayments, setSelectedPayments] = useState<Set<number>>(new Set());

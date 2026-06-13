@@ -115,7 +115,7 @@ function isFxStale(fetchedAt: string | null | undefined): boolean {
 export default function CollectionsQueue({ organizationId }: CollectionsQueueProps) {
   const queryClient = useQueryClient();
   const { data: events, isLoading } = useCollectionEvents(organizationId || undefined);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('PROCESSING');
   const [providerFilter, setProviderFilter] = useState('all');
   const [copied, setCopied] = useState('');
   const [generatingId, setGeneratingId] = useState<number | null>(null);
