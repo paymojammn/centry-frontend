@@ -307,7 +307,7 @@ export default function InvoicesPage() {
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
-              Collections Queue
+              Invoice Payments
             </button>
           </nav>
         </div>
