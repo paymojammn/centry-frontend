@@ -139,6 +139,7 @@ export default function VendorsPage() {
       <PageHeader
         title="Contacts"
         subtitle="Manage vendors, suppliers, and customers"
+        breadcrumbs={[{ label: "ERP" }, { label: "Vendors" }]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}

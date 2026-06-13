@@ -275,6 +275,7 @@ export default function BillsPage() {
       <PageHeader
         title="Bills"
         subtitle="Manage your accounts payable"
+        breadcrumbs={[{ label: "ERP" }, { label: "Bills" }]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}

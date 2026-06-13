@@ -267,6 +267,7 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         subtitle="Sales invoices and receivables"
+        breadcrumbs={[{ label: "ERP" }, { label: "Invoices" }]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
