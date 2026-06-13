@@ -26,14 +26,9 @@ import {
   ContentCardHeader,
 } from "@/components/layout/content-card";
 import {
-  BarChart3,
-  Upload,
-  FileCheck,
   FolderOpen,
-  Inbox,
   Search,
   Download,
-  Wallet,
   X,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -160,12 +155,12 @@ export default function BankingExportPage() {
 
   const tabs = useMemo(() => {
     const allTabs = [
-      { value: "overview", label: "Overview", icon: BarChart3 },
-      { value: "sftp-export", label: "Pay", icon: Upload, requiresExport: true },
-      { value: "files", label: "Outbox", icon: FolderOpen },
-      { value: "inbox", label: "Inbox", icon: Inbox, requiresExport: true },
-      { value: "statements", label: "Statements", icon: Wallet },
-      { value: "bank-status", label: "Reconciliation", icon: FileCheck, requiresExport: true },
+      { value: "overview", label: "Overview" },
+      { value: "sftp-export", label: "Pay", requiresExport: true },
+      { value: "files", label: "Outbox" },
+      { value: "inbox", label: "Inbox", requiresExport: true },
+      { value: "statements", label: "Statements" },
+      { value: "bank-status", label: "Reconciliation", requiresExport: true },
     ];
     return allTabs.filter((t) => !t.requiresExport || hasBankingExport);
   }, [hasBankingExport]);
@@ -189,23 +184,19 @@ export default function BankingExportPage() {
       <div className="bg-card border-b border-border">
         <div className="px-6">
           <div className="flex gap-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => setActiveTab(tab.value)}
-                  className={`flex items-center gap-2 py-3 px-4 text-sm font-normal border-b-2 transition-colors ${
-                    activeTab === tab.value
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`py-3 px-4 text-sm font-normal border-b-2 transition-colors ${
+                  activeTab === tab.value
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
