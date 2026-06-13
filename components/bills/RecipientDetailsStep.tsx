@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { Building2, Globe, ChevronDown, Download, Check } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Building2, Globe, ChevronDown, Check, Save, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
-import { contactsApi } from '@/lib/contacts-api';
+import { contactsApi, type ContactBankAccount } from '@/lib/contacts-api';
 import { useOzowBanks } from '@/hooks/use-ozow';
 import { useOneGatePayoutMethods, useOneGatePayoutBanks } from '@/hooks/use-onegate';
 import { Input } from '@/components/ui/input';
@@ -424,7 +425,12 @@ export default function RecipientDetailsStep({
 }: RecipientDetailsStepProps) {
   const [recipientType, setRecipientType] = useState<'bank' | 'international'>('bank');
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [loadingErp, setLoadingErp] = useState<number | null>(null);
+  // Saved vendor bank accounts (keyed by contact id), used to pre-fill the
+  // recipient and to offer "save for future use".
+  const [savedByContact, setSavedByContact] = useState<Record<number, ContactBankAccount[]>>({});
+  const [savingFor, setSavingFor] = useState<number | null>(null);
+  const [savedOk, setSavedOk] = useState<Set<number>>(new Set());
+  const autoFilledRef = useRef<Set<number>>(new Set());
 
   // Ozow rail: skip Centry's internal bank/branch lookups and use Ozow's
   // /getavailablebanks list directly. The selected bank carries both the
@@ -515,27 +521,86 @@ export default function RecipientDetailsStep({
     onRecipientsChange(updated);
   };
 
-  const loadFromErp = async (bill: Bill) => {
-    if (!bill.contact_id) return;
-    setLoadingErp(bill.id);
+  // Load the vendor's saved bank accounts (instead of pulling from the ERP) so
+  // an account saved for the vendor — bank + branch + number — is available to
+  // load. Bank-rail only (custom rails have their own pickers).
+  useEffect(() => {
+    if (isCustomRail) return;
+    const ids = Array.from(
+      new Set(bills.map((b) => b.contact_id).filter((x): x is number => !!x)),
+    );
+    ids.forEach((cid) => {
+      if (cid in savedByContact) return;
+      contactsApi
+        .getContactBankAccounts(cid)
+        .then((accts) => setSavedByContact((prev) => ({ ...prev, [cid]: accts })))
+        .catch(() => setSavedByContact((prev) => ({ ...prev, [cid]: [] })));
+    });
+  }, [bills, isCustomRail, savedByContact]);
+
+  // Auto-fill each bill from its vendor's primary saved account, once, when the
+  // accounts arrive and the user hasn't already entered details.
+  useEffect(() => {
+    if (isCustomRail) return;
+    const next = new Map(recipients);
+    let changed = false;
+    bills.forEach((bill) => {
+      if (!bill.contact_id || autoFilledRef.current.has(bill.id)) return;
+      const accts = savedByContact[bill.contact_id];
+      if (!accts) return; // not fetched yet
+      autoFilledRef.current.add(bill.id);
+      if (!accts.length) return;
+      const r = next.get(bill.id);
+      if (r?.account_number || r?.recipient_bank_id) return; // already filled
+      const primary = accts.find((a) => a.is_primary) || accts[0];
+      if (!primary) return;
+      next.set(bill.id, {
+        ...(r || { bill_id: bill.id, recipient_type: recipientType }),
+        recipient_type: recipientType,
+        recipient_bank_id: primary.bank,
+        recipient_bank_branch_id: primary.branch ?? undefined,
+        account_number: primary.account_number,
+        account_name: primary.account_name,
+        bank_name: primary.bank_name,
+      });
+      changed = true;
+    });
+    if (changed) onRecipientsChange(next);
+  }, [savedByContact, bills, isCustomRail, recipientType, recipients, onRecipientsChange]);
+
+  const applySaved = (bill: Bill, a: ContactBankAccount) => {
+    update(bill.id, {
+      recipient_type: recipientType,
+      recipient_bank_id: a.bank,
+      recipient_bank_branch_id: a.branch ?? undefined,
+      account_number: a.account_number,
+      account_name: a.account_name,
+      bank_name: a.bank_name,
+    });
+  };
+
+  const saveForFuture = async (bill: Bill) => {
+    const r = recipients.get(bill.id);
+    if (!bill.contact_id || !r?.recipient_bank_id || !r?.account_number || !r?.account_name) return;
+    setSavingFor(bill.id);
     try {
-      const details = await contactsApi.getContactPaymentDetails(bill.contact_id.toString());
-      if (details.linked_bank_id || details.bank_account_number || details.bank_account_details) {
-        const fields: Partial<RecipientDetails> = {
-          recipient_type: recipientType,
-          account_number: details.bank_account_number || '',
-          account_name: details.bank_account_name || bill.vendor_name,
-        };
-        if (details.linked_bank_id) {
-          fields.recipient_bank_id = details.linked_bank_id;
-          fields.bank_name = details.linked_bank_name || '';
-          const bank = banksData?.banks.find((b: any) => b.id === details.linked_bank_id);
-          if (bank) fields.swift_code = bank.swift_code || '';
-        }
-        update(bill.id, fields);
-      }
-    } catch { /* silently fail */ }
-    setLoadingErp(null);
+      const created = await contactsApi.createContactBankAccount({
+        contact: bill.contact_id,
+        bank: r.recipient_bank_id,
+        branch: r.recipient_bank_branch_id ?? null,
+        account_name: r.account_name,
+        account_number: r.account_number,
+      });
+      setSavedByContact((prev) => ({
+        ...prev,
+        [bill.contact_id!]: [...(prev[bill.contact_id!] || []), created],
+      }));
+      setSavedOk((prev) => new Set(prev).add(bill.id));
+      toast.success('Bank account saved for future payments');
+    } catch (e) {
+      toast.error((e as Error)?.message || 'Could not save account');
+    }
+    setSavingFor(null);
   };
 
   const isComplete = (billId: number) => {
@@ -639,17 +704,61 @@ export default function RecipientDetailsStep({
             </div>
 
             <div className="p-4 space-y-3">
-              {/* Load from ERP */}
-              {!r?.account_number && bill.contact_id && (
-                <button
-                  onClick={() => loadFromErp(bill)}
-                  disabled={loadingErp === bill.id}
-                  className="w-full flex items-center justify-center gap-2 h-9 text-xs font-medium text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  {loadingErp === bill.id ? 'Loading...' : 'Load from ERP'}
-                </button>
-              )}
+              {/* Saved vendor accounts — load a saved one (bank + branch + number)
+                  or save the entered details for future payments. */}
+              {!isCustomRail && bill.contact_id && (() => {
+                const accts = savedByContact[bill.contact_id] || [];
+                const isSavedAcct = accts.some((a) => a.account_number === r?.account_number);
+                const canSave =
+                  !!(r?.recipient_bank_id && r?.account_number && r?.account_name) && !isSavedAcct;
+                return (
+                  <div className="space-y-2">
+                    {accts.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground">Saved accounts:</span>
+                        {accts.map((a) => {
+                          const active = r?.account_number === a.account_number;
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => applySaved(bill, a)}
+                              className={`px-2 py-1 rounded-md text-[11px] border transition-colors ${
+                                active
+                                  ? 'border-foreground bg-foreground text-card'
+                                  : 'border-border text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {a.bank_name} ••{a.account_number.slice(-4)}
+                              {a.is_primary ? ' ★' : ''}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {canSave && (
+                      <button
+                        type="button"
+                        onClick={() => saveForFuture(bill)}
+                        disabled={savingFor === bill.id}
+                        className="w-full flex items-center justify-center gap-2 h-9 text-xs font-medium text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50"
+                      >
+                        {savingFor === bill.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        Save this account for future payments
+                      </button>
+                    )}
+                    {savedOk.has(bill.id) && !canSave && (
+                      <p className="text-[11px] text-primary flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Saved for future use
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Ozow rail: replaces bank+branch combo with Ozow's own list */}
               {isOzow ? (
@@ -672,7 +781,7 @@ export default function RecipientDetailsStep({
                     onChange={(v) => update(bill.id, { account_number: v })}
                     placeholder="1234567890"
                     maxLength={20}
-                    hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined}
+                    hint={undefined}
                   />
                   <TextField
                     label="Account Name"
@@ -982,7 +1091,7 @@ export default function RecipientDetailsStep({
                   </>
                 ) : (
                   <>
-                    <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={r?.account_number && bill.contact_id ? 'From ERP' : undefined} />
+                    <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="1234567890" hint={undefined} />
                     <TextField label="Account Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Account holder name" />
                   </>
                 )
