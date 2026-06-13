@@ -5,14 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizations } from "@/hooks/use-organization";
-import {
-  ContentCard,
-  ContentCardHeader,
-} from "@/components/layout/content-card";
+import { ContentCard } from "@/components/layout/content-card";
 import { MetricTile } from "@/components/reports/MetricTile";
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -510,8 +506,9 @@ export default function BankReconciliationPage() {
           )}
         </div>
 
-        {/* Filters — status + ERP-sync pills with search/date (bills-grid style) */}
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+        {/* Table card — pills/filters header + grid (bills-grid style) */}
+        <ContentCard noPadding>
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
           {([
             { value: "all", label: "All", count: counts.accepted + counts.rejected + counts.pending, color: undefined as string | undefined },
             { value: "ACSP", label: "Accepted", count: counts.accepted, color: "#5C8A65" },
@@ -598,37 +595,20 @@ export default function BankReconciliationPage() {
                 Clear
               </Button>
             )}
+            {selectableIds.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectAll}
+                className="h-9 text-xs"
+              >
+                {selectedValid.length === selectableIds.length
+                  ? "Deselect all"
+                  : `Select all (${selectableIds.length})`}
+              </Button>
+            )}
           </div>
         </div>
-
-        {/* Table */}
-        <ContentCard noPadding>
-          <ContentCardHeader>
-            <div className="flex items-center justify-between w-full gap-2">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-normal text-foreground">
-                  Bank Responses
-                </h3>
-                {!isLoading && (
-                  <Badge variant="secondary" className="text-xs">
-                    {filtered.length}
-                  </Badge>
-                )}
-              </div>
-              {selectableIds.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={selectAll}
-                  className="h-8 text-xs"
-                >
-                  {selectedValid.length === selectableIds.length
-                    ? "Deselect all"
-                    : `Select all accepted (${selectableIds.length})`}
-                </Button>
-              )}
-            </div>
-          </ContentCardHeader>
 
           {isLoading ? (
             <div className="p-6 space-y-3">
