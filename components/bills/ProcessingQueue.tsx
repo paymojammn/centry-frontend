@@ -591,7 +591,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
   const getStatusBadge = (status: PaymentEventStatus) => {
     const statusMap: Record<string, { bg: string; text: string; label: string }> = {
       PENDING_APPROVAL: { ...STATUS_COLORS.pending_approval, label: 'Pending Approval' },
-      PROCESSING: { ...STATUS_COLORS.processing, label: 'Ready for File' },
+      PROCESSING: { ...STATUS_COLORS.processing, label: 'Ready to Pay' },
       PENDING: { ...STATUS_COLORS.pending, label: 'File Generated' },
       ACCEPTED_BANK: { ...STATUS_COLORS.accepted, label: 'Accepted by Bank' },
       SENT_PAYMENT: { ...STATUS_COLORS.sent, label: 'Processing' },
@@ -691,7 +691,7 @@ export default function ProcessingQueue({ organizationId }: ProcessingQueueProps
           </button>
           {[
             { value: 'PENDING_APPROVAL', label: 'Pending Approval', count: stats.pending_approval, color: PILL_COLORS.pending_approval },
-            { value: 'PROCESSING', label: 'Ready for File', count: stats.processing, color: PILL_COLORS.processing },
+            { value: 'PROCESSING', label: 'Ready to Pay', count: stats.processing, color: PILL_COLORS.processing },
             { value: 'PENDING', label: 'File Sent', count: stats.pending, color: PILL_COLORS.pending },
             { value: 'ACCEPTED_BANK', label: 'Accepted by Bank', count: stats.accepted, color: PILL_COLORS.accepted },
             { value: 'SENT_PAYMENT', label: 'Processing', count: stats.sent, color: PILL_COLORS.sent_payment },

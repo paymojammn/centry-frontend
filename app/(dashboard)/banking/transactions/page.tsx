@@ -83,7 +83,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING_APPROVAL: "Pending Approval",
-  PROCESSING: "Ready for File",
+  PROCESSING: "Ready to Pay",
   PENDING: "Sent to Bank",
   SENT_PAYMENT: "Sent to Bank",
   SUCCESS_PAYMENT: "Paid",
@@ -342,7 +342,7 @@ export default function BankTransactionsPage() {
             {([
               { value: "all", label: "All", count: payments.length },
               { value: "PENDING_APPROVAL", label: "Pending Approval", count: statusCount(["PENDING_APPROVAL"]) },
-              { value: "PROCESSING", label: "Ready for File", count: statusCount(["PROCESSING"]) },
+              { value: "PROCESSING", label: "Ready to Pay", count: statusCount(["PROCESSING"]) },
               { value: "SENT_PAYMENT", label: "Sent to Bank", count: statusCount(["SENT_PAYMENT"]) },
               { value: "SUCCESS_PAYMENT", label: "Paid", count: statusCount(["SUCCESS_PAYMENT"]) },
               { value: "FAILED_PAYMENT", label: "Failed", count: statusCount(["FAILED_PAYMENT"]) },
