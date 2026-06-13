@@ -1,34 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { ContentCard } from "@/components/layout/content-card";
 import {
   Upload,
   RefreshCw,
-  FileText,
-  Server,
-  CheckCircle2,
-  XCircle,
-  Clock,
   Loader2,
-  AlertCircle,
   Download,
+  Search,
 } from "lucide-react";
 import {
   useBankAccounts,
   useBankPaymentExports,
   useSFTPUpload,
   useSFTPTaskStatus,
-  useSFTPTransferLogs,
-  useLocalExportFiles,
   useSFTPCredentials,
   type BankPaymentExport,
-  type LocalExportFile,
   type SFTPCredential,
 } from "@/hooks/use-banking";
 import { api } from "@/lib/api";
+import { PILL_COLORS } from "@/lib/theme";
 
 interface SFTPExportProps {
   organizationId?: string;
@@ -45,10 +40,6 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleString();
-}
-
 function formatCurrency(amount: string, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -56,13 +47,36 @@ function formatCurrency(amount: string, currency: string): string {
   }).format(parseFloat(amount));
 }
 
-export function SFTPExport({ organizationId, onExportComplete, onSelectExport, selectedExportId }: SFTPExportProps) {
+function renderStatusBadge(status: string) {
+  const style =
+    status === "uploaded"
+      ? "bg-blue-500/10 text-blue-700 border-blue-500/20"
+      : status === "processed"
+      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+      : status === "failed"
+      ? "bg-red-500/10 text-red-700 border-red-500/20"
+      : "bg-amber-500/10 text-amber-700 border-amber-500/20";
+  const label =
+    status === "generated" || status === "pending"
+      ? "Ready"
+      : status.charAt(0).toUpperCase() + status.slice(1);
+  return (
+    <span
+      className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${style}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+export function SFTPExport({ organizationId, onExportComplete }: SFTPExportProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
   const [uploadingFileId, setUploadingFileId] = useState<number | undefined>();
-  const [uploadingLocalFile, setUploadingLocalFile] = useState<string | undefined>();
   const [downloadingFileId, setDownloadingFileId] = useState<number | undefined>();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [fileSearch, setFileSearch] = useState("");
 
   const { data: accountsData, isLoading: accountsLoading } = useBankAccounts(organizationId);
   const bankAccounts = (accountsData as any)?.results || [];
@@ -77,18 +91,6 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
   } = useBankPaymentExports({
     bankAccountId: selectedAccountId,
     organizationId,
-  });
-
-  const {
-    data: localFilesData,
-    isLoading: localFilesLoading,
-    refetch: refetchLocalFiles,
-  } = useLocalExportFiles(selectedAccountId);
-
-  const { data: logsData } = useSFTPTransferLogs({
-    bankAccountId: selectedAccountId,
-    direction: "upload",
-    limit: 10,
   });
 
   const uploadFile = useSFTPUpload();
@@ -110,22 +112,37 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
       setTimeout(() => {
         setActiveTaskId(undefined);
         setUploadingFileId(undefined);
-        setUploadingLocalFile(undefined);
         refetchExports();
-        refetchLocalFiles();
         if (taskStatus.status === "SUCCESS" && onExportComplete) {
           onExportComplete();
         }
       }, 3000);
     }
-  }, [taskStatus, onExportComplete, refetchExports, refetchLocalFiles]);
+  }, [taskStatus, onExportComplete, refetchExports]);
 
   const exports = exportsData?.results || [];
-  const transferLogs = logsData?.results || [];
-  const localFiles = localFilesData?.files || [];
 
-  const pendingExports = exports.filter((e) => e.status === "generated" || e.status === "pending");
-  const uploadedExports = exports.filter((e) => e.status === "uploaded" || e.status === "processed");
+  const isReady = (e: BankPaymentExport) =>
+    e.status === "generated" || e.status === "pending";
+  const isUploaded = (e: BankPaymentExport) =>
+    e.status === "uploaded" || e.status === "processed";
+
+  const pendingExports = exports.filter(isReady);
+  const uploadedExports = exports.filter(isUploaded);
+
+  const filteredExports = exports.filter((e) => {
+    if (statusFilter === "ready" && !isReady(e)) return false;
+    if (statusFilter === "uploaded" && !isUploaded(e)) return false;
+    if (fileSearch) {
+      const q = fileSearch.toLowerCase();
+      if (
+        !(e.file_name || "").toLowerCase().includes(q) &&
+        !(e.bank_account?.account_name || "").toLowerCase().includes(q)
+      )
+        return false;
+    }
+    return true;
+  });
 
   const handleUploadFile = async (exportFile: BankPaymentExport) => {
     if (!exportFile.bank_account?.id || !selectedSFTPCredentialId) return;
@@ -163,418 +180,208 @@ export function SFTPExport({ organizationId, onExportComplete, onSelectExport, s
     }
   };
 
-  const handleUploadLocalFile = async (localFile: LocalExportFile) => {
-    if (!selectedAccountId || !selectedSFTPCredentialId) return;
-    try {
-      setUploadingLocalFile(localFile.absolute_path);
-      const result = await uploadFile.mutateAsync({
-        bank_account_id: selectedAccountId,
-        sftp_credential_id: selectedSFTPCredentialId,
-        file_path: localFile.absolute_path,
-        remote_filename: localFile.filename,
-        async_upload: true,
-      });
-      if (result.task_id) setActiveTaskId(result.task_id);
-    } catch (error) {
-      setUploadingLocalFile(undefined);
-    }
-  };
-
   const isUploading = uploadFile.isPending || !!activeTaskId;
+  const hasFilters = fileSearch !== "" || statusFilter !== "all";
 
   return (
-    <div className="space-y-6">
-      {/* Config Section */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-normal text-foreground">SFTP Export</h3>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">Upload payment files to bank SFTP server</p>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-normal text-foreground">Bank Account</Label>
-              <Select
-                value={selectedAccountId?.toString() || "all"}
-                onValueChange={(value) => {
-                  setSelectedAccountId(value === "all" ? undefined : Number(value));
-                  setSelectedSFTPCredentialId(undefined);
-                }}
-                disabled={accountsLoading}
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue placeholder="All accounts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Accounts</SelectItem>
-                  {bankAccounts.map((account: any) => (
-                    <SelectItem key={account.id} value={account.id.toString()}>
-                      {account.account_name} ({account.account_number})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <ContentCard noPadding>
+      {/* Toolbar: status pills + account/connection + search/refresh (bills-grid style) */}
+      <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+        {([
+          { value: "all", label: "All", count: exports.length, color: undefined },
+          { value: "ready", label: "Ready", count: pendingExports.length, color: "#D4B35A" },
+          { value: "uploaded", label: "Uploaded", count: uploadedExports.length, color: PILL_COLORS.uploaded },
+        ]).map((p) => {
+          const active = statusFilter === p.value;
+          return (
+            <button
+              key={p.value}
+              onClick={() => setStatusFilter(p.value)}
+              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                active
+                  ? p.color
+                    ? "text-white"
+                    : "bg-foreground text-card"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+              style={active && p.color ? { backgroundColor: p.color } : undefined}
+            >
+              {p.label} ({p.count})
+            </button>
+          );
+        })}
 
-            <div className="space-y-2">
-              <Label className="text-sm font-normal text-foreground">SFTP Connection</Label>
-              <Select
-                value={selectedSFTPCredentialId?.toString() || ""}
-                onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
-                disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue placeholder={
-                    credentialsLoading ? "Loading..." :
-                    sftpCredentials.length === 0 ? "No connections" :
-                    "Select connection"
-                  } />
-                </SelectTrigger>
-                <SelectContent>
-                  {sftpCredentials.map((credential: SFTPCredential) => (
-                    <SelectItem key={credential.id} value={credential.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <span>{credential.host}</span>
-                        {credential.is_active && <span className="h-2 w-2 rounded-full bg-primary" />}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <Select
+            value={selectedAccountId?.toString() || "all"}
+            onValueChange={(value) => {
+              setSelectedAccountId(value === "all" ? undefined : Number(value));
+              setSelectedSFTPCredentialId(undefined);
+            }}
+            disabled={accountsLoading}
+          >
+            <SelectTrigger className="w-[190px] h-9">
+              <SelectValue placeholder="All accounts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All accounts</SelectItem>
+              {bankAccounts.map((account: any) => (
+                <SelectItem key={account.id} value={account.id.toString()}>
+                  {account.account_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <div className="flex items-end gap-4">
-              <div className="flex items-center gap-2 px-3 py-2 bg-[#D4B35A]/10 rounded border border-[#D4B35A]/20">
-                <span className="h-2 w-2 rounded-full bg-[#D4B35A]" />
-                <span className="text-sm font-normal text-[#D4B35A]">{pendingExports.length} pending</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded border border-primary/20">
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                <span className="text-sm font-normal text-primary">{uploadedExports.length} uploaded</span>
-              </div>
-            </div>
-          </div>
-
-          {selectedSFTPCredentialId && sftpCredentials.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              {(() => {
-                const cred = sftpCredentials.find((c: SFTPCredential) => c.id === selectedSFTPCredentialId);
-                if (!cred) return null;
-                return (
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <span><span className="text-muted-foreground/60">Host:</span> {cred.host}:{cred.port}</span>
-                    <span><span className="text-muted-foreground/60">Upload:</span> <code className="text-xs bg-muted px-1 rounded">{cred.upload_path}</code></span>
+          <Select
+            value={selectedSFTPCredentialId?.toString() || ""}
+            onValueChange={(value) => setSelectedSFTPCredentialId(value ? Number(value) : undefined)}
+            disabled={!selectedAccountId || credentialsLoading || sftpCredentials.length === 0}
+          >
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue
+                placeholder={
+                  credentialsLoading
+                    ? "Loading..."
+                    : sftpCredentials.length === 0
+                    ? "No connection"
+                    : "Connection"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {sftpCredentials.map((credential: SFTPCredential) => (
+                <SelectItem key={credential.id} value={credential.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <span>{credential.host}</span>
+                    {credential.is_active && <span className="h-2 w-2 rounded-full bg-primary" />}
                   </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {/* Task Progress */}
-      {activeTaskId && taskStatus && (
-        <div className={`rounded-lg border p-4 flex items-center gap-3 ${
-          taskStatus.status === "SUCCESS" ? "border-primary/20 bg-primary/5" :
-          taskStatus.status === "FAILURE" ? "border-[#D4944A]/20 bg-[#D4944A]/10" :
-          "border-[#6B8FB8]/20 bg-[#6B8FB8]/10"
-        }`}>
-          {taskStatus.status === "SUCCESS" ? (
-            <CheckCircle2 className="h-5 w-5 text-primary" />
-          ) : taskStatus.status === "FAILURE" ? (
-            <XCircle className="h-5 w-5 text-[#D4944A]" />
-          ) : (
-            <Loader2 className="h-5 w-5 text-[#6B8FB8] animate-spin" />
-          )}
-          <span className={`text-sm font-normal ${
-            taskStatus.status === "SUCCESS" ? "text-primary" :
-            taskStatus.status === "FAILURE" ? "text-[#D4944A]" :
-            "text-[#6B8FB8]"
-          }`}>
-            {taskStatus.status === "SUCCESS" ? "File uploaded successfully!" :
-             taskStatus.status === "FAILURE" ? `Upload failed: ${taskStatus.result?.error || "Unknown error"}` :
-             "Uploading file..."}
-          </span>
-        </div>
-      )}
-
-      {/* Pending Exports */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-normal text-foreground">Ready for Upload</h3>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{pendingExports.length} files pending</p>
+          <div className="relative w-44">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+            <Input
+              placeholder="Search files..."
+              value={fileSearch}
+              onChange={(e) => setFileSearch(e.target.value)}
+              className="pl-9 h-9"
+            />
           </div>
-          <Button variant="outline" size="sm" onClick={() => refetchExports()} disabled={exportsLoading} className="h-8 btn-press">
-            <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
-            Refresh
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetchExports()}
+            disabled={exportsLoading}
+            className="h-9 btn-press"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${exportsLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
-
-        {exportsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : pendingExports.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No payment files ready</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Generate payment files from the Payments page</p>
-          </div>
-        ) : (
-          <table className="w-full table-professional">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank Account</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Amount</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Payments</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
-                <th className="w-32"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border animate-stagger">
-              {pendingExports.map((exportFile: BankPaymentExport) => (
-                <tr
-                  key={exportFile.id}
-                  className={`row-interactive cursor-pointer ${selectedExportId === exportFile.id ? 'bg-primary/5' : ''}`}
-                  onClick={() => onSelectExport?.(exportFile.id)}
-                >
-                  <td className="px-6 py-3">
-                    <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
-                    <p className="text-xs text-muted-foreground">{formatFileSize(exportFile.file_size)} · {exportFile.format}</p>
-                  </td>
-                  <td className="px-6 py-3">
-                    <p className="text-sm text-foreground">{exportFile.bank_account?.account_name}</p>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="text-sm font-normal text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">{exportFile.payment_count} payments</span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
-                      <Clock className="h-3 w-3" />
-                      {exportFile.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDownloadFile(exportFile); }} disabled={downloadingFileId === exportFile.id} className="h-8 btn-press">
-                        {downloadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Download className="h-3 w-3 mr-1" />}
-                        Download
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); handleUploadFile(exportFile); }}
-                        disabled={isUploading || uploadingFileId === exportFile.id}
-                        className="h-8 bg-primary hover:bg-primary/90 btn-press"
-                      >
-                        {uploadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
 
-      {/* Local Export Files */}
-      {selectedAccountId && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-normal text-foreground">Local Export Files</h3>
-              </div>
-              {localFilesData?.export_path && (
-                <p className="text-xs text-muted-foreground mt-1 font-mono">{localFilesData.export_path}</p>
-              )}
-            </div>
-            <Button variant="outline" size="sm" onClick={() => refetchLocalFiles()} disabled={localFilesLoading} className="h-8 btn-press">
-              <RefreshCw className={`h-3 w-3 mr-1.5 ${localFilesLoading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+      {/* Body */}
+      {exportsLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : filteredExports.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
+            <Upload className="h-6 w-6 text-muted-foreground" />
           </div>
-
-          {localFilesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          ) : localFiles.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No local export files</p>
-            </div>
-          ) : (
-            <table className="w-full table-professional">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
-                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Format</th>
-                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Size</th>
-                  <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">SFTP</th>
-                  <th className="w-24"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border animate-stagger">
-                {localFiles.map((file: LocalExportFile) => (
-                  <tr key={file.absolute_path} className="row-interactive">
-                    <td className="px-6 py-3">
-                      <p className="text-sm font-normal text-foreground">{file.filename}</p>
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded uppercase">{file.format}</span>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{file.size_display}</td>
-                    <td className="px-6 py-3">
-                      {file.sftp_uploaded ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Uploaded
-                        </span>
+          <p className="text-sm font-normal text-foreground">
+            {hasFilters ? "No files match your filters" : "No payment files"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {hasFilters
+              ? "Try adjusting your filters"
+              : "Generate payment files from the Payments page"}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
+            <div className="col-span-2">Date</div>
+            <div className="col-span-3">Filename</div>
+            <div className="col-span-2">Account</div>
+            <div className="col-span-1 text-center">Payments</div>
+            <div className="col-span-1 text-right">Amount</div>
+            <div className="col-span-1">Status</div>
+            <div className="col-span-2"></div>
+          </div>
+          <div className="divide-y divide-border max-h-[calc(100vh-350px)] overflow-y-auto">
+            {filteredExports.map((e) => (
+              <div
+                key={e.id}
+                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
+              >
+                <div className="col-span-2 text-muted-foreground tabular-nums">
+                  {e.created_at ? format(new Date(e.created_at), "dd MMM yyyy") : "—"}
+                  {e.created_at && (
+                    <p className="text-[12px] text-muted-foreground/60 mt-0.5">
+                      {format(new Date(e.created_at), "HH:mm")}
+                    </p>
+                  )}
+                </div>
+                <div className="col-span-3 min-w-0">
+                  <p className="text-foreground truncate">{e.file_name || "—"}</p>
+                  <p className="text-[12px] text-muted-foreground mt-0.5">
+                    {e.file_size ? formatFileSize(e.file_size) : "—"}
+                  </p>
+                </div>
+                <div className="col-span-2 min-w-0">
+                  <p className="text-[12px] text-muted-foreground truncate">
+                    {e.bank_account?.account_name || "—"}
+                  </p>
+                </div>
+                <div className="col-span-1 text-center">
+                  <span className="tabular-nums text-foreground">{e.payment_count}</span>
+                </div>
+                <div className="col-span-1 text-right">
+                  <span className="tabular-nums text-foreground">
+                    {formatCurrency(e.total_amount, e.currency)}
+                  </span>
+                </div>
+                <div className="col-span-1">{renderStatusBadge(e.status)}</div>
+                <div className="col-span-2 flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadFile(e)}
+                    disabled={downloadingFileId === e.id}
+                    className="h-8 btn-press"
+                  >
+                    {downloadingFileId === e.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Download className="h-3 w-3" />
+                    )}
+                  </Button>
+                  {isReady(e) && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleUploadFile(e)}
+                      disabled={isUploading || uploadingFileId === e.id || !selectedSFTPCredentialId}
+                      className="h-8 bg-primary hover:bg-primary/90 btn-press"
+                    >
+                      {uploadingFileId === e.id ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
-                          <Clock className="h-3 w-3" />
-                          Pending
-                        </span>
+                        <Upload className="h-3 w-3 mr-1" />
                       )}
-                    </td>
-                    <td className="px-6 py-3">
-                      {!file.sftp_uploaded && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUploadLocalFile(file)}
-                          disabled={isUploading || uploadingLocalFile === file.absolute_path}
-                          className="h-8 bg-primary hover:bg-primary/90 btn-press"
-                        >
-                          {uploadingLocalFile === file.absolute_path ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {/* No account selected */}
-      {!selectedAccountId && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm text-center py-12">
-          <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Select a bank account to view local export files</p>
-        </div>
-      )}
-
-      {/* Uploaded Files */}
-      {uploadedExports.length > 0 && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-border">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-normal text-foreground">Uploaded Files</h3>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{uploadedExports.length} files completed</p>
-          </div>
-          <table className="w-full table-professional">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank Account</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Amount</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Uploaded</th>
-                <th className="w-20"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border animate-stagger">
-              {uploadedExports.map((exportFile: BankPaymentExport) => (
-                <tr key={exportFile.id} className={`row-interactive ${selectedExportId === exportFile.id ? 'bg-primary/5' : ''}`}>
-                  <td className="px-6 py-3">
-                    <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
-                    <p className="text-xs text-muted-foreground">{formatFileSize(exportFile.file_size)}</p>
-                  </td>
-                  <td className="px-6 py-3 text-sm text-foreground">{exportFile.bank_account?.account_name}</td>
-                  <td className="px-6 py-3">
-                    <span className="text-sm font-normal text-foreground">{formatCurrency(exportFile.total_amount, exportFile.currency)}</span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {exportFile.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-sm text-muted-foreground">
-                    {exportFile.sftp_uploaded_at ? formatDate(exportFile.sftp_uploaded_at) : "-"}
-                  </td>
-                  <td className="px-6 py-3">
-                    <Button variant="outline" size="sm" onClick={() => handleDownloadFile(exportFile)} disabled={downloadingFileId === exportFile.id} className="h-8 btn-press">
-                      {downloadingFileId === exportFile.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                      Upload
                     </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Recent Uploads */}
-      {transferLogs.length > 0 && (
-        <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-          <div className="px-6 py-4 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-normal text-foreground">Recent Uploads</h3>
-            </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-          <table className="w-full table-professional">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">File</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Bank</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Size</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Status</th>
-                <th className="text-left text-xs font-normal text-muted-foreground px-6 py-3">Time</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border animate-stagger">
-              {transferLogs.map((log) => (
-                <tr key={log.id} className="row-interactive">
-                  <td className="px-6 py-3 text-sm text-foreground">{log.local_file_path.split("/").pop()}</td>
-                  <td className="px-6 py-3 text-sm text-muted-foreground">{log.bank_account_name}</td>
-                  <td className="px-6 py-3 text-sm text-muted-foreground">{log.file_size ? formatFileSize(log.file_size) : "-"}</td>
-                  <td className="px-6 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal ${
-                      log.status === "success" ? "bg-primary/5 text-primary" :
-                      log.status === "failed" ? "bg-[#D4944A]/10 text-[#D4944A]" :
-                      "bg-[#6B8FB8]/10 text-[#6B8FB8]"
-                    }`}>
-                      {log.status === "success" && <CheckCircle2 className="h-3 w-3" />}
-                      {log.status === "failed" && <XCircle className="h-3 w-3" />}
-                      {log.status === "in_progress" && <Loader2 className="h-3 w-3 animate-spin" />}
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-sm text-muted-foreground">{formatDate(log.started_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        </>
       )}
-    </div>
+    </ContentCard>
   );
 }

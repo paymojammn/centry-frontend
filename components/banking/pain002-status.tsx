@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { ContentCard } from "@/components/layout/content-card";
 import {
   Link2,
   RefreshCw,
@@ -252,8 +252,8 @@ function ExportStatusCard({
 
   return (
     <div
-      className={`bg-card rounded-lg border transition-colors ${
-        isSelected ? "border-primary ring-1 ring-primary/20" : "border-border"
+      className={`transition-colors ${
+        isSelected ? "bg-primary/5" : "hover:bg-muted/20"
       }`}
     >
       <div
@@ -464,101 +464,83 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
   );
 
   return (
-    <div className="space-y-6">
-      {/* Account filter */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm p-4">
-        <div className="flex flex-col md:flex-row md:items-end gap-4 max-w-md">
-          <div className="flex-1 space-y-2">
-            <Label className="text-sm font-normal text-foreground">Bank Account</Label>
-            <Select
-              value={selectedAccountId?.toString() || "all"}
-              onValueChange={(value) =>
-                setSelectedAccountId(value === "all" ? undefined : Number(value))
-              }
-              disabled={accountsLoading}
-            >
-              <SelectTrigger className="h-10 bg-muted border-border">
-                <SelectValue placeholder="All accounts" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
-                {bankAccounts.map((account: any) => (
-                  <SelectItem key={account.id} value={account.id.toString()}>
-                    {account.account_name} ({account.account_number})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      {/* Export Status List */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-normal text-foreground">Payment Export Status</h3>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Bank responses for uploaded payment files. Pull new responses from the Inbox tab.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRelink}
-              disabled={relinkUnmatched.isPending}
-              title="Retry matching unmatched bank responses to their payment exports"
-              className="h-8 btn-press"
-            >
-              {relinkUnmatched.isPending ? (
-                <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
-              ) : (
-                <Link2 className="h-3 w-3 mr-1.5" />
-              )}
-              Re-link unmatched
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetchExports()}
-              disabled={exportsLoading}
-              className="h-8 btn-press"
-            >
-              <RefreshCw className={`h-3 w-3 mr-1.5 ${exportsLoading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
-        </div>
-
-        {exportsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : uploadedExports.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No uploaded exports yet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">
-              Upload payment files from the Pay tab to track their status
-            </p>
-          </div>
-        ) : (
-          <div className="p-4 space-y-3">
-            {uploadedExports.map((exportFile) => (
-              <ExportStatusCard
-                key={exportFile.id}
-                exportFile={exportFile}
-                isSelected={selectedExportId === exportFile.id}
-                onSelect={() => onSelectExport?.(exportFile.id)}
-              />
+    <ContentCard noPadding>
+      {/* Toolbar: account select + re-link + refresh */}
+      <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+        <Select
+          value={selectedAccountId?.toString() || "all"}
+          onValueChange={(value) =>
+            setSelectedAccountId(value === "all" ? undefined : Number(value))
+          }
+          disabled={accountsLoading}
+        >
+          <SelectTrigger className="w-[200px] h-9">
+            <SelectValue placeholder="All accounts" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All accounts</SelectItem>
+            {bankAccounts.map((account: any) => (
+              <SelectItem key={account.id} value={account.id.toString()}>
+                {account.account_name}
+              </SelectItem>
             ))}
-          </div>
-        )}
+          </SelectContent>
+        </Select>
+
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRelink}
+            disabled={relinkUnmatched.isPending}
+            title="Retry matching unmatched bank responses to their payment exports"
+            className="h-9 btn-press"
+          >
+            {relinkUnmatched.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <Link2 className="h-3.5 w-3.5 mr-1.5" />
+            )}
+            Re-link unmatched
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetchExports()}
+            disabled={exportsLoading}
+            className="h-9 btn-press"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${exportsLoading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
-    </div>
+
+      {exportsLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : uploadedExports.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
+            <FileText className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-normal text-foreground">No uploaded exports yet</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Upload payment files from the Pay tab to track their status
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {uploadedExports.map((exportFile) => (
+            <ExportStatusCard
+              key={exportFile.id}
+              exportFile={exportFile}
+              isSelected={selectedExportId === exportFile.id}
+              onSelect={() => onSelectExport?.(exportFile.id)}
+            />
+          ))}
+        </div>
+      )}
+    </ContentCard>
   );
 }

@@ -9,12 +9,11 @@ import {
   FileText,
   Loader2,
   RefreshCw,
-  Server,
+  Search,
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -23,12 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ContentCard,
-  ContentCardHeader,
-} from "@/components/layout/content-card";
+import { ContentCard } from "@/components/layout/content-card";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { PILL_COLORS } from "@/lib/theme";
 import {
   useBankAccounts,
   useBankImports,
@@ -100,7 +97,8 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
   const [refreshingAccountId, setRefreshingAccountId] = useState<number | null>(
     null
   );
-  const [accountFilter, setAccountFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
 
   const hasBankingExport = useHasPermission("banking.export");
 
@@ -138,12 +136,31 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
     });
   }, [allImports]);
 
-  const filteredStatements = useMemo(() => {
-    if (accountFilter === "all") return statements;
+  const isSynced = (s: string) =>
+    ["COMPLETED", "FULLY_SYNCED", "PARTIALLY_SYNCED"].includes(s);
+  const isPendingStatus = (s: string) => ["PROCESSING", "PENDING"].includes(s);
+
+  // Statements for the chosen account (drives both the list and the pill counts).
+  const accountStatements = useMemo(() => {
+    if (!selectedAccountId) return statements;
     return statements.filter(
-      (s) => String(s.bank_account?.id ?? "") === accountFilter
+      (s) => String(s.bank_account?.id ?? "") === String(selectedAccountId)
     );
-  }, [statements, accountFilter]);
+  }, [statements, selectedAccountId]);
+
+  const statusCount = (pred: (s: string) => boolean) =>
+    accountStatements.filter((row) => pred(row.status)).length;
+
+  const filteredStatements = useMemo(() => {
+    const q = search.toLowerCase();
+    return accountStatements.filter((row) => {
+      if (statusFilter === "synced" && !isSynced(row.status)) return false;
+      if (statusFilter === "pending" && !isPendingStatus(row.status)) return false;
+      if (statusFilter === "failed" && row.status !== "FAILED") return false;
+      if (q && !(row.original_filename || "").toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [accountStatements, statusFilter, search]);
 
   const pullStatements = useSFTPDownloadStatements();
   const { data: taskStatus } = useSFTPTaskStatus(pullTaskId);
@@ -172,10 +189,6 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
       setIsPulling(false);
     }
   }, [taskStatus, pullTaskId, refetchImports]);
-
-  const selectedCredential = sftpCredentials.find(
-    (c) => c.id === selectedSFTPCredentialId
-  );
 
   const handlePullFiles = async () => {
     if (!selectedAccountId || !selectedSFTPCredentialId) return;
@@ -243,142 +256,6 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Pull config — same shape as Pain002Inbox so one SFTP login can serve
-          both UGX and USD accounts. Pick the account, then the credential,
-          then pull. */}
-      <div className="bg-card rounded-xl border border-border/80 shadow-sm">
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-normal text-foreground">
-              Bank Statements
-            </h3>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Pull statement files (MT940 / FINSTMT) from the bank — closing
-            balances update the account, transactions appear below
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-normal text-foreground">
-                Bank Account
-              </Label>
-              <Select
-                value={selectedAccountId?.toString() || ""}
-                onValueChange={(value) => {
-                  setSelectedAccountId(value ? Number(value) : undefined);
-                  setSelectedSFTPCredentialId(undefined);
-                }}
-                disabled={accountsLoading}
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue
-                    placeholder={
-                      accountsLoading ? "Loading…" : "Select account"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {bankAccounts.map((account) => (
-                    <SelectItem
-                      key={account.id}
-                      value={account.id.toString()}
-                    >
-                      {account.account_name} ({account.account_number})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-normal text-foreground">
-                SFTP Connection
-              </Label>
-              <Select
-                value={selectedSFTPCredentialId?.toString() || ""}
-                onValueChange={(value) =>
-                  setSelectedSFTPCredentialId(value ? Number(value) : undefined)
-                }
-                disabled={
-                  !selectedAccountId ||
-                  credentialsLoading ||
-                  sftpCredentials.length === 0
-                }
-              >
-                <SelectTrigger className="h-10 bg-muted border-border">
-                  <SelectValue
-                    placeholder={
-                      credentialsLoading
-                        ? "Loading…"
-                        : sftpCredentials.length === 0
-                        ? "No connections"
-                        : "Select connection"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {sftpCredentials.map((credential) => (
-                    <SelectItem
-                      key={credential.id}
-                      value={credential.id.toString()}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{credential.host}</span>
-                        {credential.is_active && (
-                          <span className="h-2 w-2 rounded-full bg-primary" />
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                onClick={handlePullFiles}
-                disabled={
-                  !selectedSFTPCredentialId || isPulling || !hasBankingExport
-                }
-                className="h-10 bg-primary hover:bg-primary/90 btn-press"
-              >
-                {isPulling ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {pullTaskId ? "Processing…" : "Pulling…"}
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Pull Statements
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {selectedCredential && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                <span>
-                  <span className="text-muted-foreground/60">Host:</span>{" "}
-                  {selectedCredential.host}:{selectedCredential.port}
-                </span>
-                <span>
-                  <span className="text-muted-foreground/60">Download:</span>{" "}
-                  <code className="text-xs bg-muted px-1 rounded">
-                    {selectedCredential.download_path}
-                  </code>
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Account balances — one chip per active account, sized for any number */}
       {accountsLoading ? (
         <div className="grid gap-3 md:grid-cols-2">
@@ -463,22 +340,44 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         </div>
       ) : null}
 
-      {/* Imported statements + transaction drill-in */}
+      {/* Imported statements — one grid: status pills + pull controls in the header */}
       <ContentCard noPadding>
-        <ContentCardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-normal text-foreground">
-                Imported Statements
-              </h3>
-              {!importsLoading && (
-                <Badge variant="secondary" className="text-xs">
-                  {filteredStatements.length}
-                </Badge>
-              )}
-            </div>
-            <Select value={accountFilter} onValueChange={setAccountFilter}>
-              <SelectTrigger className="w-[180px] h-8">
+        <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+          {([
+            { value: "all", label: "All", count: accountStatements.length, color: undefined },
+            { value: "synced", label: "Synced", count: statusCount(isSynced), color: PILL_COLORS.processed },
+            { value: "pending", label: "Pending", count: statusCount(isPendingStatus), color: "#D4B35A" },
+            { value: "failed", label: "Failed", count: statusCount((s) => s === "FAILED"), color: PILL_COLORS.failed },
+          ]).map((p) => {
+            const active = statusFilter === p.value;
+            return (
+              <button
+                key={p.value}
+                onClick={() => setStatusFilter(p.value)}
+                className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  active
+                    ? p.color
+                      ? "text-white"
+                      : "bg-foreground text-card"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                style={active && p.color ? { backgroundColor: p.color } : undefined}
+              >
+                {p.label} ({p.count})
+              </button>
+            );
+          })}
+
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <Select
+              value={selectedAccountId?.toString() || "all"}
+              onValueChange={(value) => {
+                setSelectedAccountId(value === "all" ? undefined : Number(value));
+                setSelectedSFTPCredentialId(undefined);
+              }}
+              disabled={accountsLoading}
+            >
+              <SelectTrigger className="w-[190px] h-9">
                 <SelectValue placeholder="All accounts" />
               </SelectTrigger>
               <SelectContent>
@@ -490,8 +389,83 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select
+              value={selectedSFTPCredentialId?.toString() || ""}
+              onValueChange={(value) =>
+                setSelectedSFTPCredentialId(value ? Number(value) : undefined)
+              }
+              disabled={
+                !selectedAccountId ||
+                credentialsLoading ||
+                sftpCredentials.length === 0
+              }
+            >
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue
+                  placeholder={
+                    credentialsLoading
+                      ? "Loading…"
+                      : sftpCredentials.length === 0
+                      ? "No connection"
+                      : "Connection"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {sftpCredentials.map((credential) => (
+                  <SelectItem key={credential.id} value={credential.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <span>{credential.host}</span>
+                      {credential.is_active && (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={handlePullFiles}
+              disabled={!selectedSFTPCredentialId || isPulling || !hasBankingExport}
+              size="sm"
+              className="h-9 bg-primary hover:bg-primary/90 btn-press"
+            >
+              {isPulling ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  {pullTaskId ? "Processing…" : "Pulling…"}
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Pull
+                </>
+              )}
+            </Button>
+
+            <div className="relative w-44">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                placeholder="Search files..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchImports()}
+              disabled={importsLoading}
+              className="h-9 btn-press"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${importsLoading ? "animate-spin" : ""}`} />
+            </Button>
           </div>
-        </ContentCardHeader>
+        </div>
 
         {importsLoading ? (
           <div className="space-y-3 p-6">
