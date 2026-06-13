@@ -22,6 +22,7 @@ export const PILL_COLORS: Record<string, string> = {
   draft: '#6B8FB8',
   awaiting_approval: '#fed652',
   awaiting_payment: '#f77f00',
+  reconcile: '#2A9D8F',
   sent: '#fed652',
   outstanding: '#f77f00',
   paid: '#5C8A65',
