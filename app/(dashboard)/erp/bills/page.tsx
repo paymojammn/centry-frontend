@@ -168,7 +168,9 @@ export default function BillsPage() {
   };
 
   const { data: billsResponse, isLoading, error } = useBills(billFilters);
-  const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined);
+  // Bills are outgoing payments — scope pipeline stats to OUT so the summary
+  // cards don't include collections (IN), matching the processing queue.
+  const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined, 'OUT');
   const { data: billStats } = useBillStats(selectedOrganizationId || undefined);
   const { data: erpConnectionsResponse } = useERPConnections();
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
@@ -235,7 +237,6 @@ export default function BillsPage() {
   const pipelinePendingApproval = Number(pipelineStats?.pending_approval || 0);
   const pipelineProcessing = Number(pipelineStats?.processing || 0);
   const pipelineSent = Number(pipelineStats?.pending || 0) + Number(pipelineStats?.sent || 0);
-  const pipelineSuccess = Number(pipelineStats?.success || 0);
   const pipelineInFlight = pipelinePendingApproval + pipelineProcessing + pipelineSent;
   const pipelineInFlightAmount =
     parseFloat(pipelineStats?.total_amount_pending_approval || '0') +
@@ -245,9 +246,9 @@ export default function BillsPage() {
   const pipelinePendingApprovalAmount = parseFloat(
     pipelineStats?.total_amount_pending_approval || '0'
   );
-  const pipelineSentAmount =
-    parseFloat(pipelineStats?.total_amount_pending || '0') +
-    parseFloat(pipelineStats?.total_amount_sent || '0');
+  const pipelineProcessingAmount = parseFloat(
+    pipelineStats?.total_amount_processing || '0'
+  );
 
   // Get organization currency
   const currentOrganization = organizations?.find((org: any) => org.id === selectedOrganizationId);
@@ -347,10 +348,10 @@ export default function BillsPage() {
               />
 
               <StatCard
-                label="Sent to Bank"
-                value={pipelineSent}
-                subtext={`${organizationCurrency} ${formatCompactNumber(pipelineSentAmount)} · ${pipelineSuccess} settled`}
-                icon={AlertTriangle}
+                label="Ready to Pay"
+                value={pipelineProcessing}
+                subtext={`${organizationCurrency} ${formatCompactNumber(pipelineProcessingAmount)} approved`}
+                icon={CreditCard}
                 variant="accent"
               />
 

@@ -131,13 +131,18 @@ export interface BankResponseStats {
 /**
  * Get payment pipeline statistics (payment events by status)
  */
-export function usePaymentPipelineStats(organizationId?: string) {
+export function usePaymentPipelineStats(
+  organizationId?: string,
+  direction?: 'IN' | 'OUT'
+) {
   const params = new URLSearchParams();
   if (organizationId) params.append('organization', organizationId);
+  // Scope to a direction so a payables (OUT) view doesn't count collections (IN).
+  if (direction) params.append('direction', direction);
   const queryString = params.toString();
 
   return useQuery<PaymentPipelineStats>({
-    queryKey: ['payment-pipeline-stats', organizationId],
+    queryKey: ['payment-pipeline-stats', organizationId, direction],
     queryFn: () => get(`/api/v1/xero/payments/stats/${queryString ? `?${queryString}` : ''}`),
     enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
