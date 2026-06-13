@@ -218,23 +218,6 @@ export default function DashboardPage() {
     ])
   );
 
-  // pipeline-overview's period defaults to 90 days; divide by 3 to get a
-  // monthly run-rate on each account, then runway from balance ÷ run-rate.
-  const periodStart = pipelineOverview?.period?.start_date
-    ? new Date(pipelineOverview.period.start_date)
-    : null;
-  const periodEnd = pipelineOverview?.period?.end_date
-    ? new Date(pipelineOverview.period.end_date)
-    : null;
-  const periodDays =
-    periodStart && periodEnd
-      ? Math.max(
-          Math.round((periodEnd.getTime() - periodStart.getTime()) / 86_400_000) + 1,
-          1
-        )
-      : 90;
-  const periodLabel = periodDays === 90 ? '90d' : `${periodDays}d`;
-
   type FundingCard = {
     key: string;
     bankName: string;
@@ -242,59 +225,40 @@ export default function DashboardPage() {
     currency: string;
     balance: number | null;
     accepted: number;
-    acceptedCount: number;
-    pending: number;
-    monthly: number;
-    runwayDays: number | null;
+    paymentCount: number;
     iconKind: 'bank' | 'provider';
   };
 
-  function runwayLabelFor(days: number | null): string {
-    if (days === null) return '—';
-    if (days > 365) return `${(days / 365).toFixed(1)}y`;
-    if (days > 60) return `${(days / 30).toFixed(1)}mo`;
-    return `${days}d`;
-  }
-  function toneFor(days: number | null): 'success' | 'warning' | 'danger' | 'default' {
-    if (days === null) return 'default';
-    if (days < 30) return 'danger';
-    if (days < 90) return 'warning';
-    return 'success';
-  }
-
-  const bankCards: FundingCard[] = (pipelineOverview?.by_bank || [])
-    .filter((b) => sftpBankAccountIds.size === 0 || sftpBankAccountIds.has(b.bank_account_id))
-    .map((b) => {
-      const accepted = parseFloat(b.accepted_amount || '0') || 0;
-      // Pending = sent to the bank but not yet accepted (in pain.002 limbo).
-      const pending = Math.max((parseFloat(b.sent_amount || '0') || 0) - accepted, 0);
-      const monthly = (accepted / periodDays) * 30;
-      const ba = bankBalanceById.get(b.bank_account_id);
-      const balance = ba ? ba.balance : null;
-      const currency = b.currency || ba?.currency || 'UGX';
-      const days = balance !== null && monthly > 0 ? Math.floor(balance / (monthly / 30)) : null;
-      return {
-        key: `bank:${b.bank_account_id}:${currency}`,
-        bankName: b.bank_name,
-        accountName: b.account_name,
-        currency,
-        balance,
-        accepted,
-        acceptedCount: b.accepted_count,
-        pending,
-        monthly,
-        runwayDays: days,
-        iconKind: 'bank' as const,
-      };
+  // One card per bank ACCOUNT — by_bank is split per currency, so the same
+  // account would otherwise appear twice (e.g. Stanbic UGX + Stanbic USD).
+  // Collapse by bank_account_id and sum the payments across currencies.
+  const bankCardById = new Map<string, FundingCard>();
+  for (const b of pipelineOverview?.by_bank || []) {
+    if (sftpBankAccountIds.size > 0 && !sftpBankAccountIds.has(b.bank_account_id)) continue;
+    const existing = bankCardById.get(b.bank_account_id);
+    if (existing) {
+      existing.paymentCount += b.sent_count;
+      existing.accepted += parseFloat(b.accepted_amount || '0') || 0;
+      continue;
+    }
+    const ba = bankBalanceById.get(b.bank_account_id);
+    bankCardById.set(b.bank_account_id, {
+      key: `bank:${b.bank_account_id}`,
+      bankName: b.bank_name,
+      accountName: b.account_name,
+      currency: ba?.currency || b.currency || 'UGX',
+      balance: ba ? ba.balance : null,
+      accepted: parseFloat(b.accepted_amount || '0') || 0,
+      paymentCount: b.sent_count,
+      iconKind: 'bank' as const,
     });
+  }
+  const bankCards: FundingCard[] = Array.from(bankCardById.values());
 
   const providerCards: FundingCard[] = (pipelineOverview?.provider_accounts || []).map((p) => {
     const accepted = parseFloat(p.period_completed_amount || '0') || 0;
-    const pending = parseFloat(p.period_inflight_amount || '0') || 0;
-    const monthly = (accepted / periodDays) * 30;
     const balance = parseFloat(p.balance || '0');
     const currency = (p.currency || 'UGX').toUpperCase();
-    const days = monthly > 0 ? Math.floor(balance / (monthly / 30)) : null;
     return {
       key: `prov:${p.account_id}`,
       bankName: p.provider,
@@ -302,10 +266,7 @@ export default function DashboardPage() {
       currency,
       balance: Number.isFinite(balance) ? balance : null,
       accepted,
-      acceptedCount: p.period_completed_count,
-      pending,
-      monthly,
-      runwayDays: days,
+      paymentCount: p.payment_count || 0,
       iconKind: 'provider' as const,
     };
   });
@@ -313,6 +274,15 @@ export default function DashboardPage() {
   const fundingCards = [...bankCards, ...providerCards].sort(
     (a, b) => b.accepted - a.accepted
   );
+  // Rotating summary-card palette (same tones as MetricTile) so the account
+  // cards stay colourful and consistent with the rest of the app.
+  const ACCOUNT_TONES = [
+    { border: 'border-l-blue-500', chip: 'bg-blue-500/10 text-blue-600', icon: 'text-blue-600' },
+    { border: 'border-l-emerald-500', chip: 'bg-emerald-500/10 text-emerald-600', icon: 'text-emerald-600' },
+    { border: 'border-l-amber-500', chip: 'bg-amber-500/10 text-amber-600', icon: 'text-amber-600' },
+    { border: 'border-l-primary', chip: 'bg-primary/10 text-primary', icon: 'text-primary' },
+    { border: 'border-l-red-500', chip: 'bg-red-500/10 text-red-600', icon: 'text-red-600' },
+  ];
 
   // Cash flow — all-time successful Centry collections (IN) and bill payments
   // (OUT) per currency, so every tile matches the Invoice/Bill Payments "Paid"
@@ -516,21 +486,18 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ─── Section 3: Funding accounts ─── */}
-          {/* One card per account in its own currency — no FX mixing.
-              Primary number = accepted payments through that account
-              over the pipeline-overview period (default 90d). Each card
-              also carries the account's balance, derived monthly run-rate
-              and per-account runway. Sources:
-                • bank rows  → SFTPCredential-wired BankAccount + by_bank
-                • provider rows → ProviderAccount + provider_accounts. */}
+          {/* ─── Section 3: Active Accounts ─── */}
+          {/* One colourful card per active funding account (SFTP bank or
+              payment provider): account name, type (Ozow / OneGate / bank),
+              current balance, and the number of payments routed through it. */}
           <div>
             <div className="flex items-baseline justify-between mb-3">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Funding accounts
+                Active Accounts
               </h2>
               <span className="text-[11px] text-muted-foreground">
-                Accepted payments · last {periodLabel}
+                {fundingCards.length}{' '}
+                {fundingCards.length === 1 ? 'account' : 'accounts'}
               </span>
             </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -539,37 +506,46 @@ export default function DashboardPage() {
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
               ) : fundingCards.length === 0 ? (
-                <MetricTile
-                  label="No funding accounts"
-                  value="—"
-                  hint="Wire an SFTP bank account or add a ProviderAccount"
-                  icon={Wallet}
-                  tone="accent"
-                />
+                <div className="col-span-full rounded-xl border border-border/80 bg-card py-8 text-center text-sm text-muted-foreground">
+                  No active accounts — wire an SFTP bank account or add a payment provider.
+                </div>
               ) : (
-                fundingCards.map((c) => {
-                  const balanceLine =
-                    c.balance === null
-                      ? 'Balance not synced'
-                      : `Bal ${c.currency} ${formatCompact(c.balance)}`;
-                  const runwayLine =
-                    c.monthly > 0
-                      ? `~${c.currency} ${formatCompact(c.monthly)}/mo · ${runwayLabelFor(c.runwayDays)}`
-                      : `${c.acceptedCount} accepted`;
+                fundingCards.map((c, idx) => {
+                  const tone = ACCOUNT_TONES[idx % ACCOUNT_TONES.length];
                   return (
-                    <MetricTile
+                    <div
                       key={c.key}
-                      label={`${c.bankName} · ${c.accountName || '—'}`}
-                      value={`Pending ${c.currency} ${formatCompact(c.pending)}`}
-                      hint={balanceLine}
-                      footer={
-                        <span className="text-[11px] text-muted-foreground">
-                          {runwayLine}
+                      className={`rounded-xl border border-border/80 border-l-4 ${tone.border} bg-card p-4 shadow-sm transition-shadow hover:shadow-md`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${tone.chip}`}
+                        >
+                          {c.bankName}
                         </span>
-                      }
-                      icon={c.iconKind === 'bank' ? Landmark : Wallet}
-                      tone={toneFor(c.runwayDays)}
-                    />
+                        {c.iconKind === 'bank' ? (
+                          <Landmark className={`h-4 w-4 ${tone.icon}`} />
+                        ) : (
+                          <Wallet className={`h-4 w-4 ${tone.icon}`} />
+                        )}
+                      </div>
+                      <p
+                        className="mt-2 truncate text-sm font-medium text-foreground"
+                        title={c.accountName}
+                      >
+                        {c.accountName || '—'}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                        {c.balance === null
+                          ? '—'
+                          : `${c.currency} ${formatCompact(c.balance)}`}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {c.balance === null ? 'Balance not synced' : 'Balance'} ·{' '}
+                        {c.paymentCount.toLocaleString()}{' '}
+                        {c.paymentCount === 1 ? 'payment' : 'payments'}
+                      </p>
+                    </div>
                   );
                 })
               )}

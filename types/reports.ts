@@ -312,6 +312,7 @@ export interface PipelineProviderAccount {
   period_inflight_count: number;
   period_inflight_amount: string;
   period_failed_count: number;
+  payment_count: number;
 }
 
 export interface PipelineChannel {
