@@ -43,11 +43,12 @@ export interface ContactStats {
   suppliers: number;
   customers: number;
   both: number;
+  other: number;
   active: number;
 }
 
 export interface ContactsFilters {
-  type?: 'supplier' | 'customer';
+  type?: 'supplier' | 'customer' | 'other';
   status?: string;
   search?: string;
   page?: number;

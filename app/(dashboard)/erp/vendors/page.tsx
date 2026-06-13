@@ -101,6 +101,7 @@ export default function VendorsPage() {
       total: contacts.length,
       suppliers: contacts.filter((c: Contact) => c.is_supplier).length,
       customers: contacts.filter((c: Contact) => c.is_customer).length,
+      other: contacts.filter((c: Contact) => !c.is_supplier && !c.is_customer).length,
       active: contacts.filter((c: Contact) => c.contact_status === 'ACTIVE').length,
     };
   }, [contactsData]);
@@ -112,7 +113,7 @@ export default function VendorsPage() {
   const handleTypeChange = (value: string) => {
     setFilters((prev) => ({
       ...prev,
-      type: value === 'all' ? undefined : (value as 'supplier' | 'customer'),
+      type: value === 'all' ? undefined : (value as 'supplier' | 'customer' | 'other'),
     }));
   };
 
@@ -133,6 +134,7 @@ export default function VendorsPage() {
     { value: 'all', label: 'All', count: s.total, color: undefined as string | undefined },
     { value: 'supplier', label: 'Suppliers', count: s.suppliers, color: '#6B8FB8' },
     { value: 'customer', label: 'Customers', count: s.customers, color: '#5C8A65' },
+    { value: 'other', label: 'Other', count: s.other, color: '#bec3c6' },
   ];
 
   return (
