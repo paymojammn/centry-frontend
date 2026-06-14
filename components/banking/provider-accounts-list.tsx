@@ -318,12 +318,31 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm">Balance currency</Label>
-                <Input
-                  value={form.balance_currency ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, balance_currency: e.target.value.toUpperCase() }))
-                  }
-                />
+                <Select
+                  value={form.balance_currency || undefined}
+                  onValueChange={(v) => setForm((f) => ({ ...f, balance_currency: v }))}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(() => {
+                      const opts = editing?.balance_currency_options?.length
+                        ? editing.balance_currency_options
+                        : ["USD", "EUR"];
+                      // Always allow the current value even if outside the options.
+                      const all =
+                        form.balance_currency && !opts.includes(form.balance_currency)
+                          ? [form.balance_currency, ...opts]
+                          : opts;
+                      return all.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ));
+                    })()}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-1.5">

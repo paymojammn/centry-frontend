@@ -20,6 +20,7 @@ export interface ProviderAccount {
   fee_fixed: string;
   balance: string;
   balance_currency: string;
+  balance_currency_options: string[];
   balance_synced_at: string | null;
   has_sandbox_credentials: boolean;
   has_production_credentials: boolean;
