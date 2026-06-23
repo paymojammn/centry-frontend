@@ -142,7 +142,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Website
+                Admin
               </a>
               <Link href="/docs/checkout#api-reference" className="text-sm text-white/60 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all">
                 API Reference

@@ -30,8 +30,10 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  Server,
 } from "lucide-react";
 import { toast } from "sonner";
+import { HostToHostDialog } from "@/components/banking/host-to-host-dialog";
 
 interface BankAccount {
   id: string;
@@ -79,6 +81,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<BankAccount | null>(null);
+  const [h2hAccount, setH2hAccount] = useState<BankAccount | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -238,6 +241,10 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setH2hAccount(account)}>
+                        <Server className="h-4 w-4 mr-2" />
+                        Host-to-Host Connection
+                      </DropdownMenuItem>
                       {!account.is_default && (
                         <DropdownMenuItem onClick={() => setDefaultMutation.mutate(account.id)}>
                           <Star className="h-4 w-4 mr-2" />
@@ -258,6 +265,16 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
             ))}
           </tbody>
         </table>
+      )}
+
+      {/* Host-to-Host Connections Dialog */}
+      {h2hAccount && (
+        <HostToHostDialog
+          open={!!h2hAccount}
+          onClose={() => setH2hAccount(null)}
+          bankAccountId={Number(h2hAccount.id)}
+          bankAccountName={h2hAccount.account_name}
+        />
       )}
 
       {/* Delete Dialog */}

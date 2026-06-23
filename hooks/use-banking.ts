@@ -5,7 +5,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { get, post } from '@/lib/api';
+import { get, post, patch, del } from '@/lib/api';
 
 // Types
 export interface BankProvider {
@@ -485,6 +485,10 @@ export interface SFTPRemoteFile {
   is_dir: boolean;
 }
 
+export type SFTPAuthType = 'password' | 'key' | 'key_password';
+export type SFTPEnvironment = 'test' | 'prod';
+export type SFTPExportFormat = 'pain.001' | 'pain.002' | 'pain.008' | 'csv';
+
 export interface SFTPCredential {
   id: number;
   bank_account: {
@@ -494,22 +498,47 @@ export interface SFTPCredential {
     bank_name: string;
     currency: string;
   };
+  name: string;
+  environment: SFTPEnvironment;
   host: string;
   port: number;
   username: string;
-  auth_type: 'password' | 'key';
+  auth_type: SFTPAuthType;
   has_password: boolean;
   has_private_key: boolean;
+  export_format: SFTPExportFormat;
   upload_path: string;
   download_path: string;
+  archive_path: string;
   timeout: number;
   is_active: boolean;
-  auto_upload_enabled: boolean;
+  is_default: boolean;
   last_connection_test: string | null;
   last_connection_error: string | null;
   connection_status: 'untested' | 'connected' | 'error';
   created_at: string;
   updated_at: string;
+}
+
+/** Payload for creating/updating a host-to-host connection. Secrets are write-only. */
+export interface SFTPCredentialInput {
+  bank_account_id: number;
+  name?: string;
+  environment?: SFTPEnvironment;
+  host: string;
+  port?: number;
+  username: string;
+  auth_type: SFTPAuthType;
+  password?: string;
+  private_key?: string;
+  key_passphrase?: string;
+  export_format?: SFTPExportFormat;
+  upload_path?: string;
+  download_path?: string;
+  archive_path?: string;
+  timeout?: number;
+  is_active?: boolean;
+  is_default?: boolean;
 }
 
 export interface SFTPTransferLog {
@@ -593,6 +622,65 @@ export function useSFTPCredentials(bankAccountId?: number) {
       return get(`/api/v1/banking/sftp-credentials/${params}`);
     },
     enabled: !!bankAccountId,
+  });
+}
+
+/**
+ * Create a host-to-host (SFTP) connection for a bank account.
+ */
+export function useCreateSFTPCredential() {
+  const queryClient = useQueryClient();
+  return useMutation<SFTPCredential, Error, SFTPCredentialInput>({
+    mutationFn: (data) => post('/api/v1/banking/sftp-credentials/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials-all'] });
+    },
+  });
+}
+
+/**
+ * Update a host-to-host (SFTP) connection. Omit secret fields to leave them unchanged.
+ */
+export function useUpdateSFTPCredential() {
+  const queryClient = useQueryClient();
+  return useMutation<SFTPCredential, Error, { id: number; data: Partial<SFTPCredentialInput> }>({
+    mutationFn: ({ id, data }) => patch(`/api/v1/banking/sftp-credentials/${id}/`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials-all'] });
+    },
+  });
+}
+
+/**
+ * Delete a host-to-host (SFTP) connection.
+ */
+export function useDeleteSFTPCredential() {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: (id) => del(`/api/v1/banking/sftp-credentials/${id}/`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials-all'] });
+    },
+  });
+}
+
+/**
+ * Test a host-to-host (SFTP) connection.
+ */
+export function useTestSFTPCredential() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { success: boolean; message: string; last_test?: string; error?: string },
+    Error,
+    number
+  >({
+    mutationFn: (id) => post(`/api/v1/banking/sftp-credentials/${id}/test/`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sftp-credentials'] });
+    },
   });
 }
 

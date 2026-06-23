@@ -56,7 +56,7 @@ export function LegalLayout({
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-6 lg:px-10">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/media/app/centry-logo-100.svg" alt="Centry" className="size-8 rounded-lg" />
+            <img src="/media/app/centry-logo.svg" alt="Centry" className="size-8" />
             <span className="text-lg font-semibold text-foreground">Centry</span>
             <span className="ml-1 hidden rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline">
               Legal

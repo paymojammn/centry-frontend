@@ -74,8 +74,8 @@ const sections: LegalSection[] = [
         <ul className={legalBullets}>
           <li>
             Email:{' '}
-            <a href="mailto:support@getcentry.app" className="font-medium text-primary hover:underline">
-              support@getcentry.app
+            <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
+              support@getcentry.com
             </a>
           </li>
           <li>Include your account email, transaction details, and reason for the refund request</li>
@@ -119,8 +119,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have any questions about our refund policy, please contact us at{' '}
-        <a href="mailto:support@getcentry.app" className="font-medium text-primary hover:underline">
-          support@getcentry.app
+        <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
+          support@getcentry.com
         </a>
       </p>
     ),

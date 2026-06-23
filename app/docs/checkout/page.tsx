@@ -1355,10 +1355,10 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Need help?{' '}
-              <a href="mailto:support@getcentry.app" className="text-primary hover:underline">support@getcentry.app</a>
+              <a href="mailto:support@getcentry.com" className="text-primary hover:underline">support@getcentry.com</a>
             </p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <a href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'} className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Website</a>
+              <a href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'} className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Admin</a>
               <a href="/auth/login" className="hover:text-foreground">Dashboard</a>
             </div>
           </div>

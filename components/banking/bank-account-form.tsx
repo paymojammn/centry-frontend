@@ -24,23 +24,21 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { toast } from "sonner";
-
-interface Bank {
-  id: string;
-  name: string;
-  short_name?: string;
-  code: string;
-  swift_code?: string;
-  bank_type?: string;
-  country_code: string;
-  country_name: string;
-}
 
 interface BankProvider {
   id: string;
   name: string;
   code: string;
+}
+
+interface BankBranch {
+  id: number;
+  branch_code: string;
+  branch_name: string;
+  is_head_office: boolean;
+  swift_code: string;
 }
 
 interface BankAccountFormProps {
@@ -95,14 +93,6 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
     },
   });
 
-  // Fetch banks
-  const { data: banksResponse } = useQuery<{ banks: Bank[]; count: number }>({
-    queryKey: ["banks"],
-    queryFn: () => api.get("/api/v1/banking/banks/"),
-    enabled: open,
-  });
-  const banks = banksResponse?.banks || [];
-
   // Fetch bank providers
   const { data: providersResponse } = useQuery<{ results: BankProvider[] }>({
     queryKey: ["bank-providers"],
@@ -110,6 +100,18 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
     enabled: open,
   });
   const providers = providersResponse?.results || [];
+
+  // Fetch branches for the selected provider (resolved via provider.bank on the backend)
+  const selectedProviderId = watch("bank_provider_id");
+  const { data: branchesResponse, isLoading: branchesLoading } = useQuery<{
+    branches: BankBranch[];
+    count: number;
+  }>({
+    queryKey: ["provider-branches", selectedProviderId],
+    queryFn: () => api.get(`/api/v1/banking/providers/${selectedProviderId}/branches/`),
+    enabled: open && !!selectedProviderId,
+  });
+  const branches = branchesResponse?.branches || [];
 
   // Create/Update mutation
   const mutation = useMutation({
@@ -187,6 +189,19 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
   const isActive = watch("is_active");
   const isDefault = watch("is_default");
 
+  // Display label for the selected provider in the searchable dropdown.
+  const selectedProviderName =
+    providers.find((p) => p.id === watch("bank_provider_id"))?.name || "";
+
+  // Display label for the selected branch in the searchable dropdown.
+  const watchedBranchCode = watch("branch_code");
+  const watchedBranchName = watch("branch_name");
+  const selectedBranchDisplay = watchedBranchCode
+    ? watchedBranchName
+      ? `${watchedBranchName} — ${watchedBranchCode}`
+      : watchedBranchCode
+    : "";
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl">
@@ -205,21 +220,22 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
           {/* Bank Provider Selection */}
           <div className="space-y-2">
             <Label htmlFor="bank_provider_id" className="text-sm font-medium text-foreground">Bank Provider *</Label>
-            <Select
-              value={watch("bank_provider_id")}
-              onValueChange={(value) => setValue("bank_provider_id", value)}
-            >
-              <SelectTrigger className="h-10 bg-muted border-border">
-                <SelectValue placeholder="Select a bank provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {providers.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              placeholder="Select a bank provider"
+              value={watch("bank_provider_id") || ""}
+              displayValue={selectedProviderName}
+              options={providers.map((provider) => ({
+                value: provider.id,
+                label: provider.name,
+                hint: provider.code,
+              }))}
+              onSelect={(value) => {
+                setValue("bank_provider_id", value);
+                // Branches belong to the provider's bank — reset on change.
+                setValue("branch_name", "");
+                setValue("branch_code", "");
+              }}
+            />
             {errors.bank_provider_id && (
               <p className="text-sm text-destructive">{errors.bank_provider_id.message}</p>
             )}
@@ -313,28 +329,57 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
             )}
           </div>
 
-          {/* Branch Details - Side by side */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Branch Details */}
+          {branches.length > 0 ? (
             <div className="space-y-2">
-              <Label htmlFor="branch_name" className="text-sm font-medium text-foreground">Branch Name</Label>
-              <Input
-                id="branch_name"
-                {...register("branch_name")}
-                placeholder="e.g., Main Branch"
-                className="h-10 bg-muted border-border"
+              <Label className="text-sm font-medium text-foreground">Branch</Label>
+              <SearchableSelect
+                placeholder="Select a branch"
+                value={watch("branch_code") || ""}
+                displayValue={selectedBranchDisplay}
+                loading={branchesLoading}
+                options={branches.map((b) => ({
+                  value: b.branch_code,
+                  label: b.branch_name || b.branch_code,
+                  hint: b.branch_code,
+                }))}
+                onSelect={(code) => {
+                  const branch = branches.find((b) => b.branch_code === code);
+                  setValue("branch_code", code);
+                  setValue("branch_name", branch?.branch_name || "");
+                  // SWIFT/BIC comes from the branch's bank — auto-fill it.
+                  if (branch?.swift_code) {
+                    setValue("swift_code", branch.swift_code);
+                  }
+                }}
               />
+              <p className="text-xs text-muted-foreground">
+                Branch name and code are taken from this bank&apos;s branch registry.
+              </p>
             </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="branch_name" className="text-sm font-medium text-foreground">Branch Name</Label>
+                <Input
+                  id="branch_name"
+                  {...register("branch_name")}
+                  placeholder="e.g., Main Branch"
+                  className="h-10 bg-muted border-border"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="branch_code" className="text-sm font-medium text-foreground">Branch Code</Label>
-              <Input
-                id="branch_code"
-                {...register("branch_code")}
-                placeholder="e.g., 001"
-                className="h-10 bg-muted border-border"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="branch_code" className="text-sm font-medium text-foreground">Branch Code</Label>
+                <Input
+                  id="branch_code"
+                  {...register("branch_code")}
+                  placeholder="e.g., 001"
+                  className="h-10 bg-muted border-border"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* SWIFT Code */}
           <div className="space-y-2">

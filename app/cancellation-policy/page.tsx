@@ -42,8 +42,8 @@ const sections: LegalSection[] = [
           </li>
           <li>
             <strong className="text-foreground">Email:</strong> Send a cancellation request to{' '}
-            <a href="mailto:support@getcentry.app" className="font-medium text-primary hover:underline">
-              support@getcentry.app
+            <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
+              support@getcentry.com
             </a>
           </li>
           <li>
@@ -151,8 +151,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about cancellation or need assistance, please contact us at{' '}
-        <a href="mailto:support@getcentry.app" className="font-medium text-primary hover:underline">
-          support@getcentry.app
+        <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
+          support@getcentry.com
         </a>
       </p>
     ),
