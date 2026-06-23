@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useAllSFTPCredentials } from "@/hooks/use-banking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -79,6 +80,9 @@ const cleanCurrencyCode = (currency: string): string => {
 
 export function BankAccountsList({ onEditAccount, organizationId }: BankAccountsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"host_to_host" | "other" | "all">(
+    "host_to_host"
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<BankAccount | null>(null);
   const [h2hAccount, setH2hAccount] = useState<BankAccount | null>(null);
@@ -99,6 +103,28 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
   const accounts = Array.isArray(accountsResponse)
     ? accountsResponse
     : (accountsResponse as any)?.results || [];
+
+  // Which accounts have a host-to-host (SFTP) connection configured.
+  const { data: sftpData } = useAllSFTPCredentials(organizationId);
+  const accountsWithH2H = useMemo(() => {
+    const ids = new Set<string>();
+    (sftpData?.results || []).forEach((c) => {
+      if (c?.bank_account?.id != null) ids.add(String(c.bank_account.id));
+    });
+    return ids;
+  }, [sftpData]);
+
+  const hasH2H = (account: BankAccount) => accountsWithH2H.has(String(account.id));
+
+  const counts = {
+    host_to_host: accounts.filter((a: BankAccount) => hasH2H(a)).length,
+    other: accounts.filter((a: BankAccount) => !hasH2H(a)).length,
+    all: accounts.length,
+  };
+
+  const filteredAccounts = accounts.filter((a: BankAccount) =>
+    statusFilter === "all" ? true : statusFilter === "host_to_host" ? hasH2H(a) : !hasH2H(a)
+  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.del(`/api/v1/banking/accounts/${id}/`),
@@ -169,9 +195,30 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
 
   return (
     <div>
-      {/* Search */}
-      <div className="px-6 py-4 border-b border-border">
-        <div className="relative max-w-sm">
+      {/* Status pills + search */}
+      <div className="px-6 py-4 border-b border-border flex items-center gap-2 flex-wrap">
+        {([
+          { value: "all", label: "All", count: counts.all },
+          { value: "host_to_host", label: "Host-to-Host", count: counts.host_to_host },
+          { value: "other", label: "Other", count: counts.other },
+        ] as const).map((p) => {
+          const active = statusFilter === p.value;
+          return (
+            <button
+              key={p.value}
+              type="button"
+              onClick={() => setStatusFilter(p.value)}
+              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                active
+                  ? "bg-primary text-white"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {p.label} ({p.count})
+            </button>
+          );
+        })}
+        <div className="ml-auto relative w-56 max-w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             placeholder="Search accounts..."
@@ -183,14 +230,22 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
       </div>
 
       {/* Table */}
-      {accounts.length === 0 ? (
+      {filteredAccounts.length === 0 ? (
         <div className="text-center py-12">
           <Building2 className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            {searchQuery ? "No accounts match your search" : "No bank accounts yet"}
+            {searchQuery
+              ? "No accounts match your search"
+              : statusFilter === "host_to_host"
+                ? "No accounts with a host-to-host connection"
+                : statusFilter === "other"
+                  ? "No accounts without a host-to-host connection"
+                  : "No bank accounts yet"}
           </p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Add or sync accounts from Xero to get started
+            {statusFilter === "host_to_host"
+              ? "Configure one from an account's menu (switch to All to see every account)"
+              : "Add or sync accounts from Xero to get started"}
           </p>
         </div>
       ) : (
@@ -206,7 +261,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
             </tr>
           </thead>
           <tbody>
-            {accounts.map((account: BankAccount) => (
+            {filteredAccounts.map((account: BankAccount) => (
               <tr key={account.id}>
                 <td className="cell-primary">
                   <div className="flex items-center gap-2">
