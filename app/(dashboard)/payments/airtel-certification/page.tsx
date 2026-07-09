@@ -210,6 +210,69 @@ function CaseTable({ initial }: { initial: CertCase[] }) {
   );
 }
 
+/** Read-only Airtel lookups: User Enquiry (KYC) and Balance. */
+function LookupPanel({ kind, needsMsisdn, label }: { kind: 'kyc' | 'balance'; needsMsisdn: boolean; label: string }) {
+  const [msisdn, setMsisdn] = useState('');
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<RunResult | null>(null);
+
+  const run = async () => {
+    setRunning(true);
+    try {
+      const res = await api.post<RunResult>('/payments/api/airtel/cert-test/', {
+        kind,
+        ...(needsMsisdn ? { msisdn } : {}),
+      });
+      setResult(res);
+    } catch (e: any) {
+      setResult({ status: 'failed', error: e?.message || String(e) });
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const data = (result?.response as any)?.data;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-end gap-2">
+        {needsMsisdn && (
+          <div>
+            <label className="text-xs text-muted-foreground">MSISDN</label>
+            <Input
+              value={msisdn}
+              onChange={(e) => setMsisdn(e.target.value)}
+              placeholder="e.g. 256706218827"
+              className="h-9 w-56"
+            />
+          </div>
+        )}
+        <Button onClick={run} disabled={running || (needsMsisdn && !msisdn)}>
+          {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+          {label}
+        </Button>
+        {result && <Badge variant={statusVariant(result.status)}>{result.status}</Badge>}
+      </div>
+
+      {data && (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-lg border p-3 text-sm sm:grid-cols-3">
+          {Object.entries(data).map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2">
+              <span className="text-muted-foreground">{k}</span>
+              <span className="font-medium">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {result && (
+        <pre className="max-h-72 overflow-auto rounded bg-muted/40 p-3 text-xs">
+          {JSON.stringify(result.response ?? result, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 export default function AirtelCertificationPage() {
   return (
     <PageContainer>
@@ -222,12 +285,20 @@ export default function AirtelCertificationPage() {
           <TabsList>
             <TabsTrigger value="collections">Collections ({COLLECTIONS.length})</TabsTrigger>
             <TabsTrigger value="disbursements">Disbursements ({DISBURSEMENTS.length})</TabsTrigger>
+            <TabsTrigger value="kyc">User Enquiry (KYC)</TabsTrigger>
+            <TabsTrigger value="balance">Balance</TabsTrigger>
           </TabsList>
           <TabsContent value="collections" className="mt-4">
             <CaseTable initial={COLLECTIONS} />
           </TabsContent>
           <TabsContent value="disbursements" className="mt-4">
             <CaseTable initial={DISBURSEMENTS} />
+          </TabsContent>
+          <TabsContent value="kyc" className="mt-4">
+            <LookupPanel kind="kyc" needsMsisdn label="Look up user" />
+          </TabsContent>
+          <TabsContent value="balance" className="mt-4">
+            <LookupPanel kind="balance" needsMsisdn={false} label="Check balance" />
           </TabsContent>
         </Tabs>
       </ContentCard>
