@@ -39,6 +39,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "All Payments", path: "/payments" },
       { title: "Processing", path: "/payments/processing" },
+      { title: "Airtel Certification", path: "/payments/airtel-certification" },
       { title: "Provider Accounts", path: "/banking/provider-accounts" },
       { title: "Approvals", path: "/banking/approvals" },
       {
