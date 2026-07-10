@@ -210,20 +210,16 @@ function CaseTable({ initial }: { initial: CertCase[] }) {
   );
 }
 
-const WALLET_TYPES = ['COLL', 'DISB', 'CASHIN', 'CASHOUT'];
-
 /** Read-only Airtel lookups: User Enquiry (KYC) and Balance. */
 function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }) {
   const [msisdn, setMsisdn] = useState('');
-  const [walletType, setWalletType] = useState('COLL');
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
   const run = async () => {
     setRunning(true);
     try {
-      const body =
-        kind === 'kyc' ? { kind, msisdn } : { kind, wallet_type: walletType };
+      const body = kind === 'kyc' ? { kind, msisdn } : { kind };
       const res = await api.post<RunResult>('/payments/api/airtel/cert-test/', body);
       setResult(res);
     } catch (e: any) {
@@ -247,22 +243,6 @@ function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }
               placeholder="e.g. 256706218827"
               className="h-9 w-56"
             />
-          </div>
-        )}
-        {kind === 'balance' && (
-          <div>
-            <label className="text-xs text-muted-foreground">Wallet type</label>
-            <select
-              value={walletType}
-              onChange={(e) => setWalletType(e.target.value)}
-              className="h-9 w-48 rounded-md border bg-background px-2 text-sm"
-            >
-              {WALLET_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
           </div>
         )}
         <Button onClick={run} disabled={running || (kind === 'kyc' && !msisdn)}>
