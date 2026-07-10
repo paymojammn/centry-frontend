@@ -210,19 +210,21 @@ function CaseTable({ initial }: { initial: CertCase[] }) {
   );
 }
 
+const WALLET_TYPES = ['COLL', 'DISB', 'CASHIN', 'CASHOUT'];
+
 /** Read-only Airtel lookups: User Enquiry (KYC) and Balance. */
-function LookupPanel({ kind, needsMsisdn, label }: { kind: 'kyc' | 'balance'; needsMsisdn: boolean; label: string }) {
+function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }) {
   const [msisdn, setMsisdn] = useState('');
+  const [walletType, setWalletType] = useState('COLL');
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
   const run = async () => {
     setRunning(true);
     try {
-      const res = await api.post<RunResult>('/payments/api/airtel/cert-test/', {
-        kind,
-        ...(needsMsisdn ? { msisdn } : {}),
-      });
+      const body =
+        kind === 'kyc' ? { kind, msisdn } : { kind, wallet_type: walletType };
+      const res = await api.post<RunResult>('/payments/api/airtel/cert-test/', body);
       setResult(res);
     } catch (e: any) {
       setResult({ status: 'failed', error: e?.message || String(e) });
@@ -236,7 +238,7 @@ function LookupPanel({ kind, needsMsisdn, label }: { kind: 'kyc' | 'balance'; ne
   return (
     <div className="space-y-3">
       <div className="flex items-end gap-2">
-        {needsMsisdn && (
+        {kind === 'kyc' && (
           <div>
             <label className="text-xs text-muted-foreground">MSISDN</label>
             <Input
@@ -247,7 +249,23 @@ function LookupPanel({ kind, needsMsisdn, label }: { kind: 'kyc' | 'balance'; ne
             />
           </div>
         )}
-        <Button onClick={run} disabled={running || (needsMsisdn && !msisdn)}>
+        {kind === 'balance' && (
+          <div>
+            <label className="text-xs text-muted-foreground">Wallet type</label>
+            <select
+              value={walletType}
+              onChange={(e) => setWalletType(e.target.value)}
+              className="h-9 w-48 rounded-md border bg-background px-2 text-sm"
+            >
+              {WALLET_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <Button onClick={run} disabled={running || (kind === 'kyc' && !msisdn)}>
           {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           {label}
         </Button>
@@ -295,10 +313,10 @@ export default function AirtelCertificationPage() {
             <CaseTable initial={DISBURSEMENTS} />
           </TabsContent>
           <TabsContent value="kyc" className="mt-4">
-            <LookupPanel kind="kyc" needsMsisdn label="Look up user" />
+            <LookupPanel kind="kyc" label="Look up user" />
           </TabsContent>
           <TabsContent value="balance" className="mt-4">
-            <LookupPanel kind="balance" needsMsisdn={false} label="Check balance" />
+            <LookupPanel kind="balance" label="Check balance" />
           </TabsContent>
         </Tabs>
       </ContentCard>
