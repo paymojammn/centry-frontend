@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { PageContainer } from '@/components/layout/page-container';
 import { ContentCard } from '@/components/layout/content-card';
 import { Loader2, Play, ChevronDown, ChevronRight } from 'lucide-react';
+import { ProviderAccountPicker } from '@/components/payments/provider-account-picker';
 
 type Kind = 'collection' | 'disbursement';
 
@@ -76,7 +77,7 @@ function statusVariant(status?: string): 'success' | 'warning' | 'destructive' |
   return 'outline';
 }
 
-function CaseTable({ initial }: { initial: CertCase[] }) {
+function CaseTable({ initial, accountId }: { initial: CertCase[]; accountId: string }) {
   const [rows, setRows] = useState<CertCase[]>(initial);
   const [results, setResults] = useState<Record<string, RunResult>>({});
   const [running, setRunning] = useState<Record<string, boolean>>({});
@@ -94,6 +95,7 @@ function CaseTable({ initial }: { initial: CertCase[] }) {
         amount: row.amount,
         msisdn: row.msisdn,
         ...(row.pin ? { pin: row.pin } : {}),
+        ...(accountId ? { account_id: accountId } : {}),
       });
       setResults((s) => ({ ...s, [row.id]: res }));
     } catch (e: any) {
@@ -211,7 +213,7 @@ function CaseTable({ initial }: { initial: CertCase[] }) {
 }
 
 /** Read-only Airtel lookups: User Enquiry (KYC) and Balance. */
-function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }) {
+function LookupPanel({ kind, label, accountId }: { kind: 'kyc' | 'balance'; label: string; accountId: string }) {
   const [msisdn, setMsisdn] = useState('');
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
@@ -219,7 +221,10 @@ function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }
   const run = async () => {
     setRunning(true);
     try {
-      const body = kind === 'kyc' ? { kind, msisdn } : { kind };
+      const body = {
+        ...(kind === 'kyc' ? { kind, msisdn } : { kind }),
+        ...(accountId ? { account_id: accountId } : {}),
+      };
       const res = await api.post<RunResult>('/payments/api/airtel/cert-test/', body);
       setResult(res);
     } catch (e: any) {
@@ -272,13 +277,17 @@ function LookupPanel({ kind, label }: { kind: 'kyc' | 'balance'; label: string }
 }
 
 export default function AirtelCertificationPage() {
+  const [accountId, setAccountId] = useState('');
   return (
     <PageContainer>
       <PageHeader
         title="Airtel Money — Certification Tests"
-        subtitle="Run the Airtel go-live certification scenarios against the configured Airtel account. Fires real sandbox/UAT transactions."
+        subtitle="Run the Airtel go-live certification scenarios against a chosen Airtel provider account. Fires real sandbox/UAT transactions."
       />
       <ContentCard>
+        <div className="mb-4">
+          <ProviderAccountPicker provider="airtel" value={accountId} onChange={setAccountId} />
+        </div>
         <Tabs defaultValue="collections">
           <TabsList>
             <TabsTrigger value="collections">Collections ({COLLECTIONS.length})</TabsTrigger>
@@ -287,16 +296,16 @@ export default function AirtelCertificationPage() {
             <TabsTrigger value="balance">Balance</TabsTrigger>
           </TabsList>
           <TabsContent value="collections" className="mt-4">
-            <CaseTable initial={COLLECTIONS} />
+            <CaseTable initial={COLLECTIONS} accountId={accountId} />
           </TabsContent>
           <TabsContent value="disbursements" className="mt-4">
-            <CaseTable initial={DISBURSEMENTS} />
+            <CaseTable initial={DISBURSEMENTS} accountId={accountId} />
           </TabsContent>
           <TabsContent value="kyc" className="mt-4">
-            <LookupPanel kind="kyc" label="Look up user" />
+            <LookupPanel kind="kyc" label="Look up user" accountId={accountId} />
           </TabsContent>
           <TabsContent value="balance" className="mt-4">
-            <LookupPanel kind="balance" label="Check balance" />
+            <LookupPanel kind="balance" label="Check balance" accountId={accountId} />
           </TabsContent>
         </Tabs>
       </ContentCard>

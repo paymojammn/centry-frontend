@@ -7,6 +7,8 @@
 import api from './api';
 
 const XERO_BASE_URL = '/api/v1/xero';
+// Cross-provider (Xero + QBO + ERPNext) unified contacts list/stats.
+const UNIFIED_CONTACTS_URL = '/api/v1/erp/contacts';
 
 export interface ContactPhone {
   phone_type: 'DEFAULT' | 'DDI' | 'FAX' | 'MOBILE';
@@ -114,7 +116,7 @@ export const contactsApi = {
     if (filters?.organization) params.append('organization', filters.organization);
 
     const queryString = params.toString();
-    const url = `${XERO_BASE_URL}/contacts/${queryString ? `?${queryString}` : ''}`;
+    const url = `${UNIFIED_CONTACTS_URL}/${queryString ? `?${queryString}` : ''}`;
 
     const response = await api.get<ContactsResponse>(url);
     return response;
@@ -201,7 +203,7 @@ export const contactsApi = {
     if (filters?.organization) params.append('organization', filters.organization);
 
     const queryString = params.toString();
-    const url = `${XERO_BASE_URL}/contacts/stats/${queryString ? `?${queryString}` : ''}`;
+    const url = `${UNIFIED_CONTACTS_URL}/stats/${queryString ? `?${queryString}` : ''}`;
 
     const response = await api.get<ContactStats>(url);
     return response;

@@ -7,6 +7,8 @@
 import api from './api';
 
 const INVOICES_BASE_URL = '/api/v1/xero/invoices';
+// Cross-provider (Xero + QBO + ERPNext) unified list/retrieve.
+const UNIFIED_INVOICES_URL = '/api/v1/erp/invoices';
 
 export interface Invoice {
   id: number;
@@ -61,7 +63,7 @@ export const invoicesApi = {
       params.append('organization', filters.organization);
     }
     const query = params.toString();
-    const url = query ? `${INVOICES_BASE_URL}/?${query}` : `${INVOICES_BASE_URL}/`;
+    const url = query ? `${UNIFIED_INVOICES_URL}/?${query}` : `${UNIFIED_INVOICES_URL}/`;
     const res = await api.get<{ results: Invoice[] } | Invoice[]>(url);
     return Array.isArray(res) ? res : (res as any).results ?? [];
   },
@@ -72,7 +74,7 @@ export const invoicesApi = {
 
   async getInvoiceStats(organizationId?: string): Promise<InvoiceStats> {
     const params = organizationId ? `?organization=${organizationId}` : '';
-    const res = await api.get<InvoiceStats>(`${INVOICES_BASE_URL}/stats/${params}`);
+    const res = await api.get<InvoiceStats>(`${UNIFIED_INVOICES_URL}/stats/${params}`);
     return res ?? {
       total_outstanding: '0',
       outstanding_count: 0,

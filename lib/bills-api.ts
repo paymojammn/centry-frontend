@@ -65,8 +65,8 @@ export const billsApi = {
     const queryString = params.toString();
 
     const url = queryString
-      ? `${XERO_BILLS_BASE_URL}/stats/?${queryString}`
-      : `${XERO_BILLS_BASE_URL}/stats/`;
+      ? `${BILLS_BASE_URL}/stats/?${queryString}`
+      : `${BILLS_BASE_URL}/stats/`;
 
     return await api.get<BillStats>(url);
   },

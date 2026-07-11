@@ -9,6 +9,7 @@ import { getApiUrl } from '@/config/api';
 const PROVIDER_BRANDING: Record<string, { color: string; icon: string }> = {
   xero:       { color: '#13B5EA', icon: 'X' },
   qbo:        { color: '#2CA01C', icon: 'QB' },
+  erpnext:    { color: '#0089FF', icon: 'EN' },
   sage:       { color: '#00DC00', icon: 'S' },
   freshbooks: { color: '#0075DD', icon: 'FB' },
   zoho:       { color: '#E42527', icon: 'Z' },
@@ -56,6 +57,7 @@ export default function LoginPage() {
         setProviders([
           { id: '1', code: 'xero', name: 'Xero', category: 'Accounting' },
           { id: '2', code: 'qbo', name: 'QuickBooks Online', category: 'Accounting' },
+          { id: '3', code: 'erpnext', name: 'ERPNext', category: 'ERP' },
         ]);
       });
   }, []);
