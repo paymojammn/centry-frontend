@@ -21,13 +21,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Star, Wallet, Pencil, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, Loader2, Star, Wallet, Pencil, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   providerAccountsApi,
   type ProviderAccount,
   type ProviderAccountEditable,
 } from "@/lib/provider-accounts-api";
+import { ProviderAccountCreateDialog } from "@/components/banking/provider-account-create-dialog";
 
 interface ProviderAccountsListProps {
   organizationId?: string;
@@ -46,6 +48,13 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<ProviderAccount | null>(null);
   const [form, setForm] = useState<ProviderAccountEditable>({});
+  const [editCreds, setEditCreds] = useState<{ sandbox: Record<string, string>; production: Record<string, string> }>({
+    sandbox: {},
+    production: {},
+  });
+  const [editSettings, setEditSettings] = useState<Record<string, string>>({});
+  const [editCredTab, setEditCredTab] = useState<"sandbox" | "production">("sandbox");
+  const [creating, setCreating] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -54,7 +63,14 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
     enabled: !!organizationId,
   });
 
+  const { data: schemas } = useQuery({
+    queryKey: ["provider-account-schemas"],
+    queryFn: () => providerAccountsApi.getSchemas(),
+    staleTime: 60 * 60 * 1000,
+  });
+
   const accounts = data?.results || [];
+  const editingSchema = schemas?.find((s) => s.code === editing?.provider)?.schema ?? null;
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["provider-accounts"] });
@@ -91,6 +107,23 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
     onError: () => toast.error("Failed to update account"),
   });
 
+  // Only send credentials/settings the operator actually filled in — blanks are
+  // dropped so the backend merge preserves the stored (encrypted) secrets.
+  const nonEmpty = (obj: Record<string, string>) =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== "" && v != null));
+
+  const submitEdit = () => {
+    if (!editing) return;
+    const patch: ProviderAccountEditable = { ...form };
+    const sandbox = nonEmpty(editCreds.sandbox);
+    const production = nonEmpty(editCreds.production);
+    const settings = nonEmpty(editSettings);
+    if (Object.keys(sandbox).length) patch.credentials_sandbox = sandbox;
+    if (Object.keys(production).length) patch.credentials_production = production;
+    if (Object.keys(settings).length) patch.settings = settings;
+    saveEdit.mutate({ id: editing.id, patch });
+  };
+
   const syncBalance = useMutation({
     mutationFn: (id: string) => providerAccountsApi.syncBalance(id),
     onMutate: (id) => setSyncingId(id),
@@ -123,7 +156,35 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
       balance: a.balance,
       balance_currency: a.balance_currency,
     });
+    setEditCreds({ sandbox: {}, production: {} });
+    setEditSettings({});
+    setEditCredTab(a.active_environment);
   };
+
+  const header = (
+    <div className="flex items-center justify-between px-6 py-3 border-b border-border">
+      <span className="text-sm font-medium text-foreground">
+        {accounts.length} provider {accounts.length === 1 ? "account" : "accounts"}
+      </span>
+      <Button
+        size="sm"
+        className="h-8"
+        disabled={!organizationId}
+        onClick={() => setCreating(true)}
+      >
+        <Plus className="h-4 w-4 mr-1" />
+        New account
+      </Button>
+    </div>
+  );
+
+  const createDialog = organizationId ? (
+    <ProviderAccountCreateDialog
+      organizationId={organizationId}
+      open={creating}
+      onOpenChange={setCreating}
+    />
+  ) : null;
 
   if (isLoading) {
     return (
@@ -135,18 +196,23 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
 
   if (accounts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Wallet className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">No provider accounts yet</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">
-          Link a payment provider (MTN, Airtel, Ozow, Paystack, etc.) during onboarding.
-        </p>
-      </div>
+      <>
+        {header}
+        <div className="text-center py-12">
+          <Wallet className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No provider accounts yet</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            Add a payment provider (MTN, Airtel, Ozow, Paystack, etc.) with “New account”.
+          </p>
+        </div>
+        {createDialog}
+      </>
     );
   }
 
   return (
     <>
+      {header}
       <table className="w-full table-professional">
         <thead>
           <tr className="border-b border-border bg-muted/50">
@@ -355,9 +421,67 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
                 }
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Balance can be set manually here or pulled live with the sync button in the
-              Balance column. API credentials are managed in the admin.
+
+            {editingSchema && editingSchema.credential_fields.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm">Credentials</Label>
+                <Tabs value={editCredTab} onValueChange={(v) => setEditCredTab(v as "sandbox" | "production")}>
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="sandbox" className="text-xs">
+                      Sandbox{editing?.has_sandbox_credentials ? " ✓" : ""}
+                    </TabsTrigger>
+                    <TabsTrigger value="production" className="text-xs">
+                      Production{editing?.has_production_credentials ? " ✓" : ""}
+                    </TabsTrigger>
+                  </TabsList>
+                  {(["sandbox", "production"] as const).map((env) => (
+                    <TabsContent key={env} value={env} className="space-y-3 pt-3">
+                      {editingSchema.credential_fields.map((field) => (
+                        <div key={field.name} className="space-y-1.5">
+                          <Label className="text-xs">{field.name}</Label>
+                          <Input
+                            type={field.field_type === "secret" ? "password" : "text"}
+                            value={editCreds[env][field.name] || ""}
+                            onChange={(e) =>
+                              setEditCreds((c) => ({
+                                ...c,
+                                [env]: { ...c[env], [field.name]: e.target.value },
+                              }))
+                            }
+                            placeholder={field.help_text || "leave blank to keep current"}
+                            className="text-sm font-mono"
+                          />
+                        </div>
+                      ))}
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </div>
+            )}
+
+            {editingSchema && editingSchema.setting_fields.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm">Settings</Label>
+                {editingSchema.setting_fields.map((field) => (
+                  <div key={field.name} className="space-y-1.5">
+                    <Label className="text-xs">{field.name}</Label>
+                    <Input
+                      value={editSettings[field.name] || ""}
+                      onChange={(e) =>
+                        setEditSettings((s) => ({ ...s, [field.name]: e.target.value }))
+                      }
+                      placeholder={field.help_text || "leave blank to keep current"}
+                      className="text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+              <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+              Blank credential/setting fields are left unchanged. Balance can be set manually or
+              pulled live with the sync button.
             </p>
           </div>
           <DialogFooter>
@@ -365,7 +489,7 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
               Cancel
             </Button>
             <Button
-              onClick={() => editing && saveEdit.mutate({ id: editing.id, patch: form })}
+              onClick={submitEdit}
               disabled={saveEdit.isPending}
               className="bg-primary hover:bg-primary/90"
             >
@@ -378,6 +502,8 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {createDialog}
     </>
   );
 }

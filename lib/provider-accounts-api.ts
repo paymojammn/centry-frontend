@@ -45,8 +45,52 @@ export type ProviderAccountEditable = Partial<
     | 'timeout'
     | 'balance'
     | 'balance_currency'
+    | 'country'
+    | 'capabilities'
   >
->;
+> & {
+  // Per-environment credentials (merge-updated: blank fields preserve secrets)
+  credentials_sandbox?: Record<string, string>;
+  credentials_production?: Record<string, string>;
+  settings?: Record<string, string>;
+};
+
+export interface ProviderSchemaField {
+  name: string;
+  field_type: string;
+  required: boolean;
+  help_text: string;
+  choices: string[];
+}
+
+export interface ProviderSchemaInfo {
+  code: string;
+  name: string;
+  schema: {
+    display_name: string;
+    capabilities: string[];
+    countries: string[];
+    credential_fields: ProviderSchemaField[];
+    setting_fields: ProviderSchemaField[];
+  } | null;
+}
+
+export interface CreateProviderAccountPayload {
+  organization: string;
+  provider: string;
+  name: string;
+  active_environment?: 'sandbox' | 'production';
+  is_active?: boolean;
+  is_default?: boolean;
+  country?: string;
+  timeout?: number;
+  fee_percentage?: number | string;
+  fee_fixed?: number | string;
+  capabilities?: string[];
+  credentials_sandbox?: Record<string, string>;
+  credentials_production?: Record<string, string>;
+  settings?: Record<string, string>;
+}
 
 export const providerAccountsApi = {
   async list(organizationId?: string): Promise<ProviderAccountsResponse> {
@@ -54,6 +98,14 @@ export const providerAccountsApi = {
     if (organizationId) params.append('organization', organizationId);
     const qs = params.toString();
     return api.get<ProviderAccountsResponse>(`${BASE_URL}/${qs ? `?${qs}` : ''}`);
+  },
+
+  async getSchemas(): Promise<ProviderSchemaInfo[]> {
+    return api.get<ProviderSchemaInfo[]>(`${BASE_URL}/schemas/`);
+  },
+
+  async create(payload: CreateProviderAccountPayload): Promise<ProviderAccount> {
+    return api.post<ProviderAccount>(`${BASE_URL}/`, payload);
   },
 
   async update(id: string, patch: ProviderAccountEditable): Promise<ProviderAccount> {

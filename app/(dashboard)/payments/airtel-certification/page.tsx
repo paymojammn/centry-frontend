@@ -8,17 +8,24 @@
 
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { PageHeader } from '@/components/layout/page-header';
-import { PageContainer } from '@/components/layout/page-container';
-import { ContentCard } from '@/components/layout/content-card';
-import { Loader2, Play, ChevronDown, ChevronRight } from 'lucide-react';
-import { ProviderAccountPicker } from '@/components/payments/provider-account-picker';
+import { AlertCircle, Loader2, Play, ChevronDown, ChevronRight } from 'lucide-react';
+import { useOrganizations } from '@/hooks/use-organization';
+import { providerAccountsApi, type ProviderAccount } from '@/lib/provider-accounts-api';
 
 type Kind = 'collection' | 'disbursement';
 
@@ -277,38 +284,120 @@ function LookupPanel({ kind, label, accountId }: { kind: 'kyc' | 'balance'; labe
 }
 
 export default function AirtelCertificationPage() {
-  const [accountId, setAccountId] = useState('');
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string>('');
+
+  const { data: organizationsResponse } = useOrganizations();
+  const organizations = useMemo(
+    () =>
+      Array.isArray(organizationsResponse)
+        ? organizationsResponse
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (organizationsResponse as any)?.results || [],
+    [organizationsResponse],
+  );
+  useEffect(() => {
+    if (!organizationId && organizations.length > 0) {
+      setOrganizationId(organizations[0].id);
+    }
+  }, [organizations, organizationId]);
+
+  const { data: accountsData, isLoading: accountsLoading } = useQuery({
+    queryKey: ['provider-accounts', organizationId, 'airtel'],
+    queryFn: () => providerAccountsApi.list(organizationId ?? undefined),
+    enabled: !!organizationId,
+  });
+  const airtelAccounts = useMemo<ProviderAccount[]>(
+    () => (accountsData?.results ?? []).filter((a) => a.provider === 'airtel'),
+    [accountsData],
+  );
+  useEffect(() => {
+    const preferred = airtelAccounts.find((a) => a.active_environment === 'sandbox') ?? airtelAccounts[0];
+    if (!accountId && preferred) setAccountId(preferred.id);
+  }, [airtelAccounts, accountId]);
+
+  const selectedAccount = airtelAccounts.find((a) => a.id === accountId) ?? null;
+  const isProduction = selectedAccount?.active_environment === 'production';
+
   return (
-    <PageContainer>
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Airtel Money — Certification Tests"
-        subtitle="Run the Airtel go-live certification scenarios against a chosen Airtel provider account. Fires real sandbox/UAT transactions."
-      />
-      <ContentCard>
-        <div className="mb-4">
-          <ProviderAccountPicker provider="airtel" value={accountId} onChange={setAccountId} />
+        title="Airtel Money — Certification"
+        subtitle="Run the Airtel go-live certification scenarios against a provider account. Fires real sandbox/UAT transactions."
+        breadcrumbs={[
+          { label: 'Rails', href: '/payments' },
+          { label: 'Airtel Certification' },
+        ]}
+        organizations={organizations}
+        selectedOrganizationId={organizationId}
+        onOrganizationChange={setOrganizationId}
+      >
+        <Select
+          value={accountId || undefined}
+          onValueChange={setAccountId}
+          disabled={accountsLoading || airtelAccounts.length === 0}
+        >
+          <SelectTrigger className="w-[280px] h-9 bg-card border-border">
+            <SelectValue placeholder={airtelAccounts.length ? 'Select Airtel account' : 'No Airtel accounts'} />
+          </SelectTrigger>
+          <SelectContent>
+            {airtelAccounts.map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                <span className="flex items-center gap-2">
+                  <span>{a.name}</span>
+                  <span
+                    className={
+                      'text-[10px] font-mono px-1.5 py-0.5 rounded ' +
+                      (a.active_environment === 'sandbox'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-rose-100 text-rose-800')
+                    }
+                  >
+                    {a.active_environment}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PageHeader>
+
+      <div className="px-6 py-6 space-y-6">
+        {isProduction && (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">Production account selected — tests fire real transactions.</p>
+              <p className="text-amber-800 mt-0.5">
+                Pick a sandbox/UAT account unless you intend to move real funds.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Tabs defaultValue="collections">
+            <TabsList variant="line" className="flex-wrap gap-x-6 gap-y-1">
+              <TabsTrigger value="collections">Collections ({COLLECTIONS.length})</TabsTrigger>
+              <TabsTrigger value="disbursements">Disbursements ({DISBURSEMENTS.length})</TabsTrigger>
+              <TabsTrigger value="kyc">User Enquiry (KYC)</TabsTrigger>
+              <TabsTrigger value="balance">Balance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="collections" className="mt-4">
+              <CaseTable initial={COLLECTIONS} accountId={accountId} />
+            </TabsContent>
+            <TabsContent value="disbursements" className="mt-4">
+              <CaseTable initial={DISBURSEMENTS} accountId={accountId} />
+            </TabsContent>
+            <TabsContent value="kyc" className="mt-4">
+              <LookupPanel kind="kyc" label="Look up user" accountId={accountId} />
+            </TabsContent>
+            <TabsContent value="balance" className="mt-4">
+              <LookupPanel kind="balance" label="Check balance" accountId={accountId} />
+            </TabsContent>
+          </Tabs>
         </div>
-        <Tabs defaultValue="collections">
-          <TabsList>
-            <TabsTrigger value="collections">Collections ({COLLECTIONS.length})</TabsTrigger>
-            <TabsTrigger value="disbursements">Disbursements ({DISBURSEMENTS.length})</TabsTrigger>
-            <TabsTrigger value="kyc">User Enquiry (KYC)</TabsTrigger>
-            <TabsTrigger value="balance">Balance</TabsTrigger>
-          </TabsList>
-          <TabsContent value="collections" className="mt-4">
-            <CaseTable initial={COLLECTIONS} accountId={accountId} />
-          </TabsContent>
-          <TabsContent value="disbursements" className="mt-4">
-            <CaseTable initial={DISBURSEMENTS} accountId={accountId} />
-          </TabsContent>
-          <TabsContent value="kyc" className="mt-4">
-            <LookupPanel kind="kyc" label="Look up user" accountId={accountId} />
-          </TabsContent>
-          <TabsContent value="balance" className="mt-4">
-            <LookupPanel kind="balance" label="Check balance" accountId={accountId} />
-          </TabsContent>
-        </Tabs>
-      </ContentCard>
-    </PageContainer>
+      </div>
+    </div>
   );
 }

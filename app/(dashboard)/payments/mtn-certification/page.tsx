@@ -9,17 +9,24 @@
 
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { PageHeader } from '@/components/layout/page-header';
-import { PageContainer } from '@/components/layout/page-container';
-import { ContentCard } from '@/components/layout/content-card';
-import { Loader2, Play, ChevronDown, ChevronRight, Download, FileSpreadsheet } from 'lucide-react';
-import { ProviderAccountPicker } from '@/components/payments/provider-account-picker';
+import { AlertCircle, Loader2, Play, ChevronDown, ChevronRight, Download, FileSpreadsheet } from 'lucide-react';
+import { useOrganizations } from '@/hooks/use-organization';
+import { providerAccountsApi, type ProviderAccount } from '@/lib/provider-accounts-api';
 import {
   SIT_SHEETS,
   actualResults,
@@ -223,59 +230,136 @@ function SheetTable({
 }
 
 export default function MtnCertificationPage() {
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string>('');
   const [currency, setCurrency] = useState('EUR');
-  const [accountId, setAccountId] = useState('');
   const [results, setResults] = useState<Record<string, RunResult>>({});
 
+  const { data: organizationsResponse } = useOrganizations();
+  const organizations = useMemo(
+    () =>
+      Array.isArray(organizationsResponse)
+        ? organizationsResponse
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (organizationsResponse as any)?.results || [],
+    [organizationsResponse],
+  );
+  useEffect(() => {
+    if (!organizationId && organizations.length > 0) {
+      setOrganizationId(organizations[0].id);
+    }
+  }, [organizations, organizationId]);
+
+  const { data: accountsData, isLoading: accountsLoading } = useQuery({
+    queryKey: ['provider-accounts', organizationId, 'mtn'],
+    queryFn: () => providerAccountsApi.list(organizationId ?? undefined),
+    enabled: !!organizationId,
+  });
+  const mtnAccounts = useMemo<ProviderAccount[]>(
+    () => (accountsData?.results ?? []).filter((a) => a.provider === 'mtn'),
+    [accountsData],
+  );
+  useEffect(() => {
+    const preferred = mtnAccounts.find((a) => a.active_environment === 'sandbox') ?? mtnAccounts[0];
+    if (!accountId && preferred) setAccountId(preferred.id);
+  }, [mtnAccounts, accountId]);
+
+  const selectedAccount = mtnAccounts.find((a) => a.id === accountId) ?? null;
+  const isProduction = selectedAccount?.active_environment === 'production';
+  useEffect(() => {
+    if (selectedAccount) {
+      setCurrency(selectedAccount.active_environment === 'production' ? 'UGX' : 'EUR');
+    }
+  }, [selectedAccount]);
+
   return (
-    <PageContainer>
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="MTN MoMo — SIT Sign-off Tests"
-        subtitle="Run the MTN Open API SIT scenarios against the configured MTN account, then export the filled SIT CSVs for go-live sign-off. Fires real sandbox transactions."
-      />
-      <ContentCard>
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-wrap items-end gap-3">
-            <ProviderAccountPicker
-              provider="mtn"
-              value={accountId}
-              onChange={(id, account) => {
-                setAccountId(id);
-                if (account) setCurrency(account.active_environment === 'production' ? 'UGX' : 'EUR');
-              }}
-            />
+        title="MTN MoMo — SIT Sign-off"
+        subtitle="Run the MTN Open API SIT scenarios against a provider account, then export the filled SIT CSVs for go-live sign-off. Fires real sandbox transactions."
+        breadcrumbs={[
+          { label: 'Rails', href: '/payments' },
+          { label: 'MTN Sign-off' },
+        ]}
+        organizations={organizations}
+        selectedOrganizationId={organizationId}
+        onOrganizationChange={setOrganizationId}
+      >
+        <Select
+          value={accountId || undefined}
+          onValueChange={setAccountId}
+          disabled={accountsLoading || mtnAccounts.length === 0}
+        >
+          <SelectTrigger className="w-[280px] h-9 bg-card border-border">
+            <SelectValue placeholder={mtnAccounts.length ? 'Select MTN account' : 'No MTN accounts'} />
+          </SelectTrigger>
+          <SelectContent>
+            {mtnAccounts.map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                <span className="flex items-center gap-2">
+                  <span>{a.name}</span>
+                  <span
+                    className={
+                      'text-[10px] font-mono px-1.5 py-0.5 rounded ' +
+                      (a.active_environment === 'sandbox'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-rose-100 text-rose-800')
+                    }
+                  >
+                    {a.active_environment}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PageHeader>
+
+      <div className="px-6 py-6 space-y-6">
+        {isProduction && (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <div>
-              <label className="text-xs text-muted-foreground">Currency</label>
-              <Input value={currency} onChange={(e) => setCurrency(e.target.value)} className="h-9 w-24" />
+              <p className="font-medium">Production account selected — tests fire real transactions.</p>
+              <p className="text-amber-800 mt-0.5">
+                Pick a sandbox account for SIT sign-off unless you intend to move real funds.
+              </p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => downloadSitWorkbook(results)}>
-            <FileSpreadsheet className="h-4 w-4" />
+        )}
+
+        <div className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <label className="text-xs text-muted-foreground">Currency</label>
+          <Input value={currency} onChange={(e) => setCurrency(e.target.value)} className="h-9 w-24" />
+          <Button variant="outline" size="sm" className="ml-auto" onClick={() => downloadSitWorkbook(results)}>
+            <FileSpreadsheet className="h-4 w-4 mr-1.5" />
             Export all sheets (.xlsx)
           </Button>
         </div>
 
-        <Tabs defaultValue={SIT_SHEETS[0]?.name ?? ''}>
-          <TabsList className="flex-wrap">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Tabs defaultValue={SIT_SHEETS[0]?.name ?? ''}>
+            <TabsList variant="line" className="flex-wrap gap-x-6 gap-y-1">
+              {SIT_SHEETS.map((s) => (
+                <TabsTrigger key={s.name} value={s.name}>
+                  {s.name} ({s.cases.length})
+                </TabsTrigger>
+              ))}
+            </TabsList>
             {SIT_SHEETS.map((s) => (
-              <TabsTrigger key={s.name} value={s.name}>
-                {s.name} ({s.cases.length})
-              </TabsTrigger>
+              <TabsContent key={s.name} value={s.name} className="mt-4">
+                <SheetTable
+                  sheet={s}
+                  currency={currency}
+                  accountId={accountId}
+                  results={results}
+                  setResults={setResults}
+                />
+              </TabsContent>
             ))}
-          </TabsList>
-          {SIT_SHEETS.map((s) => (
-            <TabsContent key={s.name} value={s.name} className="mt-4">
-              <SheetTable
-                sheet={s}
-                currency={currency}
-                accountId={accountId}
-                results={results}
-                setResults={setResults}
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
-      </ContentCard>
-    </PageContainer>
+          </Tabs>
+        </div>
+      </div>
+    </div>
   );
 }
