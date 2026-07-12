@@ -30,6 +30,13 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
           localStorage.setItem('auth_token', tokenData.access_token);
           localStorage.setItem('refresh_token', tokenData.refresh_token);
 
+          // Land on the org tied to the ERP just signed in with (the active org
+          // is otherwise sticky in localStorage, so a user in multiple orgs
+          // could see the wrong company after switching providers).
+          if (tokenData.organization_id) {
+            localStorage.setItem('selectedOrganizationId', tokenData.organization_id);
+          }
+
           // Clean URL
           const cleanUrl = pathname || '/dashboard';
           window.history.replaceState({}, '', cleanUrl);

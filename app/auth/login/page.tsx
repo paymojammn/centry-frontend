@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, Loader2, ArrowRight, XCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getApiUrl } from '@/config/api';
+import { signInWithOdoo } from '@/lib/odoo-api';
 
 // Provider branding — colors & icons for known ERPs
 const PROVIDER_BRANDING: Record<string, { color: string; icon: string }> = {
@@ -27,6 +28,7 @@ interface Provider {
   code: string;
   name: string;
   category?: string;
+  requires_oauth?: boolean;
 }
 
 export default function LoginPage() {
@@ -36,6 +38,11 @@ export default function LoginPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // API-key provider (e.g. Odoo) connect modal
+  const [apiKeyProvider, setApiKeyProvider] = useState<Provider | null>(null);
+  const [odooForm, setOdooForm] = useState({ base_url: '', database: '', api_key: '' });
+  const [odooSubmitting, setOdooSubmitting] = useState(false);
+  const [odooError, setOdooError] = useState<string | null>(null);
 
   // Handle OAuth error redirects (e.g. user denied consent)
   useEffect(() => {
@@ -55,9 +62,10 @@ export default function LoginPage() {
       .then((data) => setProviders(data))
       .catch(() => {
         setProviders([
-          { id: '1', code: 'xero', name: 'Xero', category: 'Accounting' },
-          { id: '2', code: 'qbo', name: 'QuickBooks Online', category: 'Accounting' },
-          { id: '3', code: 'erpnext', name: 'ERPNext', category: 'ERP' },
+          { id: '1', code: 'xero', name: 'Xero', category: 'Accounting', requires_oauth: true },
+          { id: '2', code: 'qbo', name: 'QuickBooks Online', category: 'Accounting', requires_oauth: true },
+          { id: '3', code: 'erpnext', name: 'ERPNext', category: 'ERP', requires_oauth: true },
+          { id: '4', code: 'odoo', name: 'Odoo', category: 'ERP', requires_oauth: false },
         ]);
       });
   }, []);
@@ -74,6 +82,17 @@ export default function LoginPage() {
       return matchesSearch && matchesCat;
     });
   }, [providers, searchQuery, selectedCategory]);
+
+  const selectProvider = (provider: Provider) => {
+    // API-key providers (e.g. Odoo) open a credential form instead of redirecting.
+    if (provider.requires_oauth === false) {
+      setOdooError(null);
+      setOdooForm({ base_url: '', database: '', api_key: '' });
+      setApiKeyProvider(provider);
+      return;
+    }
+    handleProviderLogin(provider.code);
+  };
 
   const handleProviderLogin = (code: string) => {
     setLoadingProvider(code);
@@ -92,6 +111,43 @@ export default function LoginPage() {
     if (cycle) authUrl += `&cycle=${encodeURIComponent(cycle)}`;
 
     window.location.href = authUrl;
+  };
+
+  const handleOdooSubmit = async () => {
+    if (!odooForm.base_url || !odooForm.api_key) {
+      setOdooError('Base URL and API key are required.');
+      return;
+    }
+    setOdooSubmitting(true);
+    setOdooError(null);
+    try {
+      const plan = searchParams.get('plan');
+      const cycle = searchParams.get('cycle');
+      const frontendUrl = window.location.origin;
+      const redirect_url = plan
+        ? `${frontendUrl}/billing/subscribe?plan=${plan}${cycle ? `&cycle=${cycle}` : ''}`
+        : `${frontendUrl}/dashboard`;
+
+      const result = await signInWithOdoo({
+        base_url: odooForm.base_url.trim(),
+        database: odooForm.database.trim() || undefined,
+        api_key: odooForm.api_key.trim(),
+        redirect_url,
+      });
+
+      localStorage.setItem('auth_token', result.access_token);
+      localStorage.setItem('refresh_token', result.refresh_token);
+      // Land on the Odoo org just connected (active org is otherwise sticky).
+      if (result.organization_id) {
+        localStorage.setItem('selectedOrganizationId', result.organization_id);
+      }
+      window.location.href = result.has_active_subscription
+        ? result.redirect_url
+        : `${frontendUrl}/billing/subscribe`;
+    } catch (err) {
+      setOdooError(err instanceof Error ? err.message : 'Sign-in failed. Check your credentials.');
+      setOdooSubmitting(false);
+    }
   };
 
   return (
@@ -186,7 +242,7 @@ export default function LoginPage() {
               return (
                 <button
                   key={provider.id}
-                  onClick={() => handleProviderLogin(provider.code)}
+                  onClick={() => selectProvider(provider)}
                   disabled={isDisabled}
                   className="group relative flex items-center gap-3.5 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-left"
                 >
@@ -247,6 +303,96 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* API-key connect modal (Odoo) */}
+      {apiKeyProvider && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !odooSubmitting && setApiKeyProvider(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-card border border-border shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-1">
+              <div
+                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                style={{ backgroundColor: (PROVIDER_BRANDING[apiKeyProvider.code] || DEFAULT_BRANDING).color }}
+              >
+                {(PROVIDER_BRANDING[apiKeyProvider.code] || DEFAULT_BRANDING).icon}
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Connect {apiKeyProvider.name}</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-5">
+              Enter your {apiKeyProvider.name} instance details and API key to sign in.
+            </p>
+
+            {odooError && (
+              <div className="mb-4 flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+                <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>{odooError}</div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Base URL</label>
+                <input
+                  type="url"
+                  placeholder="https://mycompany.odoo.com"
+                  value={odooForm.base_url}
+                  onChange={(e) => setOdooForm((f) => ({ ...f, base_url: e.target.value }))}
+                  className="w-full h-10 px-3 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Database <span className="text-muted-foreground/60">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="mycompany"
+                  value={odooForm.database}
+                  onChange={(e) => setOdooForm((f) => ({ ...f, database: e.target.value }))}
+                  className="w-full h-10 px-3 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
+                <input
+                  type="password"
+                  placeholder="Your Odoo API key"
+                  value={odooForm.api_key}
+                  onChange={(e) => setOdooForm((f) => ({ ...f, api_key: e.target.value }))}
+                  onKeyDown={(e) => e.key === 'Enter' && handleOdooSubmit()}
+                  className="w-full h-10 px-3 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                onClick={() => setApiKeyProvider(null)}
+                disabled={odooSubmitting}
+                className="flex-1 h-10 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleOdooSubmit}
+                disabled={odooSubmitting}
+                className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {odooSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Connect & Sign in'}
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground/70 mt-4">
+              Create an API key in Odoo under Preferences → Account Security → New API Key.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
