@@ -41,6 +41,17 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
     : 'Member';
   const initials = getInitials(displayName);
 
+  // Which ERP this session signed in with — org visibility is scoped to it.
+  const PROVIDER_NAMES: Record<string, string> = {
+    xero: 'Xero',
+    qbo: 'QuickBooks',
+    erpnext: 'ERPNext',
+    odoo: 'Odoo',
+  };
+  const providerLabel = user?.login_provider
+    ? PROVIDER_NAMES[user.login_provider] ?? user.login_provider
+    : null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
@@ -64,6 +75,12 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             </div>
           </div>
         </div>
+
+        {providerLabel && (
+          <div className="px-3 py-1.5 text-[11px] text-muted-foreground border-b border-border">
+            Signed in with <span className="font-medium text-foreground">{providerLabel}</span>
+          </div>
+        )}
 
         <DropdownMenuSeparator />
 

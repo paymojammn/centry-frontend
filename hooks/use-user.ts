@@ -20,6 +20,8 @@ export interface UserProfile {
   profile_image: string;
   is_organization_user: boolean;
   erp_provider: string;
+  /** ERP the current session signed in with; scopes which orgs are visible. */
+  login_provider: string | null;
   organizations_count: number;
   date_joined: string;
   organizations: Array<{
