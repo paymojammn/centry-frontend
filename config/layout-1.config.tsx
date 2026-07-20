@@ -76,6 +76,16 @@ export const MENU_SIDEBAR: MenuConfig = [
     ],
   },
   {
+    title: "Lending",
+    icon: CreditCard,
+    requiredRole: "finance",
+    children: [
+      { title: "Loan Book", path: "/lending" },
+      { title: "Collections", path: "/lending/collections" },
+      { title: "Disbursements", path: "/lending/disbursements" },
+    ],
+  },
+  {
     title: "Reports",
     icon: BarChart3,
     children: [

@@ -98,6 +98,19 @@ export const API_ENDPOINTS = {
     sources: '/api/payments/sources/',
   },
 
+  // Lending (ERPNext loan book mirror)
+  lending: {
+    base: '/api/v1/erpnext',
+    loans: '/api/v1/erpnext/loans/',
+    loanDetail: (id: string) => `/api/v1/erpnext/loans/${id}/`,
+    loanStats: '/api/v1/erpnext/loans/stats/',
+    loansDue: '/api/v1/erpnext/loans/due/',
+    repay: (id: string) => `/api/v1/erpnext/loans/${id}/repay/`,
+    disburse: (id: string) => `/api/v1/erpnext/loans/${id}/disburse/`,
+    repayments: '/api/v1/erpnext/loan-repayments/',
+    disbursements: '/api/v1/erpnext/loan-disbursements/',
+  },
+
   // Wallet
   wallet: {
     base: '/api/wallet',
