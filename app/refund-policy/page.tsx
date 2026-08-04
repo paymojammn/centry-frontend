@@ -12,7 +12,7 @@ const sections: LegalSection[] = [
     title: 'Overview',
     content: (
       <p>
-        At Centry, we are committed to ensuring your satisfaction with our services.
+        At Paymoja, we are committed to ensuring your satisfaction with our services.
         This Refund Policy outlines the terms and conditions under which refunds may be
         issued for our subscription-based payment automation platform.
       </p>
@@ -74,8 +74,8 @@ const sections: LegalSection[] = [
         <ul className={legalBullets}>
           <li>
             Email:{' '}
-            <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
-              support@getcentry.com
+            <a href="mailto:support@paymoja.io" className="font-medium text-primary hover:underline">
+              support@paymoja.io
             </a>
           </li>
           <li>Include your account email, transaction details, and reason for the refund request</li>
@@ -119,8 +119,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have any questions about our refund policy, please contact us at{' '}
-        <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
-          support@getcentry.com
+        <a href="mailto:support@paymoja.io" className="font-medium text-primary hover:underline">
+          support@paymoja.io
         </a>
       </p>
     ),

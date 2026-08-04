@@ -46,7 +46,7 @@ export interface RecipientDetails {
   regulatory_info?: string;
   transfer_currency?: string;
   // Ozow-specific: when source is an Ozow ProviderAccount, the bank picker
-  // is populated from /api/ozow/banks/ rather than Centry's internal bank
+  // is populated from /api/ozow/banks/ rather than Paymoja's internal bank
   // registry. The selected bank gives us the bankGroupId (Ozow's UUID for
   // the destination bank) and the universalBranchCode (auto-fills branch_code).
   bank_group_id?: string;
@@ -434,7 +434,7 @@ export default function RecipientDetailsStep({
   const [savingFor, setSavingFor] = useState<number | null>(null);
   const autoFilledRef = useRef<Set<number>>(new Set());
 
-  // Ozow rail: skip Centry's internal bank/branch lookups and use Ozow's
+  // Ozow rail: skip Paymoja's internal bank/branch lookups and use Ozow's
   // /getavailablebanks list directly. The selected bank carries both the
   // bankGroupId (UUID for the Ozow API) and the universalBranchCode.
   const isOzow = sourceProvider === 'ozow' && Boolean(sourceProviderAccountId);
@@ -442,7 +442,7 @@ export default function RecipientDetailsStep({
   // Methods are fetched live (per account) so the picker reflects exactly what
   // this merchant is enabled for; each carries rsa_id_required.
   const isOnegate = sourceProvider === 'onegate' && Boolean(sourceProviderAccountId);
-  // Custom rails replace Centry's internal bank registry UI with the provider's
+  // Custom rails replace Paymoja's internal bank registry UI with the provider's
   // own picker. Both Ozow and OneGate are custom rails.
   const isCustomRail = isOzow || isOnegate;
 
@@ -989,7 +989,7 @@ export default function RecipientDetailsStep({
                 />
               )}
 
-              {/* Bank selector — non-Ozow path uses Centry's internal bank registry */}
+              {/* Bank selector — non-Ozow path uses Paymoja's internal bank registry */}
               {!isCustomRail && (
                 <SearchableSelect
                   label="Bank"

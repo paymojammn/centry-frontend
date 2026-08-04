@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { BRAND } from '@/config/brand';
 import {
   getSubscriptionPlans,
   SubscriptionPlan,
@@ -20,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 /**
- * Manual payment page — shows Centry's bank accounts and mobile money details
+ * Manual payment page — shows Paymoja's bank accounts and mobile money details
  * for customers to pay manually. Uses the same unified payment sources API.
  */
 export default function ManualPaymentPage() {
@@ -40,7 +41,7 @@ export default function ManualPaymentPage() {
   useEffect(() => {
     Promise.all([
       getSubscriptionPlans(),
-      paymentSourcesApi.getPaymentSources(), // Centry's org sources
+      paymentSourcesApi.getPaymentSources(), // Paymoja's org sources
     ]).then(([plans, resp]) => {
       setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
       // Show bank accounts and mobile money as manual deposit options
@@ -101,9 +102,9 @@ export default function ManualPaymentPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[rgb(var(--brand-dark))] font-bold text-lg">C</span>
+              <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
-            <span className="text-lg font-semibold">Centry</span>
+            <span className="text-lg font-semibold">Paymoja</span>
           </div>
           <button onClick={() => router.back()} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1">
             <RiArrowLeftLine className="w-4 h-4" /> Back

@@ -73,7 +73,7 @@ export default function CheckoutReturnPage() {
               <RiCheckLine className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">Payment successful!</h2>
-            <p className="text-sm text-muted-foreground mb-6">Your subscription is now active. Welcome to Centry.</p>
+            <p className="text-sm text-muted-foreground mb-6">Your subscription is now active. Welcome to Paymoja.</p>
             <button
               onClick={() => router.push('/dashboard')}
               className="px-8 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"

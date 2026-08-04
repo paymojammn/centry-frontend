@@ -374,7 +374,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       );
 
       // OneGate self-hosted: embed the V4 checkout widget in-page so the
-      // payer never leaves Centry. Falls back to opening the hosted page
+      // payer never leaves Paymoja. Falls back to opening the hosted page
       // when the provider didn't return widget coordinates (e.g. Ozow).
       if (result.service_url && result.payment_key) {
         setIsPayNowDialogOpen(false);

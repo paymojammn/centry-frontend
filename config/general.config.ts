@@ -1,10 +1,13 @@
+import { BRAND } from './brand';
+
 const generalSettings = {
-  purchaseLink: 'https://1.envato.market/Vm7VRE',
-  docsLink: '',
-  licenseLink: '',
-  devsLink: 'https://devs.keenthemes.com',
-  faqLink: 'https://keenthemes.com/metronic',
-  aboutLink: 'https://keenthemes.com/metronic',
+  purchaseLink: `${BRAND.urls.marketing}/pricing`,
+  docsLink: BRAND.urls.docs,
+  licenseLink: `${BRAND.urls.marketing}/terms-of-service`,
+  devsLink: BRAND.urls.docs,
+  faqLink: `${BRAND.urls.marketing}/help`,
+  aboutLink: BRAND.urls.marketing,
+  supportLink: `mailto:${BRAND.email.support}`,
 };
 
 export { generalSettings };

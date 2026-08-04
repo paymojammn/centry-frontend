@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centry Checkout - Integration Example</title>
+  <title>Paymoja Checkout - Integration Example</title>
   <style>
     * {
       margin: 0;
@@ -135,8 +135,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Centry Checkout</h1>
-    <p>Integrate Centry Checkout into your website in minutes.</p>
+    <h1>Paymoja Checkout</h1>
+    <p>Integrate Paymoja Checkout into your website in minutes.</p>
 
     <!-- Demo Section -->
     <div class="card">
@@ -150,7 +150,7 @@
         </div>
       </div>
       <button id="checkout-btn" class="btn">
-        Pay with Centry
+        Pay with Paymoja
       </button>
       <div id="status"></div>
     </div>
@@ -158,12 +158,12 @@
     <!-- Integration Guide -->
     <div class="card">
       <h2>Integration Guide</h2>
-      <p style="margin-bottom: 1rem;">1. Include the Centry Checkout script:</p>
-      <pre><code>&lt;<span class="highlight">script</span> src=<span class="string">"https://checkout.getcentry.io/widget/centry-checkout.js"</span>&gt;&lt;/<span class="highlight">script</span>&gt;</code></pre>
+      <p style="margin-bottom: 1rem;">1. Include the Paymoja Checkout script:</p>
+      <pre><code>&lt;<span class="highlight">script</span> src=<span class="string">"https://paymoja.io/widget/centry-checkout.js"</span>&gt;&lt;/<span class="highlight">script</span>&gt;</code></pre>
 
       <p style="margin-bottom: 1rem; margin-top: 1.5rem;">2. Create a checkout session via your backend:</p>
       <pre><code><span class="comment">// Server-side (Node.js example)</span>
-<span class="highlight">const</span> response = <span class="highlight">await</span> fetch(<span class="string">'https://api.getcentry.io/api/v1/checkout/sessions/'</span>, {
+<span class="highlight">const</span> response = <span class="highlight">await</span> fetch(<span class="string">'https://api.paymoja.io/api/v1/checkout/sessions/'</span>, {
   method: <span class="string">'POST'</span>,
   headers: {
     <span class="string">'Authorization'</span>: <span class="string">`Api-Key ${YOUR_API_KEY}`</span>,

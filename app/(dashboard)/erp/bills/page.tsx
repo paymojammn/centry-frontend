@@ -108,7 +108,7 @@ export default function BillsPage() {
     const transactionId = searchParams.get('transaction_id');
     if (orgFromReturn) {
       // OneGate's customer-return endpoint resolves the originating
-      // Centry org UUID and propagates it here so we land on the right
+      // Paymoja org UUID and propagates it here so we land on the right
       // tenant's bills page instead of falling back to organizations[0]
       // (which produced a 403 cascade when the user wasn't a member).
       setSelectedOrganizationId(orgFromReturn);
@@ -245,9 +245,9 @@ export default function BillsPage() {
     );
   });
 
-  // Centry payment pipeline stats — sum/count of PaymentEvents that
-  // Centry itself routes. Replaces the Xero-mirrored payable totals so the
-  // summary row reflects what Centry is actually moving, not what's
+  // Paymoja payment pipeline stats — sum/count of PaymentEvents that
+  // Paymoja itself routes. Replaces the Xero-mirrored payable totals so the
+  // summary row reflects what Paymoja is actually moving, not what's
   // outstanding upstream in the ERP.
   const pipelinePendingApproval = Number(pipelineStats?.pending_approval || 0);
   const pipelineProcessing = Number(pipelineStats?.processing || 0);
@@ -343,7 +343,7 @@ export default function BillsPage() {
             {/* Summary Stats - Enhanced cards with animations */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
               <StatCard
-                label="In Centry Pipeline"
+                label="In Paymoja Pipeline"
                 value={`${organizationCurrency} ${formatCompactNumber(pipelineInFlightAmount)}`}
                 subtext={`${pipelineInFlight} payments in flight`}
                 icon={Wallet}

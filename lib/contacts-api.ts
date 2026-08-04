@@ -133,7 +133,7 @@ export const contactsApi = {
     return response;
   },
 
-  /** Update editable contact fields (phone, email) in Centry. */
+  /** Update editable contact fields (phone, email) in Paymoja. */
   async updateContactDetails(
     id: number,
     data: { phone?: string; email_address?: string | null },

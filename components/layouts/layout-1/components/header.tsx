@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
 import { useCurrentUser } from '@/hooks/use-user';
 import { getInitials } from '@/lib/theme';
+import { BRAND } from '@/config/brand';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -78,9 +79,9 @@ export function Header() {
           </div>
           <Link href="/" className="shrink-0">
             <img
-              src={toAbsoluteUrl('/media/app/centry-logo.svg')}
+              src={toAbsoluteUrl(BRAND.logo.mark)}
               className="h-[30px]"
-              alt="Centry"
+              alt={BRAND.name}
             />
           </Link>
         </div>

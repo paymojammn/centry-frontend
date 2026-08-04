@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { X, Loader2 } from 'lucide-react';
+import { BRAND } from '@/config/brand';
 
 interface CheckoutWidgetProps {
   sessionToken: string;
@@ -80,7 +81,7 @@ export function CheckoutWidget({
         className="w-full h-full border-0"
         onLoad={() => setLoading(false)}
         allow="payment"
-        title="Centry Checkout"
+        title={`${BRAND.name} Checkout`}
       />
     </div>
   );

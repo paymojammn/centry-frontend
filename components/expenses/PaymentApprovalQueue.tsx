@@ -2,7 +2,7 @@
  * Payment Approval Queue Component
  *
  * Shows pending payment requests for manager/finance approval.
- * Matches the Centry design system used across the application.
+ * Matches the Paymoja design system used across the application.
  */
 
 'use client';

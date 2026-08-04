@@ -75,7 +75,7 @@ export default function PaymentSourcesTestPage() {
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Summary</h3>
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Centry Wallets: {data.centry_wallets?.length || 0}</li>
+                  <li>Paymoja Wallets: {data.centry_wallets?.length || 0}</li>
                   <li>Bank Accounts: {data.bank_accounts?.length || 0}</li>
                   <li>Mobile Money: {data.mobile_money_accounts?.length || 0}</li>
                   <li>Org Payment APIs: {data.org_payment_apis?.length || 0}</li>

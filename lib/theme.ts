@@ -1,5 +1,5 @@
 /**
- * Centry Design System - Theme Constants
+ * Paymoja Design System - Theme Constants
  *
  * Premium European fintech aesthetic with muted, calm colors.
  *

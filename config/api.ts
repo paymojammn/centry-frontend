@@ -1,5 +1,5 @@
 /**
- * Centralized API Configuration for Centry Frontend
+ * Centralized API Configuration for Paymoja Frontend
  * All API endpoints and configuration should be defined here
  */
 

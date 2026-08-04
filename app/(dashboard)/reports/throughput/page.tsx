@@ -131,7 +131,7 @@ export default function ThroughputReportPage() {
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Throughput & Trends"
-        subtitle="How much Centry has processed over time"
+        subtitle="How much Paymoja has processed over time"
         breadcrumbs={[{ label: "Reports", href: "/reports" }, { label: "Throughput" }]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}

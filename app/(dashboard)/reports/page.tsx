@@ -198,7 +198,7 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Centry Payments"
+        title="Paymoja Payments"
         subtitle="End-to-end payment processing across banks and provider accounts"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
@@ -242,7 +242,7 @@ export default function ReportsPage() {
           ) : (
             <>
               <MetricTile
-                label="Processed by Centry"
+                label="Processed by Paymoja"
                 value={formatCurrency(lifetimeAmount)}
                 icon={CheckCircle2}
                 tone="accent"
@@ -295,7 +295,7 @@ export default function ReportsPage() {
               <ContentCardHeader>
                 <SectionTitle
                   icon={<ArrowRightLeft className="h-4 w-4" />}
-                  title="Centry Payments Pipeline"
+                  title="Paymoja Payments Pipeline"
                   subtitle="Where bills sit in the flow right now"
                 />
               </ContentCardHeader>
@@ -687,7 +687,7 @@ export default function ReportsPage() {
               <ContentCardHeader>
                 <SectionTitle
                   icon={<Activity className="h-4 w-4" />}
-                  title="Centry Payments Throughput"
+                  title="Paymoja Payments Throughput"
                   subtitle="Monthly processed vs failed amount"
                 />
               </ContentCardHeader>
@@ -962,7 +962,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Row 7: Quick Navigation — Centry Payments actions */}
+        {/* Row 7: Quick Navigation — Paymoja Payments actions */}
         <div className="grid gap-4 md:grid-cols-3">
           <Link href="/payments" className="block">
             <ContentCard hover className="group cursor-pointer h-full">

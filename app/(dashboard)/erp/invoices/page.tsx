@@ -202,10 +202,10 @@ export default function InvoicesPage() {
     );
   });
 
-  // Centry-internal collection pipeline stats — computed from CollectionEvent
-  // records (collections initiated through Centry), not from Xero-mirrored
+  // Paymoja-internal collection pipeline stats — computed from CollectionEvent
+  // records (collections initiated through Paymoja), not from Xero-mirrored
   // receivable totals. So Outstanding/Overdue/Due-This-Week make way for
-  // "what Centry is actually collecting".
+  // "what Paymoja is actually collecting".
   const collections = Array.isArray(collectionEvents) ? collectionEvents : [];
   const IN_FLIGHT_STATUSES = new Set([
     'PENDING_APPROVAL',
@@ -328,7 +328,7 @@ export default function InvoicesPage() {
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
               <StatCard
-                label="In Centry Pipeline"
+                label="In Paymoja Pipeline"
                 value={`${orgCurrency} ${formatCompactNumber(collInFlightAmount)}`}
                 subtext={`${collInFlight.length} collections in flight`}
                 icon={Wallet}

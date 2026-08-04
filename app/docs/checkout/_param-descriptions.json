@@ -13,7 +13,7 @@
     "allowed_countries": "Restrict to specific countries (e.g., [\"NG\", \"ZA\"]). Omit for all enabled countries.",
     "allowed_providers": "Restrict to specific providers (e.g., [\"paystack\", \"onegate\"]). Omit for all enabled providers.",
     "expiry_minutes": "Session timeout in minutes (5–1440, default 60).",
-    "mode": "\"hosted\" (redirect to Centry checkout page, default) or \"embedded\" (you render your own UI — see Headless / Embedded Checkout)."
+    "mode": "\"hosted\" (redirect to Paymoja checkout page, default) or \"embedded\" (you render your own UI — see Headless / Embedded Checkout)."
   },
   "POST /api/v1/checkout/{session_token}/pay/": {
     "country": "ISO country code (e.g., \"ZA\", \"NG\").",

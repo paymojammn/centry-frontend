@@ -152,7 +152,7 @@ export async function getSubscriptionDetails(): Promise<OrganizationSubscription
 }
 
 /**
- * Create a checkout session using Centry's own payment rails
+ * Create a checkout session using Paymoja's own payment rails
  */
 export async function createCheckoutSession(
   planCode: string,

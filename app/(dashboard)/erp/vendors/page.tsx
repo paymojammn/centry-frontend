@@ -1,7 +1,7 @@
 /**
  * Vendors/Contacts Page
  *
- * Uses the consistent Centry design system.
+ * Uses the consistent Paymoja design system.
  */
 
 'use client';

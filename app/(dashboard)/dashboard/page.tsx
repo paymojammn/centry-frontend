@@ -1,5 +1,5 @@
 /**
- * Financial Dashboard — Centry
+ * Financial Dashboard — Paymoja
  *
  * Premium fintech dashboard with:
  * - Cash position overview
@@ -284,7 +284,7 @@ export default function DashboardPage() {
     { border: 'border-l-red-500', chip: 'bg-red-500/10 text-red-600', icon: 'text-red-600' },
   ];
 
-  // Cash flow — all-time successful Centry collections (IN) and bill payments
+  // Cash flow — all-time successful Paymoja collections (IN) and bill payments
   // (OUT) per currency, so every tile matches the Invoice/Bill Payments "Paid"
   // pills. FX is never summed: we render one row per currency (local + USD).
   const cashFlowSeries = pipelineOverview?.cash_flow_series || [];
@@ -330,7 +330,7 @@ export default function DashboardPage() {
   };
   const cashFlowCurrencies = [localCurrency, 'USD'];
 
-  // Action items — Centry-internal counters only
+  // Action items — Paymoja-internal counters only
   // Matches the /erp/bills processing-queue "Failed" pill (OUT payment events:
   // FAILED_PAYMENT + ERROR_PAYMENT + REJECTED).
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
@@ -370,7 +370,7 @@ export default function DashboardPage() {
         <div className="space-y-8 animate-fade-in-up">
 
           {/* ─── Section 1: Needs attention (top row) ─── */}
-          {/* All counts come from Centry-internal data (PaymentEvents,
+          {/* All counts come from Paymoja-internal data (PaymentEvents,
               pain.002 bank responses, expenses). Each tile is a clickable
               MetricTile so the card style stays uniform with the rest of
               the app — non-zero counts carry the tone-coloured left stripe. */}
@@ -423,7 +423,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ─── Section 2: Cash flow ─── */}
-          {/* All-time successful Centry collections (IN) and bill payments (OUT)
+          {/* All-time successful Paymoja collections (IN) and bill payments (OUT)
               per currency — each tile matches the Invoice/Bill Payments "Paid"
               pills. One row per currency (local + USD); FX is never summed.
               Sparklines show the 6-month trend; Burn rate projects this month's
@@ -434,7 +434,7 @@ export default function DashboardPage() {
                 Cash flow
               </h2>
               <span className="text-[11px] text-muted-foreground">
-                Through Centry · per currency
+                Through Paymoja · per currency
               </span>
             </div>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -445,7 +445,7 @@ export default function DashboardPage() {
                     key={`inflow-${ccy}`}
                     label={`Invoice Inflows · ${ccy}`}
                     value={`${ccy} ${formatCompact(r.inflow)}`}
-                    hint="Collected through Centry"
+                    hint="Collected through Paymoja"
                     icon={ArrowDownRight}
                     tone="success"
                     sparkline={r.inflowSpark.length >= 2 ? r.inflowSpark : undefined}
@@ -456,7 +456,7 @@ export default function DashboardPage() {
                     key={`outflow-${ccy}`}
                     label={`Bill Outflows · ${ccy}`}
                     value={`${ccy} ${formatCompact(r.outflow)}`}
-                    hint="Paid through Centry"
+                    hint="Paid through Paymoja"
                     icon={ArrowUpRight}
                     tone="warning"
                     sparkline={r.outflowSpark.length >= 2 ? r.outflowSpark : undefined}

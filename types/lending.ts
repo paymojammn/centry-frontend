@@ -68,7 +68,7 @@ export interface LoanDisbursement {
   id: string;
   erpnext_name: string;
   against_loan: string;
-  /** Mirrored Centry loan id (null when the loan isn't synced). */
+  /** Mirrored Paymoja loan id (null when the loan isn't synced). */
   loan: string | null;
   applicant_name: string;
   currency: string;

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { RiArrowLeftLine } from '@remixicon/react';
+import { BRAND } from '@/config/brand';
 
 export type LegalSection = {
   id: string;
@@ -56,8 +57,8 @@ export function LegalLayout({
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-6 lg:px-10">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/media/app/centry-logo.svg" alt="Centry" className="size-8" />
-            <span className="text-lg font-semibold text-foreground">Centry</span>
+            <img src={BRAND.logo.mark} alt={BRAND.name} className="size-8" />
+            <span className="text-lg font-semibold text-foreground">{BRAND.name}</span>
             <span className="ml-1 hidden rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline">
               Legal
             </span>
@@ -139,7 +140,7 @@ export function LegalLayout({
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} Centry. All rights reserved.
+                &copy; {new Date().getFullYear()} {BRAND.name}. All rights reserved.
               </p>
             </div>
           </main>

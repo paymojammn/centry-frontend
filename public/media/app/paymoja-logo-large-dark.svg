@@ -1,0 +1,47 @@
+<svg width="280" height="72" viewBox="0 0 280 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon: Modern P with integrated growth chart - Dark Mode -->
+  <g id="icon">
+    <!-- Background circle with glow -->
+    <circle cx="36" cy="36" r="32" fill="#99B4A8" fill-opacity="0.1"/>
+
+    <!-- Main P shape - stem + bowl -->
+    <path d="M16 12 L16 60"
+          stroke="#99B4A8"
+          stroke-width="5.5"
+          stroke-linecap="round"/>
+    <path d="M16 12 L36 12 A14 14 0 0 1 36 40 L16 40"
+          stroke="#99B4A8"
+          stroke-width="5.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- Financial growth bars -->
+    <g id="growth-bars">
+      <rect x="42" y="42" width="6" height="12" rx="2" fill="#99B4A8"/>
+      <rect x="51" y="32" width="6" height="22" rx="2" fill="#B3C7BD"/>
+      <rect x="60" y="22" width="6" height="32" rx="2" fill="#CFE0D8"/>
+    </g>
+
+    <!-- Accent dot -->
+    <circle cx="60" cy="14" r="4.5" fill="#99B4A8"/>
+  </g>
+
+  <!-- Text: PAYMOJA -->
+  <g id="text" transform="translate(84, 12)" stroke="#F3F4F6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- P -->
+    <path d="M0 44V24H10C13.866 24 17 27.134 17 31C17 34.866 13.866 38 10 38H0"/>
+    <!-- A -->
+    <path d="M24 44L31 24L38 44M27 37H35"/>
+    <!-- Y -->
+    <path d="M44 24L53 35M62 24L53 35M53 35V44"/>
+    <!-- M -->
+    <path d="M70 44V24L80 38L90 24V44"/>
+    <!-- O -->
+    <path d="M97 34C97 28.477 101.477 24 107 24C112.523 24 117 28.477 117 34C117 39.523 112.523 44 107 44C101.477 44 97 39.523 97 34Z"/>
+    <!-- J -->
+    <path d="M132 24V38C132 41.314 129.314 44 126 44C123.866 44 121.992 42.881 121 41.2"/>
+    <!-- A -->
+    <path d="M138 44L145 24L152 44M141 37H149"/>
+  </g>
+</svg>

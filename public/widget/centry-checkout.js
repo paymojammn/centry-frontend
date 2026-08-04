@@ -1,11 +1,11 @@
 /**
- * Centry Checkout Widget SDK
+ * Paymoja Checkout Widget SDK
  *
- * This script allows merchants to embed Centry Checkout on their websites.
+ * This script allows merchants to embed Paymoja Checkout on their websites.
  *
  * Usage:
  * 1. Include this script on your page:
- *    <script src="https://checkout.getcentry.io/widget/centry-checkout.js"></script>
+ *    <script src="https://paymoja.io/widget/centry-checkout.js"></script>
  *
  * 2. Initialize and open checkout:
  *    CentryCheckout.open({
@@ -19,7 +19,7 @@
 (function(window, document) {
   'use strict';
 
-  var CHECKOUT_BASE_URL = 'https://checkout.getcentry.io';
+  var CHECKOUT_BASE_URL = 'https://paymoja.io';
 
   // Allow override for development
   if (window.CENTRY_CHECKOUT_URL) {
@@ -102,7 +102,7 @@
       iframe.src = CHECKOUT_BASE_URL + '/checkout/' + sessionToken + '?embed=true';
       iframe.style.cssText = 'width:100%;height:100%;border:none;';
       iframe.setAttribute('allow', 'payment');
-      iframe.setAttribute('title', 'Centry Checkout');
+      iframe.setAttribute('title', 'Paymoja Checkout');
 
       // Assemble
       modal.appendChild(closeBtn);

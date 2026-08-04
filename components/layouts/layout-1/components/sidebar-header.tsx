@@ -2,6 +2,7 @@ import { ChevronFirst } from 'lucide-react';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { BRAND } from '@/config/brand';
 import { useLayout } from './context';
 import Link from 'next/link';
 
@@ -15,16 +16,16 @@ export function SidebarHeader() {
   return (
     <div className="sidebar-header hidden lg:flex items-center relative justify-between px-3 lg:px-6 shrink-0">
       <Link href="/dashboard">
-        {/* Full logo (with border) when expanded, mini C mark when collapsed */}
+        {/* Full logo (with border) when expanded, mini P mark when collapsed */}
         <img
-          src={toAbsoluteUrl('/media/app/centry-logo-dark.svg')}
+          src={toAbsoluteUrl(BRAND.logo.markDark)}
           className="default-logo h-[32px] max-w-none"
-          alt="Centry"
+          alt={BRAND.name}
         />
         <img
-          src={toAbsoluteUrl('/media/app/centry-mini-logo-dark.svg')}
+          src={toAbsoluteUrl(BRAND.logo.miniDark)}
           className="small-logo h-[28px] max-w-none"
-          alt="Centry"
+          alt={BRAND.name}
         />
       </Link>
       <Button

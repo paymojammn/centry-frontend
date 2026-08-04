@@ -26,7 +26,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Checkout API Documentation',
-  description: 'Accept payments across Africa with Centry Checkout',
+  description: 'Accept payments across Africa with Paymoja Checkout',
 };
 
 export default function CheckoutDocsPage() {
@@ -43,7 +43,7 @@ export default function CheckoutDocsPage() {
             Accept payments across Africa
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            One integration, multiple payment providers. Centry Checkout routes payments to the right
+            One integration, multiple payment providers. Paymoja Checkout routes payments to the right
             provider across 10+ African countries — cards, EFT, mobile money, vouchers, and crypto.
           </p>
         </div>
@@ -57,9 +57,9 @@ export default function CheckoutDocsPage() {
         </div>
 
         {/* Introduction */}
-        <DocsSection id="introduction" title="Introduction" description="How Centry Checkout works">
+        <DocsSection id="introduction" title="Introduction" description="How Paymoja Checkout works">
           <p className="text-muted-foreground leading-relaxed mb-6">
-            Centry Checkout provides a unified API for accepting payments across multiple
+            Paymoja Checkout provides a unified API for accepting payments across multiple
             African countries and payment providers. You integrate once — we handle provider selection,
             currency routing, and webhook consolidation.
           </p>
@@ -119,7 +119,7 @@ export default function CheckoutDocsPage() {
                   {
                     label: 'cURL',
                     language: 'bash',
-                    code: `curl -X POST https://api.getcentry.io/api/v1/checkout/sessions/ \\
+                    code: `curl -X POST https://api.paymoja.io/api/v1/checkout/sessions/ \\
   -H "Authorization: Api-Key cen_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -159,7 +159,7 @@ print(session.checkout_url)  # Redirect customer here`,
                     label: 'Node.js (fetch)',
                     language: 'javascript',
                     code: `// No official Node SDK yet — call the HTTPS endpoint directly.
-const res = await fetch('https://api.getcentry.io/api/v1/checkout/sessions/', {
+const res = await fetch('https://api.paymoja.io/api/v1/checkout/sessions/', {
   method: 'POST',
   headers: {
     Authorization: 'Api-Key cen_your_api_key',
@@ -176,7 +176,7 @@ const res = await fetch('https://api.getcentry.io/api/v1/checkout/sessions/', {
   }),
 });
 
-if (!res.ok) throw new Error(\`Centry \${res.status}: \${await res.text()}\`);
+if (!res.ok) throw new Error(\`Paymoja \${res.status}: \${await res.text()}\`);
 const { session } = await res.json();
 console.log(session.checkout_url); // Redirect customer here`,
                   },
@@ -194,7 +194,7 @@ console.log(session.checkout_url); // Redirect customer here`,
   "session": {
     "id": "cs_abc123",
     "session_token": "tok_xyz789",
-    "checkout_url": "https://checkout.getcentry.io/checkout/tok_xyz789",
+    "checkout_url": "https://paymoja.io/checkout/tok_xyz789",
     "status": "pending",
     "expires_at": "2024-01-15T12:00:00Z"
   }
@@ -272,7 +272,7 @@ console.log(session.checkout_url); // Redirect customer here`,
                 language: 'javascript',
                 code: `// Express — no official Node SDK yet, so hit the HTTPS endpoint directly.
 app.post('/create-checkout', async (req, res) => {
-  const r = await fetch('https://api.getcentry.io/api/v1/checkout/sessions/', {
+  const r = await fetch('https://api.paymoja.io/api/v1/checkout/sessions/', {
     method: 'POST',
     headers: {
       Authorization: \`Api-Key \${process.env.CENTRY_API_KEY}\`,
@@ -332,7 +332,7 @@ from django.shortcuts import redirect
 
 def create_checkout(request):
     r = requests.post(
-        "https://api.getcentry.io/api/v1/checkout/sessions/",
+        "https://api.paymoja.io/api/v1/checkout/sessions/",
         headers={"Authorization": f"Api-Key {os.environ['CENTRY_API_KEY']}"},
         json={
             "amount": request.POST["amount"],
@@ -354,11 +354,11 @@ def create_checkout(request):
         </DocsSection>
 
         {/* Headless / Embedded Checkout */}
-        <DocsSection id="headless" title="Headless / Embedded Checkout" description="Build your own checkout UI — use Centry as a payment tunnel">
+        <DocsSection id="headless" title="Headless / Embedded Checkout" description="Build your own checkout UI — use Paymoja as a payment tunnel">
           <div className="space-y-6">
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Don&apos;t want to redirect customers? Build your own checkout form and call the Centry API
-              directly from your frontend. Your customers never leave your site — Centry handles payment
+              Don&apos;t want to redirect customers? Build your own checkout form and call the Paymoja API
+              directly from your frontend. Your customers never leave your site — Paymoja handles payment
               routing behind the scenes.
             </p>
 
@@ -390,7 +390,7 @@ def create_checkout(request):
               <CodeBlock
                 language="javascript"
                 filename="Your server"
-                code={`// Set mode: "embedded" so Centry knows you're handling the UI
+                code={`// Set mode: "embedded" so Paymoja knows you're handling the UI
 const response = await fetch(CENTRY_API + "/api/v1/checkout/sessions/", {
   method: "POST",
   headers: {
@@ -417,7 +417,7 @@ const { session } = await response.json();
               <CodeBlock
                 language="javascript"
                 filename="Your frontend (React, Vue, vanilla JS, etc.)"
-                code={`const API = "https://api.getcentry.io";  // CORS-enabled, no API key needed
+                code={`const API = "https://api.paymoja.io";  // CORS-enabled, no API key needed
 
 // Fetch session info
 const info = await fetch(API + "/api/v1/checkout/" + sessionToken + "/");
@@ -502,7 +502,7 @@ if (payment.requires_redirect) {
             <CodeBlock
               language="html"
               filename="index.html"
-              code={`<script src="https://checkout.getcentry.io/widget/centry-checkout.js"></script>
+              code={`<script src="https://paymoja.io/widget/centry-checkout.js"></script>
 
 <script>
   CentryCheckout.open({
@@ -583,8 +583,8 @@ if (payment.requires_redirect) {
         {/* API Reference */}
         <DocsSection id="api-reference" title="API Reference" description="Complete endpoint documentation">
           <p className="text-muted-foreground text-sm mb-4">
-            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.getcentry.io</code>{' '}
-            (production) · <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://staging-api.getcentry.io</code> (sandbox)
+            Base URL: <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://api.paymoja.io</code>{' '}
+            (production) · <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">https://staging-api.paymoja.io</code> (sandbox)
           </p>
           {/* Rendered from the live OpenAPI schema — see app/docs/_generated and `npm run sync:docs`. */}
           <SchemaEndpointTable />
@@ -624,7 +624,7 @@ if (payment.requires_redirect) {
     "id": "cs_1a2b3c4d5e6f",
     "reference": "ORDER-12345",
     "session_token": "tok_xyz789",
-    "checkout_url": "https://checkout.getcentry.io/checkout/tok_xyz789",
+    "checkout_url": "https://paymoja.io/checkout/tok_xyz789",
     "amount": "5000.00",
     "currency": "NGN",
     "description": "",
@@ -943,7 +943,7 @@ if (payment.requires_redirect) {
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3 mb-3">
                 <AlertTriangle className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-600">
-                  Centry signs the <strong>canonically re-serialized</strong> JSON (sorted keys,
+                  Paymoja signs the <strong>canonically re-serialized</strong> JSON (sorted keys,
                   no whitespace), <em>not</em> the raw request bytes. Parse the body to an object,
                   then re-dump it with sorted keys before computing the HMAC. The separate{' '}
                   <code className="text-[11px]">X-Centry-Timestamp</code> header is provided for
@@ -961,7 +961,7 @@ def verify_centry_webhook(raw_body: bytes, header_value: str, secret: str) -> bo
     if not header_value.startswith("sha256="):
         return False
     received = header_value[len("sha256="):]
-    # Centry signs the CANONICAL JSON: sorted keys, compact separators.
+    # Paymoja signs the CANONICAL JSON: sorted keys, compact separators.
     payload = json.loads(raw_body)
     canonical = json.dumps(payload, separators=(",", ":"), sort_keys=True)
     expected = hmac.new(
@@ -1079,7 +1079,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               <h4 className="font-semibold text-foreground mb-3">OneGate payout example</h4>
               <CodeBlock
                 language="bash"
-                code={`curl -X POST https://api.getcentry.io/payments/api/onegate/payouts/create/ \\
+                code={`curl -X POST https://api.paymoja.io/payments/api/onegate/payouts/create/ \\
   -H "Authorization: Api-Key cen_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1109,7 +1109,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
 
             <div className="grid sm:grid-cols-3 gap-3">
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/docs/'}
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/docs/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1125,7 +1125,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               </a>
 
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/redoc/'}
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/redoc/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1141,7 +1141,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               </a>
 
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.getcentry.io') + '/api/schema/'}
+                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/schema/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1309,7 +1309,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
             <p className="text-muted-foreground text-sm">
               Use the sandbox environment to test without processing real payments. Point your
               integration at the sandbox base URL and use a key issued from the sandbox dashboard
-              at <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">staging.getcentry.io</code>.
+              at <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">staging.paymoja.io</code>.
               Checkout API keys use the <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_</code> prefix in
               both environments — the environment is determined by which base URL (and dashboard)
               the key was created in, not by the prefix. Provider sandbox/live mode is configured
@@ -1319,11 +1319,11 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox</div>
-                <code className="text-xs font-mono text-foreground">https://staging-api.getcentry.io</code>
+                <code className="text-xs font-mono text-foreground">https://staging-api.paymoja.io</code>
               </div>
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Production</div>
-                <code className="text-xs font-mono text-foreground">https://api.getcentry.io</code>
+                <code className="text-xs font-mono text-foreground">https://api.paymoja.io</code>
               </div>
             </div>
 
@@ -1355,7 +1355,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Need help?{' '}
-              <a href="mailto:support@getcentry.com" className="text-primary hover:underline">support@getcentry.com</a>
+              <a href="mailto:support@paymoja.io" className="text-primary hover:underline">support@paymoja.io</a>
             </p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <a href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'} className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Admin</a>

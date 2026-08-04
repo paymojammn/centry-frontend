@@ -1,7 +1,7 @@
 /**
  * Mobile Money Reconciliation Page
  *
- * Uses the consistent Centry design system with enhanced UI components.
+ * Uses the consistent Paymoja design system with enhanced UI components.
  */
 
 'use client';

@@ -1,5 +1,5 @@
 /**
- * API Service for Centry Backend
+ * API Service for Paymoja Backend
  * Base URL and authentication configuration
  */
 

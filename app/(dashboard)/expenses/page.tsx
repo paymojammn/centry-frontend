@@ -1,7 +1,7 @@
 /**
  * Expenses Page - Petty Cash Management
  *
- * Uses the consistent Centry design system.
+ * Uses the consistent Paymoja design system.
  */
 
 'use client';

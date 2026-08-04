@@ -1,5 +1,5 @@
 /**
- * Logger utility for Centry Frontend
+ * Logger utility for Paymoja Frontend
  * Provides structured logging that only outputs in development mode
  */
 

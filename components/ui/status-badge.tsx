@@ -1,7 +1,7 @@
 /**
  * Status Badge Component
  *
- * Consistent status badges using muted Centry color system.
+ * Consistent status badges using muted Paymoja color system.
  * Pill-shaped badges with soft, muted colors.
  */
 

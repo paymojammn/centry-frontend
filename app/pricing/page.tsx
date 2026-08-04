@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { BRAND } from '@/config/brand';
 import { RiCheckLine, RiArrowRightLine, RiQuestionLine } from '@remixicon/react';
 
 type BillingCycle = 'monthly' | 'annual';
@@ -29,7 +30,7 @@ const pricingTiers: PricingTier[] = [
     annualPrice: 960,
     txnFee: '0.8%',
     features: [
-      'Centry Lite ERP — included free',
+      'Paymoja Lite ERP — included free',
       'Mobile money — MTN & Airtel',
       'Card & EFT acceptance',
       'SA · Uganda · Zambia',
@@ -82,7 +83,7 @@ const pricingTiers: PricingTier[] = [
     ],
     excluded: [],
     cta: 'Contact Sales',
-    ctaLink: 'mailto:sales@getcentry.app',
+    ctaLink: 'mailto:sales@paymoja.io',
   },
 ];
 
@@ -113,11 +114,11 @@ const transactionFees = [
 const faqs = [
   {
     question: 'What payment methods are supported?',
-    answer: 'Centry supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money, and various local payment rails across Africa and globally.',
+    answer: 'Paymoja supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money, and various local payment rails across Africa and globally.',
   },
   {
     question: 'How does the 14-day free trial work?',
-    answer: 'Start using Centry immediately with full access to all features in your chosen plan. No credit card required. If you love it, upgrade before the trial ends. Otherwise, your account will be paused.',
+    answer: 'Start using Paymoja immediately with full access to all features in your chosen plan. No credit card required. If you love it, upgrade before the trial ends. Otherwise, your account will be paused.',
   },
   {
     question: 'Can I switch plans later?',
@@ -128,8 +129,8 @@ const faqs = [
     answer: 'We currently support Xero, QuickBooks Online, and Sage. More integrations are coming soon. Enterprise customers can request custom integrations.',
   },
   {
-    question: 'How secure is Centry?',
-    answer: 'Centry uses bank-grade 256-bit SSL encryption, is SOC 2 compliant, and follows strict data protection standards. All payments are processed through licensed financial institutions.',
+    question: 'How secure is Paymoja?',
+    answer: 'Paymoja uses bank-grade 256-bit SSL encryption, is SOC 2 compliant, and follows strict data protection standards. All payments are processed through licensed financial institutions.',
   },
   {
     question: 'Do you offer refunds?',
@@ -154,9 +155,9 @@ export default function PricingPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
+                <img src={BRAND.logo.mini} alt="" className="w-7 h-7" />
               </div>
-              <span className="text-xl font-semibold">Centry</span>
+              <span className="text-xl font-semibold">Paymoja</span>
             </Link>
             <div className="flex items-center gap-6">
               <Link href="/auth/login" className="text-white/80 hover:text-white transition-colors">
@@ -347,7 +348,7 @@ export default function PricingPage() {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Volume discounts available for Enterprise customers. <Link href="mailto:sales@getcentry.app" className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
+          Volume discounts available for Enterprise customers. <Link href="mailto:sales@paymoja.io" className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
         </p>
       </section>
 
@@ -475,7 +476,7 @@ export default function PricingPage() {
               Start Free Trial
             </Link>
             <Link
-              href="mailto:sales@getcentry.app"
+              href="mailto:sales@paymoja.io"
               className="border border-white/30 text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors"
             >
               Contact Sales
@@ -490,17 +491,17 @@ export default function PricingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
+                <img src={BRAND.logo.miniDark} alt="" className="w-5 h-5" />
               </div>
-              <span className="text-foreground font-semibold">Centry</span>
+              <span className="text-foreground font-semibold">Paymoja</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/refund-policy" className="hover:text-foreground">Refund Policy</Link>
               <Link href="/cancellation-policy" className="hover:text-foreground">Cancellation Policy</Link>
-              <Link href="mailto:support@getcentry.app" className="hover:text-foreground">Support</Link>
+              <Link href="mailto:support@paymoja.io" className="hover:text-foreground">Support</Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Centry. All rights reserved.
+              &copy; {new Date().getFullYear()} Paymoja. All rights reserved.
             </p>
           </div>
         </div>

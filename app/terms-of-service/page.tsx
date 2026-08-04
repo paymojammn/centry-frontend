@@ -13,7 +13,7 @@ const sections: LegalSection[] = [
     title: 'Acceptance of Terms',
     content: (
       <p>
-        By accessing or using Centry (&quot;the Platform&quot;), operated by Centry Technologies Ltd,
+        By accessing or using Paymoja (&quot;the Platform&quot;), operated by Paymoja Ltd,
         you agree to be bound by these Terms of Service. If you do not agree to these terms,
         you may not use the Platform. These terms apply to all users, including organizations,
         administrators, and individual users.
@@ -25,7 +25,7 @@ const sections: LegalSection[] = [
     title: 'Description of Service',
     content: (
       <>
-        <p>Centry is a financial operations platform that provides:</p>
+        <p>Paymoja is a financial operations platform that provides:</p>
         <ul className={legalBullets}>
           <li>Payment processing and management</li>
           <li>Multi-level payment approval workflows</li>
@@ -43,7 +43,7 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          To use Centry, you must create an account and provide accurate, complete information.
+          To use Paymoja, you must create an account and provide accurate, complete information.
           You are responsible for:
         </p>
         <ul className={legalBullets}>
@@ -61,12 +61,12 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          Centry facilitates payment processing through third-party payment providers. By using
+          Paymoja facilitates payment processing through third-party payment providers. By using
           our payment services, you acknowledge that:
         </p>
         <ul className={legalBullets}>
           <li>Payment processing is subject to the terms of the respective payment providers</li>
-          <li>Centry is not a bank or financial institution</li>
+          <li>Paymoja is not a bank or financial institution</li>
           <li>You are responsible for ensuring sufficient funds for scheduled payments</li>
           <li>Payment approvals within your organization are your responsibility to configure correctly</li>
           <li>Exchange rates are indicative and may vary at the time of transaction settlement</li>
@@ -109,7 +109,7 @@ const sections: LegalSection[] = [
     title: 'Subscription and Fees',
     content: (
       <>
-        <p>Centry offers subscription-based pricing. By subscribing, you agree to:</p>
+        <p>Paymoja offers subscription-based pricing. By subscribing, you agree to:</p>
         <ul className={legalBullets}>
           <li>Pay all applicable fees for your chosen plan</li>
           <li>Automatic renewal unless you cancel before the renewal date</li>
@@ -134,7 +134,7 @@ const sections: LegalSection[] = [
     title: 'Intellectual Property',
     content: (
       <p>
-        The Platform, including its design, features, and content, is owned by Centry
+        The Platform, including its design, features, and content, is owned by Paymoja
         Technologies Ltd and protected by intellectual property laws. You retain ownership
         of your data uploaded to the Platform. You grant us a limited license to process
         your data solely for the purpose of providing the services.
@@ -146,7 +146,7 @@ const sections: LegalSection[] = [
     title: 'Limitation of Liability',
     content: (
       <p>
-        To the maximum extent permitted by law, Centry shall not be liable for any indirect,
+        To the maximum extent permitted by law, Paymoja shall not be liable for any indirect,
         incidental, special, consequential, or punitive damages, including loss of profits,
         data, or business opportunities, arising from your use of the Platform. Our total
         liability shall not exceed the fees paid by you in the twelve months preceding the claim.
@@ -181,8 +181,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about these Terms of Service, please contact us at{' '}
-        <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
-          support@getcentry.com
+        <a href="mailto:support@paymoja.io" className="font-medium text-primary hover:underline">
+          support@paymoja.io
         </a>
       </p>
     ),
