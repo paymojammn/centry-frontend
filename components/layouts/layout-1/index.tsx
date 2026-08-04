@@ -1,6 +1,7 @@
 'use client';
 
 import { Metadata } from 'next';
+import { BRAND } from '@/config/brand';
 import { LayoutProvider } from './components/context';
 import { Main } from './components/main';
 
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // const { params } = props;
   
   return {
-    title: 'Dashboard | Centry',
+    title: `Dashboard | ${BRAND.name}`,
     description: 'Accounting Payments Hub',
   };
 }

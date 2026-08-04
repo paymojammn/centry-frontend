@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, Loader2, ArrowRight, XCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getApiUrl } from '@/config/api';
+import { BRAND } from '@/config/brand';
 import { signInWithOdoo } from '@/lib/odoo-api';
 
 // Provider branding — colors & icons for known ERPs
@@ -164,9 +165,9 @@ export default function LoginPage() {
         </svg>
 
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
-          <img src="/media/app/centry-logo-dark.svg" alt="Centry" className="h-24 w-24 mb-6" />
-          <h1 className="text-5xl xl:text-6xl font-bold text-white tracking-wide">Centry</h1>
-          <p className="text-white/40 mt-3 text-sm">Business payments, simplified.</p>
+          <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-24 w-24 mb-6" />
+          <h1 className="text-5xl xl:text-6xl font-bold text-white tracking-wide">{BRAND.name}</h1>
+          <p className="text-white/40 mt-3 text-sm">{BRAND.tagline}</p>
         </div>
       </div>
 
@@ -175,8 +176,8 @@ export default function LoginPage() {
         {/* Mobile header */}
         <div className="lg:hidden p-5 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <img src="/media/app/centry-logo.svg" alt="Centry" className="h-8 w-8" />
-            <span className="text-lg font-semibold text-foreground">Centry</span>
+            <img src={BRAND.logo.mark} alt={BRAND.name} className="h-8 w-8" />
+            <span className="text-lg font-semibold text-foreground">{BRAND.name}</span>
           </div>
         </div>
 

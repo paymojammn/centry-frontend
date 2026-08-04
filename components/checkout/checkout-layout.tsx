@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Lock, ShieldCheck } from 'lucide-react';
+import { BRAND } from '@/config/brand';
 
 interface CheckoutLayoutProps {
   children: React.ReactNode;
@@ -39,7 +40,7 @@ export function CheckoutLayout({ children, merchantName, merchantLogo }: Checkou
             Checkout
           </h1>
           <p className="text-white/40 mt-3 text-sm text-center">
-            Secure payment powered by Centry
+            Secure payment powered by {BRAND.name}
           </p>
 
           {/* Trust indicators */}
@@ -55,10 +56,10 @@ export function CheckoutLayout({ children, merchantName, merchantLogo }: Checkou
             ))}
           </div>
 
-          {/* Centry branding at bottom */}
+          {/* Brand mark at bottom */}
           <div className="absolute bottom-8 flex items-center gap-2">
-            <img src="/media/app/centry-logo-dark.svg" alt="Centry" className="h-5 w-5 opacity-40" />
-            <span className="text-xs text-white/30">Powered by Centry</span>
+            <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-5 w-5 opacity-40" />
+            <span className="text-xs text-white/30">Powered by {BRAND.name}</span>
           </div>
         </div>
       </div>
@@ -93,7 +94,7 @@ export function CheckoutLayout({ children, merchantName, merchantLogo }: Checkou
           <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <Lock className="size-3" />
             <span>Secured by</span>
-            <span className="font-semibold text-foreground">Centry</span>
+            <span className="font-semibold text-foreground">{BRAND.name}</span>
           </div>
         </div>
       </div>

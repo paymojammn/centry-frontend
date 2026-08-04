@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { BRAND } from '@/config/brand';
 import {
   Book,
   Banknote,
@@ -126,8 +127,8 @@ export function DocsLayout({ children }: DocsLayoutProps) {
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2.5">
-                <img src="/media/app/centry-logo-dark.svg" alt="Centry" className="h-7 w-7" />
-                <span className="font-semibold text-white">Centry</span>
+                <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-7 w-7" />
+                <span className="font-semibold text-white">{BRAND.name}</span>
               </Link>
               <span className="text-white/20">|</span>
               <Link href="/docs/checkout" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
@@ -148,7 +149,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 API Reference
               </Link>
               <a
-                href="https://github.com/paymojammn"
+                href={BRAND.urls.github}
                 className="text-sm text-white/60 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all flex items-center gap-1"
                 target="_blank"
                 rel="noopener noreferrer"
