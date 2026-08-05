@@ -12,8 +12,7 @@ Custom SVG logo created for Centry using the brand's sage green color palette.
   - Bill payments increasing
   - Upward trend in business
 - **Colors**: 
-  - Primary: `#638C80` (Sage Green)
-  - Gradient: `#7FA094` → `#99B4A8` (Lighter shades)
+  - Single colour: `#1E3A2F` (deep forest green) — no gradient
 
 ### Typography
 - **Font Style**: Modern sans-serif geometric letters
@@ -75,9 +74,8 @@ Custom SVG logo created for Centry using the brand's sage green color palette.
 
 ### Color Palette Used
 From `styles/globals.css`:
-- **Primary**: `#638C80` (rgb(99, 140, 128)) - Sage Green
-- **Light**: `#7FA094` (Lighter sage)
-- **Lighter**: `#99B4A8` (Lightest sage)
+- **Logo colour**: `#1E3A2F` (deep forest green) — the SVGs use exactly one colour, no gradient
+- **UI brand primary** (separate from the logo): `#5C8A65` (`--brand-primary: 92 138 101` in styles/globals.css)
 - **Text**: `#2C3E50` (Dark slate)
 - **Text Dark**: `#E5E7EB` (Light gray)
 
@@ -93,15 +91,15 @@ From `styles/globals.css`:
 ### SVG Structure
 ```xml
 <svg viewBox="0 0 140 32" fill="none">
-  <!-- Icon group -->
+  <!-- Icon group — every element uses the single brand colour #1E3A2F -->
   <g id="icon">
     <!-- Outer C (open circle) -->
-    <path stroke="#638C80" stroke-width="3"/>
-    
+    <path stroke="#1E3A2F" stroke-width="3"/>
+
     <!-- Three ascending rectangles -->
-    <rect fill="#638C80"/>  <!-- Shortest -->
-    <rect fill="#7FA094"/>  <!-- Medium -->
-    <rect fill="#99B4A8"/>  <!-- Tallest -->
+    <rect fill="#1E3A2F"/>  <!-- Shortest -->
+    <rect fill="#1E3A2F"/>  <!-- Medium -->
+    <rect fill="#1E3A2F"/>  <!-- Tallest -->
   </g>
   
   <!-- Text group -->

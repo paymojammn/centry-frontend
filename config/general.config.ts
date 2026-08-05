@@ -1,10 +1,11 @@
+// Company links shown in the shell (footer). The old values were Metronic
+// template leftovers (Envato purchase link, keenthemes.com) rendered as dead
+// or third-party links in our footer — everything external now goes through
+// these three.
 const generalSettings = {
-  purchaseLink: 'https://1.envato.market/Vm7VRE',
-  docsLink: '',
-  licenseLink: '',
-  devsLink: 'https://devs.keenthemes.com',
-  faqLink: 'https://keenthemes.com/metronic',
-  aboutLink: 'https://keenthemes.com/metronic',
+  websiteLink: 'https://getcentry.io',
+  docsLink: '/docs/checkout',
+  supportEmail: 'support@paymoja.com',
 };
 
 export { generalSettings };

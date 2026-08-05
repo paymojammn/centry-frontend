@@ -128,8 +128,8 @@ const sections: LegalSection[] = [
         </ul>
         <p>
           To exercise any of these rights, contact us at{' '}
-          <a href="mailto:privacy@getcentry.com" className="font-medium text-primary hover:underline">
-            privacy@getcentry.com
+          <a href="mailto:support@paymoja.com" className="font-medium text-primary hover:underline">
+            support@paymoja.com
           </a>
         </p>
       </>
@@ -176,8 +176,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about this Privacy Policy or our data practices, please contact us at{' '}
-        <a href="mailto:privacy@getcentry.com" className="font-medium text-primary hover:underline">
-          privacy@getcentry.com
+        <a href="mailto:support@paymoja.com" className="font-medium text-primary hover:underline">
+          support@paymoja.com
         </a>
       </p>
     ),
