@@ -126,7 +126,7 @@ Features:
 ## Design System
 
 ### Theme Colors
-- **Primary**: #638C80 (Sage Green)
+- **Primary**: #5C8A65 (Muted Sage Green — `--brand-primary: 92 138 101` in styles/globals.css)
 - **Hover**: #4f7068 (Darker Sage)
 - **Borders**: gray-50, gray-100, gray-200
 - **Shadows**: shadow-sm, shadow-md on hover
