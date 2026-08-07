@@ -33,6 +33,16 @@ export const MENU_SIDEBAR: MenuConfig = [
     ],
   },
   {
+    title: "Payments",
+    icon: TrendingUp,
+    requiredRole: "finance",
+    children: [
+      { title: "Pay In", path: "/payments/payin" },
+      { title: "Pay Out", path: "/payments/payout" },
+      { title: "Reconciliation", path: "/payments" },
+    ],
+  },
+  {
     title: "Rails",
     icon: Send,
     requiredRole: "finance",
@@ -112,7 +122,8 @@ export const MENU_MEGA: MenuConfig = [
           {
             children: [
               { title: "Bills & Expenses", icon: FileText, path: "/erp/bills" },
-              { title: "Payments", icon: TrendingUp, path: "/payments" },
+              { title: "Pay In", icon: TrendingUp, path: "/payments/payin" },
+              { title: "Pay Out", icon: Send, path: "/payments/payout" },
               { title: "Banking", icon: Building, path: "/banking" },
             ],
           },
@@ -214,7 +225,8 @@ export const MENU_MEGA_MOBILE: MenuConfig = [
     title: "Financial",
     children: [
       { title: "Bills", icon: FileText, path: "/erp/bills" },
-      { title: "Payments", icon: TrendingUp, path: "/payments" },
+      { title: "Pay In", icon: TrendingUp, path: "/payments/payin" },
+      { title: "Pay Out", icon: Send, path: "/payments/payout" },
       { title: "Banking", icon: Building, path: "/banking" },
     ],
   },
