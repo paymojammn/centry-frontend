@@ -43,6 +43,9 @@ export interface PaymentRequest {
   source_wallet: string | null;
   source_wallet_name: string | null;
   source_mobile_money_account: string | null;
+  source_provider_account: string | null;
+  source_provider: string | null;
+  source_provider_name: string | null;
   status: PaymentRequestStatus;
   status_display: string;
   created_by: string | null;
@@ -77,6 +80,8 @@ export interface CreatePaymentRequestPayload {
   recipients?: PaymentRecipient[];
   description?: string;
   source_wallet_id?: string;
+  /** Explicitly chosen rail (ProviderAccount). Omit to let the backend route. */
+  source_provider_account_id?: string;
 }
 
 export interface PaymentRequestStats {
