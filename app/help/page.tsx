@@ -395,7 +395,7 @@ export default function HelpCenterPage() {
             <p className="text-sm">
               No results found. Try a different search, or{' '}
               <a
-                href="mailto:support@getcentry.com"
+                href="mailto:support@paymoja.com"
                 className="font-medium text-primary hover:underline"
               >
                 email support
@@ -417,10 +417,10 @@ export default function HelpCenterPage() {
             <h4 className="text-sm font-semibold text-foreground">Email Support</h4>
             <p className="mt-0.5 text-xs text-muted-foreground">Response within 24 hours</p>
             <a
-              href="mailto:support@getcentry.com"
+              href="mailto:support@paymoja.com"
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
-              support@getcentry.com
+              support@paymoja.com
             </a>
           </div>
           <Link
@@ -450,7 +450,7 @@ export default function HelpCenterPage() {
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link href="/terms-of-service" className="hover:text-foreground">Terms</Link>
             <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link>
-            <a href="mailto:support@getcentry.com" className="hover:text-foreground">Support</a>
+            <a href="mailto:support@paymoja.com" className="hover:text-foreground">Support</a>
           </div>
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Centry Technologies. All rights reserved.

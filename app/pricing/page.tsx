@@ -498,7 +498,7 @@ export default function PricingPage() {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/refund-policy" className="hover:text-foreground">Refund Policy</Link>
               <Link href="/cancellation-policy" className="hover:text-foreground">Cancellation Policy</Link>
-              <Link href="mailto:support@getcentry.app" className="hover:text-foreground">Support</Link>
+              <Link href="mailto:support@paymoja.com" className="hover:text-foreground">Support</Link>
             </div>
             <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} Centry. All rights reserved.

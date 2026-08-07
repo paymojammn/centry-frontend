@@ -181,8 +181,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about these Terms of Service, please contact us at{' '}
-        <a href="mailto:support@getcentry.com" className="font-medium text-primary hover:underline">
-          support@getcentry.com
+        <a href="mailto:support@paymoja.com" className="font-medium text-primary hover:underline">
+          support@paymoja.com
         </a>
       </p>
     ),
