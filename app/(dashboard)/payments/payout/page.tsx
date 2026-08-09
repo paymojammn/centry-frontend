@@ -37,6 +37,10 @@ import {
   TableState,
   type StatusPill,
 } from '@/components/payments/status-pills';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { paymentRequestsApi } from '@/lib/payment-requests-api';
+import { paymentRequestKeys } from '@/hooks/use-payment-requests';
 import { useOrganizations } from '@/hooks/use-organization';
 import { useRailSelection } from '@/hooks/use-payment-rails';
 import { RailSelector } from '@/components/payments/rail-selector';
@@ -121,6 +125,7 @@ export default function PayOutPage() {
   const { mutate: approveRequest, isPending: isApproving } = useApprovePaymentRequest();
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectPaymentRequest();
   const { mutate: processRequest, isPending: isProcessing } = useProcessPaymentRequest();
+  const queryClient = useQueryClient();
 
   const requests = useMemo(() => allRequests?.results || [], [allRequests]);
   const pending = useMemo(() => pendingRequests?.results || [], [pendingRequests]);
@@ -128,6 +133,8 @@ export default function PayOutPage() {
   // Approvals queue: filter chips over the org's requests.
   const [statusFilter, setStatusFilter] = useState<string>('awaiting');
   const [search, setSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
   const pendingIds = useMemo(() => new Set(pending.map((r) => r.id)), [pending]);
 
   const countBy = (status: PaymentRequestStatus) =>
@@ -224,6 +231,62 @@ export default function PayOutPage() {
     );
   };
 
+  // Only requests awaiting *this* user can be approved — the backend rejects
+  // self-approval, so offering a checkbox on those rows would invite a failure.
+  const selectableIds = useMemo(
+    () => visibleRequests.filter((r) => pendingIds.has(r.id)).map((r) => r.id),
+    [visibleRequests, pendingIds]
+  );
+  const selectedSelectable = selectableIds.filter((id) => selectedIds.has(id));
+  const allSelected = selectableIds.length > 0 && selectedSelectable.length === selectableIds.length;
+  const someSelected = selectedSelectable.length > 0 && !allSelected;
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(selectableIds));
+  };
+
+  /** Approve every selected request, one call each, reporting the tally. */
+  const approveSelected = async () => {
+    if (!selectedSelectable.length) return;
+    setIsBulkApproving(true);
+    let approved = 0;
+    const failures: string[] = [];
+
+    // Sequential rather than parallel: each approval is a money decision and
+    // the backend locks the row, so a burst would just contend.
+    for (const id of selectedSelectable) {
+      try {
+        await paymentRequestsApi.approveRequest(id, 'Bulk approved');
+        approved += 1;
+      } catch (error: any) {
+        failures.push(error?.message || 'failed');
+      }
+    }
+
+    setIsBulkApproving(false);
+    setSelectedIds(new Set());
+    queryClient.invalidateQueries({ queryKey: paymentRequestKeys.all });
+
+    if (approved) {
+      toast.success(`Approved ${approved} payment${approved === 1 ? '' : 's'}`);
+    }
+    if (failures.length) {
+      toast.error(`${failures.length} could not be approved — ${failures[0]}`);
+    }
+  };
+
   const submitReview = () => {
     if (!reviewing) return;
     if (reviewMode === 'approve') {
@@ -302,12 +365,34 @@ export default function PayOutPage() {
             variant="accent"
           />
           <StatCard
-            label="Total Requests"
-            value={stats?.total ?? 0}
-            subtext={`${requests.length} in this organisation`}
-            icon={Users}
+            label="Selected"
+            value={selectedSelectable.length}
+            icon={CheckCircle}
             variant="accent"
-          />
+          >
+            {selectedSelectable.length > 0 ? (
+              <Button
+                onClick={approveSelected}
+                disabled={isBulkApproving}
+                size="sm"
+                className="w-full text-white btn-press hover:opacity-90"
+                style={{ backgroundColor: 'var(--foreground)' }}
+              >
+                {isBulkApproving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                Approve Selected
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {selectableIds.length > 0
+                  ? 'Select payments to approve'
+                  : 'Nothing awaiting your approval'}
+              </p>
+            )}
+          </StatCard>
         </div>
 
         <RailSelector
@@ -494,6 +579,18 @@ export default function PayOutPage() {
                 <table className="w-full table-professional">
                   <thead>
                     <tr>
+                      <th className="w-10">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          ref={(input) => {
+                            if (input) input.indeterminate = someSelected;
+                          }}
+                          onChange={toggleAll}
+                          disabled={selectableIds.length === 0}
+                          className="w-4 h-4 rounded border-border text-foreground focus:ring-ring disabled:opacity-50"
+                        />
+                      </th>
                       <th>Recipient</th>
                       <th>Reason</th>
                       <th>Requested by</th>
@@ -509,6 +606,8 @@ export default function PayOutPage() {
                         key={request.id}
                         request={request}
                         awaitingMe={pendingIds.has(request.id)}
+                        selected={selectedIds.has(request.id)}
+                        onToggleSelect={() => toggleOne(request.id)}
                         isProcessing={isProcessing}
                         onApprove={() => {
                           setReviewing(request);
@@ -588,6 +687,8 @@ export default function PayOutPage() {
 function PayoutRow({
   request,
   awaitingMe,
+  selected,
+  onToggleSelect,
   isProcessing,
   onApprove,
   onReject,
@@ -595,6 +696,8 @@ function PayoutRow({
 }: {
   request: PaymentRequest;
   awaitingMe: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
   isProcessing: boolean;
   onApprove: () => void;
   onReject: () => void;
@@ -608,6 +711,20 @@ function PayoutRow({
 
   return (
     <tr>
+      <td onClick={(e) => e.stopPropagation()}>
+        {awaitingMe ? (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggleSelect}
+            className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
+          />
+        ) : (
+          // Placeholder keeps the column aligned; only rows awaiting this
+          // user can be approved, so the rest are not selectable.
+          <div className="w-4 h-4 rounded border border-border bg-muted" />
+        )}
+      </td>
       <td>
         <div className="flex items-center gap-2">
           <span className="font-medium text-foreground">{recipient}</span>
