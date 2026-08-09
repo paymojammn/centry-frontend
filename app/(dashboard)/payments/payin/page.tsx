@@ -255,19 +255,6 @@ export default function PayInPage() {
           />
         </div>
 
-        <RailSelector
-          capability="payin"
-          countries={rails.countries}
-          countryCode={rails.countryCode}
-          onCountryChange={rails.setCountryCode}
-          railId={rails.railId}
-          onRailChange={rails.setRailId}
-          country={rails.country}
-          rail={rails.rail}
-          currency={currency}
-          isLoading={rails.isLoading}
-        />
-
         {activeTab === 'single' && (
           <ContentCard className="max-w-2xl animate-fade-in">
             <div className="space-y-5">
@@ -279,6 +266,17 @@ export default function PayInPage() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
+                <RailSelector
+                  capability="payin"
+                  countries={rails.countries}
+                  countryCode={rails.countryCode}
+                  onCountryChange={rails.setCountryCode}
+                  railId={rails.railId}
+                  onRailChange={rails.setRailId}
+                  country={rails.country}
+                  rail={rails.rail}
+                  isLoading={rails.isLoading}
+                />
                 <div className="space-y-1.5">
                   <Label htmlFor="payer-phone">
                     Phone number <span className="text-destructive">*</span>
@@ -359,14 +357,27 @@ export default function PayInPage() {
                 </p>
               </div>
 
-              <div className="space-y-1.5 max-w-md">
-                <Label htmlFor="bulk-description">Reason</Label>
-                <Input
-                  id="bulk-description"
-                  value={bulkDescription}
-                  placeholder="e.g. March contributions"
-                  onChange={(e) => setBulkDescription(e.target.value)}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <RailSelector
+                  capability="payin"
+                  countries={rails.countries}
+                  countryCode={rails.countryCode}
+                  onCountryChange={rails.setCountryCode}
+                  railId={rails.railId}
+                  onRailChange={rails.setRailId}
+                  country={rails.country}
+                  rail={rails.rail}
+                  isLoading={rails.isLoading}
                 />
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="bulk-description">Reason</Label>
+                  <Input
+                    id="bulk-description"
+                    value={bulkDescription}
+                    placeholder="e.g. March contributions"
+                    onChange={(e) => setBulkDescription(e.target.value)}
+                  />
+                </div>
               </div>
 
               <BulkPartyEditor
