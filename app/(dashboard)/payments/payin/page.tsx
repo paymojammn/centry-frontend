@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/layout/page-header';
 import { PageContainer } from '@/components/layout/page-container';
 import { StatsBar } from '@/components/layout/stats-bar';
@@ -39,6 +38,13 @@ import type {
   CollectionRequestSummary,
 } from '@/types/collection-request';
 import { formatCurrency } from '@/lib/utils';
+import { PILL_COLORS } from '@/lib/theme';
+import {
+  PageTabs,
+  StatusPills,
+  TableState,
+  type StatusPill,
+} from '@/components/payments/status-pills';
 import {
   ArrowDownLeft,
   CheckCircle2,
@@ -47,7 +53,6 @@ import {
   Loader2,
   RefreshCw,
   RotateCcw,
-  Users,
   XCircle,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -100,6 +105,8 @@ export default function PayInPage() {
   const [single, setSingle] = useState({ name: '', phone: '', amount: '', description: '' });
   const [rows, setRows] = useState<PartyRow[]>([]);
   const [bulkDescription, setBulkDescription] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [search, setSearch] = useState('');
 
   const { data: stats } = useCollectionStats(organizationId);
   const { data: requestsData, isLoading: loadingRequests } = useCollectionRequests({
@@ -107,7 +114,35 @@ export default function PayInPage() {
   });
   const { mutate: createCollection, isPending: isCreating } = useCreateCollectionRequest();
 
-  const requests = requestsData?.results || [];
+  const requests = useMemo(() => requestsData?.results || [], [requestsData]);
+
+  const countBy = (status: string) => requests.filter((r) => r.status === status).length;
+
+  const statusPills: StatusPill[] = [
+    { value: 'all', label: 'All', count: requests.length },
+    { value: 'processing', label: 'Awaiting Payers', count: countBy('processing') },
+    { value: 'completed', label: 'Collected', count: countBy('completed'), color: PILL_COLORS.paid },
+    {
+      value: 'partial',
+      label: 'Partial',
+      count: countBy('partial'),
+      color: PILL_COLORS.awaiting_payment,
+    },
+    { value: 'failed', label: 'Failed', count: countBy('failed'), color: PILL_COLORS.failed },
+    { value: 'draft', label: 'Draft', count: countBy('draft'), color: PILL_COLORS.draft },
+  ];
+
+  const visibleRequests = useMemo(() => {
+    const base =
+      statusFilter === 'all' ? requests : requests.filter((r) => r.status === statusFilter);
+    const q = search.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter((r) =>
+      [r.reference, r.description, r.payers?.[0]?.phone, r.payers?.[0]?.name]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(q))
+    );
+  }, [requests, statusFilter, search]);
 
   const validRows = useMemo(
     () => rows.filter((r) => r.phone.trim() && parseFloat(r.amount) > 0),
@@ -199,6 +234,16 @@ export default function PayInPage() {
 
       <StatsBar stats={statsBarData} />
 
+      <PageTabs
+        tabs={[
+          { value: 'single', label: 'Single' },
+          { value: 'bulk', label: 'Bulk' },
+          { value: 'history', label: 'Collections', count: requests.length },
+        ]}
+        value={activeTab}
+        onChange={setActiveTab}
+      />
+
       <PageContainer className="space-y-6">
         <RailSelector
           capability="payin"
@@ -213,192 +258,195 @@ export default function PayInPage() {
           isLoading={rails.isLoading}
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-fade-in-up">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[520px] bg-muted p-1">
-            <TabsTrigger value="single" className="flex items-center gap-2">
-              <ArrowDownLeft className="h-4 w-4" />
-              Single
-            </TabsTrigger>
-            <TabsTrigger value="bulk" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Bulk
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              History
-            </TabsTrigger>
-          </TabsList>
+        {activeTab === 'single' && (
+          <ContentCard className="max-w-2xl animate-fade-in">
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Receive from a number</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  The payer gets a prompt on their phone and approves with their PIN.
+                </p>
+              </div>
 
-          {/* ---------------- Single ---------------- */}
-          <TabsContent value="single">
-            <ContentCard className="max-w-2xl">
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Receive from a number</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    The payer gets a prompt on their phone and approves with their PIN.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="payer-phone">
-                      Phone number <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="payer-phone"
-                      value={single.phone}
-                      placeholder="256700000000"
-                      onChange={(e) => setSingle({ ...single, phone: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="payer-name">Payer name</Label>
-                    <Input
-                      id="payer-name"
-                      value={single.name}
-                      placeholder="Optional"
-                      onChange={(e) => setSingle({ ...single, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="payer-amount">
-                      Amount ({currency}) <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="payer-amount"
-                      value={single.amount}
-                      inputMode="decimal"
-                      placeholder="0.00"
-                      onChange={(e) =>
-                        setSingle({ ...single, amount: e.target.value.replace(/[^\d.]/g, '') })
-                      }
-                    />
-                  </div>
-                </div>
-
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="payer-description">Reason</Label>
-                  <Textarea
-                    id="payer-description"
-                    rows={2}
-                    value={single.description}
-                    placeholder="Shown to the payer, e.g. Invoice INV-1042"
-                    onChange={(e) => setSingle({ ...single, description: e.target.value })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <p className="text-sm text-muted-foreground">
-                    {!rails.ready
-                      ? 'Select a country and rail to continue'
-                      : singleValid
-                        ? `Requesting ${formatCurrency(parseFloat(single.amount), currency)} via ${rails.rail?.provider_display}`
-                        : 'Enter a phone number and amount'}
-                  </p>
-                  <Button onClick={handleSingle} disabled={!singleValid || !rails.ready || isCreating}>
-                    {isCreating ? (
-                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                    ) : (
-                      <ArrowDownLeft className="h-4 w-4 mr-1.5" />
-                    )}
-                    Request payment
-                  </Button>
-                </div>
-              </div>
-            </ContentCard>
-          </TabsContent>
-
-          {/* ---------------- Bulk ---------------- */}
-          <TabsContent value="bulk">
-            <ContentCard>
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Receive from many numbers</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Every payer is pushed and tracked separately — failures can be retried on their own.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 max-w-md">
-                  <Label htmlFor="bulk-description">Reason</Label>
+                  <Label htmlFor="payer-phone">
+                    Phone number <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    id="bulk-description"
-                    value={bulkDescription}
-                    placeholder="e.g. March contributions"
-                    onChange={(e) => setBulkDescription(e.target.value)}
+                    id="payer-phone"
+                    value={single.phone}
+                    placeholder="256700000000"
+                    onChange={(e) => setSingle({ ...single, phone: e.target.value })}
                   />
                 </div>
-
-                <BulkPartyEditor
-                  rows={rows}
-                  onChange={setRows}
-                  currency={currency}
-                  partyLabel="Payer"
-                  emptyHint="Add a row, paste a list, or import a CSV of numbers to collect from"
-                  disabled={isCreating}
-                />
-
-                <div className="flex items-center justify-between pt-1">
-                  <Button
-                    variant="outline"
-                    onClick={() => setRows([...rows, createPartyRow()])}
-                    disabled={isCreating}
-                  >
-                    Add another
-                  </Button>
-                  <Button
-                    onClick={handleBulk}
-                    disabled={validRows.length === 0 || !rails.ready || isCreating}
-                  >
-                    {isCreating ? (
-                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                    ) : (
-                      <ArrowDownLeft className="h-4 w-4 mr-1.5" />
-                    )}
-                    Request from {validRows.length || 0}{' '}
-                    {validRows.length === 1 ? 'number' : 'numbers'}
-                  </Button>
+                <div className="space-y-1.5">
+                  <Label htmlFor="payer-name">Payer name</Label>
+                  <Input
+                    id="payer-name"
+                    value={single.name}
+                    placeholder="Optional"
+                    onChange={(e) => setSingle({ ...single, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="payer-amount">
+                    Amount ({currency}) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="payer-amount"
+                    value={single.amount}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    onChange={(e) =>
+                      setSingle({ ...single, amount: e.target.value.replace(/[^\d.]/g, '') })
+                    }
+                  />
                 </div>
               </div>
-            </ContentCard>
-          </TabsContent>
 
-          {/* ---------------- History ---------------- */}
-          <TabsContent value="history" className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="payer-description">Reason</Label>
+                <Textarea
+                  id="payer-description"
+                  rows={2}
+                  value={single.description}
+                  placeholder="Shown to the payer, e.g. Invoice INV-1042"
+                  onChange={(e) => setSingle({ ...single, description: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-sm text-muted-foreground">
+                  {!rails.ready
+                    ? 'Select a country and rail to continue'
+                    : singleValid
+                      ? `Requesting ${formatCurrency(parseFloat(single.amount), currency)} via ${rails.rail?.provider_display}`
+                      : 'Enter a phone number and amount'}
+                </p>
+                <Button onClick={handleSingle} disabled={!singleValid || !rails.ready || isCreating}>
+                  {isCreating ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <ArrowDownLeft className="h-4 w-4 mr-1.5" />
+                  )}
+                  Request payment
+                </Button>
+              </div>
+            </div>
+          </ContentCard>
+        )}
+
+        {activeTab === 'bulk' && (
+          <ContentCard className="animate-fade-in">
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">
+                  Receive from many numbers
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Every payer is pushed and tracked separately — failures can be retried on their own.
+                </p>
+              </div>
+
+              <div className="space-y-1.5 max-w-md">
+                <Label htmlFor="bulk-description">Reason</Label>
+                <Input
+                  id="bulk-description"
+                  value={bulkDescription}
+                  placeholder="e.g. March contributions"
+                  onChange={(e) => setBulkDescription(e.target.value)}
+                />
+              </div>
+
+              <BulkPartyEditor
+                rows={rows}
+                onChange={setRows}
+                currency={currency}
+                partyLabel="Payer"
+                emptyHint="Add a row, paste a list, or import a CSV of numbers to collect from"
+                disabled={isCreating}
+              />
+
+              <div className="flex items-center justify-between pt-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setRows([...rows, createPartyRow()])}
+                  disabled={isCreating}
+                >
+                  Add another
+                </Button>
+                <Button
+                  onClick={handleBulk}
+                  disabled={validRows.length === 0 || !rails.ready || isCreating}
+                >
+                  {isCreating ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <ArrowDownLeft className="h-4 w-4 mr-1.5" />
+                  )}
+                  Request from {validRows.length || 0}{' '}
+                  {validRows.length === 1 ? 'number' : 'numbers'}
+                </Button>
+              </div>
+            </div>
+          </ContentCard>
+        )}
+
+        {activeTab === 'history' && (
+          <ContentCard noPadding className="animate-fade-in">
+            <StatusPills
+              pills={statusPills}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Search numbers, references..."
+            />
+
             {loadingRequests ? (
-              <ContentCard>
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
-              </ContentCard>
-            ) : requests.length === 0 ? (
-              <ContentCard>
-                <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                    <ArrowDownLeft className="h-6 w-6 text-muted-foreground/60" />
-                  </div>
-                  <p className="text-sm font-medium text-foreground">No collections yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Money you request will show up here
-                  </p>
-                </div>
-              </ContentCard>
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
+              </div>
+            ) : visibleRequests.length === 0 ? (
+              <TableState
+                icon={ArrowDownLeft}
+                title={search ? 'No collections match your search' : 'No collections yet'}
+                hint={
+                  search ? 'Try a different search term' : 'Money you request will show up here'
+                }
+              />
             ) : (
-              <div className="space-y-3 animate-stagger">
-                {requests.map((request) => (
-                  <CollectionRow key={request.id} request={request} currency={currency} />
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full table-professional">
+                  <thead>
+                    <tr>
+                      <th>Payer</th>
+                      <th>Reference</th>
+                      <th>Rail</th>
+                      <th className="cell-currency">Ccy</th>
+                      <th className="text-right">Collected</th>
+                      <th className="text-right">Requested</th>
+                      <th>Status</th>
+                      <th className="w-10" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRequests.map((request) => (
+                      <CollectionRow key={request.id} request={request} currency={currency} />
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </ContentCard>
+        )}
       </PageContainer>
     </div>
   );
 }
 
-/** One collection request, expandable to its per-payer items. */
+/** One collection request; expands to a detail row listing its payers. */
 function CollectionRow({
   request,
   currency,
@@ -420,121 +468,125 @@ function CollectionRow({
   });
 
   const items = detail?.items || [];
-  const collected = parseFloat(request.collected_amount || '0');
-  const total = parseFloat(request.amount || '0');
+  const payer =
+    request.collection_type === 'bulk'
+      ? `${request.total_payers} payers`
+      : request.payers?.[0]?.phone || '—';
 
   return (
-    <ContentCard noPadding>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-muted/50 transition-colors"
-      >
-        <div className="w-9 h-9 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
-          <ArrowDownLeft className="h-4 w-4 text-primary" />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground truncate">
-              {request.collection_type === 'bulk'
-                ? `${request.total_payers} payers`
-                : request.payers?.[0]?.phone || request.reference}
-            </span>
-            <StatusPill status={request.status} label={request.status_display} />
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            {request.reference}
-            {request.description ? ` · ${request.description}` : ''}
-          </p>
-        </div>
-
-        <div className="text-right shrink-0">
-          <div className="text-sm font-semibold text-foreground">
-            {formatCurrency(collected, request.currency || currency)}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            of {formatCurrency(total, request.currency || currency)}
-          </div>
-        </div>
-
-        <ChevronDown
-          className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${
-            open ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-
-      {open && (
-        <div className="border-t border-border px-5 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Payers
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={isRefreshing}
-              onClick={() => refresh(request.id)}
-            >
-              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh status
-            </Button>
-          </div>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {items.map((item) => {
-                const style = ITEM_STATUS_STYLES[item.status];
-                const Icon = style.Icon;
-                const canRetry = item.status === 'failed' || item.status === 'expired';
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/40"
-                  >
-                    <Icon className={`h-4 w-4 shrink-0 ${style.className.split(' ')[0]}`} />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm text-foreground truncate">
-                        {item.payer_phone}
-                        {item.payer_name ? ` · ${item.payer_name}` : ''}
-                      </div>
-                      {item.error_message && (
-                        <div className="text-xs text-destructive truncate">
-                          {item.error_message}
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded font-medium shrink-0 ${style.className}`}
-                    >
-                      {style.label}
-                    </span>
-                    <span className="text-sm font-medium text-foreground shrink-0 w-28 text-right">
-                      {formatCurrency(parseFloat(item.amount), item.currency)}
-                    </span>
-                    {canRetry && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isRetrying}
-                        onClick={() => retryItem({ requestId: request.id, itemId: item.id })}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
+    <>
+      <tr className="cursor-pointer" onClick={() => setOpen(!open)}>
+        <td>
+          <span className="font-medium text-foreground">{payer}</span>
+          {request.description && (
+            <div className="text-xs text-muted-foreground truncate max-w-[220px]">
+              {request.description}
             </div>
           )}
-        </div>
+        </td>
+        <td className="text-muted-foreground font-mono text-xs">{request.reference}</td>
+        <td className="text-muted-foreground">{request.destination_provider || 'auto'}</td>
+        <td className="cell-currency">{request.currency}</td>
+        <td className="text-right font-medium tabular-nums">
+          {formatCurrency(parseFloat(request.collected_amount || '0'), request.currency || currency)}
+        </td>
+        <td className="text-right text-muted-foreground tabular-nums">
+          {formatCurrency(parseFloat(request.amount || '0'), request.currency || currency)}
+        </td>
+        <td>
+          <StatusPill status={request.status} label={request.status_display} />
+        </td>
+        <td className="text-right">
+          <ChevronDown
+            className={`h-4 w-4 text-muted-foreground inline-block transition-transform ${
+              open ? 'rotate-180' : ''
+            }`}
+          />
+        </td>
+      </tr>
+
+      {open && (
+        <tr>
+          <td colSpan={8} className="bg-muted/30">
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Payers
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={isRefreshing}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    refresh(request.id);
+                  }}
+                >
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`}
+                  />
+                  Refresh status
+                </Button>
+              </div>
+
+              {isLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {items.map((item) => {
+                    const style = ITEM_STATUS_STYLES[item.status];
+                    const Icon = style.Icon;
+                    const canRetry = item.status === 'failed' || item.status === 'expired';
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg bg-card border border-border"
+                      >
+                        <Icon className={`h-4 w-4 shrink-0 ${style.className.split(' ')[0]}`} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm text-foreground truncate">
+                            {item.payer_phone}
+                            {item.payer_name ? ` · ${item.payer_name}` : ''}
+                          </div>
+                          {item.error_message && (
+                            <div className="text-xs text-destructive truncate">
+                              {item.error_message}
+                            </div>
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded font-medium shrink-0 ${style.className}`}
+                        >
+                          {style.label}
+                        </span>
+                        <span className="text-sm font-medium text-foreground shrink-0 w-28 text-right tabular-nums">
+                          {formatCurrency(parseFloat(item.amount), item.currency)}
+                        </span>
+                        {canRetry && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={isRetrying}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              retryItem({ requestId: request.id, itemId: item.id });
+                            }}
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
       )}
-    </ContentCard>
+    </>
   );
 }
 
