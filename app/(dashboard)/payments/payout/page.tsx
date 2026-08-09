@@ -23,9 +23,9 @@ import {
 } from '@/components/ui/dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { PageContainer } from '@/components/layout/page-container';
-import { StatsBar } from '@/components/layout/stats-bar';
+import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
-import { StatusBadge } from '@/components/layout/status-badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   BulkPartyEditor,
   createPartyRow,
@@ -52,7 +52,7 @@ import {
 } from '@/hooks/use-payment-requests';
 import type { PaymentRequest, PaymentRequestStatus } from '@/types/payment-request';
 import { formatCurrency } from '@/lib/utils';
-import { PILL_COLORS } from '@/lib/theme';
+import { PILL_COLORS, formatCompactNumber } from '@/lib/theme';
 import {
   CheckCircle,
   ClipboardCheck,
@@ -172,21 +172,6 @@ export default function PayOutPage() {
   );
   const singleValid = single.phone.trim().length > 0 && parseFloat(single.amount) > 0;
 
-  const statsBarData = [
-    {
-      label: 'Pending approval',
-      value: stats?.pending ?? 0,
-      color: '#f59e0b',
-      variant: (stats?.pending || 0) > 0 ? ('warning' as const) : ('default' as const),
-    },
-    {
-      label: 'Pending amount',
-      value: formatCurrency(parseFloat(stats?.total_pending_amount || '0'), currency),
-      color: '#f59e0b',
-    },
-    { label: 'Approved', value: stats?.approved ?? 0, color: 'rgb(var(--brand-primary))' },
-    { label: 'Completed', value: stats?.completed ?? 0, color: 'rgb(var(--brand-primary))' },
-  ];
 
   const handleSingle = () => {
     if (!organizationId || !singleValid || !rails.ready) return;
@@ -283,19 +268,48 @@ export default function PayOutPage() {
         </Button>
       </PageHeader>
 
-      <StatsBar stats={statsBarData} />
-
       <PageTabs
         tabs={[
           { value: 'single', label: 'Single' },
           { value: 'bulk', label: 'Bulk' },
-          { value: 'requests', label: 'Approvals', count: pending.length },
+          { value: 'requests', label: 'Approvals' },
         ]}
         value={activeTab}
         onChange={setActiveTab}
       />
 
       <PageContainer className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+          <StatCard
+            label="Awaiting Approval"
+            value={stats?.pending ?? 0}
+            subtext={`${currency} ${formatCompactNumber(parseFloat(stats?.total_pending_amount || '0'))}`}
+            icon={ClipboardCheck}
+            variant={(stats?.pending || 0) > 0 ? 'warning' : 'default'}
+          />
+          <StatCard
+            label="Approved"
+            value={stats?.approved ?? 0}
+            subtext="Ready to process"
+            icon={CheckCircle}
+            variant="accent"
+          />
+          <StatCard
+            label="Completed"
+            value={stats?.completed ?? 0}
+            subtext="Settled by the provider"
+            icon={Send}
+            variant="accent"
+          />
+          <StatCard
+            label="Total Requests"
+            value={stats?.total ?? 0}
+            subtext={`${requests.length} in this organisation`}
+            icon={Users}
+            variant="accent"
+          />
+        </div>
+
         <RailSelector
           capability="payout"
           countries={rails.countries}

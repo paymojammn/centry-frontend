@@ -85,7 +85,6 @@ export function StatusPills({
 export interface PageTab {
   value: string;
   label: string;
-  count?: number;
 }
 
 interface PageTabsProps {
@@ -112,9 +111,6 @@ export function PageTabs({ tabs, value, onChange }: PageTabsProps) {
               }`}
             >
               {tab.label}
-              {tab.count ? (
-                <span className="ml-1.5 text-xs text-muted-foreground">({tab.count})</span>
-              ) : null}
             </button>
           ))}
         </nav>
