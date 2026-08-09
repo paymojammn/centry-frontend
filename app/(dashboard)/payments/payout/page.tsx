@@ -32,6 +32,7 @@ import {
   createPartyRow,
   type PartyRow,
 } from '@/components/payments/bulk-party-editor';
+import { StatusPills, type StatusPill } from '@/components/payments/status-pills';
 import { useOrganizations } from '@/hooks/use-organization';
 import { useRailSelection } from '@/hooks/use-payment-rails';
 import { RailSelector } from '@/components/payments/rail-selector';
@@ -45,13 +46,14 @@ import {
   useRejectPaymentRequest,
   useSubmitPaymentRequest,
 } from '@/hooks/use-payment-requests';
-import type { PaymentRequest } from '@/types/payment-request';
+import type { PaymentRequest, PaymentRequestStatus } from '@/types/payment-request';
 import { formatCurrency } from '@/lib/utils';
 import {
   ArrowUpRight,
   CheckCircle,
-  Clock,
+  ClipboardCheck,
   Loader2,
+  RefreshCw,
   Send,
   Users,
   XCircle,
@@ -104,10 +106,11 @@ export default function PayOutPage() {
   const [reviewNote, setReviewNote] = useState('');
 
   const { data: stats } = usePaymentRequestStats(organizationId);
-  const { data: myRequests, isLoading: loadingMine } = usePaymentRequests({
-    organization_id: organizationId,
-    my_requests: true,
-  });
+  const {
+    data: allRequests,
+    isLoading: loadingRequests,
+    refetch: refetchRequests,
+  } = usePaymentRequests({ organization_id: organizationId });
   const { data: pendingRequests } = usePendingPaymentRequests(organizationId);
   const { mutate: createRequest, isPending: isCreating } = useCreatePaymentRequest();
   const { mutate: submitRequest } = useSubmitPaymentRequest();
@@ -115,8 +118,32 @@ export default function PayOutPage() {
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectPaymentRequest();
   const { mutate: processRequest, isPending: isProcessing } = useProcessPaymentRequest();
 
-  const mine = myRequests?.results || [];
-  const pending = pendingRequests?.results || [];
+  const requests = useMemo(() => allRequests?.results || [], [allRequests]);
+  const pending = useMemo(() => pendingRequests?.results || [], [pendingRequests]);
+
+  // Approvals queue: filter chips over the org's requests.
+  const [statusFilter, setStatusFilter] = useState<string>('awaiting');
+  const pendingIds = useMemo(() => new Set(pending.map((r) => r.id)), [pending]);
+
+  const countBy = (status: PaymentRequestStatus) =>
+    requests.filter((r) => r.status === status).length;
+
+  const statusPills: StatusPill[] = [
+    { value: 'awaiting', label: 'Awaiting me', count: pending.length, tone: 'warning' },
+    { value: 'all', label: 'All', count: requests.length, tone: 'neutral' },
+    { value: 'pending', label: 'Pending approval', count: countBy('pending'), tone: 'warning' },
+    { value: 'approved', label: 'Approved', count: countBy('approved'), tone: 'info' },
+    { value: 'processing', label: 'Processing', count: countBy('processing'), tone: 'info' },
+    { value: 'completed', label: 'Completed', count: countBy('completed'), tone: 'success' },
+    { value: 'rejected', label: 'Rejected', count: countBy('rejected'), tone: 'danger' },
+    { value: 'failed', label: 'Failed', count: countBy('failed'), tone: 'danger' },
+  ];
+
+  const visibleRequests = useMemo(() => {
+    if (statusFilter === 'awaiting') return pending;
+    if (statusFilter === 'all') return requests;
+    return requests.filter((r) => r.status === statusFilter);
+  }, [statusFilter, requests, pending]);
 
   const validRows = useMemo(
     () => rows.filter((r) => r.phone.trim() && parseFloat(r.amount) > 0),
@@ -251,8 +278,8 @@ export default function PayOutPage() {
               Bulk
             </TabsTrigger>
             <TabsTrigger value="requests" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Requests {pending.length > 0 ? `(${pending.length})` : ''}
+              <ClipboardCheck className="h-4 w-4" />
+              Approvals {pending.length > 0 ? `(${pending.length})` : ''}
             </TabsTrigger>
           </TabsList>
 
@@ -392,76 +419,91 @@ export default function PayOutPage() {
           </TabsContent>
 
           {/* ---------------- Requests ---------------- */}
-          <TabsContent value="requests" className="space-y-6">
-            {pending.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Waiting on your approval ({pending.length})
-                </h3>
-                {pending.map((request) => (
-                  <PayoutRow
-                    key={request.id}
-                    request={request}
-                    currency={currency}
-                    actions={
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-destructive"
-                          onClick={() => {
-                            setReviewing(request);
-                            setReviewMode('reject');
-                          }}
-                        >
-                          <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                          Reject
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setReviewing(request);
-                            setReviewMode('approve');
-                          }}
-                        >
-                          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                          Approve
-                        </Button>
-                      </>
-                    }
+          <TabsContent value="requests" className="space-y-4">
+            <ContentCard>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <StatusPills
+                  pills={statusPills}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={loadingRequests}
+                  onClick={() => refetchRequests()}
+                >
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 mr-1.5 ${loadingRequests ? 'animate-spin' : ''}`}
                   />
-                ))}
+                  Refresh
+                </Button>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground mt-3">
+                {statusFilter === 'awaiting'
+                  ? 'Payments submitted by others that need your approval. You cannot approve your own.'
+                  : 'Statuses past “approved” are driven by the provider — webhooks settle them as they land.'}
+              </p>
+            </ContentCard>
 
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">My requests</h3>
-              {loadingMine ? (
-                <ContentCard>
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            {loadingRequests ? (
+              <ContentCard>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              </ContentCard>
+            ) : visibleRequests.length === 0 ? (
+              <ContentCard>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <ClipboardCheck className="h-6 w-6 text-muted-foreground/60" />
                   </div>
-                </ContentCard>
-              ) : mine.length === 0 ? (
-                <ContentCard>
-                  <div className="text-center py-12">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                      <ArrowUpRight className="h-6 w-6 text-muted-foreground/60" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">No payments yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Payments you send will show up here
-                    </p>
-                  </div>
-                </ContentCard>
-              ) : (
-                mine.map((request) => (
+                  <p className="text-sm font-medium text-foreground">
+                    {statusFilter === 'awaiting'
+                      ? 'Nothing waiting on you'
+                      : 'No payments with this status'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {statusFilter === 'awaiting'
+                      ? 'Approvals you are asked for will appear here'
+                      : 'Try another status'}
+                  </p>
+                </div>
+              </ContentCard>
+            ) : (
+              <div className="space-y-3 animate-stagger">
+                {visibleRequests.map((request) => (
                   <PayoutRow
                     key={request.id}
                     request={request}
                     currency={currency}
                     actions={
-                      request.status === 'approved' ? (
+                      pendingIds.has(request.id) ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive"
+                            onClick={() => {
+                              setReviewing(request);
+                              setReviewMode('reject');
+                            }}
+                          >
+                            <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setReviewing(request);
+                              setReviewMode('approve');
+                            }}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Approve
+                          </Button>
+                        </>
+                      ) : request.status === 'approved' ? (
                         <Button
                           size="sm"
                           disabled={isProcessing}
@@ -473,10 +515,11 @@ export default function PayOutPage() {
                       ) : null
                     }
                   />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
+
         </Tabs>
       </PageContainer>
 
