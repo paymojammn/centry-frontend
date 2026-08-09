@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PageHeader } from '@/components/layout/page-header';
 import { PageContainer } from '@/components/layout/page-container';
-import { StatsBar } from '@/components/layout/stats-bar';
+import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
 import {
   BulkPartyEditor,
@@ -38,7 +38,7 @@ import type {
   CollectionRequestSummary,
 } from '@/types/collection-request';
 import { formatCurrency } from '@/lib/utils';
-import { PILL_COLORS } from '@/lib/theme';
+import { PILL_COLORS, formatCompactNumber } from '@/lib/theme';
 import {
   PageTabs,
   StatusPills,
@@ -151,25 +151,6 @@ export default function PayInPage() {
 
   const singleValid = single.phone.trim().length > 0 && parseFloat(single.amount) > 0;
 
-  const statsBarData = [
-    {
-      label: 'Collected',
-      value: formatCurrency(parseFloat(stats?.total_collected || '0'), currency),
-      color: 'rgb(var(--brand-primary))',
-    },
-    {
-      label: 'Awaiting payers',
-      value: stats?.awaiting_count ?? 0,
-      color: '#f59e0b',
-      variant: (stats?.awaiting_count || 0) > 0 ? ('warning' as const) : ('default' as const),
-    },
-    {
-      label: 'Pending amount',
-      value: formatCurrency(parseFloat(stats?.total_awaiting_amount || '0'), currency),
-      color: '#f59e0b',
-    },
-    { label: 'Requests', value: stats?.total ?? 0, color: 'rgb(var(--brand-primary))' },
-  ];
 
   const handleSingle = () => {
     if (!organizationId || !singleValid || !rails.ready) return;
@@ -232,19 +213,48 @@ export default function PayInPage() {
         isLoadingOrgs={loadingOrgs}
       />
 
-      <StatsBar stats={statsBarData} />
-
       <PageTabs
         tabs={[
           { value: 'single', label: 'Single' },
           { value: 'bulk', label: 'Bulk' },
-          { value: 'history', label: 'Collections', count: requests.length },
+          { value: 'history', label: 'Collections' },
         ]}
         value={activeTab}
         onChange={setActiveTab}
       />
 
       <PageContainer className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+          <StatCard
+            label="Collected"
+            value={`${currency} ${formatCompactNumber(parseFloat(stats?.total_collected || '0'))}`}
+            subtext={`${stats?.completed ?? 0} fully collected`}
+            icon={CheckCircle2}
+            variant="accent"
+          />
+          <StatCard
+            label="Awaiting Payers"
+            value={stats?.awaiting_count ?? 0}
+            subtext={`${currency} ${formatCompactNumber(parseFloat(stats?.total_awaiting_amount || '0'))}`}
+            icon={Clock}
+            variant={(stats?.awaiting_count || 0) > 0 ? 'warning' : 'default'}
+          />
+          <StatCard
+            label="Failed"
+            value={stats?.failed ?? 0}
+            subtext="Rejected by the provider or payer"
+            icon={XCircle}
+            variant={(stats?.failed || 0) > 0 ? 'danger' : 'default'}
+          />
+          <StatCard
+            label="Total Requests"
+            value={stats?.total ?? 0}
+            subtext={`${requests.length} shown`}
+            icon={ArrowDownLeft}
+            variant="accent"
+          />
+        </div>
+
         <RailSelector
           capability="payin"
           countries={rails.countries}
