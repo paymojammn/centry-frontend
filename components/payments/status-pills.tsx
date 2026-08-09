@@ -1,98 +1,143 @@
 /**
- * Status Pills
+ * Status Pills + underline tab bar
  *
- * Filter chips carrying a live count per status. Used on the Pay Out
- * approvals tab so the queue can be narrowed without leaving the page.
- * A pill with no matches is shown dimmed rather than hidden, so the set of
- * statuses stays stable as counts change.
+ * The filter row and tab chrome used on the Bills page, factored out so Pay In
+ * and Pay Out read the same way: an underline tab bar under the header, then a
+ * ContentCard whose first row is rounded-full status pills with live counts and
+ * a search box pushed to the right.
  */
 
 'use client';
 
-import { cn } from '@/lib/utils';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { PILL_COLORS } from '@/lib/theme';
 
 export interface StatusPill {
   value: string;
   label: string;
   count: number;
-  /** Tailwind classes for the active state. */
-  tone?: 'neutral' | 'warning' | 'success' | 'danger' | 'info';
+  /** Overrides the PILL_COLORS lookup when a status has no shared colour. */
+  color?: string;
 }
-
-const TONES: Record<
-  NonNullable<StatusPill['tone']>,
-  { active: string; idle: string; dot: string }
-> = {
-  neutral: {
-    active: 'bg-foreground text-background border-foreground',
-    idle: 'bg-muted/60 text-muted-foreground border-transparent hover:bg-muted',
-    dot: 'bg-muted-foreground',
-  },
-  warning: {
-    active: 'bg-amber-500 text-white border-amber-500',
-    idle: 'bg-amber-50 text-amber-700 border-transparent hover:bg-amber-100',
-    dot: 'bg-amber-500',
-  },
-  success: {
-    active: 'bg-primary text-primary-foreground border-primary',
-    idle: 'bg-primary/5 text-primary border-transparent hover:bg-primary/10',
-    dot: 'bg-primary',
-  },
-  danger: {
-    active: 'bg-destructive text-white border-destructive',
-    idle: 'bg-destructive/5 text-destructive border-transparent hover:bg-destructive/10',
-    dot: 'bg-destructive',
-  },
-  info: {
-    active: 'bg-sky-600 text-white border-sky-600',
-    idle: 'bg-sky-50 text-sky-700 border-transparent hover:bg-sky-100',
-    dot: 'bg-sky-600',
-  },
-};
 
 interface StatusPillsProps {
   pills: StatusPill[];
   value: string;
   onChange: (value: string) => void;
-  className?: string;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
 }
 
-export function StatusPills({ pills, value, onChange, className }: StatusPillsProps) {
+/** Filter row: pills on the left, search on the right. Mirrors Bills. */
+export function StatusPills({
+  pills,
+  value,
+  onChange,
+  search,
+  onSearchChange,
+  searchPlaceholder = 'Search…',
+}: StatusPillsProps) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)} role="tablist">
+    <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
       {pills.map((pill) => {
-        const tone = TONES[pill.tone || 'neutral'];
         const active = pill.value === value;
-        const empty = pill.count === 0 && !active;
+        // "all" uses the inverted treatment Bills gives it; the rest take
+        // their status colour.
+        const isAll = pill.value === 'all';
+        const background = pill.color || PILL_COLORS[pill.value];
 
         return (
           <button
             key={pill.value}
             type="button"
-            role="tab"
-            aria-selected={active}
             onClick={() => onChange(pill.value)}
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5',
-              'text-xs font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              active ? tone.active : tone.idle,
-              empty && 'opacity-50'
-            )}
+            className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+              active
+                ? isAll
+                  ? 'bg-foreground text-card'
+                  : 'text-white'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            }`}
+            style={active && !isAll && background ? { backgroundColor: background } : undefined}
           >
-            {!active && <span className={cn('h-1.5 w-1.5 rounded-full', tone.dot)} />}
-            {pill.label}
-            <span
-              className={cn(
-                'rounded-full px-1.5 py-0.5 text-[10px] tabular-nums',
-                active ? 'bg-white/20' : 'bg-background/60'
-              )}
-            >
-              {pill.count}
-            </span>
+            {pill.label} ({pill.count})
           </button>
         );
       })}
+
+      {onSearchChange && (
+        <div className="ml-auto relative w-56 max-w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+          <Input
+            placeholder={searchPlaceholder}
+            value={search ?? ''}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9 h-9 bg-card border-border text-sm text-foreground"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export interface PageTab {
+  value: string;
+  label: string;
+  count?: number;
+}
+
+interface PageTabsProps {
+  tabs: PageTab[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+/** Underline tab bar sitting directly under the page header, as on Bills. */
+export function PageTabs({ tabs, value, onChange }: PageTabsProps) {
+  return (
+    <div className="bg-card border-b border-border shadow-sm">
+      <div className="px-6">
+        <nav className="flex gap-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => onChange(tab.value)}
+              className={`py-3.5 text-sm font-medium border-b-2 transition-all ${
+                value === tab.value
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              {tab.label}
+              {tab.count ? (
+                <span className="ml-1.5 text-xs text-muted-foreground">({tab.count})</span>
+              ) : null}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+/** Centred empty/loading/error state matching the Bills table body. */
+export function TableState({
+  icon: Icon,
+  title,
+  hint,
+}: {
+  icon: React.ElementType;
+  title: string;
+  hint?: string;
+}) {
+  return (
+    <div className="text-center py-16">
+      <Icon className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      {hint && <p className="text-sm text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }
