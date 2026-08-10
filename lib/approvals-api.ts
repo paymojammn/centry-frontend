@@ -2,6 +2,16 @@ import api from './api';
 
 const BASE_URL = '/api/v1/approvals';
 
+/** What a workflow can govern. The (content_type, action) pair must match what
+ *  the engine resolves, so it comes from the server rather than being guessed. */
+export interface ApprovalScope {
+  key: string;
+  label: string;
+  description: string;
+  action: string;
+  content_type: number;
+}
+
 export interface ApprovalWorkflow {
   id: number | string;
   organization: string;
@@ -68,6 +78,10 @@ export const approvalsApi = {
 
   async deleteWorkflow(id: number | string): Promise<void> {
     await api.del<void>(`${BASE_URL}/workflows/${id}/`);
+  },
+
+  async getScopes(): Promise<{ results: ApprovalScope[] }> {
+    return api.get<{ results: ApprovalScope[] }>(`${BASE_URL}/workflows/scopes/`);
   },
 
   async seedDefaults(organizationId: string): Promise<{ success: boolean; workflows: ApprovalWorkflow[] }> {
