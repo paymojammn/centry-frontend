@@ -731,9 +731,16 @@ function PayoutRow({
             className="w-4 h-4 rounded border-border text-foreground focus:ring-ring"
           />
         ) : (
-          // Placeholder keeps the column aligned; only rows awaiting this
-          // user can be approved, so the rest are not selectable.
-          <div className="w-4 h-4 rounded border border-border bg-muted" />
+          // Placeholder keeps the column aligned. It carries the reason it is
+          // not selectable — an unexplained dead checkbox reads as a bug.
+          <div
+            className="w-4 h-4 rounded border border-border bg-muted"
+            title={
+              request.status !== 'pending'
+                ? `Not awaiting approval — this payment is ${request.status}`
+                : 'You cannot approve your own request. Enable self-approval for this amount on Banking → Approvals.'
+            }
+          />
         )}
       </td>
       <td>
