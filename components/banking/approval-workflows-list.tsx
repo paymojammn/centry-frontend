@@ -71,11 +71,6 @@ export function ApprovalWorkflowsList({ organizationId }: ApprovalWorkflowsListP
     onError: (err: Error) => toast.error(err.message || "Failed to delete workflow"),
   });
 
-  const contentTypeHint = useMemo(
-    () => workflows.find((w) => w.content_type_display === "xeropaymentevent")?.content_type,
-    [workflows],
-  );
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -118,7 +113,7 @@ export function ApprovalWorkflowsList({ organizationId }: ApprovalWorkflowsListP
         <Button
           size="sm"
           onClick={() => setIsCreateOpen(true)}
-          disabled={!organizationId || !contentTypeHint}
+          disabled={!organizationId}
         >
           <Plus className="h-4 w-4 mr-1.5" />
           New workflow
@@ -207,7 +202,6 @@ export function ApprovalWorkflowsList({ organizationId }: ApprovalWorkflowsListP
         isOpen={isCreateOpen || !!editing}
         initial={editing}
         organizationId={organizationId}
-        contentTypeHint={contentTypeHint}
         onClose={() => {
           setEditing(null);
           setIsCreateOpen(false);
@@ -235,7 +229,6 @@ function WorkflowEditor({
   isOpen,
   initial,
   organizationId,
-  contentTypeHint,
   onClose,
   onSaved,
 }: WorkflowEditorProps) {
@@ -247,6 +240,9 @@ function WorkflowEditor({
   );
   const [allowSelf, setAllowSelf] = useState(initial?.allow_self_approval ?? false);
   const [priority, setPriority] = useState(String(initial?.priority ?? 100));
+  // What the workflow governs. Previously hardcoded to bill payments, so a
+  // workflow created here could never apply to payouts.
+  const [scopeKey, setScopeKey] = useState<string>("");
   const [requiredPermission, setRequiredPermission] = useState(
     initial?.required_permission ?? "payments.approve",
   );
@@ -261,8 +257,18 @@ function WorkflowEditor({
     setAllowSelf(initial?.allow_self_approval ?? false);
     setPriority(String(initial?.priority ?? 100));
     setRequiredPermission(initial?.required_permission ?? "payments.approve");
+    setScopeKey(initial ? (initial.action === "payout" ? "payout" : "bill_payment") : "payout");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initial?.id]);
+
+  // The (content_type, action) pair must match what the engine resolves, so
+  // it comes from the server rather than being assembled here.
+  const { data: scopeData } = useQuery({
+    queryKey: ["approval-scopes"],
+    queryFn: () => approvalsApi.getScopes(),
+    staleTime: 300_000,
+  });
+  const scopes = scopeData?.results ?? [];
 
   const save = useMutation({
     mutationFn: async () => {
@@ -278,14 +284,15 @@ function WorkflowEditor({
       if (initial) {
         return approvalsApi.updateWorkflow(initial.id, payload);
       }
-      if (!organizationId || !contentTypeHint) {
-        throw new Error("Missing organization or content type");
+      const scope = scopes.find((sc) => sc.key === scopeKey) ?? scopes[0];
+      if (!organizationId || !scope) {
+        throw new Error("Missing organization or scope");
       }
       return approvalsApi.createWorkflow({
         ...(payload as ApprovalWorkflowInput),
         organization: organizationId,
-        content_type: contentTypeHint,
-        action: "payment",
+        content_type: scope.content_type,
+        action: scope.action,
       });
     },
     onSuccess: () => {
@@ -309,8 +316,31 @@ function WorkflowEditor({
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Applies to</label>
+            {initial ? (
+              // Re-pointing an existing workflow at a different object type
+              // would silently orphan any approvals already recorded under it.
+              <div className="h-9 flex items-center px-3 rounded-md border border-input bg-muted/50 text-sm">
+                {initial.action === "payout" ? "Payouts (Rails)" : "Bill Payments"}
+                <span className="ml-auto text-xs text-muted-foreground">not editable</span>
+              </div>
+            ) : (
+              <select
+                value={scopeKey}
+                onChange={(e) => setScopeKey(e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {scopes.map((sc) => (
+                  <option key={sc.key} value={sc.key}>
+                    {sc.label} — {sc.description}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. High Value Bill Payments" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Standard Payouts" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
