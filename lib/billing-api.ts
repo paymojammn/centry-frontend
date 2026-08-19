@@ -104,6 +104,27 @@ export interface CheckoutStatusResponse {
 
 export type PaymentMethodCode = 'mtn_momo' | 'airtel_money' | 'ozow_eft';
 
+/**
+ * A rail we can actually charge — resolved from the provider accounts an
+ * operator flagged as subscription accounts, not from the customer's own
+ * linked accounts.
+ */
+export interface BillingPaymentMethod {
+  code: PaymentMethodCode;
+  name: string;
+  type: 'mobile_money' | 'eft';
+  provider: string;
+  description: string;
+  requires_phone: boolean;
+  currency: string;
+  environment: string;
+}
+
+export interface BillingPaymentMethodsResponse {
+  methods: BillingPaymentMethod[];
+  manual: { available: boolean; count: number };
+}
+
 export interface ManualPaymentMethodInfo {
   id: string;
   name: string;
@@ -128,6 +149,26 @@ export interface ManualPaymentMethodInfo {
 
 
 // API Functions
+
+/**
+ * Get the payment methods checkout can charge.
+ *
+ * Served from /api/billing/, which the billing middleware exempts — a customer
+ * whose trial has expired must still be able to load the checkout page to pay.
+ */
+export async function getBillingPaymentMethods(): Promise<BillingPaymentMethodsResponse> {
+  return get('/api/billing/payment-methods/');
+}
+
+/**
+ * Get our bank accounts and merchant codes for customers paying manually.
+ */
+export async function getManualPaymentMethods(): Promise<ManualPaymentMethodInfo[]> {
+  const response = await get<{ methods: ManualPaymentMethodInfo[] }>(
+    '/api/billing/manual-methods/'
+  );
+  return response.methods || [];
+}
 
 /**
  * Get available subscription plans (public endpoint)
@@ -262,6 +303,8 @@ export async function startCheckout(
 
 export const billingApi = {
   getSubscriptionPlans,
+  getBillingPaymentMethods,
+  getManualPaymentMethods,
   getSubscriptionStatus,
   getSubscriptionDetails,
   createCheckoutSession,

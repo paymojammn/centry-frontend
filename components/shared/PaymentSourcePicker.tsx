@@ -28,12 +28,14 @@ interface PaymentSourcePickerProps {
 }
 
 /**
- * Shared payment source picker used across:
+ * Shared payment source picker for choosing one of the organization's OWN
+ * accounts:
  * - Invoice collection (payins)
  * - Bill payments (payouts)
- * - Subscription checkout
  *
- * Filters sources by capability (collection vs disbursement).
+ * Filters sources by capability (collection vs disbursement). Subscription
+ * checkout does not use this — it picks from our rails, not the customer's
+ * accounts (see app/billing/checkout/page.tsx).
  */
 export default function PaymentSourcePicker({
   sources,
