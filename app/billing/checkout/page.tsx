@@ -4,37 +4,33 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getSubscriptionPlans,
+  getBillingPaymentMethods,
   startCheckout,
   getCheckoutStatus,
   SubscriptionPlan,
-  PaymentMethodCode,
+  BillingPaymentMethod,
   CheckoutSessionResponse,
 } from '@/lib/billing-api';
-import { paymentSourcesApi } from '@/lib/payment-sources-api';
-import type { PaymentSource } from '@/types/payment-sources';
-import PaymentSourcePicker from '@/components/shared/PaymentSourcePicker';
 import {
   RiCheckLine,
   RiCloseLine,
   RiLoader4Line,
   RiArrowLeftLine,
+  RiArrowRightSLine,
+  RiSmartphoneLine,
+  RiBankLine,
+  RiExchangeDollarLine,
 } from '@remixicon/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 type CheckoutStep = 'method' | 'phone' | 'processing' | 'success' | 'failed';
 
-/**
- * Map a unified PaymentSource to the billing checkout PaymentMethodCode.
- */
-function sourceToMethodCode(source: PaymentSource): PaymentMethodCode {
-  if (source.type === 'mobile_money') {
-    return source.provider === 'airtel' ? 'airtel_money' : 'mtn_momo';
-  }
-  if (source.type === 'ozow') return 'ozow_eft';
-  // bank_account, paystack, netcash — fall back to manual for now
-  return 'mtn_momo'; // should not happen if source picker filters correctly
-}
+const METHOD_ICONS: Record<string, typeof RiSmartphoneLine> = {
+  mtn: RiSmartphoneLine,
+  airtel: RiSmartphoneLine,
+  ozow: RiBankLine,
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -43,25 +39,31 @@ export default function CheckoutPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [sources, setSources] = useState<PaymentSource[]>([]);
+  const [methods, setMethods] = useState<BillingPaymentMethod[]>([]);
+  const [manualAvailable, setManualAvailable] = useState(false);
   const [step, setStep] = useState<CheckoutStep>('method');
-  const [selectedSource, setSelectedSource] = useState<PaymentSource | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<BillingPaymentMethod | null>(null);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [session, setSession] = useState<CheckoutSessionResponse | null>(null);
   const [failureReason, setFailureReason] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Load plan + Centry's payment sources (from BILLING_ORGANIZATION_ID org)
+  // Load the plan plus the rails we can actually charge. These are our own
+  // provider accounts, not whatever the customer has linked — and the methods
+  // endpoint sits under /api/billing/ so an expired trial can still load it.
   useEffect(() => {
-    Promise.all([
-      getSubscriptionPlans(),
-      paymentSourcesApi.getPaymentSources(), // No org param = Centry's default / user's org
-    ]).then(([plans, sourcesResp]) => {
-      setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
-      setSources(sourcesResp.sources || []);
-      setLoading(false);
-    });
+    Promise.all([getSubscriptionPlans(), getBillingPaymentMethods()])
+      .then(([plans, methodsResp]) => {
+        setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
+        setMethods(methodsResp.methods || []);
+        setManualAvailable(Boolean(methodsResp.manual?.available));
+      })
+      .catch((err: any) => {
+        setLoadError(err?.message || 'We could not load this page. Please try again.');
+      })
+      .finally(() => setLoading(false));
   }, [planCode]);
 
   // Poll for status when processing
@@ -88,26 +90,24 @@ export default function CheckoutPage() {
   const fmtPrice = (p: string) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
-  const handleSourceSelect = (source: PaymentSource) => {
-    setSelectedSource(source);
+  const goManual = () =>
+    router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
+
+  const handleMethodSelect = (method: BillingPaymentMethod) => {
+    setSelectedMethod(method);
     setError('');
-    if (source.type === 'bank_account') {
-      // Bank account = manual payment (show bank details page)
-      router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
-      return;
-    }
-    if (source.requires_phone) {
+    if (method.requires_phone) {
       setStep('phone');
     } else {
-      handlePay(source);
+      handlePay(method);
     }
   };
 
-  const handlePay = async (sourceOverride?: PaymentSource) => {
-    const source = sourceOverride || selectedSource;
-    if (!source || !plan) return;
+  const handlePay = async (methodOverride?: BillingPaymentMethod) => {
+    const method = methodOverride || selectedMethod;
+    if (!method || !plan) return;
 
-    if (source.requires_phone && !phone.match(/^\d{10,15}$/)) {
+    if (method.requires_phone && !phone.match(/^\d{10,15}$/)) {
       setError('Enter a valid phone number (e.g. 256701234567)');
       return;
     }
@@ -116,10 +116,9 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      const methodCode = sourceToMethodCode(source);
       const result = await startCheckout(
-        plan.code, billingCycle, methodCode,
-        source.requires_phone ? phone : undefined
+        plan.code, billingCycle, method.code,
+        method.requires_phone ? phone : undefined
       );
       setSession(result);
 
@@ -137,10 +136,27 @@ export default function CheckoutPage() {
     }
   };
 
-  if (loading || !plan) {
+  if (loading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-muted/30">
         <RiLoader4Line className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (loadError || !plan) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-muted/30 px-6">
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-destructive/10 flex items-center justify-center">
+            <RiCloseLine className="w-8 h-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Checkout is unavailable</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            {loadError || 'That plan could not be found.'}
+          </p>
+          <Button onClick={() => router.push('/billing/subscribe')}>Back to plans</Button>
+        </div>
       </div>
     );
   }
@@ -176,17 +192,55 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Step: Choose payment source */}
+          {/* Step: Choose payment method */}
           {step === 'method' && (
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-foreground mb-1">Choose payment method</h2>
-              <p className="text-sm text-muted-foreground mb-6">Select how you'd like to pay for your subscription.</p>
-              <PaymentSourcePicker
-                sources={sources}
-                mode="collection"
-                onSelect={handleSourceSelect}
-                emptyMessage="No payment methods available. Please contact support."
-              />
+              <p className="text-sm text-muted-foreground mb-6">Select how you&apos;d like to pay for your subscription.</p>
+
+              {methods.length === 0 && !manualAvailable ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No payment methods are available right now. Please contact support and we&apos;ll take payment directly.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {methods.map((method) => {
+                    const Icon = METHOD_ICONS[method.provider] || RiExchangeDollarLine;
+                    return (
+                      <button
+                        key={method.code}
+                        onClick={() => handleMethodSelect(method)}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-foreground/40 hover:shadow-sm transition-all text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-background ring-1 ring-border">
+                          <Icon className="w-5 h-5 text-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{method.name}</p>
+                          <p className="text-xs text-muted-foreground">{method.description}</p>
+                        </div>
+                        <RiArrowRightSLine className="w-5 h-5 text-muted-foreground shrink-0" />
+                      </button>
+                    );
+                  })}
+
+                  {manualAvailable && (
+                    <button
+                      onClick={goManual}
+                      className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-foreground/40 hover:shadow-sm transition-all text-left"
+                    >
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-background ring-1 ring-border">
+                        <RiBankLine className="w-5 h-5 text-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">Bank transfer or deposit</p>
+                        <p className="text-xs text-muted-foreground">Pay into our account, then tell us the reference</p>
+                      </div>
+                      <RiArrowRightSLine className="w-5 h-5 text-muted-foreground shrink-0" />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -195,7 +249,7 @@ export default function CheckoutPage() {
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-foreground mb-1">Enter your phone number</h2>
               <p className="text-sm text-muted-foreground mb-6">
-                You'll receive a USSD prompt on your {selectedSource?.provider === 'mtn' ? 'MTN' : 'Airtel'} phone.
+                You&apos;ll receive a USSD prompt on your {selectedMethod?.name} phone.
               </p>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-foreground mb-2">Phone number</label>
@@ -233,15 +287,15 @@ export default function CheckoutPage() {
                 <RiLoader4Line className="w-8 h-8 text-primary animate-spin" />
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-2">Waiting for payment</h2>
-              {selectedSource?.type === 'ozow' ? (
-                <p className="text-sm text-muted-foreground">Redirecting to payment page...</p>
-              ) : (
+              {selectedMethod?.requires_phone ? (
                 <>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Check your <strong>{selectedSource?.name}</strong> phone for the USSD prompt.
+                    Check your <strong>{selectedMethod?.name}</strong> phone for the USSD prompt.
                   </p>
                   <p className="text-sm text-muted-foreground">Approve the payment of <strong>{fmtPrice(price)}</strong>.</p>
                 </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Redirecting to payment page...</p>
               )}
               <p className="mt-6 text-xs text-muted-foreground">This page updates automatically.</p>
             </div>
