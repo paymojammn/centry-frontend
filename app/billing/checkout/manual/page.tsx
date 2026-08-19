@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { BRAND } from '@/config/brand';
 import {
   getSubscriptionPlans,
+  getManualPaymentMethods,
+  submitManualPayment,
   SubscriptionPlan,
+  ManualPaymentMethodInfo,
 } from '@/lib/billing-api';
-import { paymentSourcesApi } from '@/lib/payment-sources-api';
-import type { PaymentSource } from '@/types/payment-sources';
 import {
   RiCheckLine,
   RiArrowLeftLine,
@@ -21,8 +22,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 /**
- * Manual payment page — shows Centry's bank accounts and mobile money details
- * for customers to pay manually. Uses the same unified payment sources API.
+ * Manual payment page — shows our own bank accounts and mobile money details,
+ * managed in admin, so a customer can pay by transfer or deposit and tell us
+ * the reference. Nothing here comes from the customer's own linked accounts.
  */
 export default function ManualPaymentPage() {
   const router = useRouter();
@@ -31,23 +33,26 @@ export default function ManualPaymentPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [sources, setSources] = useState<PaymentSource[]>([]);
+  const [methods, setMethods] = useState<ManualPaymentMethodInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<PaymentSource | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [selected, setSelected] = useState<ManualPaymentMethodInfo | null>(null);
   const [reference, setReference] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState('');
 
   useEffect(() => {
-    Promise.all([
-      getSubscriptionPlans(),
-      paymentSourcesApi.getPaymentSources(), // Centry's org sources
-    ]).then(([plans, resp]) => {
-      setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
-      // Show bank accounts and mobile money as manual deposit options
-      setSources(resp.sources?.filter((s) => s.type === 'bank_account' || s.type === 'mobile_money') || []);
-      setLoading(false);
-    });
+    Promise.all([getSubscriptionPlans(), getManualPaymentMethods()])
+      .then(([plans, manualMethods]) => {
+        setPlan(plans.find((p) => p.code === planCode) || plans[0] || null);
+        setMethods(manualMethods);
+      })
+      .catch((err: any) => {
+        setLoadError(err?.message || 'We could not load the payment details. Please try again.');
+      })
+      .finally(() => setLoading(false));
   }, [planCode]);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -57,13 +62,17 @@ export default function ManualPaymentPage() {
   };
 
   const handleSubmit = async () => {
-    if (!plan || !selectedSource) return;
-    // Submit manual payment notification via billing API
+    if (!plan || !selected) return;
+    setSubmitting(true);
+    setSubmitError('');
     try {
-      const { submitManualPayment } = await import('@/lib/billing-api');
-      await submitManualPayment(plan.code, billingCycle, selectedSource.id, reference);
+      await submitManualPayment(plan.code, billingCycle, selected.id, reference);
       setSubmitted(true);
-    } catch { /* */ }
+    } catch (err: any) {
+      setSubmitError(err?.message || 'We could not record that. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const fmtPrice = (p: string) =>
@@ -77,8 +86,12 @@ export default function ManualPaymentPage() {
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm font-medium text-foreground">{value}</p>
       </div>
-      <button onClick={() => copyToClipboard(value, label)} className="p-2 rounded-lg hover:bg-muted transition-colors" title="Copy">
-        {copied === label
+      <button
+        onClick={(e) => { e.stopPropagation(); copyToClipboard(value, `${label}-${value}`); }}
+        className="p-2 rounded-lg hover:bg-muted transition-colors"
+        title={`Copy ${label.toLowerCase()}`}
+      >
+        {copied === `${label}-${value}`
           ? <RiCheckLine className="w-4 h-4 text-primary" />
           : <RiFileCopyLine className="w-4 h-4 text-muted-foreground" />}
       </button>
@@ -93,8 +106,49 @@ export default function ManualPaymentPage() {
     );
   }
 
-  const bankSources = sources.filter((s) => s.type === 'bank_account');
-  const mobileSources = sources.filter((s) => s.type === 'mobile_money');
+  const bankMethods = methods.filter((m) => m.method_type === 'bank_account');
+  const mobileMethods = methods.filter((m) => m.method_type === 'mobile_money');
+
+  const MethodCard = ({ method }: { method: ManualPaymentMethodInfo }) => (
+    <div
+      onClick={() => setSelected(method)}
+      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+        selected?.id === method.id
+          ? 'border-primary ring-1 ring-primary bg-muted/30'
+          : 'border-border hover:border-primary/40'
+      }`}
+    >
+      <p className="font-semibold text-foreground text-sm mb-2">{method.name}</p>
+
+      {method.method_type === 'bank_account' ? (
+        <>
+          {method.bank_name && <CopyRow label="Bank" value={method.bank_name} />}
+          {method.account_name && <CopyRow label="Account name" value={method.account_name} />}
+          {method.account_number && <CopyRow label="Account number" value={method.account_number} />}
+          {method.branch_code && <CopyRow label="Branch code" value={method.branch_code} />}
+          {method.swift_code && <CopyRow label="SWIFT code" value={method.swift_code} />}
+        </>
+      ) : (
+        <>
+          {method.merchant_name && <CopyRow label="Merchant name" value={method.merchant_name} />}
+          {method.merchant_code && <CopyRow label="Merchant code" value={method.merchant_code} />}
+          {method.phone_number && <CopyRow label="Phone number" value={method.phone_number} />}
+        </>
+      )}
+      <CopyRow label="Currency" value={method.currency} />
+
+      {method.ussd_instructions && (
+        <p className="mt-3 text-xs text-muted-foreground whitespace-pre-line">
+          {method.ussd_instructions}
+        </p>
+      )}
+      {method.reference_instructions && (
+        <p className="mt-3 text-xs text-muted-foreground whitespace-pre-line">
+          {method.reference_instructions}
+        </p>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-muted/30">
@@ -121,7 +175,7 @@ export default function ManualPaymentPage() {
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">Payment notification received</h2>
               <p className="text-sm text-muted-foreground mb-6">
-                We'll verify and activate your <strong>{plan?.name}</strong> subscription shortly.
+                We&apos;ll verify and activate your <strong>{plan?.name}</strong> subscription shortly.
               </p>
               <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
             </div>
@@ -140,74 +194,47 @@ export default function ManualPaymentPage() {
               </div>
 
               <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-                <h2 className="text-lg font-semibold text-foreground mb-1">Manual payment</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-1">Pay by transfer or deposit</h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Send payment to any of the accounts below, then confirm.
+                  Send {fmtPrice(price)} to one of the accounts below, then tell us the reference so we can match it.
                 </p>
 
-                {/* Bank accounts */}
-                {bankSources.length > 0 && (
+                {loadError && (
+                  <div className="mb-4 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                    <p className="text-sm text-destructive">{loadError}</p>
+                  </div>
+                )}
+
+                {bankMethods.length > 0 && (
                   <div className="mb-6">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
-                      <RiBankLine className="w-4 h-4" /> Bank Transfer
+                      <RiBankLine className="w-4 h-4" /> Bank transfer
                     </h3>
                     <div className="space-y-3">
-                      {bankSources.map((s) => (
-                        <div
-                          key={s.id}
-                          onClick={() => setSelectedSource(s)}
-                          className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                            selectedSource?.id === s.id
-                              ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
-                              : 'border-border hover:border-[rgb(var(--brand-dark))]/40'
-                          }`}
-                        >
-                          <p className="font-semibold text-foreground text-sm mb-2">{s.bank_name || s.name}</p>
-                          {s.name && <CopyRow label="Account Name" value={s.name} />}
-                          {s.account_number && <CopyRow label="Account Number" value={s.account_number} />}
-                          {s.swift_code && <CopyRow label="SWIFT Code" value={s.swift_code} />}
-                          <CopyRow label="Currency" value={s.currency} />
-                        </div>
-                      ))}
+                      {bankMethods.map((m) => <MethodCard key={m.id} method={m} />)}
                     </div>
                   </div>
                 )}
 
-                {/* Mobile money */}
-                {mobileSources.length > 0 && (
+                {mobileMethods.length > 0 && (
                   <div className="mb-6">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
-                      <RiSmartphoneLine className="w-4 h-4" /> Mobile Money
+                      <RiSmartphoneLine className="w-4 h-4" /> Mobile money
                     </h3>
                     <div className="space-y-3">
-                      {mobileSources.map((s) => (
-                        <div
-                          key={s.id}
-                          onClick={() => setSelectedSource(s)}
-                          className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                            selectedSource?.id === s.id
-                              ? 'border-[rgb(var(--brand-dark))] ring-1 ring-[rgb(var(--brand-dark))] bg-muted/30'
-                              : 'border-border hover:border-[rgb(var(--brand-dark))]/40'
-                          }`}
-                        >
-                          <p className="font-semibold text-foreground text-sm mb-2">{s.name}</p>
-                          {s.phone_number && <CopyRow label="Phone Number" value={s.phone_number} />}
-                          <CopyRow label="Provider" value={s.provider_name || s.provider} />
-                          <CopyRow label="Currency" value={s.currency} />
-                        </div>
-                      ))}
+                      {mobileMethods.map((m) => <MethodCard key={m.id} method={m} />)}
                     </div>
                   </div>
                 )}
 
-                {sources.length === 0 && (
+                {!loadError && methods.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No payment accounts configured. Please contact support.
+                    No payment details are published yet. Please contact support and we&apos;ll send them to you.
                   </p>
                 )}
               </div>
 
-              {selectedSource && (
+              {selected && (
                 <div className="bg-card border border-border rounded-2xl p-6">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Confirm your payment</h3>
                   <div className="mb-4">
@@ -219,9 +246,16 @@ export default function ManualPaymentPage() {
                       placeholder="e.g. TXN-12345" className="h-11"
                     />
                   </div>
-                  <Button onClick={handleSubmit} className="w-full">I've made payment</Button>
+                  {submitError && (
+                    <div className="mb-4 p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
+                      <p className="text-sm text-destructive">{submitError}</p>
+                    </div>
+                  )}
+                  <Button onClick={handleSubmit} disabled={submitting} className="w-full">
+                    {submitting ? 'Sending…' : "I've made payment"}
+                  </Button>
                   <p className="mt-3 text-xs text-center text-muted-foreground">
-                    We'll verify and activate your subscription within 24 hours.
+                    We&apos;ll verify and activate your subscription within 24 hours.
                   </p>
                 </div>
               )}
