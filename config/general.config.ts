@@ -8,7 +8,7 @@ const generalSettings = {
   websiteLink: BRAND.urls.marketing,
   // Relative on purpose: this app serves the checkout docs itself, so the
   // link stays inside whichever deployment the user is already on.
-  docsLink: '/docs/checkout',
+  docsLink: '/docs',
   supportEmail: BRAND.email.support,
 };
 

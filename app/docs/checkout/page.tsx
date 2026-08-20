@@ -7,6 +7,7 @@ import {
 } from '@/components/docs/docs-layout';
 import { CodeBlock, TabbedCodeBlock } from '@/components/docs/code-block';
 import { SchemaEndpointTable, SchemaParamTable } from '@/components/docs/schema-table';
+import { BRAND } from '@/config/brand';
 import {
   Code2,
   Globe,
@@ -1248,7 +1249,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Need help?{' '}
-              <a href="mailto:support@paymoja.com" className="text-primary hover:underline">support@paymoja.com</a>
+              <a href={`mailto:${BRAND.email.support}`} className="text-primary hover:underline">{BRAND.email.support}</a>
             </p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <a href="https://api.getcentry.io" className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Admin</a>
