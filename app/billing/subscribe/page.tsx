@@ -25,8 +25,11 @@ export default function SubscribePage() {
 
   // Derive context: is this a trial-expired user or a fresh signup?
   const reason = searchParams.get('reason');
-  const isExpired = reason === 'trial_expired' || subStatus?.status === 'expired';
+  const isExpired =
+    reason === 'trial_expired' || reason === 'expired' || subStatus?.status === 'expired';
   const isCancelled = reason === 'cancelled' || subStatus?.status === 'cancelled';
+  const isSuspended = reason === 'suspended' || subStatus?.status === 'suspended';
+  const needsPlan = isExpired || isCancelled || isSuspended;
 
   // Check if already logged in on mount
   useEffect(() => {
@@ -127,7 +130,7 @@ export default function SubscribePage() {
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
               <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
-            <span className="text-lg font-semibold">Centry</span>
+            <span className="text-lg font-semibold">{BRAND.name}</span>
           </div>
           {isLoggedIn ? (
             <a href="/dashboard" className="text-sm text-white/70 hover:text-white transition-colors">
@@ -145,16 +148,22 @@ export default function SubscribePage() {
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-6xl">
           {/* Context banner for expired/cancelled users */}
-          {(isExpired || isCancelled) && (
+          {needsPlan && (
             <div className="max-w-2xl mx-auto mb-8 bg-[rgb(var(--warning))]/10 border border-[rgb(var(--warning))]/20 rounded-xl p-5 flex items-start gap-4">
               <RiShieldStarLine className="w-6 h-6 text-[rgb(var(--warning))] shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-foreground">
-                  {isExpired ? 'Your trial has ended' : 'Your subscription was cancelled'}
+                  {isSuspended
+                    ? 'Your subscription is suspended'
+                    : isExpired
+                    ? 'Your trial has ended'
+                    : 'Your subscription was cancelled'}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {isExpired
-                    ? 'Choose a plan below to continue using Centry. Your data is safe — pick up right where you left off.'
+                  {isSuspended
+                    ? 'There was a problem collecting your last payment. Complete a payment below to reactivate your access.'
+                    : isExpired
+                    ? `Choose a plan below to continue using ${BRAND.name}. Your data is safe — pick up right where you left off.`
                     : 'Resubscribe to regain access to your organization and payment data.'}
                 </p>
               </div>
@@ -165,10 +174,10 @@ export default function SubscribePage() {
           <div className="text-center mb-10">
             <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">Payment plans</p>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-              {isExpired || isCancelled ? 'Pick a plan to continue' : 'Simple, transparent pricing'}
+              {needsPlan ? 'Pick a plan to continue' : 'Simple, transparent pricing'}
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              {isExpired || isCancelled
+              {needsPlan
                 ? 'All plans include the same enterprise payment rails. Pick the tier that matches your scale.'
                 : 'The same enterprise payment rails — for every business. Start with a 14-day free trial, no credit card required.'}
             </p>

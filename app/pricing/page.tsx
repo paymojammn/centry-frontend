@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { BRAND } from '@/config/brand';
+import { getSubscriptionPlans, SubscriptionPlan } from '@/lib/billing-api';
 import { RiCheckLine, RiArrowRightLine, RiQuestionLine } from '@remixicon/react';
 
 type BillingCycle = 'monthly' | 'annual';
@@ -30,7 +31,7 @@ const pricingTiers: PricingTier[] = [
     annualPrice: 960,
     txnFee: '0.8%',
     features: [
-      'Centry Lite ERP — included free',
+      `${BRAND.name} Lite ERP — included free`,
       'Mobile money — MTN & Airtel',
       'Card & EFT acceptance',
       'SA · Uganda · Zambia',
@@ -83,42 +84,18 @@ const pricingTiers: PricingTier[] = [
     ],
     excluded: [],
     cta: 'Contact Sales',
-    ctaLink: 'mailto:sales@getcentry.app',
-  },
-];
-
-const transactionFees = [
-  {
-    type: 'SME',
-    description: 'All payment rails',
-    fee: '0.8%',
-    min: '-',
-    max: '-',
-  },
-  {
-    type: 'Medium Business',
-    description: 'All payment rails',
-    fee: '0.6%',
-    min: '-',
-    max: '-',
-  },
-  {
-    type: 'Enterprise',
-    description: 'All payment rails',
-    fee: '0.4%',
-    min: '-',
-    max: '-',
+    ctaLink: `mailto:${BRAND.email.sales}`,
   },
 ];
 
 const faqs = [
   {
     question: 'What payment methods are supported?',
-    answer: 'Centry supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money, and various local payment rails across Africa and globally.',
+    answer: `${BRAND.name} supports bank transfers (EFT, RTGS, ACH), SWIFT international transfers, mobile money, and various local payment rails across Africa and globally.`,
   },
   {
     question: 'How does the 14-day free trial work?',
-    answer: 'Start using Centry immediately with full access to all features in your chosen plan. No credit card required. If you love it, upgrade before the trial ends. Otherwise, your account will be paused.',
+    answer: `Start using ${BRAND.name} immediately with full access to all features in your chosen plan. No credit card required. If you love it, upgrade before the trial ends. Otherwise, your account will be paused.`,
   },
   {
     question: 'Can I switch plans later?',
@@ -129,8 +106,8 @@ const faqs = [
     answer: 'We currently support Xero, QuickBooks Online, and Sage. More integrations are coming soon. Enterprise customers can request custom integrations.',
   },
   {
-    question: 'How secure is Centry?',
-    answer: 'Centry uses bank-grade 256-bit SSL encryption, is SOC 2 compliant, and follows strict data protection standards. All payments are processed through licensed financial institutions.',
+    question: `How secure is ${BRAND.name}?`,
+    answer: `${BRAND.name} uses bank-grade 256-bit SSL encryption, is SOC 2 compliant, and follows strict data protection standards. All payments are processed through licensed financial institutions.`,
   },
   {
     question: 'Do you offer refunds?',
@@ -141,6 +118,49 @@ const faqs = [
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [livePlans, setLivePlans] = useState<SubscriptionPlan[] | null>(null);
+
+  // Prices, fees and CTAs come from /api/billing/plans/ — the same source the
+  // in-app subscribe page renders — so this page can never quote a price the
+  // checkout won't charge. The static tiers above are the fallback when the
+  // API is unreachable, and keep owning the marketing copy (features lists).
+  useEffect(() => {
+    getSubscriptionPlans()
+      .then((plans) => plans.length > 0 && setLivePlans(plans))
+      .catch(() => {});
+  }, []);
+
+  const tiers = useMemo(() => {
+    if (!livePlans) return pricingTiers;
+    return pricingTiers.map((tier) => {
+      const live = livePlans.find((p) => p.code === tier.code);
+      if (!live) return tier;
+      const fee = parseFloat(live.transaction_fee);
+      return {
+        ...tier,
+        name: live.name || tier.name,
+        description: live.description || tier.description,
+        monthlyPrice: parseFloat(live.monthly_price),
+        annualPrice: parseFloat(live.annual_price),
+        txnFee: fee > 0 ? `${fee}%` : tier.txnFee,
+        features: live.highlight_features?.length ? live.highlight_features : tier.features,
+        excluded: live.excluded_features?.length ? live.excluded_features : tier.excluded,
+        highlighted: live.is_featured,
+        cta: live.cta_label || tier.cta,
+      };
+    });
+  }, [livePlans]);
+
+  const transactionFees = tiers.map((t) => ({
+    type: t.name,
+    description: 'All payment rails',
+    fee: t.txnFee,
+    min: '-',
+    max: '-',
+  }));
+
+  const feeByCode = (code: string) =>
+    tiers.find((t) => t.code === code)?.txnFee ?? '—';
 
   const formatPrice = (price: number) => {
     if (price === 0) return 'Custom';
@@ -157,7 +177,7 @@ export default function PricingPage() {
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
                 <img src={BRAND.logo.mini} alt="" className="w-7 h-7" />
               </div>
-              <span className="text-xl font-semibold">Centry</span>
+              <span className="text-xl font-semibold">{BRAND.name}</span>
             </Link>
             <div className="flex items-center gap-6">
               <Link href="/auth/login" className="text-white/80 hover:text-white transition-colors">
@@ -218,7 +238,7 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section className="max-w-7xl mx-auto px-6 -mt-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {pricingTiers.map((tier) => {
+          {tiers.map((tier) => {
             const price = billingCycle === 'annual' ? tier.annualPrice : tier.monthlyPrice;
             const ctaHref = tier.ctaLink.startsWith('mailto:')
               ? tier.ctaLink
@@ -348,7 +368,7 @@ export default function PricingPage() {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Volume discounts available for Enterprise customers. <Link href="mailto:sales@getcentry.app" className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
+          Volume discounts available for Enterprise customers. <Link href={`mailto:${BRAND.email.sales}`} className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
         </p>
       </section>
 
@@ -372,7 +392,7 @@ export default function PricingPage() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  { feature: 'Transaction Fee', sme: '0.8%', medium: '0.6%', enterprise: '0.4%' },
+                  { feature: 'Transaction Fee', sme: feeByCode('sme'), medium: feeByCode('medium'), enterprise: feeByCode('enterprise') },
                   { feature: 'Users', sme: '5', medium: '25', enterprise: 'Unlimited' },
                   { feature: 'ERP Connections', sme: '1', medium: '5', enterprise: 'Unlimited' },
                   { feature: 'Mobile Money (MTN/Airtel)', sme: true, medium: true, enterprise: true },
@@ -476,7 +496,7 @@ export default function PricingPage() {
               Start Free Trial
             </Link>
             <Link
-              href="mailto:sales@getcentry.app"
+              href={`mailto:${BRAND.email.sales}`}
               className="border border-white/30 text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors"
             >
               Contact Sales
@@ -493,15 +513,15 @@ export default function PricingPage() {
               <div className="w-8 h-8 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
                 <img src={BRAND.logo.miniDark} alt="" className="w-5 h-5" />
               </div>
-              <span className="text-foreground font-semibold">Centry</span>
+              <span className="text-foreground font-semibold">{BRAND.name}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/refund-policy" className="hover:text-foreground">Refund Policy</Link>
               <Link href="/cancellation-policy" className="hover:text-foreground">Cancellation Policy</Link>
-              <Link href="mailto:support@paymoja.com" className="hover:text-foreground">Support</Link>
+              <Link href={`mailto:${BRAND.email.support}`} className="hover:text-foreground">Support</Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Centry. All rights reserved.
+              &copy; {new Date().getFullYear()} {BRAND.name}. All rights reserved.
             </p>
           </div>
         </div>

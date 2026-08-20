@@ -66,7 +66,7 @@ export interface Payment {
   id: string;
   amount: string;
   currency: string;
-  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'partially_refunded';
   payment_method: string;
   invoice_number: string;
   invoice_url: string;
@@ -85,7 +85,7 @@ export interface BillingEvent {
 
 export interface CheckoutSessionResponse {
   session_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  status: 'pending' | 'processing' | 'pending_verification' | 'completed' | 'failed' | 'expired' | 'cancelled';
   payment_method: string;
   amount: string;
   currency: string;
@@ -94,7 +94,7 @@ export interface CheckoutSessionResponse {
 
 export interface CheckoutStatusResponse {
   session_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  status: 'pending' | 'processing' | 'pending_verification' | 'completed' | 'failed' | 'expired' | 'cancelled';
   payment_method: string;
   amount: string;
   currency: string;
@@ -274,7 +274,8 @@ export async function exchangeAuthCode(
   refresh_token: string;
   subscription_status: string | null;
   has_active_subscription: boolean;
-  organization_id?: string | null;
+  /** Org tied to the ERP just signed in with — used to land on the right org. */
+  organization_id: string | null;
   token_type: string;
 }> {
   return post('/api/auth/exchange/', {
