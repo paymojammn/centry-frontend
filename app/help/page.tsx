@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { BRAND } from '@/config/brand';
 import {
   RiRocketLine,
   RiBankCardLine,
@@ -268,7 +269,7 @@ export default function HelpCenterPage() {
       <header className="sticky top-0 z-50 bg-[rgb(var(--brand-dark))] text-white">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/media/app/centry-logo-dark.svg" alt="Centry" className="h-7 w-7" />
+            <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-7 w-7" />
             <span className="font-semibold">Centry</span>
           </Link>
           <div className="flex items-center gap-1">
@@ -442,7 +443,7 @@ export default function HelpCenterPage() {
       <footer className="mt-20 bg-muted py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <div className="flex items-center gap-2.5">
-            <img src="/media/app/centry-logo.svg" alt="Centry" className="size-7" />
+            <img src={BRAND.logo.mark} alt={BRAND.name} className="size-7" />
             <span className="font-semibold text-foreground">Centry</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">

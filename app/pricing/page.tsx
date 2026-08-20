@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { BRAND } from '@/config/brand';
 import { RiCheckLine, RiArrowRightLine, RiQuestionLine } from '@remixicon/react';
 
 type BillingCycle = 'monthly' | 'annual';
@@ -154,7 +155,7 @@ export default function PricingPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-[rgb(var(--brand-dark))] font-bold text-xl">C</span>
+                <img src={BRAND.logo.mini} alt="" className="w-7 h-7" />
               </div>
               <span className="text-xl font-semibold">Centry</span>
             </Link>
@@ -490,7 +491,7 @@ export default function PricingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[rgb(var(--brand-dark))] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
+                <img src={BRAND.logo.miniDark} alt="" className="w-5 h-5" />
               </div>
               <span className="text-foreground font-semibold">Centry</span>
             </div>

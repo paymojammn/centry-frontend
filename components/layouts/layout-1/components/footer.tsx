@@ -1,4 +1,5 @@
 import { generalSettings } from '@/config/general.config';
+import { BRAND } from '@/config/brand';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -14,14 +15,17 @@ export function Footer() {
               target="_blank"
               className="text-secondary-foreground hover:text-primary"
             >
-              Centry Inc.
+              {BRAND.legalName}
             </a>
           </div>
           <nav className="flex order-1 md:order-2 gap-4 font-normal text-sm text-muted-foreground">
             <a href={generalSettings.docsLink} className="hover:text-primary">
               Docs
             </a>
-            <a href={`mailto:${generalSettings.supportEmail}`} className="hover:text-primary">
+            <a
+              href={`mailto:${generalSettings.supportEmail}`}
+              className="hover:text-primary"
+            >
               Support
             </a>
           </nav>

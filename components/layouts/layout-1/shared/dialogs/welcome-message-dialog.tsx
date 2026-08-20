@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { toAbsoluteUrl } from '@/lib/helpers';
+import { BRAND } from '@/config/brand';
 import {
   Dialog,
   DialogBody,
@@ -38,7 +39,7 @@ export function WelcomeMessageDialog({
           </div>
 
           <h3 className="text-lg font-medium text-mono text-center mb-3">
-            Welcome to Centry!
+            Welcome to {BRAND.name}!
           </h3>
 
           <div className="text-sm text-center text-secondary-foreground mb-7">

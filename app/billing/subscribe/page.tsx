@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { BRAND } from '@/config/brand';
 import {
   getSubscriptionPlans,
   getSubscriptionStatus,
@@ -124,7 +125,7 @@ export default function SubscribePage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-[rgb(var(--brand-dark))] font-bold text-lg">C</span>
+              <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
             <span className="text-lg font-semibold">Centry</span>
           </div>

@@ -8,6 +8,7 @@ import { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
 import { ReactQueryProvider } from '@/components/providers/react-query-provider';
 import { HydrationErrorHandler } from '@/components/hydration-error-handler';
+import { BRAND, TITLE_TEMPLATE } from '@/config/brand';
 
 import '@/styles/globals.css';
 
@@ -19,8 +20,8 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Centry',
-    default: 'Centry', // a default is required when creating a template
+    template: TITLE_TEMPLATE,
+    default: BRAND.name, // a default is required when creating a template
   },
   icons: {
     icon: '/favicon.svg',
