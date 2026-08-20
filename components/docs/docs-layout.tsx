@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { BRAND } from '@/config/brand';
 import {
-  Book,
   Banknote,
   Code2,
   CreditCard,
@@ -13,14 +12,9 @@ import {
   Key,
   Menu,
   Rocket,
-  Server,
   Shield,
   Terminal,
-  Webhook,
   X,
-  AlertTriangle,
-  Gauge,
-  TestTube,
   Package,
   ChevronRight,
   ExternalLink,
@@ -34,73 +28,79 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
+  // ── Platform (what the app actually does: ERP login, bills, invoices, payouts)
   {
-    title: 'Getting Started',
-    href: '/docs/checkout',
+    title: 'Platform',
+    href: '/docs',
     icon: <Rocket className="size-4" />,
+    items: [
+      { title: 'How it works', href: '/docs#introduction' },
+      { title: 'Sign in with your ERP', href: '/docs#erp-login' },
+      { title: 'Syncing ERP data', href: '/docs#sync' },
+    ],
+  },
+  {
+    title: 'Money In',
+    href: '/docs#invoices',
+    icon: <Key className="size-4" />,
+    items: [
+      { title: 'Invoices', href: '/docs#invoices' },
+      { title: 'Pay In (collections)', href: '/docs#collections' },
+    ],
+  },
+  {
+    title: 'Money Out',
+    href: '/docs#bills',
+    icon: <Banknote className="size-4" />,
+    items: [
+      { title: 'Bills', href: '/docs#bills' },
+      { title: 'Pay Out (payouts)', href: '/docs#payouts' },
+    ],
+  },
+  {
+    title: 'Payment Rails',
+    href: '/docs#rails',
+    icon: <Globe className="size-4" />,
+  },
+  {
+    title: 'Approvals',
+    href: '/docs#approvals',
+    icon: <Shield className="size-4" />,
+  },
+  {
+    title: 'Wallet',
+    href: '/docs#wallet',
+    icon: <CreditCard className="size-4" />,
+  },
+  {
+    title: 'Reconciliation',
+    href: '/docs#reconciliation',
+    icon: <Package className="size-4" />,
+  },
+  {
+    title: 'API Access',
+    href: '/docs#api-access',
+    icon: <Terminal className="size-4" />,
+  },
+  // ── Checkout API (separate server-to-server surface, cen_ keys)
+  {
+    title: 'Checkout API',
+    href: '/docs/checkout',
+    icon: <Code2 className="size-4" />,
     items: [
       { title: 'Introduction', href: '/docs/checkout#introduction' },
       { title: 'Quick Start', href: '/docs/checkout#quickstart' },
       { title: 'Authentication', href: '/docs/checkout#authentication' },
-    ],
-  },
-  {
-    title: 'Integration',
-    href: '/docs/checkout#hosted-checkout',
-    icon: <Code2 className="size-4" />,
-    items: [
       { title: 'Hosted Checkout', href: '/docs/checkout#hosted-checkout' },
       { title: 'Headless / Embedded', href: '/docs/checkout#headless' },
-      { title: 'Embedded Widget', href: '/docs/checkout#embedded-widget' },
-      { title: 'SDKs & Libraries', href: '/docs/checkout#sdks' },
+      { title: 'API Reference', href: '/docs/checkout#api-reference' },
+      { title: 'Providers & Countries', href: '/docs/checkout#providers' },
+      { title: 'Webhooks', href: '/docs/checkout#webhooks' },
+      { title: 'Payouts API', href: '/docs/checkout#payouts' },
+      { title: 'Error Codes', href: '/docs/checkout#errors' },
+      { title: 'Rate Limits', href: '/docs/checkout#rate-limits' },
+      { title: 'Testing & Sandbox', href: '/docs/checkout#testing' },
     ],
-  },
-  {
-    title: 'API Reference',
-    href: '/docs/checkout#api-reference',
-    icon: <Server className="size-4" />,
-    items: [
-      { title: 'Create Session', href: '/docs/checkout#create-session' },
-      { title: 'Get Session', href: '/docs/checkout#get-session' },
-      { title: 'Payment Methods', href: '/docs/checkout#payment-methods' },
-      { title: 'Initiate Payment', href: '/docs/checkout#initiate-payment' },
-      { title: 'Check Status', href: '/docs/checkout#check-status' },
-      { title: 'OpenAPI / Swagger', href: '/docs/checkout#openapi' },
-    ],
-  },
-  {
-    title: 'Providers & Countries',
-    href: '/docs/checkout#providers',
-    icon: <Globe className="size-4" />,
-  },
-  {
-    title: 'Webhooks',
-    href: '/docs/checkout#webhooks',
-    icon: <Webhook className="size-4" />,
-    items: [
-      { title: 'Events', href: '/docs/checkout#webhook-events' },
-      { title: 'Verification', href: '/docs/checkout#webhook-verification' },
-    ],
-  },
-  {
-    title: 'Payouts API',
-    href: '/docs/checkout#payouts',
-    icon: <Banknote className="size-4" />,
-  },
-  {
-    title: 'Error Codes',
-    href: '/docs/checkout#errors',
-    icon: <AlertTriangle className="size-4" />,
-  },
-  {
-    title: 'Rate Limits',
-    href: '/docs/checkout#rate-limits',
-    icon: <Gauge className="size-4" />,
-  },
-  {
-    title: 'Testing & Sandbox',
-    href: '/docs/checkout#testing',
-    icon: <TestTube className="size-4" />,
   },
 ];
 
@@ -131,7 +131,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                 <span className="font-semibold text-white">{BRAND.name}</span>
               </Link>
               <span className="text-white/20">|</span>
-              <Link href="/docs/checkout" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+              <Link href="/docs" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
                 Docs
               </Link>
             </div>

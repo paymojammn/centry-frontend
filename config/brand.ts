@@ -43,7 +43,7 @@ export const BRAND = {
   urls: {
     marketing: 'https://getcentry.io',
     app: 'https://getcentry.app',
-    docs: 'https://getcentry.app/docs/checkout',
+    docs: 'https://getcentry.app/docs',
     /** Production API base advertised in the developer docs. */
     api: 'https://api.getcentry.io',
     /** Sandbox API base advertised in the developer docs. */

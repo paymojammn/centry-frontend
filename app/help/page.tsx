@@ -280,8 +280,8 @@ export default function HelpCenterPage() {
               <Link href="/pricing" className="rounded-lg px-3 py-1.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white">
                 Pricing
               </Link>
-              <Link href="/docs/checkout" className="rounded-lg px-3 py-1.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white">
-                API Docs
+              <Link href="/docs" className="rounded-lg px-3 py-1.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+                Docs
               </Link>
             </nav>
             <Link
@@ -395,7 +395,7 @@ export default function HelpCenterPage() {
             <p className="text-sm">
               No results found. Try a different search, or{' '}
               <a
-                href="mailto:support@paymoja.com"
+                href={`mailto:${BRAND.email.support}`}
                 className="font-medium text-primary hover:underline"
               >
                 email support
@@ -417,21 +417,21 @@ export default function HelpCenterPage() {
             <h4 className="text-sm font-semibold text-foreground">Email Support</h4>
             <p className="mt-0.5 text-xs text-muted-foreground">Response within 24 hours</p>
             <a
-              href="mailto:support@paymoja.com"
+              href={`mailto:${BRAND.email.support}`}
               className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
             >
-              support@paymoja.com
+              {BRAND.email.support}
             </a>
           </div>
           <Link
-            href="/docs/checkout"
+            href="/docs"
             className="group rounded-xl border border-border bg-card p-6 text-center transition-all hover:border-primary hover:shadow-md"
           >
             <span className="mx-auto mb-3 grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
               <RiBookOpenLine className="size-5" />
             </span>
-            <h4 className="text-sm font-semibold text-foreground">API Docs</h4>
-            <p className="mt-0.5 text-xs text-muted-foreground">Developer documentation</p>
+            <h4 className="text-sm font-semibold text-foreground">Docs</h4>
+            <p className="mt-0.5 text-xs text-muted-foreground">Platform &amp; developer documentation</p>
             <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
               View docs <RiArrowRightLine className="size-4" />
             </span>
@@ -444,16 +444,16 @@ export default function HelpCenterPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <div className="flex items-center gap-2.5">
             <img src={BRAND.logo.mark} alt={BRAND.name} className="size-7" />
-            <span className="font-semibold text-foreground">Centry</span>
+            <span className="font-semibold text-foreground">{BRAND.name}</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link href="/terms-of-service" className="hover:text-foreground">Terms</Link>
             <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link>
-            <a href="mailto:support@paymoja.com" className="hover:text-foreground">Support</a>
+            <a href={`mailto:${BRAND.email.support}`} className="hover:text-foreground">Support</a>
           </div>
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Centry Technologies. All rights reserved.
+            &copy; {new Date().getFullYear()} {BRAND.legalName} All rights reserved.
           </p>
         </div>
       </footer>
