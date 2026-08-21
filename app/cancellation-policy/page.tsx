@@ -13,7 +13,7 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          You may cancel your Paymoja subscription at any time. We believe in flexibility
+          You may cancel your Centry subscription at any time. We believe in flexibility
           and do not lock you into long-term contracts. Here&apos;s what you need to know:
         </p>
         <ul className={legalBullets}>
@@ -42,8 +42,8 @@ const sections: LegalSection[] = [
           </li>
           <li>
             <strong className="text-foreground">Email:</strong> Send a cancellation request to{' '}
-            <a href="mailto:support@paymoja.io" className="font-medium text-primary hover:underline">
-              support@paymoja.io
+            <a href="mailto:support@paymoja.com" className="font-medium text-primary hover:underline">
+              support@paymoja.com
             </a>
           </li>
           <li>
@@ -75,7 +75,7 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          If you have pending payments scheduled through Paymoja at the time of cancellation:
+          If you have pending payments scheduled through Centry at the time of cancellation:
         </p>
         <ul className={legalBullets}>
           <li>
@@ -89,7 +89,7 @@ const sections: LegalSection[] = [
           </li>
           <li>
             <strong className="text-foreground">In-Progress Payments:</strong> Payments already in progress cannot be
-            cancelled through Paymoja. Contact your bank for payment reversals.
+            cancelled through Centry. Contact your bank for payment reversals.
           </li>
         </ul>
       </>
@@ -115,11 +115,11 @@ const sections: LegalSection[] = [
     ),
   },
   {
-    id: 'termination-by-paymoja',
-    title: 'Account Termination by Paymoja',
+    id: 'termination-by-centry',
+    title: 'Account Termination by Centry',
     content: (
       <>
-        <p>Paymoja reserves the right to suspend or terminate accounts in the following cases:</p>
+        <p>Centry reserves the right to suspend or terminate accounts in the following cases:</p>
         <ul className={legalBullets}>
           <li>Violation of our Terms of Service</li>
           <li>Fraudulent or suspicious activity</li>
@@ -151,8 +151,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about cancellation or need assistance, please contact us at{' '}
-        <a href="mailto:support@paymoja.io" className="font-medium text-primary hover:underline">
-          support@paymoja.io
+        <a href="mailto:support@paymoja.com" className="font-medium text-primary hover:underline">
+          support@paymoja.com
         </a>
       </p>
     ),

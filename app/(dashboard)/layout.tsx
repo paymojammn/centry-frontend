@@ -7,7 +7,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { getAuthToken } from '@/lib/api';
 import { getApiUrl } from '@/config/api';
 import { ScreenLoader } from '@/components/screen-loader';
-import { exchangeAuthCode } from '@/lib/billing-api';
+import { exchangeAuthCode, getSubscriptionStatus } from '@/lib/billing-api';
 
 export default function DashboardLayout({children}: {children: ReactNode}) {
   const [isLoading, setIsLoading] = useState(true);
@@ -92,6 +92,24 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
         });
 
         if (response.ok) {
+          // Billing gate: the middleware paywalls per-org API calls, but a
+          // page whose requests omit organization_id (or render from cache)
+          // would still display. Ask the server about the SELECTED org
+          // before revealing the dashboard. access_allowed is caller-aware:
+          // staff accounts bypass billing and are never bounced here.
+          try {
+            const orgId = localStorage.getItem('selectedOrganizationId') || undefined;
+            const sub = await getSubscriptionStatus(orgId);
+            if (sub.access_allowed === false) {
+              const reason = sub.status === 'trial' ? 'trial_expired' : sub.status;
+              const org = orgId ? `&organization_id=${orgId}` : '';
+              router.push(`/billing/subscribe?reason=${reason}${org}`);
+              return;
+            }
+          } catch {
+            // No org / no subscription yet, or status unavailable — fall
+            // through and let per-request enforcement decide.
+          }
           setIsLoading(false);
         } else if (response.status === 402) {
           // Subscription required

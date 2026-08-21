@@ -12,6 +12,7 @@ import {
   BillingPaymentMethod,
   CheckoutSessionResponse,
 } from '@/lib/billing-api';
+import { getOrganizations } from '@/lib/organization-api';
 import {
   RiCheckLine,
   RiCloseLine,
@@ -38,6 +39,9 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const planCode = searchParams.get('plan') || 'sme';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
+  // Per-org billing: carried from the paywall redirect via /billing/subscribe.
+  const orgId = searchParams.get('organization_id') || undefined;
+  const [orgName, setOrgName] = useState<string | null>(null);
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [methods, setMethods] = useState<BillingPaymentMethod[]>([]);
@@ -67,6 +71,20 @@ export default function CheckoutPage() {
       .finally(() => setLoading(false));
   }, [planCode]);
 
+  // Name the org being paid for — in a multi-org account the payer must
+  // see which company this subscription lands on.
+  useEffect(() => {
+    if (!orgId) return;
+    getOrganizations()
+      .then((resp) => {
+        const org = (resp.results ?? []).find((o) => o.id === orgId);
+        if (org) setOrgName(org.name);
+      })
+      .catch(() => {
+        // Best-effort label; checkout still works without it.
+      });
+  }, [orgId]);
+
   // Poll for status when processing
   useEffect(() => {
     if (step !== 'processing' || !session) return;
@@ -92,7 +110,10 @@ export default function CheckoutPage() {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
   const goManual = () =>
-    router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
+    router.push(
+      `/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}` +
+        (orgId ? `&organization_id=${orgId}` : '')
+    );
 
   const handleMethodSelect = (method: BillingPaymentMethod) => {
     setSelectedMethod(method);
@@ -119,7 +140,8 @@ export default function CheckoutPage() {
     try {
       const result = await startCheckout(
         plan.code, billingCycle, method.code,
-        method.requires_phone ? phone : undefined
+        method.requires_phone ? phone : undefined,
+        orgId
       );
       setSession(result);
 
@@ -171,7 +193,7 @@ export default function CheckoutPage() {
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
               <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
-            <span className="text-lg font-semibold">Paymoja</span>
+            <span className="text-lg font-semibold">{BRAND.name}</span>
           </div>
           <button onClick={() => router.back()} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1">
             <RiArrowLeftLine className="w-4 h-4" /> Back
@@ -191,6 +213,11 @@ export default function CheckoutPage() {
               <span className="text-2xl font-bold text-foreground">{fmtPrice(price)}</span>
               <span className="text-sm text-muted-foreground">/{billingCycle === 'annual' ? 'yr' : 'mo'}</span>
             </div>
+            {orgName && (
+              <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                For organization: <span className="font-medium text-foreground">{orgName}</span>
+              </p>
+            )}
           </div>
 
           {/* Step: Choose payment method */}

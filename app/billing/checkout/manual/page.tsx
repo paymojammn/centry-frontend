@@ -31,6 +31,7 @@ export default function ManualPaymentPage() {
   const searchParams = useSearchParams();
   const planCode = searchParams.get('plan') || 'sme';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
+  const orgId = searchParams.get('organization_id') || undefined;
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [methods, setMethods] = useState<ManualPaymentMethodInfo[]>([]);
@@ -66,7 +67,7 @@ export default function ManualPaymentPage() {
     setSubmitting(true);
     setSubmitError('');
     try {
-      await submitManualPayment(plan.code, billingCycle, selected.id, reference);
+      await submitManualPayment(plan.code, billingCycle, selected.id, reference, orgId);
       setSubmitted(true);
     } catch (err: any) {
       setSubmitError(err?.message || 'We could not record that. Please try again.');
@@ -158,7 +159,7 @@ export default function ManualPaymentPage() {
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
               <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
-            <span className="text-lg font-semibold">Paymoja</span>
+            <span className="text-lg font-semibold">{BRAND.name}</span>
           </div>
           <button onClick={() => router.back()} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1">
             <RiArrowLeftLine className="w-4 h-4" /> Back

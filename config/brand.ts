@@ -53,9 +53,13 @@ export const BRAND = {
   },
 
   email: {
-    support: 'support@paymoja.io',
-    privacy: 'privacy@paymoja.io',
-    sales: 'sales@paymoja.io',
+    // paymoja.io resolves for web but publishes no MX records — mail sent
+    // there silently bounces. paymoja.com has Google MX and receives mail.
+    // Mirrors the same fix already applied to BRAND_SUPPORT_EMAIL on the
+    // backend (centry-backend baihu/settings.py, commit 6b572a2).
+    support: 'support@paymoja.com',
+    privacy: 'privacy@paymoja.com',
+    sales: 'sales@paymoja.com',
   },
 } as const;
 

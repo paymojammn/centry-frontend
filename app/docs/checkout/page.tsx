@@ -7,21 +7,16 @@ import {
 } from '@/components/docs/docs-layout';
 import { CodeBlock, TabbedCodeBlock } from '@/components/docs/code-block';
 import { SchemaEndpointTable, SchemaParamTable } from '@/components/docs/schema-table';
+import { BRAND } from '@/config/brand';
 import {
   Code2,
-  CreditCard,
   Globe,
-  Key,
   Rocket,
   Shield,
   Webhook,
   Zap,
-  Package,
   AlertTriangle,
-  Gauge,
-  TestTube,
   ArrowRight,
-  Banknote,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -44,7 +39,7 @@ export default function CheckoutDocsPage() {
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
             One integration, multiple payment providers. Paymoja Checkout routes payments to the right
-            provider across 10+ African countries — cards, EFT, mobile money, vouchers, and crypto.
+            provider across 7 African countries — cards, EFT, mobile money, vouchers, and crypto.
           </p>
         </div>
 
@@ -100,15 +95,15 @@ export default function CheckoutDocsPage() {
             <div>
               <h4 className="font-semibold text-foreground mb-2">1. Get your API key</h4>
               <p className="text-muted-foreground text-sm mb-4">
-                Create an account and get your API key from the dashboard. Keys start with <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_</code>.
+                API keys are issued by the Paymoja team — contact support to get one for your account. Keys start with <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_</code>.
               </p>
             </div>
 
             <div>
               <h4 className="font-semibold text-foreground mb-2">2. Enable providers per country</h4>
               <p className="text-muted-foreground text-sm mb-4">
-                In your dashboard under <strong>Payments &rarr; Provider Configuration</strong>, enable the providers you want for each country.
-                For example, enable Paystack for Nigeria and OneGate + Ozow for South Africa.
+                In your dashboard under <strong>Banking &rarr; Provider Accounts</strong>, enable the providers you want for each country.
+                For example, enable Paystack for Nigeria, and OneGate, Ozow, Netcash, Paystack or VALR (crypto) for South Africa.
               </p>
             </div>
 
@@ -134,26 +129,6 @@ export default function CheckoutDocsPage() {
       "phone": "+2348012345678"
     }
   }'`,
-                  },
-                  {
-                    label: 'Python (pycentry)',
-                    language: 'python',
-                    code: `# pip install 'pycentry==0.1.1'   # beta — pin the version
-from centry import Client
-
-client = Client(api_key="cen_your_api_key")
-
-session = client.checkout.create(
-    amount="5000.00",
-    currency="NGN",
-    reference="ORDER-12345",
-    success_url="https://yoursite.com/success",
-    cancel_url="https://yoursite.com/cancel",
-    webhook_url="https://yoursite.com/webhooks/centry",
-    customer={"email": "customer@example.com"},
-)
-
-print(session.checkout_url)  # Redirect customer here`,
                   },
                   {
                     label: 'Node.js (fetch)',
@@ -192,9 +167,9 @@ console.log(session.checkout_url); // Redirect customer here`,
                 code={`{
   "success": true,
   "session": {
-    "id": "cs_abc123",
-    "session_token": "tok_xyz789",
-    "checkout_url": "https://paymoja.io/checkout/tok_xyz789",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "session_token": "cs_Zj3xK9wQ2mP7vN4tR8sL1yB6hD0aG5eC-uHfIoJkXlM",
+    "checkout_url": "https://checkout.paymoja.io/checkout/cs_Zj3xK9wQ2mP7vN4tR8sL1yB6hD0aG5eC-uHfIoJkXlM",
     "status": "pending",
     "expires_at": "2024-01-15T12:00:00Z"
   }
@@ -296,31 +271,6 @@ app.post('/create-checkout', async (req, res) => {
   const { session } = await r.json();
   res.redirect(session.checkout_url);
 });`,
-              },
-              {
-                label: 'Python (pycentry)',
-                language: 'python',
-                code: `# Django — using the official (beta) pycentry SDK:
-#   pip install 'pycentry==0.1.1'
-import os
-from centry import Client
-from django.shortcuts import redirect
-
-client = Client(api_key=os.environ["CENTRY_API_KEY"])
-
-def create_checkout(request):
-    session = client.checkout.create(
-        amount=request.POST["amount"],
-        currency=request.POST["currency"],
-        reference=f"ORDER-{request.POST['order_id']}",
-        success_url=f"https://yoursite.com/success?order={request.POST['order_id']}",
-        cancel_url="https://yoursite.com/cart",
-        webhook_url="https://yoursite.com/webhooks/centry",
-        customer={"email": request.POST["email"]},
-        # Optional: restrict to specific countries/providers
-        allowed_countries=["NG", "ZA"],
-    )
-    return redirect(session.checkout_url)`,
               },
               {
                 label: 'Python (requests)',
@@ -502,11 +452,11 @@ if (payment.requires_redirect) {
             <CodeBlock
               language="html"
               filename="index.html"
-              code={`<script src="https://paymoja.io/widget/centry-checkout.js"></script>
+              code={`<script src="https://checkout.paymoja.io/widget/centry-checkout.js"></script>
 
 <script>
   CentryCheckout.open({
-    sessionToken: 'tok_xyz789',
+    sessionToken: 'cs_Zj3xK9wQ2mP...',
     onSuccess: function(data) {
       window.location.href = '/success';
     },
@@ -519,64 +469,6 @@ if (payment.requires_redirect) {
   });
 </script>`}
             />
-          </div>
-        </DocsSection>
-
-        {/* SDKs */}
-        <DocsSection id="sdks" title="SDKs & Libraries" description="Client libraries">
-          <div className="grid sm:grid-cols-3 gap-3 mb-3">
-            {[
-              {
-                id: 'sdk-python',
-                name: 'Python',
-                install: 'pip install pycentry',
-                version: '0.1.1',
-                status: 'beta' as const,
-                note: 'Published on PyPI. Imports as `centry`.',
-              },
-              {
-                id: 'sdk-node',
-                name: 'Node.js',
-                install: '—',
-                version: null,
-                status: 'planned' as const,
-                note: 'Not yet published. Use raw fetch/axios for now.',
-              },
-              {
-                id: 'sdk-php',
-                name: 'PHP',
-                install: '—',
-                version: null,
-                status: 'planned' as const,
-                note: 'Not yet published. Use Guzzle for now.',
-              },
-            ].map((sdk) => (
-              <div
-                key={sdk.id}
-                id={sdk.id}
-                className="p-4 rounded-xl border border-border bg-card"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold text-foreground text-sm">{sdk.name}</div>
-                  <span
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded uppercase ${
-                      sdk.status === 'beta'
-                        ? 'bg-[#D4B35A]/10 text-[#D4B35A]'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {sdk.status}
-                  </span>
-                </div>
-                <code className="text-xs text-muted-foreground font-mono block truncate">
-                  {sdk.install}
-                </code>
-                {sdk.version && (
-                  <div className="text-[10px] text-muted-foreground/60 mt-2">v{sdk.version}</div>
-                )}
-                <p className="text-[11px] text-muted-foreground mt-2">{sdk.note}</p>
-              </div>
-            ))}
           </div>
         </DocsSection>
 
@@ -596,13 +488,14 @@ if (payment.requires_redirect) {
             <Endpoint method="POST" path="/api/v1/checkout/sessions/" description="Create a new checkout session. Requires API key authentication." />
 
             <div className="p-4 rounded-md bg-primary/5 border border-primary/10">
-              <h4 className="text-sm font-semibold text-foreground mb-1">Send an Idempotency-Key</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-1">Retries create new sessions</h4>
               <p className="text-xs text-muted-foreground">
-                Add{' '}
-                <code className="px-1 py-0.5 bg-muted rounded font-mono">Idempotency-Key: &lt;uuid&gt;</code>{' '}
-                on every create-session call. If the same key reaches us twice (network retry,
-                lambda re-invocation), we replay the original response instead of opening a
-                second session. UUIDv4 is the safe default.
+                Create-session does not yet support idempotency keys — a network retry
+                opens a second (unpaid) session. Use your own{' '}
+                <code className="px-1 py-0.5 bg-muted rounded font-mono">reference</code>{' '}
+                to deduplicate on your side, and reuse the first session&apos;s{' '}
+                <code className="px-1 py-0.5 bg-muted rounded font-mono">checkout_url</code>{' '}
+                rather than re-creating on failure. Unpaid sessions simply expire.
               </p>
             </div>
 
@@ -623,8 +516,8 @@ if (payment.requires_redirect) {
   "session": {
     "id": "cs_1a2b3c4d5e6f",
     "reference": "ORDER-12345",
-    "session_token": "tok_xyz789",
-    "checkout_url": "https://paymoja.io/checkout/tok_xyz789",
+    "session_token": "cs_Zj3xK9wQ2mP...",
+    "checkout_url": "https://checkout.paymoja.io/checkout/cs_Zj3xK9wQ2mP...",
     "amount": "5000.00",
     "currency": "NGN",
     "description": "",
@@ -649,7 +542,7 @@ if (payment.requires_redirect) {
         "id": "pay_abc123",
         "provider": "paystack",
         "payment_method": "card",
-        "centry_reference": "cen_def456",
+        "centry_reference": "CHK_1754300100123_9f3a1c2b",
         "provider_reference": "PAY_xyz789",
         "status": "success",
         "authorization_url": null,
@@ -759,7 +652,7 @@ if (payment.requires_redirect) {
 }`}
             />
             <p className="text-muted-foreground text-sm">
-              <strong>Statuses:</strong> <code className="text-xs bg-muted px-1 py-0.5 rounded">pending</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-muted px-1 py-0.5 rounded">processing</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-emerald-500/10 text-emerald-600 px-1 py-0.5 rounded">completed</code> | <code className="text-xs bg-red-500/10 text-red-600 px-1 py-0.5 rounded">failed</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">expired</code>
+              <strong>Statuses:</strong> <code className="text-xs bg-muted px-1 py-0.5 rounded">pending</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-muted px-1 py-0.5 rounded">processing</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-emerald-500/10 text-emerald-600 px-1 py-0.5 rounded">completed</code> | <code className="text-xs bg-red-500/10 text-red-600 px-1 py-0.5 rounded">failed</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">expired</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">cancelled</code>
             </p>
           </div>
         </DocsSection>
@@ -871,7 +764,7 @@ if (payment.requires_redirect) {
   "timestamp": "2024-01-15T12:05:00Z",
   "data": {
     "session": {
-      "id": "cs_abc123",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "reference": "ORDER-12345",
       "amount": "5000.00",
       "currency": "NGN",
@@ -890,8 +783,11 @@ if (payment.requires_redirect) {
       "id": "pay_abc123",
       "provider": "paystack",
       "payment_method": "card",
-      "centry_reference": "cen_def456",
+      "centry_reference": "CHK_1754300100123_9f3a1c2b",
       "provider_reference": "PAY_xyz789",
+      "provider_transaction_id": "1443995",
+      "amount": "5000.00",
+      "currency": "NGN",
       "status": "success"
     }
   }
@@ -902,10 +798,10 @@ if (payment.requires_redirect) {
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
                 <strong>Headers:</strong>{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Signature: sha256=&lt;hex&gt;</code>{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Paymoja-Signature: sha256=&lt;hex&gt;</code>{' '}
                 (HMAC-SHA256 — see verification below),{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Timestamp: &lt;unix&gt;</code>,{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Event: &lt;event&gt;</code>
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Paymoja-Timestamp: &lt;unix&gt;</code>,{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Paymoja-Event: &lt;event&gt;</code>
               </p>
               <p>
                 <strong>Retries:</strong> on non-2xx or timeout we retry at <strong>+1m, +5m,
@@ -913,16 +809,14 @@ if (payment.requires_redirect) {
                 you should still return a 2xx quickly and process async if your handler is slow.
               </p>
               <p>
-                <strong>URL safety:</strong> webhook URLs that resolve to private (RFC1918),
-                loopback, link-local, or cloud-metadata IPs (e.g.{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">169.254.169.254</code>)
-                are rejected at write time and re-checked at send time. Use https in production.
+                <strong>URL requirements:</strong> use a public https URL. Private,
+                loopback, and cloud-metadata addresses will never receive deliveries
+                reliably and may be rejected in future versions.
               </p>
               <p>
-                <strong>Replay + test:</strong> send a{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">webhook.test</code> event
-                from the merchant dashboard before going live, and replay any past delivery
-                from its Webhooks tab.
+                <strong>Testing:</strong> create a sandbox session against your staging
+                webhook receiver and complete it end-to-end before going live — there is
+                no dashboard test-event button for checkout webhooks yet.
               </p>
             </div>
 
@@ -930,13 +824,13 @@ if (payment.requires_redirect) {
               <h4 className="font-semibold text-foreground mb-3">Signature verification</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 The{' '}
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Centry-Signature</code>{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">X-Paymoja-Signature</code>{' '}
                 header is{' '}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">sha256=&lt;hex&gt;</code>,
                 where the hex is an HMAC-SHA256 of the JSON payload re-serialized in{' '}
                 <strong>canonical form — compact separators and sorted keys</strong> (
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">json.dumps(payload, separators=(&quot;,&quot;,&quot;:&quot;), sort_keys=True)</code>),
-                signed with your webhook secret. Recompute it the same way and constant-time
+                signed with the checkout signing secret the Paymoja team shares with you during onboarding. Recompute it the same way and constant-time
                 compare against the header. Strip the{' '}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">sha256=</code> prefix first.
               </p>
@@ -946,7 +840,7 @@ if (payment.requires_redirect) {
                   Paymoja signs the <strong>canonically re-serialized</strong> JSON (sorted keys,
                   no whitespace), <em>not</em> the raw request bytes. Parse the body to an object,
                   then re-dump it with sorted keys before computing the HMAC. The separate{' '}
-                  <code className="text-[11px]">X-Centry-Timestamp</code> header is provided for
+                  <code className="text-[11px]">X-Paymoja-Timestamp</code> header is provided for
                   your own replay logging; it is not part of the signed string.
                 </p>
               </div>
@@ -973,7 +867,7 @@ def verify_centry_webhook(raw_body: bytes, header_value: str, secret: str) -> bo
 
 # Django / Flask handler
 body = request.body  # raw bytes
-header = request.headers.get("X-Centry-Signature", "")
+header = request.headers.get("X-Paymoja-Signature", "")
 if not verify_centry_webhook(body, header, WEBHOOK_SECRET):
     return HttpResponseBadRequest("invalid signature")
 
@@ -1021,7 +915,7 @@ function verifyCentryWebhook(rawBody, headerValue, secret) {
 app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, res) => {
   const ok = verifyCentryWebhook(
     req.body.toString('utf8'),
-    req.get('X-Centry-Signature'),
+    req.get('X-Paymoja-Signature'),
     process.env.CENTRY_WEBHOOK_SECRET,
   );
   if (!ok) return res.status(400).send('invalid signature');
@@ -1109,7 +1003,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
 
             <div className="grid sm:grid-cols-3 gap-3">
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/docs/'}
+                href={'https://api.paymoja.io' + '/api/docs/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1125,7 +1019,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               </a>
 
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/redoc/'}
+                href={'https://api.paymoja.io' + '/api/redoc/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1141,7 +1035,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
               </a>
 
               <a
-                href={(process.env.NEXT_PUBLIC_API_URL || 'https://api.paymoja.io') + '/api/schema/'}
+                href={'https://api.paymoja.io' + '/api/schema/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
@@ -1246,14 +1140,14 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                   { code: 'INVALID_CURRENCY', status: '400', desc: 'Currency is not one of the supported ISO 4217 codes' },
                   { code: 'DUPLICATE_REFERENCE', status: '400', desc: 'A session with this reference already exists for your org' },
                   { code: 'SESSION_NOT_FOUND', status: '404', desc: 'No session matches the given ID or token' },
-                  { code: 'SESSION_EXPIRED', status: '400', desc: 'The session passed its expiry time before payment' },
+                  { code: 'SESSION_EXPIRED', status: '410', desc: 'The session passed its expiry time before payment' },
                   { code: 'INVALID_STATE', status: '400', desc: 'The session is not in a state that allows this action' },
                   { code: 'MISSING_COUNTRY', status: '400', desc: 'The country query parameter is required' },
                   { code: 'COUNTRY_NOT_ENABLED', status: '400', desc: 'No providers are configured for the selected country' },
                   { code: 'PROVIDER_NOT_ENABLED', status: '400', desc: 'Provider not enabled for this country in your config' },
                   { code: 'METHOD_NOT_SUPPORTED', status: '400', desc: 'The payment method is not supported by that provider' },
-                  { code: 'rate_limit_exceeded', status: '429', desc: 'Too many requests — slow down' },
-                  { code: 'internal_error', status: '500', desc: 'Something went wrong on our end (no code field)' },
+                  { code: '—', status: '429', desc: 'Throttled — DRF returns {"detail": "Request was throttled…"} with no code field' },
+                  { code: '—', status: '500', desc: 'Internal error — body is {"success": false, "error": "Internal error"} with no code field' },
                 ].map((err) => (
                   <tr key={err.code} className="hover:bg-muted/30">
                     <td className="px-4 py-3"><code className="text-xs font-mono text-destructive">{err.code}</code></td>
@@ -1309,7 +1203,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
             <p className="text-muted-foreground text-sm">
               Use the sandbox environment to test without processing real payments. Point your
               integration at the sandbox base URL and use a key issued from the sandbox dashboard
-              at <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">staging.paymoja.io</code>.
+              at <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">staging.getcentry.io</code>.
               Checkout API keys use the <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">cen_</code> prefix in
               both environments — the environment is determined by which base URL (and dashboard)
               the key was created in, not by the prefix. Provider sandbox/live mode is configured
@@ -1355,10 +1249,10 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Need help?{' '}
-              <a href="mailto:support@paymoja.io" className="text-primary hover:underline">support@paymoja.io</a>
+              <a href={`mailto:${BRAND.email.support}`} className="text-primary hover:underline">{BRAND.email.support}</a>
             </p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <a href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'} className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Admin</a>
+              <a href="https://api.paymoja.io" className="hover:text-foreground" target="_blank" rel="noopener noreferrer">Admin</a>
               <a href="/auth/login" className="hover:text-foreground">Dashboard</a>
             </div>
           </div>

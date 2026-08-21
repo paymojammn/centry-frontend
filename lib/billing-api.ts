@@ -34,6 +34,9 @@ export interface SubscriptionStatus {
   plan_code: string;
   plan_name: string;
   is_active: boolean;
+  /** Caller-specific: true when the subscription allows access OR the caller
+   *  is staff (staff bypass billing). The dashboard gate keys off this. */
+  access_allowed?: boolean;
   is_trial: boolean;
   days_remaining: number;
   trial_ends_at: string | null;
@@ -66,7 +69,7 @@ export interface Payment {
   id: string;
   amount: string;
   currency: string;
-  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'partially_refunded';
   payment_method: string;
   invoice_number: string;
   invoice_url: string;
@@ -85,7 +88,7 @@ export interface BillingEvent {
 
 export interface CheckoutSessionResponse {
   session_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  status: 'pending' | 'processing' | 'pending_verification' | 'completed' | 'failed' | 'expired' | 'cancelled';
   payment_method: string;
   amount: string;
   currency: string;
@@ -94,7 +97,7 @@ export interface CheckoutSessionResponse {
 
 export interface CheckoutStatusResponse {
   session_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled';
+  status: 'pending' | 'processing' | 'pending_verification' | 'completed' | 'failed' | 'expired' | 'cancelled';
   payment_method: string;
   amount: string;
   currency: string;
@@ -181,8 +184,11 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 /**
  * Get current subscription status
  */
-export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
-  return get<SubscriptionStatus>('/api/billing/status/');
+export async function getSubscriptionStatus(organizationId?: string): Promise<SubscriptionStatus> {
+  // Billing is per-org: when the paywall bounced the user here for a
+  // specific (possibly non-primary) org, ask about THAT org.
+  const params = organizationId ? `?organization_id=${organizationId}` : '';
+  return get<SubscriptionStatus>(`/api/billing/status/${params}`);
 }
 
 /**
@@ -200,12 +206,14 @@ export async function createCheckoutSession(
   billingCycle: 'monthly' | 'annual',
   paymentMethod: PaymentMethodCode,
   payerIdentifier?: string,
+  organizationId?: string,
 ): Promise<CheckoutSessionResponse> {
   return post<CheckoutSessionResponse>('/api/billing/checkout/', {
     plan_code: planCode,
     billing_cycle: billingCycle,
     payment_method: paymentMethod,
     payer_identifier: payerIdentifier || '',
+    ...(organizationId ? { organization_id: organizationId } : {}),
   });
 }
 
@@ -224,12 +232,14 @@ export async function submitManualPayment(
   billingCycle: 'monthly' | 'annual',
   paymentMethodId: string,
   reference: string,
+  organizationId?: string,
 ): Promise<{ session_id: string; status: string; message: string }> {
   return post('/api/billing/checkout/manual/', {
     plan_code: planCode,
     billing_cycle: billingCycle,
     payment_method_id: paymentMethodId,
     reference,
+    ...(organizationId ? { organization_id: organizationId } : {}),
   });
 }
 
@@ -274,7 +284,8 @@ export async function exchangeAuthCode(
   refresh_token: string;
   subscription_status: string | null;
   has_active_subscription: boolean;
-  organization_id?: string | null;
+  /** Org tied to the ERP just signed in with — used to land on the right org. */
+  organization_id: string | null;
   token_type: string;
 }> {
   return post('/api/auth/exchange/', {
@@ -290,8 +301,11 @@ export async function startCheckout(
   billingCycle: 'monthly' | 'annual',
   paymentMethod: PaymentMethodCode,
   payerIdentifier?: string,
+  organizationId?: string,
 ): Promise<CheckoutSessionResponse> {
-  const session = await createCheckoutSession(planCode, billingCycle, paymentMethod, payerIdentifier);
+  const session = await createCheckoutSession(
+    planCode, billingCycle, paymentMethod, payerIdentifier, organizationId
+  );
 
   // For Ozow, redirect to external payment page
   if (session.redirect_url && paymentMethod === 'ozow_eft') {

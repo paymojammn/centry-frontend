@@ -298,7 +298,7 @@ export default function LoginPage() {
             <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
             <a href="/help-centre" className="hover:text-foreground transition-colors">Help</a>
             <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-            <a href="/docs/checkout" className="hover:text-foreground transition-colors">API Docs</a>
+            <a href="/docs" className="hover:text-foreground transition-colors">Docs</a>
             <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
             <a href={`${getApiUrl()}/admin/`} className="hover:text-foreground transition-colors">Admin</a>
           </div>

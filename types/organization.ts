@@ -26,6 +26,9 @@ export interface Organization {
   updated_at: string;
   members_count?: number;
   connections_count?: number;
+  /** Whether this org's subscription currently allows access (per-org billing). */
+  billing_active?: boolean;
+  billing_status?: string;
 }
 
 export interface OrganizationDetail extends Organization {

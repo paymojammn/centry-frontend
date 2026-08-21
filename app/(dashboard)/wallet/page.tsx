@@ -13,7 +13,8 @@ import {
   useLinkedAccounts,
   usePendingApprovals,
 } from '@/hooks/use-wallet';
-import { useOrganizations } from '@/hooks/use-organization';
+import { useSelectableOrganizations } from '@/hooks/use-organization';
+import { OrganizationSelect } from '@/components/layout/organization-select';
 import {
   Wallet as WalletIcon,
   ArrowRight,
@@ -59,9 +60,9 @@ export default function WalletPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  // Fetch organizations
-  const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
-  const organizations = organizationsResponse?.results || organizationsResponse || [];
+  // Fetch organizations — the shared hook applies the per-org billing
+  // filter, same list every org switcher offers.
+  const { organizations, isLoading: orgsLoading } = useSelectableOrganizations();
   const currentOrganization = organizations.find((org: { id: string }) => org.id === selectedOrganizationId) || organizations[0];
 
   // Fetch department wallets
@@ -150,25 +151,16 @@ export default function WalletPage() {
         <PageHeader title="Wallet" subtitle="Manage your department wallet">
           {/* Organization Selector - always show when multiple orgs */}
           {organizations.length > 1 && (
-            <Select
+            <OrganizationSelect
+              className="w-[180px]"
+              placeholder="Organization"
               value={selectedOrganizationId || currentOrganization?.id}
               onValueChange={(value) => {
                 setSelectedOrganizationId(value);
                 setSelectedWalletId(null);
               }}
-            >
-              <SelectTrigger className="w-[180px] h-9 bg-card">
-                <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Organization" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org: { id: string; name: string }) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              organizations={organizations}
+            />
           )}
         </PageHeader>
         <div className="px-6 py-12">
@@ -217,25 +209,15 @@ export default function WalletPage() {
         subtitle={`Manage transfers for ${selectedWallet?.name || 'your department'}`}
       >
         {/* Organization Selector - always show */}
-        <Select
+        <OrganizationSelect
+          placeholder="Organization"
           value={selectedOrganizationId || currentOrganization?.id}
           onValueChange={(value) => {
             setSelectedOrganizationId(value);
             setSelectedWalletId(null); // Reset wallet when org changes
           }}
-        >
-          <SelectTrigger className="w-[200px] h-9 bg-card">
-            <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Organization" />
-          </SelectTrigger>
-          <SelectContent>
-            {organizations.map((org: { id: string; name: string }) => (
-              <SelectItem key={org.id} value={org.id}>
-                {org.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          organizations={organizations}
+        />
         {/* Wallet Selector */}
         {wallets && wallets.length > 1 && (
           <Select

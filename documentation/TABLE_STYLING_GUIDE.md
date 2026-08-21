@@ -8,7 +8,7 @@ Your Centry app now has refined, minimalistic table styles using your brand colo
 | ---------------------- | -------------------------- | ------------------------------------------ |
 | **Light Grey Divider** | `#E5E7EB`                  | Standard table lines — clean, barely-there |
 | **Warm Neutral Grey**  | `#D1D5DB`                  | More visible on white backgrounds          |
-| **Teal Accent Border** | `#638C80` (10–15% opacity) | For table headers or highlight rows        |
+| **Teal Accent Border** | `#5C8A65` (10–15% opacity) | For table headers or highlight rows        |
 | **Hover/Selected Row** | `rgba(99, 140, 128, 0.15)` | Use for subtle row highlight               |
 
 ## Usage Examples
@@ -181,7 +181,7 @@ Use the CSS variables with Tailwind:
 - **Minimalistic**: Clean lines, subtle colors
 - **Professional**: Consistent spacing, clear hierarchy
 - **Classic**: Timeless design that won't feel dated
-- **Brand-aligned**: Uses #638C80 (sage green) as accent color
+- **Brand-aligned**: Uses #5C8A65 (sage green) as accent color
 
 ---
 

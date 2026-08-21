@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { useOrganizations } from '@/hooks/use-organization';
+import { OrganizationSelect } from '@/components/layout/organization-select';
 import { providerAccountsApi, type ProviderAccount } from '@/lib/provider-accounts-api';
 import {
   Select,
@@ -28,8 +28,6 @@ interface Props {
 }
 
 export function ProviderAccountPicker({ provider, value, onChange }: Props) {
-  const { data: orgsResp } = useOrganizations();
-  const orgs = orgsResp?.results ?? [];
   const [orgId, setOrgId] = useState('');
 
   const { data: accountsResp, isLoading } = useQuery({
@@ -43,24 +41,16 @@ export function ProviderAccountPicker({ provider, value, onChange }: Props) {
     <div className="flex flex-wrap items-end gap-3">
       <div>
         <label className="text-xs text-muted-foreground">Organisation</label>
-        <Select
+        <OrganizationSelect
+          className="w-64"
+          placeholder="Select organisation"
+          showIcon={false}
           value={orgId}
           onValueChange={(v) => {
             setOrgId(v);
             onChange('');
           }}
-        >
-          <SelectTrigger className="h-9 w-64">
-            <SelectValue placeholder="Select organisation" />
-          </SelectTrigger>
-          <SelectContent>
-            {orgs.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                {o.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
       <div>
         <label className="text-xs text-muted-foreground">Provider account</label>
