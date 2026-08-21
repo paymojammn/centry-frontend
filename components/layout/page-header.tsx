@@ -8,14 +8,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Building2, ChevronRight } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ChevronRight } from 'lucide-react';
+import { OrganizationSelect } from '@/components/layout/organization-select';
 import { cn } from '@/lib/utils';
 
 interface Organization {
@@ -53,11 +47,6 @@ export function PageHeader({
   sticky = false,
 }: PageHeaderProps) {
   const showOrgSelector = organizations && onOrganizationChange;
-  // Per-org billing: only offer orgs the user can actually work in. An
-  // expired/suspended org is reachable only through the paywall flow, so it
-  // has no place in the switcher. (billing_active === undefined means an
-  // older API response — treat as selectable.)
-  const selectableOrgs = organizations?.filter((org) => org.billing_active !== false);
 
   return (
     <div
@@ -103,23 +92,12 @@ export function PageHeader({
           </div>
           <div className="flex items-center gap-3">
             {showOrgSelector && (
-              <Select
-                value={selectedOrganizationId ?? ""}
+              <OrganizationSelect
+                value={selectedOrganizationId}
                 onValueChange={onOrganizationChange}
-                disabled={isLoadingOrgs || !selectableOrgs?.length}
-              >
-                <SelectTrigger className="w-[200px] h-9 bg-card border-border text-sm hover:border-muted-foreground/50 transition-colors">
-                  <Building2 className="h-4 w-4 text-muted-foreground mr-2" />
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectableOrgs?.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                organizations={organizations}
+                disabled={isLoadingOrgs}
+              />
             )}
             {children}
           </div>
