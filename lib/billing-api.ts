@@ -34,6 +34,9 @@ export interface SubscriptionStatus {
   plan_code: string;
   plan_name: string;
   is_active: boolean;
+  /** Caller-specific: true when the subscription allows access OR the caller
+   *  is staff (staff bypass billing). The dashboard gate keys off this. */
+  access_allowed?: boolean;
   is_trial: boolean;
   days_remaining: number;
   trial_ends_at: string | null;

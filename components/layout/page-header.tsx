@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 interface Organization {
   id: string;
   name: string;
+  billing_active?: boolean;
 }
 
 interface Breadcrumb {
@@ -52,6 +53,11 @@ export function PageHeader({
   sticky = false,
 }: PageHeaderProps) {
   const showOrgSelector = organizations && onOrganizationChange;
+  // Per-org billing: only offer orgs the user can actually work in. An
+  // expired/suspended org is reachable only through the paywall flow, so it
+  // has no place in the switcher. (billing_active === undefined means an
+  // older API response — treat as selectable.)
+  const selectableOrgs = organizations?.filter((org) => org.billing_active !== false);
 
   return (
     <div
@@ -100,14 +106,14 @@ export function PageHeader({
               <Select
                 value={selectedOrganizationId ?? ""}
                 onValueChange={onOrganizationChange}
-                disabled={isLoadingOrgs || !organizations?.length}
+                disabled={isLoadingOrgs || !selectableOrgs?.length}
               >
                 <SelectTrigger className="w-[200px] h-9 bg-card border-border text-sm hover:border-muted-foreground/50 transition-colors">
                   <Building2 className="h-4 w-4 text-muted-foreground mr-2" />
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
-                  {organizations?.map((org) => (
+                  {selectableOrgs?.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
                       {org.name}
                     </SelectItem>
