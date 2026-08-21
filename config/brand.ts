@@ -21,6 +21,12 @@ export const BRAND = {
   name: 'Paymoja',
   /** Registered entity used in legal copy and copyright lines. */
   legalName: 'Paymoja Ltd',
+  legal: {
+    /** Governing law named in the Terms of Service. Interim value pending
+     *  counsel confirmation of the entity's jurisdiction of incorporation —
+     *  operations are Uganda-centred, so Uganda applies for now. */
+    governingLaw: 'the Republic of Uganda',
+  },
   /** Short positioning line under the logo on the login screen. */
   tagline: 'Business payments, simplified.',
 
