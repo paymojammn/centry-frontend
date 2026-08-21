@@ -430,7 +430,7 @@ export default function SubscribePage() {
                     {/* CTA — always at the bottom */}
                     {isContactSales ? (
                       <a
-                        href="mailto:sales@getcentry.app"
+                        href={`mailto:${BRAND.email.sales}`}
                         className="block w-full py-3 px-4 rounded-xl text-center text-sm font-semibold border-2 border-[rgb(var(--brand-dark))] text-[rgb(var(--brand-dark))] hover:bg-muted transition-colors"
                       >
                         {plan.cta_label || 'Contact Sales'}

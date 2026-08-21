@@ -159,7 +159,7 @@ export default function ManualPaymentPage() {
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
               <img src={BRAND.logo.mini} alt="" className="w-6 h-6" />
             </div>
-            <span className="text-lg font-semibold">Centry</span>
+            <span className="text-lg font-semibold">{BRAND.name}</span>
           </div>
           <button onClick={() => router.back()} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1">
             <RiArrowLeftLine className="w-4 h-4" /> Back
