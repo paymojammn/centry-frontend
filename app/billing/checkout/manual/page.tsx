@@ -31,6 +31,7 @@ export default function ManualPaymentPage() {
   const searchParams = useSearchParams();
   const planCode = searchParams.get('plan') || 'sme';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
+  const orgId = searchParams.get('organization_id') || undefined;
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [methods, setMethods] = useState<ManualPaymentMethodInfo[]>([]);
@@ -66,7 +67,7 @@ export default function ManualPaymentPage() {
     setSubmitting(true);
     setSubmitError('');
     try {
-      await submitManualPayment(plan.code, billingCycle, selected.id, reference);
+      await submitManualPayment(plan.code, billingCycle, selected.id, reference, orgId);
       setSubmitted(true);
     } catch (err: any) {
       setSubmitError(err?.message || 'We could not record that. Please try again.');

@@ -181,8 +181,11 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 /**
  * Get current subscription status
  */
-export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
-  return get<SubscriptionStatus>('/api/billing/status/');
+export async function getSubscriptionStatus(organizationId?: string): Promise<SubscriptionStatus> {
+  // Billing is per-org: when the paywall bounced the user here for a
+  // specific (possibly non-primary) org, ask about THAT org.
+  const params = organizationId ? `?organization_id=${organizationId}` : '';
+  return get<SubscriptionStatus>(`/api/billing/status/${params}`);
 }
 
 /**
@@ -200,12 +203,14 @@ export async function createCheckoutSession(
   billingCycle: 'monthly' | 'annual',
   paymentMethod: PaymentMethodCode,
   payerIdentifier?: string,
+  organizationId?: string,
 ): Promise<CheckoutSessionResponse> {
   return post<CheckoutSessionResponse>('/api/billing/checkout/', {
     plan_code: planCode,
     billing_cycle: billingCycle,
     payment_method: paymentMethod,
     payer_identifier: payerIdentifier || '',
+    ...(organizationId ? { organization_id: organizationId } : {}),
   });
 }
 
@@ -224,12 +229,14 @@ export async function submitManualPayment(
   billingCycle: 'monthly' | 'annual',
   paymentMethodId: string,
   reference: string,
+  organizationId?: string,
 ): Promise<{ session_id: string; status: string; message: string }> {
   return post('/api/billing/checkout/manual/', {
     plan_code: planCode,
     billing_cycle: billingCycle,
     payment_method_id: paymentMethodId,
     reference,
+    ...(organizationId ? { organization_id: organizationId } : {}),
   });
 }
 
@@ -291,8 +298,11 @@ export async function startCheckout(
   billingCycle: 'monthly' | 'annual',
   paymentMethod: PaymentMethodCode,
   payerIdentifier?: string,
+  organizationId?: string,
 ): Promise<CheckoutSessionResponse> {
-  const session = await createCheckoutSession(planCode, billingCycle, paymentMethod, payerIdentifier);
+  const session = await createCheckoutSession(
+    planCode, billingCycle, paymentMethod, payerIdentifier, organizationId
+  );
 
   // For Ozow, redirect to external payment page
   if (session.redirect_url && paymentMethod === 'ozow_eft') {
