@@ -1,5 +1,6 @@
 'use client';
 
+import { BRAND } from '@/config/brand';
 import {
   LegalLayout,
   legalBullets,
@@ -128,8 +129,8 @@ const sections: LegalSection[] = [
         </ul>
         <p>
           To exercise any of these rights, contact us at{' '}
-          <a href="mailto:privacy@paymoja.io" className="font-medium text-primary hover:underline">
-            privacy@paymoja.io
+          <a href={`mailto:${BRAND.email.privacy}`} className="font-medium text-primary hover:underline">
+            {BRAND.email.privacy}
           </a>
         </p>
       </>
@@ -176,8 +177,8 @@ const sections: LegalSection[] = [
     content: (
       <p>
         If you have questions about this Privacy Policy or our data practices, please contact us at{' '}
-        <a href="mailto:privacy@paymoja.io" className="font-medium text-primary hover:underline">
-          privacy@paymoja.io
+        <a href={`mailto:${BRAND.email.privacy}`} className="font-medium text-primary hover:underline">
+          {BRAND.email.privacy}
         </a>
       </p>
     ),

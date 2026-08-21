@@ -41,14 +41,14 @@ const categories: Category[] = [
     description: 'Connect your ERP, set up your team, and make your first payment',
     faqs: [
       {
-        q: 'How do I create a Centry account?',
+        q: `How do I create a ${BRAND.name} account?`,
         keywords: 'how do i sign up',
-        a: 'Click "Get Started" on the homepage and sign in with your Xero or QuickBooks account. Centry uses OAuth so you never need to share your ERP credentials. Once connected, your organizations, contacts, and bills sync automatically.',
+        a: `Click "Get Started" on the homepage and sign in with your Xero or QuickBooks account. ${BRAND.name} uses OAuth so you never need to share your ERP credentials. Once connected, your organizations, contacts, and bills sync automatically.`,
       },
       {
         q: 'How do I connect my ERP (Xero/QuickBooks)?',
         keywords: 'connect xero quickbooks erp',
-        a: 'Go to the login page and click "Continue with Xero" or "Continue with QuickBooks". You\'ll be redirected to authorize Centry. Once approved, your bills, contacts, and chart of accounts sync within seconds.',
+        a: `Go to the login page and click "Continue with Xero" or "Continue with QuickBooks". You\'ll be redirected to authorize ${BRAND.name}. Once approved, your bills, contacts, and chart of accounts sync within seconds.`,
       },
       {
         q: 'How do I invite team members?',
@@ -73,7 +73,7 @@ const categories: Category[] = [
         keywords: 'approval workflow segregation duties',
         a: (
           <>
-            Centry enforces segregation of duties with three roles: <strong>Creator</strong>{' '}
+            {BRAND.name} enforces segregation of duties with three roles: <strong>Creator</strong>{' '}
             (initiates payments), <strong>Approver</strong> (approves/rejects), and{' '}
             <strong>Exporter</strong> (generates bank files). A person cannot approve their own
             payment, and the approver cannot generate the file for payments they approved.
@@ -86,14 +86,14 @@ const categories: Category[] = [
         a: 'Yes. On the Bills page, select multiple bills using the checkboxes, then click "Pay Selected". You can choose different payment methods per bill or pay all via the same bank account.',
       },
       {
-        q: 'Does Centry support international payments?',
+        q: `Does ${BRAND.name} support international payments?`,
         keywords: 'international remittance cross border',
         a: 'Yes. In the payment modal, choose "International Remittance" to send cross-border payments. You\'ll need to provide the beneficiary\'s IBAN, SWIFT/BIC code, and address. The payment file is generated in ISO 20022 pain.001 format.',
       },
       {
         q: 'Can I pay via mobile money?',
         keywords: 'mobile money mtn airtel',
-        a: 'Yes. Centry supports MTN MoMo and Airtel Money. When paying a bill, select the mobile money account as your payment source. The recipient\'s phone number is auto-populated from the ERP contact.',
+        a: `Yes. ${BRAND.name} supports MTN MoMo and Airtel Money. When paying a bill, select the mobile money account as your payment source. The recipient\'s phone number is auto-populated from the ERP contact.`,
       },
       {
         q: 'Why is my payment stuck in "Pending Approval"?',
@@ -122,12 +122,12 @@ const categories: Category[] = [
       {
         q: 'How does SFTP upload work?',
         keywords: 'sftp upload download',
-        a: 'Go to Banking → Export → Pay tab. Select the generated file and click Upload. Centry sends the file to your bank\'s SFTP server automatically. You need SFTP credentials configured under Banking → Accounts.',
+        a: `Go to Banking → Export → Pay tab. Select the generated file and click Upload. ${BRAND.name} sends the file to your bank\'s SFTP server automatically. You need SFTP credentials configured under Banking → Accounts.`,
       },
       {
         q: 'What is pain.002 reconciliation?',
         keywords: 'pain 002 reconciliation bank response',
-        a: 'Pain.002 is the bank\'s response file that tells you which payments were accepted or rejected. Centry pulls these automatically via SFTP, parses them, and updates each payment\'s status. Successful payments can then be synced back to your ERP.',
+        a: `Pain.002 is the bank\'s response file that tells you which payments were accepted or rejected. ${BRAND.name} pulls these automatically via SFTP, parses them, and updates each payment\'s status. Successful payments can then be synced back to your ERP.`,
       },
     ],
   },
@@ -145,7 +145,7 @@ const categories: Category[] = [
       {
         q: 'How are vendor bank details imported?',
         keywords: 'contact bank details linked',
-        a: 'Bank details come from three sources: 1) Xero API sync (BatchPayments data), 2) CSV import with BankAccountParticulars column, 3) Manual edit via the contact\'s bank-details endpoint. Centry automatically matches bank names to your system\'s bank records.',
+        a: `Bank details come from three sources: 1) Xero API sync (BatchPayments data), 2) CSV import with BankAccountParticulars column, 3) Manual edit via the contact\'s bank-details endpoint. ${BRAND.name} automatically matches bank names to your system\'s bank records.`,
       },
       {
         q: 'Can I import contacts from CSV?',
@@ -165,7 +165,7 @@ const categories: Category[] = [
         keywords: 'finance role permissions',
         a: (
           <>
-            Centry has granular permissions across three areas:
+            {BRAND.name} has granular permissions across three areas:
             <br />
             <strong>Payments:</strong> view, create, approve, export
             <br />
@@ -270,7 +270,7 @@ export default function HelpCenterPage() {
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
             <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-7 w-7" />
-            <span className="font-semibold">Centry</span>
+            <span className="font-semibold">{BRAND.name}</span>
           </Link>
           <div className="flex items-center gap-1">
             <nav className="hidden items-center gap-1 sm:flex">
@@ -299,7 +299,7 @@ export default function HelpCenterPage() {
         <div className="mx-auto max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">How can we help?</h1>
           <p className="mt-3 text-base text-white/60 sm:text-lg">
-            Find answers, guides, and resources to get the most out of Centry
+            Find answers, guides, and resources to get the most out of {BRAND.name}
           </p>
         </div>
       </section>
