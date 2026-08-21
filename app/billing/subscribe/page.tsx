@@ -10,6 +10,31 @@ import {
   SubscriptionPlan,
   SubscriptionStatus,
 } from '@/lib/billing-api';
+import { getOrganizations } from '@/lib/organization-api';
+import type { Organization } from '@/types/organization';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Building2 } from 'lucide-react';
+
+/** Human label + tone for an org's billing state in the picker. */
+function billingBadge(org: Organization): { label: string; ok: boolean } {
+  if (org.billing_active !== false) {
+    return { label: org.billing_status === 'trial' ? 'Trial' : 'Active', ok: true };
+  }
+  const labels: Record<string, string> = {
+    trial: 'Trial expired',
+    expired: 'Expired',
+    suspended: 'Suspended',
+    cancelled: 'Cancelled',
+    none: 'No subscription',
+  };
+  return { label: labels[org.billing_status ?? ''] ?? 'Inactive', ok: false };
+}
 import { RiCheckLine, RiCloseLine, RiArrowRightLine, RiShieldStarLine } from '@remixicon/react';
 
 export default function SubscribePage() {
@@ -24,14 +49,24 @@ export default function SubscribePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Derive context: is this a trial-expired user or a fresh signup?
+  // The redirect reason seeds the banner, but once the selected org's real
+  // status is loaded it wins — switching orgs in the picker must not keep
+  // showing the previous org's "trial ended" banner.
   const reason = searchParams.get('reason');
   // Billing is per-org — the paywall redirect names the org that was denied
-  // (often not the primary one). Everything on this page targets that org.
-  const orgId = searchParams.get('organization_id') || undefined;
-  const isExpired =
-    reason === 'trial_expired' || reason === 'expired' || subStatus?.status === 'expired';
-  const isCancelled = reason === 'cancelled' || subStatus?.status === 'cancelled';
-  const isSuspended = reason === 'suspended' || subStatus?.status === 'suspended';
+  // (often not the primary one). Everything on this page targets that org,
+  // and in a multi-org account the picker below lets the user re-aim it.
+  // NOTE: deliberately unfiltered — an org needing resubscription is exactly
+  // the one the dashboard's (billing-active-only) switcher no longer offers.
+  const [orgId, setOrgId] = useState<string | undefined>(
+    searchParams.get('organization_id') || undefined
+  );
+  const [orgs, setOrgs] = useState<Organization[]>([]);
+  const isExpired = subStatus
+    ? subStatus.status === 'expired' || (subStatus.is_trial && !subStatus.is_active)
+    : reason === 'trial_expired' || reason === 'expired';
+  const isCancelled = subStatus ? subStatus.status === 'cancelled' : reason === 'cancelled';
+  const isSuspended = subStatus ? subStatus.status === 'suspended' : reason === 'suspended';
   const needsPlan = isExpired || isCancelled || isSuspended;
 
   // Check if already logged in on mount
@@ -66,10 +101,7 @@ export default function SubscribePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [plansList, status] = await Promise.allSettled([
-          getSubscriptionPlans(),
-          getSubscriptionStatus(orgId),
-        ]);
+        const [plansList] = await Promise.allSettled([getSubscriptionPlans()]);
 
         if (plansList.status === 'fulfilled') {
           setPlans(plansList.value);
@@ -87,9 +119,6 @@ export default function SubscribePage() {
           setError('Failed to load subscription plans');
         }
 
-        if (status.status === 'fulfilled') {
-          setSubStatus(status.value);
-        }
       } finally {
         setLoading(false);
       }
@@ -97,6 +126,46 @@ export default function SubscribePage() {
 
     load();
   }, [searchParams]);
+
+  // Load the user's organizations so the picker can show what's being
+  // renewed. Default the target org: URL param first, then the org that
+  // actually needs payment, then the first org.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    getOrganizations()
+      .then((resp) => {
+        const list = resp.results ?? [];
+        setOrgs(list);
+        setOrgId((current) => {
+          if (current && list.some((o) => o.id === current)) return current;
+          const needsPayment = list.find((o) => o.billing_active === false);
+          return needsPayment?.id ?? list[0]?.id ?? current;
+        });
+      })
+      .catch(() => {
+        // Org list unavailable — the page still works against the primary org.
+      });
+  }, [isLoggedIn]);
+
+  // The banner and plan CTA reflect the SELECTED org's subscription.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    getSubscriptionStatus(orgId)
+      .then(setSubStatus)
+      .catch(() => setSubStatus(null));
+  }, [isLoggedIn, orgId]);
+
+  const selectedOrg = orgs.find((o) => o.id === orgId);
+
+  const handleOrgChange = (id: string) => {
+    setOrgId(id);
+    // Keep the URL shareable/refreshable and drop the stale redirect reason —
+    // the freshly fetched status now drives the banner.
+    const url = new URL(window.location.href);
+    url.searchParams.set('organization_id', id);
+    url.searchParams.delete('reason');
+    window.history.replaceState({}, '', url.toString());
+  };
 
   const handleSubscribe = () => {
     if (!selectedPlan) return;
@@ -170,6 +239,63 @@ export default function SubscribePage() {
                     ? `Choose a plan below to continue using ${BRAND.name}. Your data is safe — pick up right where you left off.`
                     : 'Resubscribe to regain access to your organization and payment data.'}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Which organization is being subscribed — critical in a
+              multi-org account, where the org needing renewal is exactly the
+              one the dashboard switcher no longer offers. */}
+          {isLoggedIn && orgs.length > 0 && (
+            <div className="max-w-md mx-auto mb-10">
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
+                <Building2 className="w-5 h-5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground mb-1">Subscribing for</p>
+                  {orgs.length === 1 ? (
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {orgs[0]?.name}
+                    </p>
+                  ) : (
+                    <Select value={orgId ?? ''} onValueChange={handleOrgChange}>
+                      <SelectTrigger className="h-9 w-full bg-card border-border text-sm">
+                        <SelectValue placeholder="Select organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {orgs.map((org) => {
+                          const badge = billingBadge(org);
+                          return (
+                            <SelectItem key={org.id} value={org.id}>
+                              <span className="flex items-center gap-2">
+                                <span>{org.name}</span>
+                                <span
+                                  className={
+                                    badge.ok
+                                      ? 'text-xs text-emerald-600'
+                                      : 'text-xs text-amber-600'
+                                  }
+                                >
+                                  {badge.label}
+                                </span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                {selectedOrg && (
+                  <span
+                    className={
+                      billingBadge(selectedOrg).ok
+                        ? 'text-xs font-medium text-emerald-600 shrink-0'
+                        : 'text-xs font-medium text-amber-600 shrink-0'
+                    }
+                  >
+                    {billingBadge(selectedOrg).label}
+                  </span>
+                )}
               </div>
             </div>
           )}

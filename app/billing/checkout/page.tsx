@@ -12,6 +12,7 @@ import {
   BillingPaymentMethod,
   CheckoutSessionResponse,
 } from '@/lib/billing-api';
+import { getOrganizations } from '@/lib/organization-api';
 import {
   RiCheckLine,
   RiCloseLine,
@@ -40,6 +41,7 @@ export default function CheckoutPage() {
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
   // Per-org billing: carried from the paywall redirect via /billing/subscribe.
   const orgId = searchParams.get('organization_id') || undefined;
+  const [orgName, setOrgName] = useState<string | null>(null);
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [methods, setMethods] = useState<BillingPaymentMethod[]>([]);
@@ -68,6 +70,20 @@ export default function CheckoutPage() {
       })
       .finally(() => setLoading(false));
   }, [planCode]);
+
+  // Name the org being paid for — in a multi-org account the payer must
+  // see which company this subscription lands on.
+  useEffect(() => {
+    if (!orgId) return;
+    getOrganizations()
+      .then((resp) => {
+        const org = (resp.results ?? []).find((o) => o.id === orgId);
+        if (org) setOrgName(org.name);
+      })
+      .catch(() => {
+        // Best-effort label; checkout still works without it.
+      });
+  }, [orgId]);
 
   // Poll for status when processing
   useEffect(() => {
@@ -197,6 +213,11 @@ export default function CheckoutPage() {
               <span className="text-2xl font-bold text-foreground">{fmtPrice(price)}</span>
               <span className="text-sm text-muted-foreground">/{billingCycle === 'annual' ? 'yr' : 'mo'}</span>
             </div>
+            {orgName && (
+              <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                For organization: <span className="font-medium text-foreground">{orgName}</span>
+              </p>
+            )}
           </div>
 
           {/* Step: Choose payment method */}
