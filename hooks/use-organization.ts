@@ -27,6 +27,22 @@ export function useOrganizations() {
 }
 
 /**
+ * Organizations the user can actually work in (per-org billing).
+ *
+ * Filters out orgs whose subscription no longer allows access —
+ * billing_active === undefined (older API) is treated as selectable.
+ * This is the list every org switcher must offer; use useOrganizations
+ * only where inactive orgs should be visible (e.g. the management page).
+ */
+export function useSelectableOrganizations() {
+  const query = useOrganizations();
+  const organizations = (query.data?.results ?? []).filter(
+    (org) => org.billing_active !== false
+  );
+  return { ...query, organizations };
+}
+
+/**
  * Hook to fetch a single organization
  */
 export function useOrganization(id: string) {
