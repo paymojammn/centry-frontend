@@ -61,7 +61,15 @@ export default function WalletPage() {
 
   // Fetch organizations
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
-  const organizations = organizationsResponse?.results || organizationsResponse || [];
+  const allOrganizations = (organizationsResponse?.results ||
+    organizationsResponse ||
+    []) as Array<{ id: string; name: string; billing_active?: boolean }>;
+  // Per-org billing: only offer orgs the user can actually work in — same
+  // rule as the shared PageHeader selector (billing_active undefined =
+  // older API response, treat as selectable).
+  const organizations = allOrganizations.filter(
+    (org: { billing_active?: boolean }) => org.billing_active !== false
+  );
   const currentOrganization = organizations.find((org: { id: string }) => org.id === selectedOrganizationId) || organizations[0];
 
   // Fetch department wallets

@@ -29,7 +29,8 @@ interface Props {
 
 export function ProviderAccountPicker({ provider, value, onChange }: Props) {
   const { data: orgsResp } = useOrganizations();
-  const orgs = orgsResp?.results ?? [];
+  // Per-org billing: same filter as the shared PageHeader org selector.
+  const orgs = (orgsResp?.results ?? []).filter((o) => o.billing_active !== false);
   const [orgId, setOrgId] = useState('');
 
   const { data: accountsResp, isLoading } = useQuery({
