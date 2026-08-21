@@ -25,6 +25,9 @@ export default function SubscribePage() {
 
   // Derive context: is this a trial-expired user or a fresh signup?
   const reason = searchParams.get('reason');
+  // Billing is per-org — the paywall redirect names the org that was denied
+  // (often not the primary one). Everything on this page targets that org.
+  const orgId = searchParams.get('organization_id') || undefined;
   const isExpired =
     reason === 'trial_expired' || reason === 'expired' || subStatus?.status === 'expired';
   const isCancelled = reason === 'cancelled' || subStatus?.status === 'cancelled';
@@ -65,7 +68,7 @@ export default function SubscribePage() {
       try {
         const [plansList, status] = await Promise.allSettled([
           getSubscriptionPlans(),
-          getSubscriptionStatus(),
+          getSubscriptionStatus(orgId),
         ]);
 
         if (plansList.status === 'fulfilled') {
@@ -97,7 +100,8 @@ export default function SubscribePage() {
 
   const handleSubscribe = () => {
     if (!selectedPlan) return;
-    router.push(`/billing/checkout?plan=${selectedPlan}&cycle=${billingCycle}`);
+    const org = orgId ? `&organization_id=${orgId}` : '';
+    router.push(`/billing/checkout?plan=${selectedPlan}&cycle=${billingCycle}${org}`);
   };
 
   const fmtPrice = (price: string) =>

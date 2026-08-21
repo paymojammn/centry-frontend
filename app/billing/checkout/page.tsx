@@ -38,6 +38,8 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const planCode = searchParams.get('plan') || 'sme';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
+  // Per-org billing: carried from the paywall redirect via /billing/subscribe.
+  const orgId = searchParams.get('organization_id') || undefined;
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
   const [methods, setMethods] = useState<BillingPaymentMethod[]>([]);
@@ -92,7 +94,10 @@ export default function CheckoutPage() {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(parseFloat(p));
 
   const goManual = () =>
-    router.push(`/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}`);
+    router.push(
+      `/billing/checkout/manual?plan=${planCode}&cycle=${billingCycle}` +
+        (orgId ? `&organization_id=${orgId}` : '')
+    );
 
   const handleMethodSelect = (method: BillingPaymentMethod) => {
     setSelectedMethod(method);
@@ -119,7 +124,8 @@ export default function CheckoutPage() {
     try {
       const result = await startCheckout(
         plan.code, billingCycle, method.code,
-        method.requires_phone ? phone : undefined
+        method.requires_phone ? phone : undefined,
+        orgId
       );
       setSession(result);
 
