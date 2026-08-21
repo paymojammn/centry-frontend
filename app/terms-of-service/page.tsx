@@ -337,11 +337,11 @@ const sections: LegalSection[] = [
     title: 'Governing Law and Disputes',
     content: (
       <p>
-        These terms are governed by the laws of the jurisdiction in which {BRAND.legalName} is
-        incorporated, without regard to conflict-of-laws principles. The parties will first attempt
-        in good faith to resolve any dispute informally by contacting us. Any dispute not resolved
-        within 30 days shall be subject to the exclusive jurisdiction of the courts of that
-        jurisdiction, unless mandatory law provides otherwise. You and we each waive any right to a
+        These terms are governed by the laws of {BRAND.legal.governingLaw}, without regard to
+        conflict-of-laws principles. The parties will first attempt in good faith to resolve any
+        dispute informally by contacting us. Any dispute not resolved within 30 days shall be
+        subject to the exclusive jurisdiction of the courts of {BRAND.legal.governingLaw}, unless
+        mandatory law provides otherwise. You and we each waive any right to a
         class action to the extent permitted by law.
       </p>
     ),
