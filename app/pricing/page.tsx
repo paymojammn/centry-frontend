@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BRAND } from '@/config/brand';
+import { BRAND, copyrightLine } from '@/config/brand';
 import { getSubscriptionPlans, SubscriptionPlan } from '@/lib/billing-api';
 import { RiCheckLine, RiArrowRightLine, RiQuestionLine } from '@remixicon/react';
 
@@ -521,7 +521,7 @@ export default function PricingPage() {
               <Link href={`mailto:${BRAND.email.support}`} className="hover:text-foreground">Support</Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} {BRAND.name}. All rights reserved.
+              {copyrightLine()}
             </p>
           </div>
         </div>
