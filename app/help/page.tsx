@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { BRAND } from '@/config/brand';
+import { BRAND, copyrightLine } from '@/config/brand';
 import {
   RiRocketLine,
   RiBankCardLine,
@@ -453,7 +453,7 @@ export default function HelpCenterPage() {
             <a href={`mailto:${BRAND.email.support}`} className="hover:text-foreground">Support</a>
           </div>
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {BRAND.legalName} All rights reserved.
+            {copyrightLine()}
           </p>
         </div>
       </footer>

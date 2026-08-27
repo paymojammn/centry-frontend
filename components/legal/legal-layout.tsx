@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { RiArrowLeftLine } from '@remixicon/react';
-import { BRAND } from '@/config/brand';
+import { BRAND, copyrightLine } from '@/config/brand';
 
 export type LegalSection = {
   id: string;
@@ -140,7 +140,7 @@ export function LegalLayout({
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} {BRAND.name}. All rights reserved.
+                {copyrightLine()}
               </p>
             </div>
           </main>
