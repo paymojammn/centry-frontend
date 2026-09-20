@@ -42,7 +42,8 @@ export function useBankBranches(bankId: number | undefined) {
     queryKey: ['bank-branches', bankId],
     queryFn: () => contactsApi.getBankBranches(bankId!),
     enabled: !!bankId,
-    staleTime: 60 * 60 * 1000,
+    // Branches can be added from Banking → Banks & Branches by another user.
+    staleTime: 10 * 60 * 1000,
   });
 }
 
