@@ -4,8 +4,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Building2, Globe, ChevronDown, Check, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { paymentSourcesApi, type BankBranch } from '@/lib/payment-sources-api';
-import { contactsApi, type ContactBankAccount } from '@/lib/contacts-api';
+import { paymentSourcesApi } from '@/lib/payment-sources-api';
+import { contactsApi, type ContactBankAccount, type BankBranchOption } from '@/lib/contacts-api';
+import { useBankBranches, useBankCountries } from '@/hooks/use-contacts';
 import { useOzowBanks } from '@/hooks/use-ozow';
 import { useOneGatePayoutMethods, useOneGatePayoutBanks } from '@/hooks/use-onegate';
 import { Input } from '@/components/ui/input';
@@ -208,7 +209,7 @@ function SearchableSelect({
 /* ------------------------------------------------------------------ */
 /*  Branch selector — fetches per-bank, auto-picks head-office          */
 /* ------------------------------------------------------------------ */
-function formatBranchLabel(b: BankBranch): string {
+function formatBranchLabel(b: BankBranchOption): string {
   const name = b.branch_name?.trim() || 'Branch';
   return `${name} — ${b.branch_code}`;
 }
@@ -230,14 +231,9 @@ function BranchSelector({
    */
   optional?: boolean;
 }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ['bank-branches', bankId],
-    queryFn: () => paymentSourcesApi.getBankBranches(bankId),
-    enabled: !!bankId,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const branches = data?.branches || [];
+  // Shared with the vendor bank-accounts form: both cache under
+  // ['bank-branches', bankId], so they must agree on the cached shape.
+  const { data: branches = [], isLoading } = useBankBranches(bankId);
 
   // Auto-pick head-office for the selected bank when nothing is chosen yet.
   // Skipped for the optional/international flow — picking a UG head-office
@@ -494,11 +490,7 @@ export default function RecipientDetailsStep({
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: countriesData } = useQuery({
-    queryKey: ['bank-countries'],
-    queryFn: () => paymentSourcesApi.getBankCountries(),
-    staleTime: 30 * 60 * 1000,
-  });
+  const { data: countries = [] } = useBankCountries();
 
   // Build searchable option lists
   const bankOptions = useMemo(() => {
@@ -511,12 +503,11 @@ export default function RecipientDetailsStep({
   }, [banksData]);
 
   const countryOptions = useMemo(() => {
-    if (!countriesData?.countries) return [];
-    return countriesData.countries.map((c: any) => ({
+    return countries.map((c) => ({
       value: c.code,
       label: c.name,
     }));
-  }, [countriesData]);
+  }, [countries]);
 
   const update = (billId: number, fields: Partial<RecipientDetails>) => {
     const updated = new Map(recipients);
@@ -655,7 +646,7 @@ export default function RecipientDetailsStep({
 
   const getCountryDisplay = (code?: string) => {
     if (!code) return '';
-    const c = countriesData?.countries?.find((c: any) => c.code === code);
+    const c = countries.find((c) => c.code === code);
     return c?.name || code;
   };
 
