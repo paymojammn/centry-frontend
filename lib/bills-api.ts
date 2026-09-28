@@ -28,6 +28,13 @@ const XERO_BILLS_BASE_URL = '/api/v1/xero/bills';
 const PAYMENTS_BASE_URL = '/api/v1/xero/payments';
 const BANK_EXPORT_BASE_URL = '/api/v1/banking/exports/';
 
+export interface GeneratePaymentFileOptions {
+  /** Requested value date, YYYY-MM-DD. */
+  executionDate?: string | null;
+  /** Queue an SFTP upload immediately after generation. */
+  upload?: boolean;
+}
+
 export const billsApi = {
   /**
    * Get all bills with optional filters
@@ -268,7 +275,8 @@ export const paymentEventsApi = {
   async generatePaymentFile(
     paymentEventIds: number[],
     sourceBankAccountId: number,
-    fileFormat: 'csv' | 'xml' = 'xml'
+    fileFormat: 'csv' | 'xml' = 'xml',
+    options: GeneratePaymentFileOptions = {}
   ): Promise<GenerateFileResponse> {
     return await api.post<GenerateFileResponse>(
       `${PAYMENTS_BASE_URL}/generate-file/`,
@@ -276,6 +284,10 @@ export const paymentEventsApi = {
         payment_event_ids: paymentEventIds,
         source_bank_account_id: sourceBankAccountId,
         file_format: fileFormat,
+        // Value date (ReqdExctnDt). Omitted → earliest the bank will honour.
+        execution_date: options.executionDate || undefined,
+        // Hand the file to the bank's SFTP straight away.
+        upload: options.upload || undefined,
       }
     );
   },

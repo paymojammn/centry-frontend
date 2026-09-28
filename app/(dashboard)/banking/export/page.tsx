@@ -32,6 +32,7 @@ import { PILL_COLORS } from "@/lib/theme";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
 import { useHasPermission } from "@/hooks/use-user";
+import { parseIsoDate } from "@/lib/value-date";
 
 // ============================================================
 // Status styles for export files
@@ -44,6 +45,7 @@ const FILE_STATUS_STYLES: Record<string, string> = {
   uploaded: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   processed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   failed: "bg-red-500/10 text-red-700 border-red-500/20",
+  superseded: "bg-muted text-muted-foreground border-border",
 };
 
 const FILE_STATUS_LABELS: Record<string, string> = {
@@ -53,7 +55,17 @@ const FILE_STATUS_LABELS: Record<string, string> = {
   uploaded: "Uploaded",
   processed: "Processed",
   failed: "Failed",
+  superseded: "Superseded",
 };
+
+function formatValueDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return parseIsoDate(iso).toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 // ============================================================
 // Page
@@ -277,6 +289,7 @@ export default function BankingExportPage() {
                   { value: "uploaded", label: "Uploaded", count: fileStatusCount("uploaded") },
                   { value: "processed", label: "Processed", count: fileStatusCount("processed") },
                   { value: "failed", label: "Failed", count: fileStatusCount("failed") },
+                  { value: "superseded", label: "Superseded", count: fileStatusCount("superseded") },
                 ]).map((p) => {
                   const active = fileStatusFilter === p.value;
                   const color = p.value === "all" ? undefined : PILL_COLORS[p.value];
@@ -362,8 +375,9 @@ export default function BankingExportPage() {
                 <>
                   <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
                     <div className="col-span-2">Date</div>
-                    <div className="col-span-3">Filename</div>
+                    <div className="col-span-2">Filename</div>
                     <div className="col-span-1">Account</div>
+                    <div className="col-span-1">Value date</div>
                     <div className="col-span-1 text-center">Payments</div>
                     <div className="col-span-1 text-right">Ccy</div>
                     <div className="col-span-2 text-right">Amount</div>
@@ -382,7 +396,7 @@ export default function BankingExportPage() {
                             {format(new Date(e.created_at), "HH:mm")}
                           </p>
                         </div>
-                        <div className="col-span-3 min-w-0">
+                        <div className="col-span-2 min-w-0">
                           <p className="text-foreground truncate">
                             {e.file_name || "—"}
                           </p>
@@ -390,12 +404,25 @@ export default function BankingExportPage() {
                             {e.file_size
                               ? `${(e.file_size / 1024).toFixed(1)} KB`
                               : "—"}
+                            {e.superseded_by ? ` · replaced by #${e.superseded_by}` : ""}
                           </p>
                         </div>
                         <div className="col-span-1 min-w-0">
                           <p className="text-[12px] text-muted-foreground truncate">
                             {e.bank_account?.account_name || "—"}
                           </p>
+                        </div>
+                        <div
+                          className={`col-span-1 tabular-nums ${
+                            e.value_date_passed ? "text-red-700" : "text-foreground"
+                          }`}
+                          title={
+                            e.value_date_passed
+                              ? `Value date passed — regenerate from the Pay tab (earliest now ${e.earliest_value_date})`
+                              : undefined
+                          }
+                        >
+                          {formatValueDate(e.requested_execution_date)}
                         </div>
                         <div className="col-span-1 text-center">
                           <span className="tabular-nums text-foreground">
