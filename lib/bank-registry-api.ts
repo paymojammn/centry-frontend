@@ -52,6 +52,12 @@ export interface RegistryBank {
   swift_code: string;
   bank_type: BankType;
   is_active: boolean;
+  /** Bank-local time (HH:MM[:SS]) after which same-day value is unavailable; null = no cutoff. */
+  payment_cutoff_time: string | null;
+  /** IANA timezone for the cutoff; empty = country default. */
+  timezone: string;
+  /** Business days the bank needs between file submission and value date. */
+  processing_days: number;
   branch_count: number;
 }
 
@@ -63,6 +69,9 @@ export interface RegistryBankInput {
   swift_code?: string;
   bank_type?: BankType;
   is_active?: boolean;
+  payment_cutoff_time?: string | null;
+  timezone?: string;
+  processing_days?: number;
 }
 
 export interface RegistryBranch {
