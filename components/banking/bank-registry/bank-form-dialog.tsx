@@ -43,6 +43,9 @@ const emptyForm = (country = '') => ({
   swift_code: '',
   bank_type: 'commercial' as BankType,
   is_active: true,
+  payment_cutoff_time: '',
+  timezone: '',
+  processing_days: '0',
 });
 
 export function BankFormDialog({ open, onClose, bank, countries, defaultCountry, onSaved }: Props) {
@@ -61,6 +64,9 @@ export function BankFormDialog({ open, onClose, bank, countries, defaultCountry,
             swift_code: bank.swift_code,
             bank_type: bank.bank_type,
             is_active: bank.is_active,
+            payment_cutoff_time: (bank.payment_cutoff_time || '').slice(0, 5),
+            timezone: bank.timezone || '',
+            processing_days: String(bank.processing_days ?? 0),
           }
         : emptyForm(defaultCountry),
     );
@@ -68,14 +74,28 @@ export function BankFormDialog({ open, onClose, bank, countries, defaultCountry,
 
   const swift = form.swift_code.replace(/\s/g, '').toUpperCase();
   const swiftInvalid = !!swift && !SWIFT_RE.test(swift);
-  const canSave = !!form.country && !!form.name.trim() && !swiftInvalid && !isPending;
+  const processingDays = Number(form.processing_days);
+  const processingDaysInvalid =
+    form.processing_days.trim() === '' || !Number.isInteger(processingDays) || processingDays < 0;
+  const canSave =
+    !!form.country && !!form.name.trim() && !swiftInvalid && !processingDaysInvalid && !isPending;
   const countryName = countries.find((c) => c.code === form.country)?.name || '';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
     mutate(
-      { id: bank?.id, data: { ...form, name: form.name.trim(), swift_code: swift } },
+      {
+        id: bank?.id,
+        data: {
+          ...form,
+          name: form.name.trim(),
+          swift_code: swift,
+          payment_cutoff_time: form.payment_cutoff_time || null,
+          timezone: form.timezone.trim(),
+          processing_days: processingDays,
+        },
+      },
       {
         onSuccess: (saved) => {
           toast.success(isEdit ? `${saved.name} updated` : `${saved.name} added to ${saved.country_name}`);
@@ -174,6 +194,58 @@ export function BankFormDialog({ open, onClose, bank, countries, defaultCountry,
             options={Object.entries(BANK_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
             onSelect={(v) => setForm((f) => ({ ...f, bank_type: v as BankType }))}
           />
+
+          <div className="rounded-lg border border-border p-3 space-y-3">
+            <div>
+              <p className="text-sm text-foreground">Payment file value dates</p>
+              <p className="text-[11px] text-muted-foreground">
+                Files generated after the cutoff are dated the next business day, so the bank
+                does not reject them for a value date in the past.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="bank-cutoff" className="text-xs font-medium text-muted-foreground">
+                  Same-day cutoff
+                </Label>
+                <Input
+                  id="bank-cutoff"
+                  type="time"
+                  value={form.payment_cutoff_time}
+                  onChange={(e) => setForm((f) => ({ ...f, payment_cutoff_time: e.target.value }))}
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="bank-timezone" className="text-xs font-medium text-muted-foreground">
+                  Timezone <span className="text-muted-foreground/40">(optional)</span>
+                </Label>
+                <Input
+                  id="bank-timezone"
+                  value={form.timezone}
+                  onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
+                  placeholder="Africa/Kampala"
+                  maxLength={64}
+                  className="h-10 font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="bank-processing-days" className="text-xs font-medium text-muted-foreground">
+                  Processing days
+                </Label>
+                <Input
+                  id="bank-processing-days"
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={form.processing_days}
+                  onChange={(e) => setForm((f) => ({ ...f, processing_days: e.target.value }))}
+                  className="h-10"
+                  aria-invalid={processingDaysInvalid}
+                />
+              </div>
+            </div>
+          </div>
 
           {isEdit && (
             <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5">
