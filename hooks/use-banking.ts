@@ -573,6 +573,15 @@ export interface SFTPTaskStatus {
   };
 }
 
+export type BankPaymentExportStatus =
+  | 'pending'
+  | 'generated'
+  | 'uploading'
+  | 'uploaded'
+  | 'processed'
+  | 'failed'
+  | 'superseded';
+
 export interface BankPaymentExport {
   id: number;
   bank_account: {
@@ -588,10 +597,71 @@ export interface BankPaymentExport {
   total_amount: string;
   currency: string;
   payment_count: number;
-  status: 'pending' | 'generated' | 'uploaded' | 'processed' | 'failed';
+  status: BankPaymentExportStatus;
+  /** Value date (ReqdExctnDt) written into the file, YYYY-MM-DD. */
+  requested_execution_date: string | null;
+  /** True when the bank can no longer honour the file's value date — regenerate, don't upload. */
+  value_date_passed: boolean;
+  /** Earliest value date the bank accepts right now, YYYY-MM-DD. */
+  earliest_value_date: string;
+  /** Set on a superseded export: the regenerated export that replaced it. */
+  superseded_by: number | null;
   sftp_uploaded_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ===========================================
+// Value date (ReqdExctnDt) hooks
+// ===========================================
+
+export type { BankValueDateWindow } from '@/lib/value-date';
+
+/**
+ * Earliest value date the account's bank will accept right now (bank-local
+ * cutoff, weekends, holidays, processing days). Pass `candidate` to have the
+ * backend validate a chosen date too.
+ */
+export function useBankValueDate(bankAccountId?: number | null, candidate?: string | null) {
+  const params = candidate ? `?date=${encodeURIComponent(candidate)}` : '';
+  return useQuery<import('@/lib/value-date').BankValueDateWindow>({
+    queryKey: ['bank-value-date', bankAccountId, candidate || null],
+    queryFn: () => get(`/api/v1/banking/accounts/${bankAccountId}/value-date/${params}`),
+    enabled: !!bankAccountId,
+    // The window changes at the cutoff minute; don't serve a stale "same-day" answer.
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Regenerate a pending/failed export with a fresh value date. The old export
+ * becomes `superseded`; the response carries the new export.
+ */
+export function useRegenerateExport() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    {
+      success: boolean;
+      superseded_export_id: number;
+      export: BankPaymentExport;
+      upload?: { queued: boolean; task_id?: string; reason?: string };
+    },
+    Error,
+    { exportId: number; executionDate?: string | null; upload?: boolean }
+  >({
+    mutationFn: ({ exportId, executionDate, upload }) =>
+      post(`/api/v1/banking/exports/${exportId}/regenerate/`, {
+        execution_date: executionDate || undefined,
+        upload: upload || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-payment-exports'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-events'] });
+      queryClient.invalidateQueries({ queryKey: ['sftp-transfer-logs'] });
+    },
+  });
 }
 
 // ===========================================
@@ -819,6 +889,7 @@ export function useSFTPUpload() {
       payment_instruction_id?: number;
       export_id?: number;
       async_upload?: boolean;
+      force_stale_value_date?: boolean;
     }
   >({
     mutationFn: async (data) => {
