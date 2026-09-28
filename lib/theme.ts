@@ -44,6 +44,7 @@ export const PILL_COLORS: Record<string, string> = {
   generated: '#6B8FB8',
   uploaded: '#2A9D8F',
   processed: '#5C8A65',
+  superseded: '#bec3c6',
 };
 
 // Primary status colors used across bills, payments, and expenses
