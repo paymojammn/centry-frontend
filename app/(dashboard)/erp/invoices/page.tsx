@@ -96,7 +96,7 @@ export default function InvoicesPage() {
       (o: any) => o.permissions?.invoices?.collect === true,
     );
   }, [user]);
-  const { data: erpConnectionsResponse } = useERPConnections();
+  const { data: erpConnectionsResponse } = useERPConnections(selectedOrganizationId || null);
   const { mutate: syncSales, isPending: isSyncing } = useSyncInvoices();
 
   const invoiceFilters = { ...filters, organization: selectedOrganizationId || undefined };
@@ -231,6 +231,13 @@ export default function InvoicesPage() {
   const currentOrg = organizations?.find((o: any) => o.id === selectedOrganizationId);
   const orgCurrency = currentOrg?.primary_currency || currentOrg?.currency || 'UGX';
 
+  // Surface why Sync is unavailable instead of a silent disabled button.
+  const syncDisabledReason = activeConnectionId
+    ? undefined
+    : erpConnections?.some((c: any) => c.organization?.id === selectedOrganizationId)
+      ? 'This organization\'s ERP connection is inactive — reconnect it to sync'
+      : 'No ERP connection for this organization';
+
   const handleSync = () => {
     if (activeConnectionId) syncSales(activeConnectionId);
   };
@@ -287,7 +294,8 @@ export default function InvoicesPage() {
           size="sm"
           onClick={handleSync}
           disabled={isSyncing || !activeConnectionId}
-          className="h-9 btn-press"
+          title={syncDisabledReason}
+          className="h-9 btn-press disabled:pointer-events-auto disabled:cursor-not-allowed"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
           Sync

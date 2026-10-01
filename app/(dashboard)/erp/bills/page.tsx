@@ -187,7 +187,7 @@ export default function BillsPage() {
   // cards don't include collections (IN), matching the processing queue.
   const { data: pipelineStats } = usePaymentPipelineStats(selectedOrganizationId || undefined, 'OUT');
   const { data: billStats } = useBillStats(selectedOrganizationId || undefined);
-  const { data: erpConnectionsResponse } = useERPConnections();
+  const { data: erpConnectionsResponse } = useERPConnections(selectedOrganizationId || null);
   const { mutate: syncBills, isPending: isSyncing } = useSyncBills();
 
   // Defensive dedupe: the backend bills endpoint can echo the same id when
@@ -279,6 +279,13 @@ export default function BillsPage() {
     }
   };
 
+  // Surface why Sync is unavailable instead of a silent disabled button.
+  const syncDisabledReason = activeConnectionId
+    ? undefined
+    : erpConnections?.some((c: any) => c.organization?.id === selectedOrganizationId)
+      ? 'This organization\'s ERP connection is inactive — reconnect it to sync'
+      : 'No ERP connection for this organization';
+
   const handleSyncBills = () => {
     if (activeConnectionId) {
       syncBills(activeConnectionId);
@@ -302,7 +309,8 @@ export default function BillsPage() {
           size="sm"
           onClick={handleSyncBills}
           disabled={isSyncing || !activeConnectionId}
-          className="h-9 btn-press"
+          title={syncDisabledReason}
+          className="h-9 btn-press disabled:pointer-events-auto disabled:cursor-not-allowed"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
           Sync

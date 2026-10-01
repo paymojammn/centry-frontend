@@ -28,10 +28,13 @@ export interface SyncBillsResponse {
 }
 
 /**
- * Get ERP connections for current user's organizations
+ * Get ERP connections for current user's organizations.
+ * Pass organizationId to scope to one org — the unscoped list is paginated
+ * (100/page), so superusers can miss an org's connection without it.
  */
-export async function getERPConnections(): Promise<ERPConnection[]> {
-  return get<ERPConnection[]>('/api/v1/erp/connections/');
+export async function getERPConnections(organizationId?: string): Promise<ERPConnection[]> {
+  const qs = organizationId ? `?organization=${encodeURIComponent(organizationId)}` : '';
+  return get<ERPConnection[]>(`/api/v1/erp/connections/${qs}`);
 }
 
 /**

@@ -8,12 +8,16 @@ import type { ERPConnection, SyncBillsResponse } from '@/lib/erp-api';
 import { toast } from 'sonner';
 
 /**
- * Hook to fetch ERP connections
+ * Hook to fetch ERP connections.
+ * - undefined: all connections the user can see
+ * - string: only that organization's connections
+ * - null: organization not chosen yet — query is held until it is
  */
-export function useERPConnections() {
+export function useERPConnections(organizationId?: string | null) {
   return useQuery({
-    queryKey: ['erp-connections'],
-    queryFn: () => erpApi.getERPConnections(),
+    queryKey: ['erp-connections', organizationId ?? 'all'],
+    queryFn: () => erpApi.getERPConnections(organizationId ?? undefined),
+    enabled: organizationId !== null,
   });
 }
 
