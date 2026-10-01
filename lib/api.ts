@@ -34,6 +34,22 @@ function getCsrfToken(): string | null {
 }
 
 /**
+ * DRF validation errors arrive as `{ field: ["msg", ...] }` with no `detail`.
+ * Flatten them so forms show the real reason instead of "API request failed".
+ */
+function fieldErrorMessage(error: unknown): string {
+  if (!error || typeof error !== 'object') return '';
+  const messages: string[] = [];
+  for (const [field, value] of Object.entries(error as Record<string, unknown>)) {
+    const list = Array.isArray(value) ? value : [value];
+    const text = list.filter((v): v is string => typeof v === 'string').join(' ');
+    if (!text) continue;
+    messages.push(field === 'non_field_errors' ? text : `${field.replace(/_/g, ' ')}: ${text}`);
+  }
+  return messages.join(' · ');
+}
+
+/**
  * Make an authenticated API request
  */
 export async function apiRequest<T>(
@@ -143,7 +159,9 @@ export async function apiRequest<T>(
       return error as T;
     }
 
-    throw new Error(error.detail || error.error || error.message || 'API request failed');
+    throw new Error(
+      error.detail || error.error || error.message || fieldErrorMessage(error) || 'API request failed',
+    );
   }
 
   // Return the appropriate response type

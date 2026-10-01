@@ -83,6 +83,7 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Transactions", path: "/banking/transactions" },
       { title: "Sync to ERP", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
+      { title: "Banks & Branches", path: "/banking/banks" },
     ],
   },
   {
