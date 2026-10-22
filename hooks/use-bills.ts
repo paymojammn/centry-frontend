@@ -139,21 +139,10 @@ export function useGeneratePaymentFile() {
   return useMutation<
     GenerateFileResponse,
     Error,
-    {
-      paymentEventIds: number[];
-      sourceBankAccountId: number;
-      fileFormat: 'csv' | 'xml';
-      /** Value date, YYYY-MM-DD; omit for the earliest the bank will honour. */
-      executionDate?: string | null;
-      /** Queue the SFTP upload right after generating. */
-      upload?: boolean;
-    }
+    { paymentEventIds: number[]; sourceBankAccountId: number; fileFormat: 'csv' | 'xml' }
   >({
-    mutationFn: ({ paymentEventIds, sourceBankAccountId, fileFormat, executionDate, upload }) =>
-      paymentEventsApi.generatePaymentFile(paymentEventIds, sourceBankAccountId, fileFormat, {
-        executionDate,
-        upload,
-      }),
+    mutationFn: ({ paymentEventIds, sourceBankAccountId, fileFormat }) =>
+      paymentEventsApi.generatePaymentFile(paymentEventIds, sourceBankAccountId, fileFormat),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-events'] });
       queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });

@@ -615,28 +615,10 @@ export interface BankPaymentExport {
 // Value date (ReqdExctnDt) hooks
 // ===========================================
 
-export type { BankValueDateWindow } from '@/lib/value-date';
-
-/**
- * Earliest value date the account's bank will accept right now (bank-local
- * cutoff, weekends, holidays, processing days). Pass `candidate` to have the
- * backend validate a chosen date too.
- */
-export function useBankValueDate(bankAccountId?: number | null, candidate?: string | null) {
-  const params = candidate ? `?date=${encodeURIComponent(candidate)}` : '';
-  return useQuery<import('@/lib/value-date').BankValueDateWindow>({
-    queryKey: ['bank-value-date', bankAccountId, candidate || null],
-    queryFn: () => get(`/api/v1/banking/accounts/${bankAccountId}/value-date/${params}`),
-    enabled: !!bankAccountId,
-    // The window changes at the cutoff minute; don't serve a stale "same-day" answer.
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-  });
-}
-
 /**
  * Regenerate a pending/failed export with a fresh value date. The old export
- * becomes `superseded`; the response carries the new export.
+ * becomes `superseded`; the response carries the new export. Used by the Pay
+ * tab's self-healing Upload.
  */
 export function useRegenerateExport() {
   const queryClient = useQueryClient();
@@ -889,7 +871,6 @@ export function useSFTPUpload() {
       payment_instruction_id?: number;
       export_id?: number;
       async_upload?: boolean;
-      force_stale_value_date?: boolean;
     }
   >({
     mutationFn: async (data) => {

@@ -418,7 +418,7 @@ export default function BankingExportPage() {
                           }`}
                           title={
                             e.value_date_passed
-                              ? `Value date passed — regenerate from the Pay tab (earliest now ${e.earliest_value_date})`
+                              ? `The bank can no longer pay on this date. Upload it from the Pay tab and the date moves to ${formatValueDate(e.earliest_value_date)}.`
                               : undefined
                           }
                         >

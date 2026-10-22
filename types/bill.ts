@@ -290,8 +290,6 @@ export interface GenerateFileResponse {
   export_id?: number;
   /** Value date (ReqdExctnDt) written into the file, YYYY-MM-DD. */
   requested_execution_date?: string | null;
-  /** Present when `upload` was requested. */
-  upload?: { queued: boolean; task_id?: string; reason?: string };
   error?: string;
 }
 
