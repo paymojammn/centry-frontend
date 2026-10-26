@@ -3,7 +3,7 @@
 import { use, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { contactsApi } from '@/lib/contacts-api';
+import { contactsApi, type ContactErp } from '@/lib/contacts-api';
 import { useUpdateContactDetails } from '@/hooks/use-contacts';
 import BankAccountsSection from '@/components/vendors/BankAccountsSection';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,18 @@ import { toast } from 'sonner';
 import { LoadingState } from '@/components/layout/loading-state';
 
 interface VendorDetailPageProps {
-  params: Promise<{ id: string }>;
+  /** `erp` is xero | qbo | erpnext; `id` is the row's `detail_ref` from the unified list. */
+  params: Promise<{ erp: string; id: string }>;
+}
+
+const ERP_LABELS: Record<ContactErp, string> = {
+  xero: 'Xero',
+  qbo: 'QuickBooks',
+  erpnext: 'ERPNext',
+};
+
+function isContactErp(value: string): value is ContactErp {
+  return value in ERP_LABELS;
 }
 
 function getContactInitials(name: string): string {
@@ -49,15 +60,21 @@ function formatDate(d: string | null | undefined): string {
 
 export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   const router = useRouter();
-  const { id } = use(params);
+  const { erp: rawErp, id } = use(params);
+  const erp: ContactErp | null = isContactErp(rawErp) ? rawErp : null;
+  const erpLabel = erp ? ERP_LABELS[erp] : 'ERP';
 
   const { data: contact, isLoading, error } = useQuery({
-    queryKey: ['contact', id],
-    queryFn: () => contactsApi.getContact(Number(id)),
+    queryKey: ['contact', erp, id],
+    queryFn: () => contactsApi.getContactByErp(erp!, id),
+    enabled: erp !== null,
     retry: 1,
   });
 
-  const updateDetails = useUpdateContactDetails(Number(id));
+  // Phone / email edits go through the (mirrored) XeroContact; ERPNext rows
+  // have none, so the Edit button is hidden for them.
+  const updateDetails = useUpdateContactDetails(contact?.xero_contact_id ?? 0);
+  const canEditDetails = !!contact?.xero_contact_id;
   const [editingInfo, setEditingInfo] = useState(false);
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
@@ -86,13 +103,13 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
     toast.success(`${label} copied to clipboard`);
   };
 
-  if (isLoading) {
+  if (erp !== null && isLoading) {
     return (
       <LoadingState fullPage />
     );
   }
 
-  if (error || !contact) {
+  if (erp === null || error || !contact) {
     return (
       <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
         <div className="text-center">
@@ -160,15 +177,13 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
             <div className="flex items-center gap-3 shrink-0">
               {typeBadge}
               {statusBadge}
-              <Button variant="outline" size="sm" className="h-9" asChild>
-                <a
-                  href={`https://go.xero.com/Contacts/View/${contact.contact_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" /> View in Xero
-                </a>
-              </Button>
+              {contact.external_url && (
+                <Button variant="outline" size="sm" className="h-9" asChild>
+                  <a href={contact.external_url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" /> View in {erpLabel}
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -187,7 +202,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                   </span>
                   Contact information
                 </h2>
-                {!editingInfo && (
+                {!editingInfo && canEditDetails && (
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={startEdit}>
                     <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                   </Button>
@@ -292,8 +307,8 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
               )}
             </div>
 
-            {/* Bank accounts */}
-            <BankAccountsSection contactId={contact.id} />
+            {/* Bank accounts — owner is the XeroContact (Xero / QBO mirror) or the ERPNext supplier */}
+            <BankAccountsSection owner={contact.bank_accounts_owner} />
           </div>
 
           {/* Sidebar */}
@@ -328,15 +343,15 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
               </div>
             </div>
 
-            {/* Xero reference */}
+            {/* ERP reference */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <p className="text-xs text-muted-foreground mb-1.5">Xero Contact ID</p>
+              <p className="text-xs text-muted-foreground mb-1.5">{erpLabel} reference</p>
               <div className="flex items-center gap-2">
                 <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded font-mono truncate flex-1">
-                  {contact.contact_id}
+                  {contact.external_ref || contact.contact_id}
                 </code>
                 <button
-                  onClick={() => copyToClipboard(contact.contact_id, 'Contact ID')}
+                  onClick={() => copyToClipboard(contact.external_ref || contact.contact_id, `${erpLabel} reference`)}
                   className="text-muted-foreground/60 hover:text-foreground"
                   aria-label="Copy contact ID"
                 >

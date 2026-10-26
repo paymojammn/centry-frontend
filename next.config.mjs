@@ -25,6 +25,9 @@ const nextConfig = {
       { source: '/invoices/:id*', destination: '/erp/invoices/:id*', permanent: true },
       { source: '/vendors', destination: '/erp/vendors', permanent: true },
       { source: '/vendors/:id*', destination: '/erp/vendors/:id*', permanent: true },
+      // Vendor detail is routed by ERP now (/erp/vendors/<erp>/<id>). The old
+      // integer path was always a Xero / QBO-mirrored contact.
+      { source: '/erp/vendors/:id(\\d+)', destination: '/erp/vendors/xero/:id', permanent: false },
     ];
   },
 

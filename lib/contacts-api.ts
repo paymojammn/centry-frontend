@@ -17,8 +17,12 @@ export interface ContactPhone {
   country_code: string | null;
 }
 
+/** Which ERP a unified contact row came from. */
+export type ContactErp = 'xero' | 'qbo' | 'erpnext';
+
 export interface Contact {
-  id: number;
+  /** Row id — integer pk for Xero / QBO rows, UUID string for ERPNext. */
+  id: number | string;
   contact_id: string;
   name: string;
   email_address: string | null;
@@ -32,9 +36,33 @@ export interface Contact {
   created_at: string;
   updated_utc: string | null;
   /** Which ERP the contact came from (unified list only). */
-  provider?: 'xero' | 'qbo' | 'erpnext';
+  provider?: ContactErp;
+  /** Same as `provider`; paired with `detail_ref` for the detail route. */
+  erp?: ContactErp;
+  /** Id to use on `/erp/contacts/<erp>/<detail_ref>/` and `/erp/vendors/<erp>/<detail_ref>`. */
+  detail_ref?: string;
   /** 'complete' when a payable bank / mobile-money account is on file. */
   bank_details_status?: 'complete' | 'missing' | null;
+}
+
+/** Provider-neutral contact detail (`GET /api/v1/erp/contacts/<erp>/<ref>/`). */
+export interface ContactDetail extends Contact {
+  erp: ContactErp;
+  detail_ref: string;
+  /** The ERP's own identifier (Xero GUID, QBO Id, ERPNext doc name). */
+  external_ref: string;
+  /** Owner key for the saved payout accounts endpoint. */
+  bank_accounts_owner: BankAccountOwner;
+  /** XeroContact pk when phone / email can be edited in Centry; null for ERPNext. */
+  xero_contact_id: number | null;
+  /** Deep link into the ERP, when one exists. */
+  external_url: string | null;
+}
+
+/** Route to a contact's detail page; falls back to Xero for legacy rows. */
+export function vendorDetailPath(contact: Pick<Contact, 'id' | 'erp' | 'provider' | 'detail_ref'>): string {
+  const erp = contact.erp ?? contact.provider ?? 'xero';
+  return `/erp/vendors/${erp}/${contact.detail_ref ?? contact.id}`;
 }
 
 export interface ContactsResponse {
@@ -187,6 +215,13 @@ export const contactsApi = {
       `${XERO_BASE_URL}/contacts/${id}/`
     );
     return response;
+  },
+
+  /** One contact from any ERP, with the owner key for its saved accounts. */
+  async getContactByErp(erp: ContactErp, ref: string): Promise<ContactDetail> {
+    return await api.get<ContactDetail>(
+      `${UNIFIED_CONTACTS_URL}/${erp}/${encodeURIComponent(ref)}/`,
+    );
   },
 
   /** Update editable contact fields (phone, email) in Centry. */

@@ -87,7 +87,8 @@ export function useUpdateContactDetails(contactId: number) {
   return useMutation<Contact, Error, { phone?: string; email_address?: string | null }>({
     mutationFn: (data) => contactsApi.updateContactDetails(contactId, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['contact', contactId] });
+      // Covers both ['contact', id] and the ERP-routed ['contact', erp, ref] detail.
+      qc.invalidateQueries({ queryKey: ['contact'] });
       qc.invalidateQueries({ queryKey: ['contacts'] });
     },
   });
