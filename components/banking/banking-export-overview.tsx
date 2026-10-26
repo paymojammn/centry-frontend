@@ -95,11 +95,8 @@ export function BankingExportOverview({
 
   return (
     <div className="space-y-8">
-      {/* ─── Section 1: Bank files ─── */}
+      {/* ─── Section 1: summary tiles ─── */}
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-          Bank files
-        </h2>
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <MetricTile
             label="Outbox"
