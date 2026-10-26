@@ -248,14 +248,9 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
             <button
               key={p.value}
               onClick={() => setStatusFilter(p.value)}
-              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                active
-                  ? p.color
-                    ? "text-white"
-                    : "bg-foreground text-card"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
               }`}
-              style={active && p.color ? { backgroundColor: p.color } : undefined}
             >
               {p.label} ({p.count})
             </button>

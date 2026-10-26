@@ -429,7 +429,7 @@ export default function BankReconciliationPage() {
         </div>
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-5">
+      <div className="px-6 py-6 space-y-5">
         {/* Summary KPI tiles — clickable to filter the grid by status.
             Active tile gets a primary ring on top of the tone stripe so
             the filter state is visible. */}
@@ -520,14 +520,9 @@ export default function BankReconciliationPage() {
               <button
                 key={p.value}
                 onClick={() => setStatusFilter(p.value)}
-                className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                  active
-                    ? p.color
-                      ? "text-white"
-                      : "bg-foreground text-card"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                 }`}
-                style={active && p.color ? { backgroundColor: p.color } : undefined}
               >
                 {p.label} ({p.count})
               </button>
@@ -546,8 +541,8 @@ export default function BankReconciliationPage() {
               <button
                 key={p.value}
                 onClick={() => setSyncedFilter(p.value)}
-                className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                  active ? "bg-foreground text-card" : "bg-muted text-muted-foreground hover:text-foreground"
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                 }`}
               >
                 {p.label}
@@ -611,7 +606,7 @@ export default function BankReconciliationPage() {
         </div>
 
           {isLoading ? (
-            <div className="p-6 space-y-3">
+            <div className="px-6 py-6 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-11 w-full rounded-lg" />
               ))}

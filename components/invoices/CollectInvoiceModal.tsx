@@ -213,7 +213,7 @@ export default function CollectInvoiceModal({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-card rounded-2xl shadow-xl ring-1 ring-foreground/10 w-full max-w-lg mx-4 max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header — charcoal (sidebar) bar + white text, minimalist */}
-        <div className="shrink-0 bg-foreground text-background">
+        <div className="shrink-0 bg-forest text-white">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3 min-w-0">
               {step !== 'source' && step !== 'result' && (
@@ -262,7 +262,7 @@ export default function CollectInvoiceModal({
                       isDone
                         ? 'bg-primary text-primary-foreground'
                         : isActive
-                          ? 'bg-foreground text-background'
+                          ? 'bg-forest text-white'
                           : 'bg-muted text-muted-foreground/60'
                     }`}>
                       {isDone ? <CheckCircle className="w-3 h-3" /> : i + 1}
@@ -357,7 +357,7 @@ export default function CollectInvoiceModal({
                 ))}
               </div>
               {/* Total — charcoal anchor bar */}
-              <div className="flex items-center justify-between rounded-xl bg-foreground px-4 py-3.5 text-background">
+              <div className="flex items-center justify-between rounded-xl bg-forest px-4 py-3.5 text-white">
                 <span className="text-[11px] uppercase tracking-wider font-medium text-background/55">Total to collect</span>
                 <span className="text-xl font-medium tabular-nums">
                   <span className="text-xs font-normal text-background/55 mr-1">{currency}</span>
@@ -388,14 +388,14 @@ export default function CollectInvoiceModal({
                         <button
                           type="button"
                           onClick={() => { setFxMode('auto'); setFxConfirmed(false); }}
-                          className={`px-2.5 py-1 transition-colors ${fxMode === 'auto' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-2.5 py-1 transition-colors ${fxMode === 'auto' ? 'bg-forest text-white font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           Auto rate
                         </button>
                         <button
                           type="button"
                           onClick={() => { setFxMode('manual'); setFxConfirmed(false); }}
-                          className={`px-2.5 py-1 border-l border-border transition-colors ${fxMode === 'manual' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-2.5 py-1 border-l border-border transition-colors ${fxMode === 'manual' ? 'bg-forest text-white font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           My own rate
                         </button>

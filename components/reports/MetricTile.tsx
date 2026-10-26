@@ -32,49 +32,19 @@ interface MetricTileProps {
   onClick?: () => void;
 }
 
-// Single source of truth for card visuals across the app. The 4-px left
-// stripe is the "cute" accent the rest of the UI matches (StatCard wraps
-// this component to inherit the same look).
-const TONE_STYLES: Record<
-  Tone,
-  { accent: string; spark: string; iconBg: string; iconColor: string }
-> = {
-  default: {
-    accent: "border-l-4 border-l-muted-foreground/25",
-    spark: "rgb(var(--muted-foreground))",
-    iconBg: "bg-muted/60",
-    iconColor: "text-muted-foreground",
-  },
-  accent: {
-    accent: "border-l-4 border-l-primary",
-    spark: "rgb(var(--brand-primary))",
-    iconBg: "bg-primary/10",
-    iconColor: "text-primary",
-  },
-  success: {
-    accent: "border-l-4 border-l-success-500",
-    spark: "var(--color-success)",
-    iconBg: "bg-success-500/10",
-    iconColor: "text-success-600",
-  },
-  warning: {
-    accent: "border-l-4 border-l-warning-500",
-    spark: "var(--color-warning)",
-    iconBg: "bg-warning-500/10",
-    iconColor: "text-warning-600",
-  },
-  danger: {
-    accent: "border-l-4 border-l-danger-500",
-    spark: "var(--color-danger)",
-    iconBg: "bg-danger-500/10",
-    iconColor: "text-danger-600",
-  },
-  info: {
-    accent: "border-l-4 border-l-info-500",
-    spark: "var(--color-info)",
-    iconBg: "bg-info-500/10",
-    iconColor: "text-info-600",
-  },
+// Single source of truth for summary-card visuals across the app (StatCard
+// wraps this component, so ~37 pages inherit it). Minimal by design: a quiet
+// paper card, and the tone shows only as a 6px dot beside the label and the
+// sparkline colour — no stripes, no tinted icon chips.
+const TONE_STYLES: Record<Tone, { dot: string; spark: string }> = {
+  // `accent` keeps the neutral dot too: only attention states (warning /
+  // danger / success / info) earn a coloured dot, exactly as on the dashboard.
+  default: { dot: "bg-neutral-300", spark: "var(--muted-foreground)" },
+  accent: { dot: "bg-neutral-300", spark: "var(--primary)" },
+  success: { dot: "bg-success", spark: "var(--color-success)" },
+  warning: { dot: "bg-warning", spark: "var(--color-warning)" },
+  danger: { dot: "bg-danger", spark: "var(--color-danger)" },
+  info: { dot: "bg-info", spark: "var(--color-info)" },
 };
 
 export function MetricTile({
@@ -108,28 +78,20 @@ export function MetricTile({
       {...(onClick ? { type: "button", onClick } : {})}
       className={cn(
         "group relative rounded-xl border border-border bg-card overflow-hidden text-left w-full",
-        "transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5",
-        onClick && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-        styles.accent,
+        "transition-colors duration-200",
+        onClick &&
+          "cursor-pointer hover:border-forest/25 hover:bg-background focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         className
       )}
     >
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {/* Always present so headings align across a row; neutral when untoned. */}
+            <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full shrink-0", styles.dot)} />
             {label}
           </p>
-          {Icon && (
-            <div
-              className={cn(
-                "p-1.5 rounded-lg shrink-0",
-                styles.iconBg,
-                styles.iconColor
-              )}
-            >
-              <Icon className="h-4 w-4" />
-            </div>
-          )}
+          {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground/50" />}
         </div>
         <div className="mt-2.5 flex items-baseline gap-2">
           <p className="text-2xl font-semibold text-foreground tabular-nums tracking-tight">

@@ -23,7 +23,6 @@ import {
   RefreshCw,
   AlertTriangle,
   Clock,
-  Loader2,
   Calendar,
   Wallet,
   ChevronRight,
@@ -38,12 +37,13 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
-import { STATUS_COLORS, PILL_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 import { useCurrentUser } from '@/hooks/use-user';
 import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
 import CollectionsQueue from '@/components/invoices/CollectionsQueue';
 import { CreditCard } from 'lucide-react';
 import type { Invoice, InvoiceFilters } from '@/lib/invoices-api';
+import { LoadingState } from '@/components/layout/loading-state';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -376,7 +376,6 @@ export default function InvoicesPage() {
                       onClick={() => setIsCollectModalOpen(true)}
                       size="sm"
                       className="w-full text-white btn-press hover:opacity-90"
-                      style={{ backgroundColor: 'var(--foreground)' }}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Collect Payment
@@ -398,8 +397,8 @@ export default function InvoicesPage() {
               <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setFilters({ ...filters, status: 'all' })}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                    (filters.status || 'all') === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    (filters.status || 'all') === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                   }`}
                 >
                   All ({invoiceStats?.total_invoices ?? 0})
@@ -415,10 +414,9 @@ export default function InvoicesPage() {
                     <button
                       key={p.value}
                       onClick={() => setFilters({ ...filters, status: p.value })}
-                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                        active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                       }`}
-                      style={active ? { backgroundColor: PILL_COLORS[p.value] } : undefined}
                     >
                       {p.label} ({p.count ?? 0})
                     </button>
@@ -437,9 +435,7 @@ export default function InvoicesPage() {
 
               {/* Table */}
               {isLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-                </div>
+                <LoadingState />
               ) : error ? (
                 <div className="text-center py-16">
                   <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />
@@ -574,8 +570,7 @@ export default function InvoicesPage() {
                                 {canCollect && isCollectable && (
                                   <Button
                                     size="sm"
-                                    className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
-                                    style={{ backgroundColor: 'var(--foreground)' }}
+                                    className="h-7 px-2.5 text-xs font-normal"
                                     onClick={() => {
                                       setSelectedInvoices(new Set([inv.id]));
                                       setIsCollectModalOpen(true);

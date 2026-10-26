@@ -18,14 +18,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/layout/page-header";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -281,7 +273,7 @@ export default function SecurityPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-md grid-cols-3 bg-card rounded-xl border border-border/80 shadow-sm p-1">
+        <TabsList className="grid w-full max-w-md grid-cols-3 bg-card rounded-xl border border-border shadow-sm p-1">
           <TabsTrigger value="sessions" className="flex items-center gap-2 btn-press data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
             <Monitor className="h-4 w-4" />
             Sessions
@@ -400,39 +392,39 @@ export default function SecurityPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Device</TableHead>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <table className="table-professional">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Device</th>
+                    <th>IP Address</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {historyLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                    <tr>
+                      <td colSpan={5} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
                           Loading...
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : loginHistory.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                    <tr>
+                      <td colSpan={5} className="text-center py-8">
                         <History className="h-12 w-12 text-muted-foreground/40 mx-auto" />
                         <p className="text-muted-foreground mt-2">No login history yet</p>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : (
                     loginHistory.map((item) => {
                       const authBadge = getAuthMethodBadge(item.auth_method);
                       return (
-                        <TableRow key={item.id} className="row-interactive">
-                          <TableCell>
+                        <tr key={item.id} className="row-interactive">
+                          <td>
                             <div>
                               <p className="font-medium text-foreground">
                                 {format(new Date(item.timestamp), "MMM dd, yyyy")}
@@ -441,25 +433,25 @@ export default function SecurityPage() {
                                 {format(new Date(item.timestamp), "HH:mm:ss")}
                               </p>
                             </div>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             <div className="flex items-center gap-2">
                               {getDeviceIcon(item.device_type)}
                               <span className="text-foreground">{item.device_name}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-muted-foreground/60" />
                               <span className="font-mono text-sm">{item.ip_address}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             <Badge className={authBadge.className}>
                               {authBadge.label}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             {item.success ? (
                               <div className="flex items-center gap-2 text-primary">
                                 <CheckCircle2 className="h-4 w-4" />
@@ -471,13 +463,13 @@ export default function SecurityPage() {
                                 <span title={item.failure_reason}>Failed</span>
                               </div>
                             )}
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       );
                     })
                   )}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </Card>
         </TabsContent>
@@ -684,44 +676,44 @@ export default function SecurityPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Module</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <table className="table-professional">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Module</th>
+                    <th>Description</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {logsLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                    <tr>
+                      <td colSpan={7} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
                           Loading...
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : logs.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                    <tr>
+                      <td colSpan={7} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <Eye className="h-12 w-12 text-muted-foreground/40" />
                           <p className="text-muted-foreground">No audit logs found</p>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : (
                     logs.map((log) => (
-                      <TableRow key={log.id} className="row-interactive">
-                        <TableCell className="font-mono text-sm">
+                      <tr key={log.id} className="row-interactive">
+                        <td className="font-mono text-sm">
                           {format(new Date(log.timestamp), "MMM dd, HH:mm:ss")}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground/60" />
                             <div>
@@ -731,42 +723,42 @@ export default function SecurityPage() {
                               <p className="text-xs text-muted-foreground">{log.user_email}</p>
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <Badge variant="outline" className="font-mono text-xs">
                             {log.action_display}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <Badge className="bg-muted text-foreground">
                             {log.module}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-md">
+                        </td>
+                        <td className="max-w-md">
                           <p className="text-sm text-foreground truncate">
                             {log.action_description}
                           </p>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <div className="flex items-center gap-2">
                             {getSeverityIcon(log.severity)}
                             <Badge className={getSeverityBadge(log.severity)}>
                               {log.severity_display}
                             </Badge>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           {log.success ? (
                             <CheckCircle2 className="h-5 w-5 text-primary" />
                           ) : (
                             <XCircle className="h-5 w-5 text-destructive" />
                           )}
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ))
                   )}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </Card>
         </TabsContent>

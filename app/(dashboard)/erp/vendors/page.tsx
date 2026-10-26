@@ -23,7 +23,6 @@ import {
   Package,
   ShoppingCart,
   CheckCircle,
-  Loader2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ContactImportDialog } from '@/components/contact-import-dialog';
@@ -171,7 +170,7 @@ export default function VendorsPage() {
         </div>
 
         <div className="animate-fade-in-up">
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             {/* Type pills + search (same concept as the bills/invoices lists) */}
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
             {typePills.map((p) => {
@@ -180,14 +179,9 @@ export default function VendorsPage() {
                 <button
                   key={p.value}
                   onClick={() => handleTypeChange(p.value)}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                    active
-                      ? p.color
-                        ? 'text-white'
-                        : 'bg-foreground text-card'
-                      : 'bg-muted text-muted-foreground hover:text-foreground'
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                   }`}
-                  style={active && p.color ? { backgroundColor: p.color } : undefined}
                 >
                   {p.label} ({p.count})
                 </button>
@@ -206,9 +200,7 @@ export default function VendorsPage() {
 
             {/* Contacts Table */}
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
+              <LoadingState />
             ) : error ? (
               <EmptyState
                 icon={Users}

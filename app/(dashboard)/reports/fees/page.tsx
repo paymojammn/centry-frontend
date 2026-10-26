@@ -107,7 +107,7 @@ export default function FeesLedgerReportPage() {
         </Select>
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         <ChartGradients />
         {/* Filter bar */}
         <ContentCard>

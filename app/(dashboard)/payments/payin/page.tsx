@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { collectionKeys } from '@/hooks/use-collection-requests';
+import { LoadingState } from '@/components/layout/loading-state';
 
 const ITEM_STATUS_STYLES: Record<
   CollectionItemStatus,
@@ -426,9 +427,7 @@ export default function PayInPage() {
             />
 
             {loadingRequests ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-              </div>
+              <LoadingState />
             ) : visibleRequests.length === 0 ? (
               <TableState
                 icon={ArrowDownLeft}
@@ -551,9 +550,7 @@ function CollectionRow({
               </div>
 
               {isLoading ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
-                </div>
+                <LoadingState />
               ) : (
                 <div className="space-y-1.5">
                   {items.map((item) => {

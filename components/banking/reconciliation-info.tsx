@@ -79,35 +79,35 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
           
           <ol className="space-y-2 text-sm text-info">
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                 1
               </span>
               <span>Log in to your <strong>Xero account</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                 2
               </span>
               <span>Go to <strong>Accounting → Bank Accounts</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                 3
               </span>
               <span>Click on your <strong>bank account</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                 4
               </span>
               <span>Click the <strong>&quot;Reconcile&quot;</strong> tab</span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                 5
               </span>
               <span>You should see your imported transactions as <strong>unreconciled</strong></span>
@@ -129,7 +129,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         {/* Action button */}
         {hasSyncedTransactions && (
           <Button 
-            className="w-full bg-info hover:bg-info text-white"
+            className="w-full"
             onClick={() => window.open('https://go.xero.com/Bank/BankAccounts.aspx', '_blank')}
           >
             <ExternalLink className="mr-2 h-4 w-4" />

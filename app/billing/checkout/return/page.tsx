@@ -76,7 +76,7 @@ export default function CheckoutReturnPage() {
             <p className="text-sm text-muted-foreground mb-6">Your subscription is now active. Welcome to Centry.</p>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-8 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
+              className="px-8 py-3 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
             >
               Go to Dashboard
             </button>
@@ -93,7 +93,7 @@ export default function CheckoutReturnPage() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => router.push('/billing/subscribe')}
-                className="px-6 py-3 rounded-xl text-sm font-semibold bg-[rgb(var(--brand-dark))] text-white hover:opacity-90 transition-all"
+                className="px-6 py-3 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
               >
                 Try Again
               </button>

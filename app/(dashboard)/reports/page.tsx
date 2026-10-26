@@ -227,7 +227,7 @@ export default function ReportsPage() {
         )}
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-8">
+      <div className="px-6 py-6 space-y-8">
         <ChartGradients />
 
         {/* Row 1: Key Pipeline Metrics */}

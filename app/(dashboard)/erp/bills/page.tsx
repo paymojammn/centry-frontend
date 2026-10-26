@@ -30,7 +30,6 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Loader2,
   Calendar,
   Wallet,
   ChevronRight,
@@ -44,7 +43,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
-import { STATUS_COLORS, PILL_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { LoadingState } from '@/components/layout/loading-state';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -392,7 +392,6 @@ export default function BillsPage() {
                       onClick={() => setIsPayModalOpen(true)}
                       size="sm"
                       className="w-full text-white btn-press hover:opacity-90"
-                      style={{ backgroundColor: 'var(--foreground)' }}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Pay Selected
@@ -414,8 +413,8 @@ export default function BillsPage() {
               <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => handleStatusChange('all')}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                    (filters.status || 'all') === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    (filters.status || 'all') === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                   }`}
                 >
                   All ({billStats?.total_all ?? 0})
@@ -437,10 +436,9 @@ export default function BillsPage() {
                     <button
                       key={p.value}
                       onClick={() => handleStatusChange(p.value)}
-                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                        active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                       }`}
-                      style={active ? { backgroundColor: PILL_COLORS[p.value] } : undefined}
                     >
                       {p.label} ({p.count ?? 0})
                     </button>
@@ -459,9 +457,7 @@ export default function BillsPage() {
 
               {/* Bills Table */}
               {isLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-                </div>
+                <LoadingState />
               ) : error ? (
                 <div className="text-center py-16">
                   <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />
@@ -696,8 +692,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     {canCreatePayment && canPay && (
                       <Button
                         size="sm"
-                        className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
-                        style={{ backgroundColor: 'var(--foreground)' }}
+                        className="h-7 px-2.5 text-xs font-normal"
                         onClick={() => onPayOne(bill.id)}
                       >
                         <CreditCard className="h-3 w-3 mr-1" />

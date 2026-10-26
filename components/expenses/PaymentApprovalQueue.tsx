@@ -376,7 +376,7 @@ export default function PaymentApprovalQueue({
                             size="sm"
                             onClick={() => handleProcess(request)}
                             disabled={isProcessing}
-                            className="h-7 px-3 bg-info hover:bg-info text-white"
+                            className="h-7 px-3"
                           >
                             <Play className="h-3 w-3 mr-1" />
                             Pay

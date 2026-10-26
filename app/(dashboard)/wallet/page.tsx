@@ -50,6 +50,7 @@ import type { DepartmentWallet, DepartmentWalletTransaction, LinkedAccount } fro
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
+import { LoadingState } from '@/components/layout/loading-state';
 
 export default function WalletPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
@@ -120,9 +121,7 @@ export default function WalletPage() {
 
   if (orgsLoading || walletsLoading) {
     return (
-      <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <LoadingState fullPage />
     );
   }
 
@@ -130,7 +129,7 @@ export default function WalletPage() {
     return (
       <div className="min-h-screen bg-[rgb(var(--page-bg))]">
         <PageHeader title="Wallet" subtitle="Manage your department wallet" />
-        <div className="px-6 py-12">
+        <div className="px-6 py-6">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
               <Building2 className="w-10 h-10 text-muted-foreground/60" />
@@ -163,7 +162,7 @@ export default function WalletPage() {
             />
           )}
         </PageHeader>
-        <div className="px-6 py-12">
+        <div className="px-6 py-6">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-4">
               <WalletIcon className="w-10 h-10 text-muted-foreground/60" />

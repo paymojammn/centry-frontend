@@ -195,7 +195,7 @@ function TableSkeleton() {
       <ContentCardHeader>
         <Skeleton className="h-5 w-48" />
       </ContentCardHeader>
-      <div className="p-6 space-y-3">
+      <div className="px-6 py-6 space-y-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Skeleton key={i} className="h-14 w-full rounded-lg" />
         ))}
@@ -710,7 +710,7 @@ export default function TransactionReportsPage() {
         </div>
       </div>
 
-      <div className="px-6 py-8 space-y-8">
+      <div className="px-6 py-6 space-y-8">
         {/* ============================== */}
         {/* OVERVIEW TAB                   */}
         {/* ============================== */}

@@ -46,22 +46,28 @@ export function StatusPills({
         // "all" uses the inverted treatment Bills gives it; the rest take
         // their status colour.
         const isAll = pill.value === 'all';
-        const background = pill.color || PILL_COLORS[pill.value];
+        const dot = pill.color || PILL_COLORS[pill.value];
 
+        // One active treatment for every pill (forest, white text); the
+        // status colour survives as a small dot so the row stays quiet.
         return (
           <button
             key={pill.value}
             type="button"
             onClick={() => onChange(pill.value)}
-            className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               active
-                ? isAll
-                  ? 'bg-foreground text-card'
-                  : 'text-white'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
             }`}
-            style={active && !isAll && background ? { backgroundColor: background } : undefined}
           >
+            {!isAll && dot && (
+              <span
+                aria-hidden
+                className={`h-1.5 w-1.5 rounded-full ${active ? 'opacity-70' : ''}`}
+                style={{ backgroundColor: dot }}
+              />
+            )}
             {pill.label} ({pill.count})
           </button>
         );

@@ -16,7 +16,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  Loader2,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/page-header';
@@ -24,6 +23,7 @@ import { StatsBar } from '@/components/layout/stats-bar';
 import { PageContainer } from '@/components/layout/page-container';
 import { ContentCard } from '@/components/layout/content-card';
 import { useOrganizations } from '@/hooks/use-organization';
+import { LoadingState } from '@/components/layout/loading-state';
 
 interface Transaction {
   id: string;
@@ -174,9 +174,7 @@ export default function PaymentsPage() {
           <TabsContent value="reconcile" className="space-y-4">
             {unmatchedLoading ? (
               <ContentCard>
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <LoadingState />
               </ContentCard>
             ) : unmatchedTransactions.length === 0 ? (
               <ContentCard>
@@ -205,9 +203,7 @@ export default function PaymentsPage() {
           <TabsContent value="matched" className="space-y-4">
             {matchedLoading ? (
               <ContentCard>
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <LoadingState />
               </ContentCard>
             ) : matchedTransactions.length === 0 ? (
               <ContentCard>
@@ -237,9 +233,7 @@ export default function PaymentsPage() {
           <TabsContent value="history" className="space-y-4">
             {postedLoading ? (
               <ContentCard>
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <LoadingState />
               </ContentCard>
             ) : postedTransactions.length === 0 ? (
               <ContentCard>

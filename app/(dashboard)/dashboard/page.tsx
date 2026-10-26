@@ -32,7 +32,6 @@ import {
   CheckCircle,
   CreditCard,
   FileUp,
-  Loader2,
   FileText,
   Send,
   Zap,
@@ -457,9 +456,7 @@ export default function DashboardPage() {
                 />
               </ContentCardHeader>
               {loadingPipeline ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <LoadingState />
               ) : !pipelineOverview?.recent_transactions?.length ? (
                 <EmptyState
                   icon={<Send className="h-5 w-5" />}
@@ -494,7 +491,7 @@ export default function DashboardPage() {
                 />
               </ContentCardHeader>
               {loadingPayables ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                <LoadingState />
               ) : openBills.length === 0 ? (
                 <EmptyState
                   icon={<CheckCircle className="h-5 w-5" />}

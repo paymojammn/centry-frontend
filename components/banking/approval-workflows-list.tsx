@@ -175,7 +175,7 @@ export function ApprovalWorkflowsList({ organizationId }: ApprovalWorkflowsListP
               <td className="px-3 py-3 text-right">
                 <button
                   type="button"
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                  className="p-1 rounded text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                   onClick={() => setEditing(wf)}
                   title="Edit"
                 >

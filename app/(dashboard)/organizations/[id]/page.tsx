@@ -46,14 +46,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -298,7 +290,7 @@ export default function OrganizationDetailsPage() {
 
   if (!organization) {
     return (
-      <div className="container py-8">
+      <div className="px-6 py-6">
         <div className="bg-card border border-border rounded-lg shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <Building2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
@@ -313,17 +305,16 @@ export default function OrganizationDetailsPage() {
   }
 
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header Section */}
-      <div className="flex items-start justify-between">
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border px-6 py-3 flex items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary" />
+            <div className="h-9 w-9 rounded-lg bg-sage/20 flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-forest" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{organization.name}</h1>
-              <p className="text-muted-foreground">@{organization.slug}</p>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">{organization.name}</h1>
             </div>
           </div>
         </div>
@@ -348,6 +339,7 @@ export default function OrganizationDetailsPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <div className="px-6 py-6 space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -441,7 +433,7 @@ export default function OrganizationDetailsPage() {
                 <h3 className="text-lg font-semibold text-foreground">Danger Zone</h3>
                 <p className="text-sm text-muted-foreground">Irreversible data operations</p>
               </div>
-              <div className="p-6 space-y-3">
+              <div className="px-6 py-6 space-y-3">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
@@ -490,20 +482,20 @@ export default function OrganizationDetailsPage() {
                 </div>
               ) : members && members.length > 0 ? (
                 <div className="table-professional">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-b border-border">
-                        <TableHead className="text-muted-foreground font-semibold">Member</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Role</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Joined</TableHead>
-                        <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <table className="table-professional">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-muted-foreground font-semibold">Member</th>
+                        <th className="text-muted-foreground font-semibold">Role</th>
+                        <th className="text-muted-foreground font-semibold">Status</th>
+                        <th className="text-muted-foreground font-semibold">Joined</th>
+                        <th className="text-right text-muted-foreground font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                     {members.map((member) => (
-                      <TableRow key={member.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                        <TableCell>
+                      <tr key={member.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td>
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                               <span className="text-sm font-semibold text-primary">
@@ -521,8 +513,8 @@ export default function OrganizationDetailsPage() {
                               </div>
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
                             member.role === 'owner' ? 'bg-destructive/10 text-destructive' :
                             member.role === 'admin' ? 'bg-primary/10 text-primary' :
@@ -531,18 +523,18 @@ export default function OrganizationDetailsPage() {
                           }`}>
                             {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                           </span>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
                             member.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
                           }`}>
                             {member.is_active ? 'Active' : 'Inactive'}
                           </span>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
+                        </td>
+                        <td className="text-sm text-muted-foreground">
                           {new Date(member.joined_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </td>
+                        <td className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm" mode="icon" aria-label="Member actions">
@@ -562,11 +554,11 @@ export default function OrganizationDetailsPage() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
+                  </tbody>
+                </table>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -602,21 +594,21 @@ export default function OrganizationDetailsPage() {
                 </div>
               ) : departments && departments.length > 0 ? (
                 <div className="table-professional">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-b border-border">
-                        <TableHead className="text-muted-foreground font-semibold">Department</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Code</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Manager</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Budget</TableHead>
-                        <TableHead className="text-muted-foreground font-semibold">Status</TableHead>
-                        <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <table className="table-professional">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-muted-foreground font-semibold">Department</th>
+                        <th className="text-muted-foreground font-semibold">Code</th>
+                        <th className="text-muted-foreground font-semibold">Manager</th>
+                        <th className="text-muted-foreground font-semibold">Budget</th>
+                        <th className="text-muted-foreground font-semibold">Status</th>
+                        <th className="text-right text-muted-foreground font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {departments.map((dept) => (
-                        <TableRow key={dept.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                          <TableCell>
+                        <tr key={dept.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                          <td>
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                                 <FolderTree className="h-5 w-5 text-primary" />
@@ -630,13 +622,13 @@ export default function OrganizationDetailsPage() {
                                 )}
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             <span className="px-2.5 py-0.5 rounded bg-muted text-foreground text-xs font-medium">
                               {dept.code || '-'}
                             </span>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             {dept.manager_name ? (
                               <div>
                                 <div className="text-sm font-medium text-foreground">{dept.manager_name}</div>
@@ -645,8 +637,8 @@ export default function OrganizationDetailsPage() {
                             ) : (
                               <span className="text-muted-foreground/60">Not assigned</span>
                             )}
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             {dept.monthly_budget ? (
                               <span className="font-medium text-foreground">
                                 {dept.currency} {parseFloat(dept.monthly_budget).toLocaleString()}
@@ -654,15 +646,15 @@ export default function OrganizationDetailsPage() {
                             ) : (
                               <span className="text-muted-foreground/60">-</span>
                             )}
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td>
                             <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
                               dept.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
                             }`}>
                               {dept.is_active ? 'Active' : 'Inactive'}
                             </span>
-                          </TableCell>
-                          <TableCell className="text-right">
+                          </td>
+                          <td className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Button
                                 variant="ghost"
@@ -683,11 +675,11 @@ export default function OrganizationDetailsPage() {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -897,6 +889,7 @@ export default function OrganizationDetailsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }
@@ -956,7 +949,7 @@ function InfoRow({
   );
 }function OrganizationDetailsSkeleton() {
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))] px-6 py-6 space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 bg-muted animate-pulse rounded-lg" />

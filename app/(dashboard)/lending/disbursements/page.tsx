@@ -129,7 +129,7 @@ export default function DisbursementsPage() {
         </Button>
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-5">
+      <div className="px-6 py-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
           <StatCard
             label="Disbursed"
@@ -173,10 +173,10 @@ export default function DisbursementsPage() {
                 <button
                   key={String(p.value)}
                   onClick={() => setDocstatusFilter(p.value)}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? "bg-foreground text-card"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                   }`}
                 >
                   {p.label} ({statusCount(p.value)})
@@ -211,7 +211,7 @@ export default function DisbursementsPage() {
           </div>
 
           {isLoading ? (
-            <div className="p-6 space-y-3">
+            <div className="px-6 py-6 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-11 w-full rounded-lg" />
               ))}

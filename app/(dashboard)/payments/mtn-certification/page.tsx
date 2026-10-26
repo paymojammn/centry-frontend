@@ -135,7 +135,7 @@ function SheetTable({
         </Button>
       </div>
       <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+        <table className="table-professional">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="p-2 w-8"></th>

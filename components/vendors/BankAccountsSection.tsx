@@ -291,8 +291,7 @@ export default function BankAccountsSection({ contactId }: { contactId: number }
               </Button>
               <Button
                 size="sm"
-                className="h-8 text-xs text-white hover:opacity-90"
-                style={{ backgroundColor: 'var(--foreground)' }}
+                className="h-8 text-xs"
                 onClick={save}
                 disabled={saving}
               >
