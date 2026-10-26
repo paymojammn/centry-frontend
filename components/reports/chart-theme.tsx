@@ -54,25 +54,33 @@ export function pickColor(i: number, custom?: string[]): string {
 // Number formatters
 // ---------------------------------------------------------------------
 
-export const formatCurrencyCompact = (value: number, currency = "UGX") =>
-  new Intl.NumberFormat("en-UG", {
+/** Normalise "Currency.UGX" / "ugx" / undefined to an ISO code. */
+export const currencyCode = (currency?: string | null, fallback = "UGX") =>
+  (currency || fallback).replace(/^Currency\./, "").toUpperCase();
+
+// Money is shown with the ISO code ("UGX 1.2M", "USD 480"), never a locale
+// symbol — "USh" means nothing to most users and the code is unambiguous.
+export const formatCurrencyCompact = (value: number, currency?: string | null) =>
+  new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: currencyCode(currency),
+    currencyDisplay: "code",
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
     notation: "compact",
-  }).format(value);
+  }).format(value).replace(/\u00a0/g, " ");
 
-export const formatCurrencyFull = (value: number, currency = "UGX") =>
-  new Intl.NumberFormat("en-UG", {
+export const formatCurrencyFull = (value: number, currency?: string | null) =>
+  new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: currencyCode(currency),
+    currencyDisplay: "code",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(value).replace(/\u00a0/g, " ");
 
 export const formatNumber = (value: number) =>
-  new Intl.NumberFormat("en-UG", {
+  new Intl.NumberFormat("en-US", {
     notation: value >= 100_000 ? "compact" : "standard",
     maximumFractionDigits: 1,
   }).format(value);

@@ -53,7 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: Landmark, label: 'Banks', path: '/banking/banks', keywords: ['bank', 'branch', 'sort code', 'swift', 'registry'], section: 'Banking' },
   // Reports
   { icon: BarChart3, label: 'Reports', path: '/reports', keywords: ['analytics', 'pipeline', 'charts'], section: 'Reports' },
-  { icon: ArrowRightLeft, label: 'Transaction Reports', path: '/reports/transactions', keywords: ['history', 'export'], section: 'Reports' },
+  { icon: ArrowRightLeft, label: 'Payments report', path: '/reports/payments', keywords: ['history', 'export'], section: 'Reports' },
   // Settings
   { icon: User, label: 'My Profile', path: '/account/profile', keywords: ['account', 'name', 'email'], section: 'Settings' },
   { icon: Shield, label: 'Security', path: '/account/security', keywords: ['password', '2fa', 'two-factor'], section: 'Settings' },

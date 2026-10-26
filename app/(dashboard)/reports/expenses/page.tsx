@@ -1,230 +1,151 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, subMonths } from "date-fns";
-import { Calendar, DollarSign, FileText, Users } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useExpenseReport } from "@/hooks/use-reports";
-import { useOrganizations } from "@/hooks/use-organization";
-import { PageHeader } from "@/components/layout/page-header";
-import { ExpensePieChart } from "@/components/reports/charts/ExpensePieChart";
+/**
+ * Expenses report — bill spend over a period: trend, by status, by vendor.
+ */
+
+import { format, isValid, parseISO } from "date-fns";
+import { BarChart3, CalendarDays, FileText, Users, Wallet } from "lucide-react";
+import { MetricTile } from "@/components/reports/MetricTile";
+import { ReportRow, ReportSection, ReportShell, ReportSummary } from "@/components/reports/report-shell";
+import { ReportAreaChart, ReportBarChart, ReportPieChart } from "@/components/reports/charts/ReportCharts";
 import { ExportButton } from "@/components/reports/export/ExportButton";
+import { formatCurrencyCompact, formatCurrencyFull } from "@/components/reports/chart-theme";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
+import { useExpenseReport } from "@/hooks/use-reports";
+import { useReportOrganization, useReportPeriod } from "@/hooks/use-report-context";
 
-export default function ExpenseReportsPage() {
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [months, setMonths] = useState("3");
+/** "pending_approval" → "Pending approval". */
+const humanize = (s: string) => (s ? s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()) : "Unknown");
 
-  const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
-  const organizations = Array.isArray(organizationsResponse)
-    ? organizationsResponse
-    : (organizationsResponse as any)?.results || [];
+/** Trend periods come back as "yyyy-MM" or "yyyy-MM-dd"; show the shortest label that still reads. */
+function periodLabel(p: string): string {
+  const d = parseISO(p);
+  if (!isValid(d)) return p;
+  return p.length <= 7 ? format(d, "MMM yyyy") : format(d, "dd MMM");
+}
 
-  useEffect(() => {
-    if (!selectedOrganizationId && organizations?.length > 0) {
-      setSelectedOrganizationId(organizations[0].id);
-    }
-  }, [organizations, selectedOrganizationId]);
+export default function ExpensesReportPage() {
+  const org = useReportOrganization();
+  const ccy = org.currency;
+  const period = useReportPeriod("90d");
+  const organizationId = org.organizationId || undefined;
 
-  const organizationId = selectedOrganizationId || undefined;
-  
-  const startDate = format(subMonths(new Date(), parseInt(months)), "yyyy-MM-dd");
-  const endDate = format(new Date(), "yyyy-MM-dd");
-  
-  const { data: expenseReport, isLoading } = useExpenseReport(
-    organizationId ? { organization: organizationId, start_date: startDate, end_date: endDate } : undefined
+  const { data, isLoading } = useExpenseReport(
+    organizationId ? { organization: organizationId, start_date: period.startDate, end_date: period.endDate } : undefined
   );
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-UG", {
-      style: "currency",
-      currency: "UGX",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const summary = data?.summary;
+  const total = summary?.total_amount || 0;
+  const count = summary?.count || 0;
+  const vendors = data?.by_vendor || [];
+  const topVendor = vendors[0];
+  const trend = (data?.trend || []).map((t) => ({ label: periodLabel(t.period), total: t.total, count: t.count }));
+  const byStatus = (summary?.by_status || []).map((s) => ({ name: humanize(s.status), value: s.total }));
+  const topVendors = vendors.slice(0, 8).map((v) => ({ name: v.vendor__name || "Unknown vendor", total: v.total }));
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      <PageHeader
-        title="Expense Analytics"
-        subtitle="Detailed breakdown of your expenses"
-        breadcrumbs={[
-          { label: "Reports", href: "/reports" },
-          { label: "Expense Analytics" },
-        ]}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-        onOrganizationChange={setSelectedOrganizationId}
-        isLoadingOrgs={orgsLoading}
-      >
-        <Select value={months} onValueChange={setMonths}>
-          <SelectTrigger className="w-[160px] h-9">
-            <Calendar className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Period" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">Last month</SelectItem>
-            <SelectItem value="3">Last 3 months</SelectItem>
-            <SelectItem value="6">Last 6 months</SelectItem>
-            <SelectItem value="12">Last year</SelectItem>
-          </SelectContent>
-        </Select>
-        {organizationId && (
-          <ExportButton
-            organizationId={organizationId}
-            reportType="expenses"
-            startDate={startDate}
-            endDate={endDate}
-          />
-        )}
-      </PageHeader>
-
-      <div className="px-6 py-6 space-y-6">
-
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {formatCurrency(expenseReport?.summary.total_amount || 0)}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bill Count</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {expenseReport?.summary.count || 0}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Bill</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {formatCurrency(expenseReport?.summary.avg_amount || 0)}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {expenseReport?.by_vendor.length || 0}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {isLoading ? (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Expenses by Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[300px] w-full" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Vendors</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[300px] w-full" />
-              </CardContent>
-            </Card>
-          </>
-        ) : (
-          <>
-            <ExpensePieChart
-              data={expenseReport?.summary.by_status || []}
-              dataKey="status"
-              title="Expenses by Status"
+    <ReportShell
+      title="Expenses"
+      organizations={org.organizations}
+      organizationId={org.organizationId}
+      onOrganizationChange={org.setOrganizationId}
+      isLoadingOrgs={org.isLoading}
+      period={period}
+      actions={
+        organizationId && (
+          <ExportButton organizationId={organizationId} reportType="expenses" startDate={period.startDate} endDate={period.endDate} />
+        )
+      }
+    >
+      {isLoading ? (
+        <LoadingState />
+      ) : (
+        <>
+          <ReportSummary>
+            <MetricTile
+              label="Total spend"
+              value={formatCurrencyCompact(total, ccy)}
+              hint={`${period.label.toLowerCase()} · avg ${formatCurrencyCompact(summary?.avg_amount || 0, ccy)} per bill`}
+              icon={Wallet}
+              sparkline={trend.length >= 2 ? trend.map((t) => t.total) : undefined}
             />
-            <ExpensePieChart
-              data={expenseReport?.by_vendor.slice(0, 8) || []}
-              dataKey="vendor"
-              title="Top Vendors"
+            <MetricTile
+              label="Bills"
+              value={count.toLocaleString()}
+              hint={`${vendors.length.toLocaleString()} ${vendors.length === 1 ? "vendor" : "vendors"}`}
+              icon={FileText}
             />
-          </>
-        )}
-      </div>
+            <MetricTile
+              label="Top vendor"
+              value={topVendor ? topVendor.vendor__name || "Unknown vendor" : "—"}
+              hint={topVendor && total > 0 ? `${formatCurrencyCompact(topVendor.total, ccy)} · ${Math.round((topVendor.total / total) * 100)}% of spend` : "No bills in this period"}
+              icon={Users}
+            />
+            <MetricTile
+              label="Avg per day"
+              value={formatCurrencyCompact(total / period.days, ccy)}
+              hint={`Over ${period.days} ${period.days === 1 ? "day" : "days"}`}
+              icon={CalendarDays}
+            />
+          </ReportSummary>
 
-      {/* Vendor Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Expenses by Vendor</CardTitle>
-          <CardDescription>Breakdown of expenses per vendor</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {expenseReport?.by_vendor.map((vendor) => (
-                <div key={vendor.vendor__id || "unknown"} className="flex items-center justify-between border-b pb-2">
-                  <div>
-                    <p className="font-medium">{vendor.vendor__name || "Unknown Vendor"}</p>
-                    <p className="text-sm text-muted-foreground">{vendor.count} bills</p>
-                  </div>
-                  <p className="font-bold">{formatCurrency(vendor.total)}</p>
-                </div>
-              ))}
-              {(!expenseReport?.by_vendor || expenseReport.by_vendor.length === 0) && (
-                <p className="text-center text-muted-foreground py-4">No expense data available</p>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      </div>
-    </div>
+          <ReportSection title="Spend over time" subtitle="Bill totals per period" icon={<BarChart3 className="h-4 w-4" />} padded>
+            <ReportAreaChart
+              data={trend}
+              xKey="label"
+              series={[{ key: "total", label: "Spend" }]}
+              emptyTitle="No spend in this period"
+              emptyHint="Pick a wider period or another organization."
+            />
+          </ReportSection>
+
+          <ReportRow>
+            <ReportSection title="By status" subtitle="Where the money is in the bill lifecycle" padded>
+              <ReportPieChart data={byStatus} emptyTitle="No bills in this period" />
+            </ReportSection>
+            <ReportSection title="Top vendors" subtitle="Eight largest by total billed" padded>
+              <ReportBarChart
+                data={topVendors}
+                xKey="name"
+                series={[{ key: "total", label: "Total" }]}
+                height={260}
+                emptyTitle="No vendors in this period"
+              />
+            </ReportSection>
+          </ReportRow>
+
+          <ReportSection title="Expenses by vendor" subtitle="Every vendor billed in the period">
+            {vendors.length === 0 ? (
+              <EmptyState icon={Users} title="No expense data" description="No bills were recorded for this organization in the selected period." />
+            ) : (
+              <div className="table-scroll-container">
+                <table className="table-professional">
+                  <thead>
+                    <tr>
+                      <th>Vendor</th>
+                      <th className="text-right">Bills</th>
+                      <th className="text-right">Share</th>
+                      <th className="text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vendors.map((v) => (
+                      <tr key={v.vendor__id || "unknown"}>
+                        <td className="cell-primary">{v.vendor__name || "Unknown vendor"}</td>
+                        <td className="cell-amount">{v.count.toLocaleString()}</td>
+                        <td className="cell-amount cell-muted">{total > 0 ? `${((v.total / total) * 100).toFixed(1)}%` : "—"}</td>
+                        <td className="cell-amount">{formatCurrencyFull(v.total, ccy)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ReportSection>
+        </>
+      )}
+    </ReportShell>
   );
 }

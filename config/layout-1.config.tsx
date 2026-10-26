@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  ShieldCheck,
 } from "lucide-react";
 import { MenuConfig } from "@/config/types";
 
@@ -100,9 +101,10 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: "Reports",
     icon: BarChart3,
     children: [
-      { title: "Dashboard", path: "/reports" },
-      { title: "Transactions", path: "/reports/transactions" },
-      { title: "Audit Trail", path: "/reports/audit" },
+      { title: "Overview", path: "/reports" },
+      { title: "Payments", path: "/reports/payments" },
+      { title: "Exceptions", path: "/reports/exceptions" },
+      { title: "Expenses", path: "/reports/expenses" },
     ],
   },
 ];
@@ -171,6 +173,7 @@ export const MENU_MEGA: MenuConfig = [
                 path: "/organizations",
               },
               { title: "Members", icon: Users, path: "/organizations/members" },
+              { title: "Audit trail", icon: ShieldCheck, path: "/organizations/audit" },
             ],
           },
         ],
