@@ -33,6 +33,18 @@ export const MENU_SIDEBAR: MenuConfig = [
     ],
   },
   {
+    title: "Banking",
+    icon: Building,
+    requiredRole: "finance",
+    children: [
+      { title: "Dashboard", path: "/banking/export" },
+      { title: "Payments", path: "/banking/transactions" },
+      { title: "ERP Sync", path: "/banking/reconciliation" },
+      { title: "Accounts", path: "/banking/accounts" },
+      { title: "Banks", path: "/banking/banks" },
+    ],
+  },
+  {
     title: "Payments",
     icon: TrendingUp,
     requiredRole: "finance",
@@ -72,18 +84,6 @@ export const MENU_SIDEBAR: MenuConfig = [
           { title: "Sign-off", path: "/banking/onegate/signoff" },
         ],
       },
-    ],
-  },
-  {
-    title: "Banking",
-    icon: Building,
-    requiredRole: "finance",
-    children: [
-      { title: "Dashboard", path: "/banking/export" },
-      { title: "Payments", path: "/banking/transactions" },
-      { title: "ERP Sync", path: "/banking/reconciliation" },
-      { title: "Accounts", path: "/banking/accounts" },
-      { title: "Banks", path: "/banking/banks" },
     ],
   },
   {
