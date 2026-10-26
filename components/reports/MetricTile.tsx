@@ -85,9 +85,8 @@ export function MetricTile({
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            {tone !== "default" && (
-              <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full shrink-0", styles.dot)} />
-            )}
+            {/* Always present so headings align across a row; neutral when untoned. */}
+            <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full shrink-0", styles.dot)} />
             {label}
           </p>
           {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground/50" />}
