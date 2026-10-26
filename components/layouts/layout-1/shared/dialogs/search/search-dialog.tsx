@@ -47,10 +47,10 @@ const NAV_ITEMS: NavItem[] = [
   { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main' },
   // Banking
   { icon: FileUp, label: 'Banking Dashboard', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },
-  { icon: ArrowRightLeft, label: 'Transactions', path: '/banking/transactions', keywords: ['payments', 'history'], section: 'Banking' },
-  { icon: FileDown, label: 'Reconciliation', path: '/banking/reconciliation', keywords: ['pain.002', 'bank response', 'sync'], section: 'Banking' },
-  { icon: Building2, label: 'Bank Accounts', path: '/banking/accounts', keywords: ['accounts', 'iban'], section: 'Banking' },
-  { icon: Landmark, label: 'Banks & Branches', path: '/banking/banks', keywords: ['bank', 'branch', 'sort code', 'swift', 'registry'], section: 'Banking' },
+  { icon: ArrowRightLeft, label: 'Bank Payments', path: '/banking/transactions', keywords: ['payments', 'history'], section: 'Banking' },
+  { icon: FileDown, label: 'ERP Sync', path: '/banking/reconciliation', keywords: ['pain.002', 'bank response', 'sync'], section: 'Banking' },
+  { icon: Building2, label: 'Accounts', path: '/banking/accounts', keywords: ['accounts', 'iban'], section: 'Banking' },
+  { icon: Landmark, label: 'Banks', path: '/banking/banks', keywords: ['bank', 'branch', 'sort code', 'swift', 'registry'], section: 'Banking' },
   // Reports
   { icon: BarChart3, label: 'Reports', path: '/reports', keywords: ['analytics', 'pipeline', 'charts'], section: 'Reports' },
   { icon: ArrowRightLeft, label: 'Transaction Reports', path: '/reports/transactions', keywords: ['history', 'export'], section: 'Reports' },

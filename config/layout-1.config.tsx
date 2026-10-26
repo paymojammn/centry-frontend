@@ -80,10 +80,10 @@ export const MENU_SIDEBAR: MenuConfig = [
     requiredRole: "finance",
     children: [
       { title: "Dashboard", path: "/banking/export" },
-      { title: "Transactions", path: "/banking/transactions" },
-      { title: "Sync to ERP", path: "/banking/reconciliation" },
+      { title: "Payments", path: "/banking/transactions" },
+      { title: "ERP Sync", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
-      { title: "Banks & Branches", path: "/banking/banks" },
+      { title: "Banks", path: "/banking/banks" },
     ],
   },
   {

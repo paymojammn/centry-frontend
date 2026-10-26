@@ -528,7 +528,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
         <EmptyState
           icon={FileText}
           title="No uploaded exports yet"
-          description="Upload payment files from the Upload tab to track their status"
+          description="Upload payment files from the Files tab to track their status"
         />
       ) : (
         <div className="overflow-x-auto">

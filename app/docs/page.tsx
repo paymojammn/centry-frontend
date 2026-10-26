@@ -389,7 +389,7 @@ export default function PlatformDocsPage() {
             <p className="text-muted-foreground text-sm leading-relaxed">
               Every payment event tracks whether it has been written back to the ERP
               (<code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">synced_to_xero</code>).
-              The <strong>Banking &rarr; Sync to ERP</strong> page shows unsynced events and
+              The <strong>Banking &rarr; ERP Sync</strong> page shows unsynced events and
               pushes them, so a bill paid here shows as paid in Xero, QuickBooks, ERPNext, or
               Odoo — and bank transactions imported under <strong>Banking &rarr; Transactions</strong>{' '}
               can be matched against them.

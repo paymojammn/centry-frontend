@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BankAccountsList } from "@/components/banking/bank-accounts-list";
 import { BankAccountForm } from "@/components/banking/bank-account-form";
 import { StatCard } from "@/components/layout/stat-card";
+import { ContentCard } from "@/components/layout/content-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useSyncAccounts, useERPConnections } from "@/hooks/use-erp";
@@ -111,12 +112,20 @@ export default function BankAccountsPage() {
       accounts
         .filter((a) => cleanCurrencyCode(a.currency) === ccy)
         .reduce((sum, a) => sum + (parseFloat(String(a.balance)) || 0), 0);
+    const countFor = (ccy: string) =>
+      accounts.filter((a) => cleanCurrencyCode(a.currency) === ccy).length;
+    const currencies = new Set(accounts.map((a) => cleanCurrencyCode(a.currency)));
+    const activeAccounts = accounts.filter((acc) => acc.is_active).length;
 
     return {
       localCurrency,
       balanceLocal: sumFor(localCurrency),
       balanceUSD: sumFor('USD'),
-      activeAccounts: accounts.filter((acc) => acc.is_active).length,
+      localCount: countFor(localCurrency),
+      usdCount: countFor('USD'),
+      currencyCount: currencies.size,
+      activeAccounts,
+      inactiveAccounts: accounts.length - activeAccounts,
       totalAccounts: accounts.length,
     };
   }, [accounts, organizations, selectedOrganizationId]);
@@ -142,11 +151,12 @@ export default function BankAccountsPage() {
     }
   };
 
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Bank Accounts"
-        subtitle="Manage your organization's bank accounts"
+        title="Accounts"
         breadcrumbs={[
           { label: "Banking", href: "/banking" },
           { label: "Accounts" },
@@ -158,73 +168,61 @@ export default function BankAccountsPage() {
       >
         {activeConnectionId && (
           <Button
-            variant="outline"
             size="sm"
             onClick={handleSyncAccounts}
             disabled={isSyncing}
-            className="h-9"
+            className="h-9 btn-press"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Syncing...' : `Sync from ${activeProviderName}`}
           </Button>
         )}
-        <Button
-          size="sm"
-          onClick={handleAddAccount}
-          className="h-9 bg-primary hover:bg-primary/90"
-        >
+        <Button size="sm" onClick={handleAddAccount} className="h-9 btn-press">
           <Plus className="h-4 w-4 mr-2" />
-          Add Account
+          Add account
         </Button>
       </PageHeader>
 
-      {/* Summary cards */}
-      <div className="px-6 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+      <div className="px-6 py-6">
+        {/* Summary cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6 animate-fade-in-up">
           <StatCard
             label={`Balance · ${stats.localCurrency}`}
             value={stats.balanceLocal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            subtext={`${stats.localCurrency} ${formatCurrencyAmount(stats.balanceLocal)}`}
+            subtext={`${stats.localCurrency} ${formatCurrencyAmount(stats.balanceLocal)} · ${plural(stats.localCount, 'account')}`}
             icon={CreditCard}
-            variant="accent"
+            variant="default"
           />
           <StatCard
             label="Balance · USD"
             value={stats.balanceUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            subtext={`USD ${formatCurrencyAmount(stats.balanceUSD)}`}
+            subtext={`USD ${formatCurrencyAmount(stats.balanceUSD)} · ${plural(stats.usdCount, 'account')}`}
             icon={CreditCard}
             variant="default"
           />
           <StatCard
             label="Accounts"
             value={stats.totalAccounts}
+            subtext={`Across ${stats.currencyCount} ${stats.currencyCount === 1 ? 'currency' : 'currencies'}`}
             icon={Landmark}
             variant="default"
           />
           <StatCard
             label="Active"
             value={stats.activeAccounts}
+            subtext={`${stats.inactiveAccounts} inactive`}
             icon={CheckCircle2}
-            variant="default"
+            variant={stats.activeAccounts > 0 ? 'success' : 'default'}
           />
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-6 py-6">
-        <div className="bg-card rounded-xl border border-border shadow-sm">
-          <div className="px-6 py-4 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-muted-foreground/60" />
-              <h3 className="text-sm font-normal text-foreground">All Accounts</h3>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Manage your organization's bank accounts</p>
-          </div>
+        {/* Accounts grid */}
+        <ContentCard noPadding className="animate-fade-in">
           <BankAccountsList
             onEditAccount={handleEditAccount}
             organizationId={selectedOrganizationId || undefined}
           />
-        </div>
+        </ContentCard>
       </div>
 
       {/* Account Form Dialog */}

@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Banking → Payments
+ *
+ * The outgoing bank-payment ledger: every PaymentEvent Centry has routed
+ * out of a bank account, with created / approved / bank-response dates.
+ * Uses the shared `.table-professional` grid and `.status-pill` vocabulary
+ * so it reads the same as the Files tab and the Bills queues.
+ */
+
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -12,11 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizations } from "@/hooks/use-organization";
 import { useBankAccounts } from "@/hooks/use-banking";
 import { ContentCard } from "@/components/layout/content-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { StatCard } from "@/components/layout/stat-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,8 +47,6 @@ import {
   Clock,
   XCircle,
 } from "lucide-react";
-import { StatCard } from "@/components/layout/stat-card";
-import { } from "@/lib/theme";
 import { formatCurrency } from "@/lib/utils";
 import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
 import { format } from "date-fns";
@@ -64,33 +73,83 @@ interface PaymentEvent {
   created_by_name: string;
   approved_by_name: string | null;
   created_at: string;
+  approved_at: string | null;
+  rejected_at: string | null;
+  bank_status_updated_at: string | null;
 }
 
 // ============================================================
-// Status styles
+// Status vocabulary — one label + semantic tint per provider status.
+// Shared wording with the Files tab: Ready / Awaiting bank / Processed /
+// Failed / Pending approval / Rejected.
 // ============================================================
 
-const STATUS_STYLES: Record<string, string> = {
-  SUCCESS_PAYMENT: "bg-success-500/10 text-success-700 border-success-500/20",
-  SENT_PAYMENT: "bg-info-500/10 text-info-700 border-info-500/20",
-  PROCESSING: "bg-info-500/10 text-info-700 border-info-500/20",
-  PENDING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  PENDING_APPROVAL: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  FAILED_PAYMENT: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-  ERROR_PAYMENT: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-  REJECTED: "bg-danger-500/10 text-danger-700 border-danger-500/20",
+const PILL_SUCCESS = "bg-success-500/10 text-success-700 border-success-500/20";
+const PILL_WARNING = "bg-warning-500/10 text-warning-700 border-warning-500/20";
+const PILL_DANGER = "bg-danger-500/10 text-danger-700 border-danger-500/20";
+const PILL_INFO = "bg-info-500/10 text-info-700 border-info-500/20";
+const PILL_NEUTRAL = "bg-muted text-muted-foreground border-border";
+
+const PAYMENT_STATUS: Record<string, { label: string; pill: string }> = {
+  PENDING_APPROVAL: { label: "Pending approval", pill: PILL_WARNING },
+  PROCESSING: { label: "Ready", pill: PILL_WARNING },
+  PENDING: { label: "Awaiting bank", pill: PILL_INFO },
+  SENT_PAYMENT: { label: "Awaiting bank", pill: PILL_INFO },
+  SUCCESS_PAYMENT: { label: "Processed", pill: PILL_SUCCESS },
+  FAILED_PAYMENT: { label: "Failed", pill: PILL_DANGER },
+  ERROR_PAYMENT: { label: "Failed", pill: PILL_DANGER },
+  REJECTED: { label: "Rejected", pill: PILL_DANGER },
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING_APPROVAL: "Pending Approval",
-  PROCESSING: "Ready to Pay",
-  PENDING: "Sent to Bank",
-  SENT_PAYMENT: "Sent to Bank",
-  SUCCESS_PAYMENT: "Paid",
-  FAILED_PAYMENT: "Failed",
-  ERROR_PAYMENT: "Error",
-  REJECTED: "Rejected",
-};
+const statusLabel = (p: PaymentEvent) =>
+  PAYMENT_STATUS[p.provider_status]?.label || p.status_display || p.provider_status;
+
+function PaymentStatus({ payment }: { payment: PaymentEvent }) {
+  const s = PAYMENT_STATUS[payment.provider_status];
+  return (
+    <span className={`status-pill ${s?.pill || PILL_NEUTRAL}`}>{statusLabel(payment)}</span>
+  );
+}
+
+// Status groups behind the summary cards and filter pills.
+const PROCESSED = ["SUCCESS_PAYMENT"];
+const IN_FLIGHT = ["PENDING_APPROVAL", "PROCESSING", "SENT_PAYMENT", "PENDING"];
+const FAILED = ["FAILED_PAYMENT", "ERROR_PAYMENT", "REJECTED"];
+
+// Filter pill value → provider statuses it covers.
+const PILL_FILTERS: { value: string; label: string; statuses: string[] }[] = [
+  { value: "PENDING_APPROVAL", label: "Pending approval", statuses: ["PENDING_APPROVAL"] },
+  { value: "PROCESSING", label: "Ready", statuses: ["PROCESSING"] },
+  { value: "SENT_PAYMENT", label: "Awaiting bank", statuses: ["SENT_PAYMENT", "PENDING"] },
+  { value: "SUCCESS_PAYMENT", label: "Processed", statuses: ["SUCCESS_PAYMENT"] },
+  { value: "FAILED_PAYMENT", label: "Failed", statuses: ["FAILED_PAYMENT", "ERROR_PAYMENT"] },
+  { value: "REJECTED", label: "Rejected", statuses: ["REJECTED"] },
+];
+
+// ============================================================
+// Formatting helpers
+// ============================================================
+
+/** "Currency.UGX" → "UGX" (the API sometimes serialises the enum name). */
+const cleanCcy = (currency: string | null | undefined) =>
+  currency ? String(currency).split(".").pop() || "" : "";
+
+const formatAmount = (amount: string) =>
+  (parseFloat(amount) || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+function DateCell({ iso }: { iso: string | null | undefined }) {
+  if (!iso) return <>—</>;
+  const d = new Date(iso);
+  return (
+    <>
+      {format(d, "dd MMM yyyy")}
+      <span className="cell-sub">{format(d, "HH:mm")}</span>
+    </>
+  );
+}
 
 // ============================================================
 // Page
@@ -126,7 +185,7 @@ export default function BankTransactionsPage() {
   // Fetch outgoing payments. Only org + direction are sent to the API —
   // the XeroPaymentEventViewSet ignores `search` and `source_bank_account`,
   // and the legacy/current status enums don't line up cleanly with what the
-  // dropdown shows. Doing all four user filters client-side avoids silent
+  // pills show. Doing all four user filters client-side avoids silent
   // no-ops and keeps the UI honest.
   const { data, isLoading } = useQuery<{ results: PaymentEvent[] }>({
     queryKey: ["outgoing-payments", selectedOrganizationId],
@@ -142,19 +201,21 @@ export default function BankTransactionsPage() {
   const payments = data?.results || [];
 
   // Summary + pill counts/amounts (from all payments, so totals stay accurate).
-  const statusCount = (statuses: string[]) =>
-    payments.filter((p) => statuses.includes(p.provider_status)).length;
-  const fmtAmount = (list: PaymentEvent[]) => {
+  const inStatuses = (statuses: string[]) =>
+    payments.filter((p) => statuses.includes(p.provider_status));
+  const statusCount = (statuses: string[]) => inStatuses(statuses).length;
+  const fmtTotal = (list: PaymentEvent[], fallback: string) => {
     const total = list.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
-    if (!total) return "—";
-    const ccy = list[0]?.currency ? String(list[0].currency).split(".").pop() : "";
-    return `${ccy} ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    if (!total) return fallback;
+    const ccy = cleanCcy(list[0]?.currency);
+    return `${ccy} ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`.trim();
   };
-  const statusAmount = (statuses: string[]) =>
-    fmtAmount(payments.filter((p) => statuses.includes(p.provider_status)));
-  const PAID = ["SUCCESS_PAYMENT"];
-  const IN_FLIGHT = ["PENDING_APPROVAL", "PROCESSING", "SENT_PAYMENT", "PENDING"];
-  const FAILED = ["FAILED_PAYMENT", "ERROR_PAYMENT", "REJECTED"];
+  const statusAmount = (statuses: string[], fallback: string) =>
+    fmtTotal(inStatuses(statuses), fallback);
+
+  const processedCount = statusCount(PROCESSED);
+  const inFlightCount = statusCount(IN_FLIGHT);
+  const failedCount = statusCount(FAILED);
 
   const hasFilters =
     statusFilter !== "all" ||
@@ -171,6 +232,8 @@ export default function BankTransactionsPage() {
     setSearch("");
   };
 
+  const activePill = PILL_FILTERS.find((f) => f.value === statusFilter);
+
   // Client-side: search across the user-visible fields, account/status enums,
   // and the date range. Keeps the dataset honest — the user sees exactly
   // what the filters say.
@@ -179,7 +242,10 @@ export default function BankTransactionsPage() {
     if (startDate && new Date(p.created_at) < new Date(startDate)) return false;
     if (endDate && new Date(p.created_at) > new Date(endDate + "T23:59:59"))
       return false;
-    if (statusFilter !== "all" && p.provider_status !== statusFilter) return false;
+    if (statusFilter !== "all") {
+      const allowed = activePill?.statuses || [statusFilter];
+      if (!allowed.includes(p.provider_status)) return false;
+    }
     if (accountFilter !== "all") {
       // accountFilter holds the bank-account id as a string. The payment
       // response carries the name (source_bank_account_name) rather than
@@ -208,7 +274,7 @@ export default function BankTransactionsPage() {
         p.approved_by_name,
         p.method_display,
         p.status_display,
-        STATUS_LABELS[p.provider_status] || p.provider_status,
+        statusLabel(p),
       ]
         .filter(Boolean)
         .join(" ")
@@ -226,7 +292,7 @@ export default function BankTransactionsPage() {
     { header: "Account", accessor: (r) => (r.source_bank_account_name as string) || (r.bank_name_display as string) || "", width: 24 },
     { header: "Amount", accessor: (r) => formatCurrency(parseFloat(r.amount as string), r.currency as string), width: 18 },
     { header: "Currency", accessor: "currency", width: 8 },
-    { header: "Status", accessor: (r) => STATUS_LABELS[r.provider_status as string] || (r.status_display as string) || "", width: 16 },
+    { header: "Status", accessor: (r) => statusLabel(r as unknown as PaymentEvent), width: 16 },
     { header: "Created By", accessor: "created_by_name", width: 20 },
     { header: "Approved By", accessor: (r) => (r.approved_by_name as string) || "", width: 20 },
   ];
@@ -240,20 +306,19 @@ export default function BankTransactionsPage() {
     exportData(
       filteredPayments as unknown as Record<string, unknown>[],
       exportColumns,
-      `Transactions_${dateSuffix}`,
+      `Payments_${dateSuffix}`,
       fmt
     );
-    if (fmt !== "pdf") toast.success(`Exported ${filteredPayments.length} transactions as ${fmt.toUpperCase()}`);
+    if (fmt !== "pdf") toast.success(`Exported ${filteredPayments.length} payments as ${fmt.toUpperCase()}`);
   };
 
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Transactions"
-        subtitle="Outgoing payment records"
+        title="Payments"
         breadcrumbs={[
           { label: "Banking", href: "/banking" },
-          { label: "Transactions" },
+          { label: "Payments" },
         ]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
@@ -297,58 +362,49 @@ export default function BankTransactionsPage() {
         </div>
       </PageHeader>
 
-      <div className="px-6 py-6 space-y-5">
-        {/* Summary cards (bills-page style) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+      <div className="px-6 py-6">
+        {/* Summary row — colour only on the state-like cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6 animate-fade-in-up">
           <StatCard
             label="Total payments"
             value={payments.length}
-            subtext={fmtAmount(payments)}
+            subtext={fmtTotal(payments, "No outgoing payments yet")}
             icon={ArrowUpFromLine}
-            variant="accent"
           />
           <StatCard
-            label="Paid"
-            value={statusCount(PAID)}
-            subtext={statusAmount(PAID)}
+            label="Processed"
+            value={processedCount}
+            subtext={statusAmount(PROCESSED, "Nothing processed yet")}
             icon={CheckCircle2}
-            iconColor="var(--color-success)"
-            iconBgColor="var(--color-success-50)"
-            variant="success"
+            variant={processedCount > 0 ? "success" : "default"}
           />
           <StatCard
             label="In progress"
-            value={statusCount(IN_FLIGHT)}
-            subtext={statusAmount(IN_FLIGHT)}
+            value={inFlightCount}
+            subtext={statusAmount(IN_FLIGHT, "Nothing in flight")}
             icon={Clock}
-            iconColor="var(--color-warning-600)"
-            iconBgColor="var(--color-warning-50)"
-            variant="warning"
+            variant={inFlightCount > 0 ? "warning" : "default"}
           />
           <StatCard
             label="Failed"
-            value={statusCount(FAILED)}
-            subtext={statusAmount(FAILED)}
+            value={failedCount}
+            subtext={statusAmount(FAILED, "No failures")}
             icon={XCircle}
-            iconColor="var(--color-danger)"
-            iconBgColor="var(--color-danger-50)"
-            variant={statusCount(FAILED) > 0 ? "danger" : "default"}
+            variant={failedCount > 0 ? "danger" : "default"}
           />
         </div>
 
-        {/* Table card — status pills header + grid (bills-grid style) */}
         <ContentCard noPadding>
+          {/* Toolbar: status pills + account / search / date range */}
           <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
-            {([
+            {[
               { value: "all", label: "All", count: payments.length },
-              { value: "PENDING_APPROVAL", label: "Pending Approval", count: statusCount(["PENDING_APPROVAL"]) },
-              { value: "PROCESSING", label: "Ready to Pay", count: statusCount(["PROCESSING"]) },
-              { value: "SENT_PAYMENT", label: "Sent to Bank", count: statusCount(["SENT_PAYMENT"]) },
-              { value: "SUCCESS_PAYMENT", label: "Paid", count: statusCount(["SUCCESS_PAYMENT"]) },
-              { value: "FAILED_PAYMENT", label: "Failed", count: statusCount(["FAILED_PAYMENT"]) },
-              { value: "ERROR_PAYMENT", label: "Error", count: statusCount(["ERROR_PAYMENT"]) },
-              { value: "REJECTED", label: "Rejected", count: statusCount(["REJECTED"]) },
-            ]).map((p) => {
+              ...PILL_FILTERS.map((f) => ({
+                value: f.value,
+                label: f.label,
+                count: statusCount(f.statuses),
+              })),
+            ].map((p) => {
               const active = statusFilter === p.value;
               return (
                 <button
@@ -415,96 +471,82 @@ export default function BankTransactionsPage() {
             </div>
           </div>
 
+          {/* Body */}
           {isLoading ? (
-            <div className="px-6 py-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-11 w-full rounded-lg" />
-              ))}
-            </div>
+            <LoadingState />
           ) : filteredPayments.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-                <ArrowUpFromLine className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                No payments found
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {hasFilters
+            <EmptyState
+              icon={ArrowUpFromLine}
+              title={hasFilters ? "No payments match your filters" : "No payments yet"}
+              description={
+                hasFilters
                   ? "Try adjusting your filters"
-                  : "No outgoing payments yet"}
-              </p>
-            </div>
+                  : "Outgoing bank payments will appear here once bills are paid"
+              }
+            />
           ) : (
-            <>
-              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-                <div className="col-span-2">Date</div>
-                <div className="col-span-3">Recipient</div>
-                <div className="col-span-1">Account</div>
-                <div className="col-span-1 text-right">Ccy</div>
-                <div className="col-span-2 text-right">Amount</div>
-                <div className="col-span-1">Created by</div>
-                <div className="col-span-2">Status</div>
-              </div>
-              <div className="divide-y divide-border max-h-[calc(100vh-300px)] overflow-y-auto">
-                {filteredPayments.map((p) => (
-                  <div
-                    key={p.id}
-                    className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
-                  >
-                    <div className="col-span-2 text-muted-foreground tabular-nums">
-                      {format(new Date(p.created_at), "dd MMM yyyy")}
-                    </div>
-                    <div className="col-span-3 min-w-0">
-                      <p className="text-foreground truncate">
-                        {p.vendor_name || p.account_name || "—"}
-                      </p>
-                      {p.bill_number && (
-                        <p className="text-[12px] text-muted-foreground truncate mt-0.5">
-                          Bill #{p.bill_number}
-                        </p>
-                      )}
-                    </div>
-                    <div className="col-span-1 min-w-0">
-                      <p className="text-[12px] text-muted-foreground truncate">
-                        {p.source_bank_account_name || p.bank_name_display || "—"}
-                      </p>
-                    </div>
-                    <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
-                      {p.currency}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      <span className="tabular-nums text-foreground">
-                        {parseFloat(p.amount).toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                    <div className="col-span-1 min-w-0">
-                      <p className="text-xs text-muted-foreground truncate">
-                        {p.created_by_name || "—"}
-                      </p>
-                      {p.approved_by_name && (
-                        <p className="text-xs text-muted-foreground/60 truncate">
-                          Approved: {p.approved_by_name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="col-span-2">
-                      <span
-                        className={`status-pill ${
-                          STATUS_STYLES[p.provider_status] ||
-                          "bg-muted text-muted-foreground border-border"
-                        }`}
-                      >
-                        {STATUS_LABELS[p.provider_status] || p.status_display || p.provider_status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
+            <div className="table-scroll-container">
+              <table className="table-professional">
+                <thead>
+                  <tr>
+                    <th>Created</th>
+                    <th>Recipient</th>
+                    <th>Account</th>
+                    <th>Approved</th>
+                    <th>Bank response</th>
+                    <th className="cell-currency">Ccy</th>
+                    <th className="text-right">Amount</th>
+                    <th>Created by</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((p) => (
+                    <tr key={p.id}>
+                      <td className="cell-muted whitespace-nowrap">
+                        <DateCell iso={p.created_at} />
+                      </td>
+                      <td className="cell-primary">
+                        <span className="block truncate max-w-[240px]">
+                          {p.vendor_name || p.account_name || "—"}
+                        </span>
+                        {(p.bill_number || p.bill_reference) && (
+                          <span className="cell-sub truncate max-w-[240px]">
+                            {p.bill_number ? `Bill #${p.bill_number}` : p.bill_reference}
+                          </span>
+                        )}
+                      </td>
+                      <td className="cell-muted">
+                        <span className="block truncate max-w-[160px]">
+                          {p.source_bank_account_name || p.bank_name_display || "—"}
+                        </span>
+                      </td>
+                      <td className="cell-muted whitespace-nowrap">
+                        <DateCell iso={p.approved_at || p.rejected_at} />
+                      </td>
+                      <td className="cell-muted whitespace-nowrap">
+                        <DateCell iso={p.bank_status_updated_at} />
+                      </td>
+                      <td className="cell-currency">{cleanCcy(p.currency)}</td>
+                      <td className="cell-amount">{formatAmount(p.amount)}</td>
+                      <td className="cell-muted">
+                        <span className="block truncate max-w-[140px]">
+                          {p.created_by_name || "—"}
+                        </span>
+                        {p.approved_by_name && (
+                          <span className="cell-sub truncate max-w-[140px]">
+                            Approved by {p.approved_by_name}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <PaymentStatus payment={p} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </ContentCard>
       </div>

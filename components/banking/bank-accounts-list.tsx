@@ -2,11 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { api } from "@/lib/api";
 import { useAllSFTPCredentials } from "@/hooks/use-banking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,8 +32,9 @@ import {
   Building2,
   Pencil,
   Trash2,
-  Loader2,
   Server,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { HostToHostDialog } from "@/components/banking/host-to-host-dialog";
@@ -78,6 +81,43 @@ const cleanCurrencyCode = (currency: string): string => {
   return currency;
 };
 
+const formatBalanceAmount = (amount: number | string) => {
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return (numericAmount || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const formatDate = (iso: string | null | undefined) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "—" : format(d, "dd MMM yyyy");
+};
+
+// Semantic status-pill tints (success / warning / danger / info / neutral).
+const PILL = {
+  success: "bg-success-500/10 text-success-700 border-success-500/20",
+  info: "bg-info-500/10 text-info-700 border-info-500/20",
+  neutral: "bg-neutral-500/10 text-neutral-700 border-neutral-500/20",
+} as const;
+
+function ActivePill({ active }: { active: boolean }) {
+  return (
+    <span className={`status-pill ${active ? PILL.success : PILL.neutral}`}>
+      {active ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
+function SyncPill({ synced }: { synced: boolean }) {
+  return (
+    <span className={`status-pill ${synced ? PILL.info : PILL.neutral}`}>
+      {synced ? "Synced" : "Not synced"}
+    </span>
+  );
+}
+
 export function BankAccountsList({ onEditAccount, organizationId }: BankAccountsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"host_to_host" | "other" | "all">(
@@ -116,11 +156,11 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
 
   const hasH2H = (account: BankAccount) => accountsWithH2H.has(String(account.id));
 
-  const counts = {
-    host_to_host: accounts.filter((a: BankAccount) => hasH2H(a)).length,
-    other: accounts.filter((a: BankAccount) => !hasH2H(a)).length,
-    all: accounts.length,
-  };
+  const pills = [
+    { value: "all", label: "All", count: accounts.length },
+    { value: "host_to_host", label: "Host-to-Host", count: accounts.filter((a: BankAccount) => hasH2H(a)).length },
+    { value: "other", label: "Other", count: accounts.filter((a: BankAccount) => !hasH2H(a)).length },
+  ] as const;
 
   const filteredAccounts = accounts.filter((a: BankAccount) =>
     statusFilter === "all" ? true : statusFilter === "host_to_host" ? hasH2H(a) : !hasH2H(a)
@@ -177,31 +217,23 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
     toggleActiveMutation.mutate({ id: account.id, is_active: !account.is_active });
   };
 
-  const formatBalanceAmount = (amount: number | string) => {
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return (numericAmount || 0).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-      </div>
-    );
-  }
+  const emptyTitle = searchQuery
+    ? "No accounts match your search"
+    : statusFilter === "host_to_host"
+      ? "No accounts with a host-to-host connection"
+      : statusFilter === "other"
+        ? "No accounts without a host-to-host connection"
+        : "No bank accounts yet";
+  const emptyDescription =
+    statusFilter === "host_to_host"
+      ? "Configure one from an account's menu (switch to All to see every account)"
+      : "Add or sync accounts from your ERP to get started";
 
   return (
     <div>
-      {/* Status pills + search */}
-      <div className="px-6 py-4 border-b border-border flex items-center gap-2 flex-wrap">
-        {([
-          { value: "all", label: "All", count: counts.all },
-          { value: "host_to_host", label: "Host-to-Host", count: counts.host_to_host },
-          { value: "other", label: "Other", count: counts.other },
-        ] as const).map((p) => {
+      {/* Toolbar: filter pills + search */}
+      <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+        {pills.map((p) => {
           const active = statusFilter === p.value;
           return (
             <button
@@ -210,7 +242,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
               onClick={() => setStatusFilter(p.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 active
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
               }`}
             >
@@ -219,107 +251,126 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
           );
         })}
         <div className="ml-auto relative w-56 max-w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             placeholder="Search accounts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted border-border"
+            className="pl-9 h-9"
           />
         </div>
       </div>
 
-      {/* Table */}
-      {filteredAccounts.length === 0 ? (
-        <div className="text-center py-12">
-          <Building2 className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">
-            {searchQuery
-              ? "No accounts match your search"
-              : statusFilter === "host_to_host"
-                ? "No accounts with a host-to-host connection"
-                : statusFilter === "other"
-                  ? "No accounts without a host-to-host connection"
-                  : "No bank accounts yet"}
-          </p>
-          <p className="text-xs text-muted-foreground/60 mt-1">
-            {statusFilter === "host_to_host"
-              ? "Configure one from an account's menu (switch to All to see every account)"
-              : "Add or sync accounts from Xero to get started"}
-          </p>
-        </div>
+      {/* Body */}
+      {isLoading ? (
+        <LoadingState />
+      ) : filteredAccounts.length === 0 ? (
+        <EmptyState icon={Building2} title={emptyTitle} description={emptyDescription} />
       ) : (
-        <table className="w-full table-professional">
-          <thead>
-            <tr>
-              <th>Account</th>
-              <th>Bank</th>
-              <th className="cell-currency">Ccy</th>
-              <th className="text-right">Balance</th>
-              <th className="text-center">Active</th>
-              <th className="w-10"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAccounts.map((account: BankAccount) => (
-              <tr key={account.id}>
-                <td className="cell-primary">
-                  <div className="flex items-center gap-2">
-                    {account.is_default && (
-                      <Star className="h-3.5 w-3.5 text-warning-400 fill-warning-400 flex-shrink-0" />
-                    )}
-                    <div>
-                      <div>{account.account_name}</div>
-                      <span className="cell-sub">{account.account_number}</span>
-                    </div>
-                  </div>
-                </td>
-                <td>{account.bank?.name || '-'}</td>
-                <td className="cell-currency">{cleanCurrencyCode(account.currency)}</td>
-                <td className="cell-amount">{formatBalanceAmount(account.balance || 0)}</td>
-                <td className="text-center">
-                  <Switch
-                    checked={account.is_active}
-                    onCheckedChange={() => handleToggleActive(account)}
-                    className="data-[state=checked]:bg-primary"
-                  />
-                </td>
-                <td>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground/60 hover:text-muted-foreground">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEditAccount(account)}>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setH2hAccount(account)}>
-                        <Server className="h-4 w-4 mr-2" />
-                        Host-to-Host Connection
-                      </DropdownMenuItem>
-                      {!account.is_default && (
-                        <DropdownMenuItem onClick={() => setDefaultMutation.mutate(account.id)}>
-                          <Star className="h-4 w-4 mr-2" />
-                          Set as Default
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(account)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
+        <div className="table-scroll-container">
+          <table className="table-professional">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Bank</th>
+                <th className="cell-currency">Ccy</th>
+                <th className="text-right">Balance</th>
+                <th>Status</th>
+                <th>ERP</th>
+                <th>Added</th>
+                <th className="text-right"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredAccounts.map((account: BankAccount) => (
+                <tr key={account.id}>
+                  <td className="cell-primary">
+                    <div className="flex items-center gap-2">
+                      {account.is_default && (
+                        <Star
+                          className="h-3.5 w-3.5 text-warning-400 fill-warning-400 flex-shrink-0"
+                          aria-label="Default account"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <span className="block truncate max-w-[240px]">{account.account_name}</span>
+                        <span className="cell-sub">{account.account_number || "—"}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="cell-muted">
+                    <span className="block truncate max-w-[180px]">{account.bank?.name || "—"}</span>
+                    {account.branch_name && <span className="cell-sub">{account.branch_name}</span>}
+                  </td>
+                  <td className="cell-currency">{cleanCurrencyCode(account.currency)}</td>
+                  <td className="cell-amount">{formatBalanceAmount(account.balance || 0)}</td>
+                  <td>
+                    <ActivePill active={account.is_active} />
+                  </td>
+                  <td>
+                    <SyncPill synced={!!account.xero_account_name} />
+                  </td>
+                  <td className="cell-muted whitespace-nowrap">{formatDate(account.created_at)}</td>
+                  <td>
+                    <div className="flex items-center justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                            aria-label="Account actions"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEditAccount(account)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setH2hAccount(account)}>
+                            <Server className="h-4 w-4 mr-2" />
+                            Host-to-Host Connection
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleActive(account)}
+                            disabled={toggleActiveMutation.isPending}
+                          >
+                            {account.is_active ? (
+                              <>
+                                <PowerOff className="h-4 w-4 mr-2" />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <Power className="h-4 w-4 mr-2" />
+                                Activate
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          {!account.is_default && (
+                            <DropdownMenuItem onClick={() => setDefaultMutation.mutate(account.id)}>
+                              <Star className="h-4 w-4 mr-2" />
+                              Set as Default
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(account)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Host-to-Host Connections Dialog */}
@@ -338,7 +389,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Account</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{accountToDelete?.account_name}"? This cannot be undone.
+              Are you sure you want to delete &quot;{accountToDelete?.account_name}&quot;? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

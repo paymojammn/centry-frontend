@@ -1,16 +1,26 @@
 "use client";
 
+/**
+ * Banking → ERP Sync
+ *
+ * Bank-accepted payments (pain.002 ACSP/ACWC) waiting to be posted to the
+ * ERP, next to the ones still awaiting the bank and the ones it rejected.
+ * One grid, one status filter; ready rows are synced in bulk from the
+ * toolbar or one at a time from the row action.
+ */
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizations } from "@/hooks/use-organization";
 import { ContentCard } from "@/components/layout/content-card";
-import { MetricTile } from "@/components/reports/MetricTile";
+import { StatCard } from "@/components/layout/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,34 +80,85 @@ interface TransactionStatus {
   created_at: string;
 }
 
+type Filter = "all" | "ready" | "synced" | "pending" | "failed";
+
 // ============================================================
-// Status config
+// Status vocabulary (shared with the other banking grids)
 // ============================================================
 
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; className: string; icon: typeof CheckCircle2 }
-> = {
-  ACSP: {
-    label: "Accepted",
-    className: "bg-success-500/10 text-success-700 border-success-500/20",
-    icon: CheckCircle2,
-  },
-  ACWC: {
-    label: "Accepted",
-    className: "bg-success-500/10 text-success-700 border-success-500/20",
-    icon: CheckCircle2,
-  },
-  RJCT: {
-    label: "Rejected",
-    className: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-    icon: XCircle,
-  },
-  PDNG: {
-    label: "Pending",
-    className: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-    icon: Clock,
-  },
+// Semantic status-pill tints (success / warning / danger / info / neutral).
+const PILL = {
+  success: "bg-success-500/10 text-success-700 border-success-500/20",
+  warning: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  danger: "bg-danger-500/10 text-danger-700 border-danger-500/20",
+  info: "bg-info-500/10 text-info-700 border-info-500/20",
+  neutral: "bg-muted text-muted-foreground border-border",
+} as const;
+
+// Bank-side (pain.002) status. ACSP and ACWC both mean the bank processed it.
+const BANK_STATUS: Record<string, { label: string; pill: string }> = {
+  ACSP: { label: "Processed", pill: PILL.success },
+  ACWC: { label: "Processed", pill: PILL.success },
+  PDNG: { label: "Awaiting bank", pill: PILL.warning },
+  RJCT: { label: "Failed", pill: PILL.danger },
+};
+
+const EXPORT_STATUS_LABELS: Record<string, string> = {
+  ACSP: "Processed",
+  ACWC: "Processed (warnings)",
+  RJCT: "Failed",
+  PDNG: "Awaiting bank",
+};
+
+function BankStatus({ status }: { status: string }) {
+  const s = BANK_STATUS[status] || { label: status, pill: PILL.neutral };
+  return <span className={`status-pill ${s.pill}`}>{s.label}</span>;
+}
+
+function ErpStatus({ synced }: { synced: boolean }) {
+  return synced ? (
+    <span className={`status-pill ${PILL.success}`}>Synced</span>
+  ) : (
+    <span className={`status-pill ${PILL.neutral}`}>Not synced</span>
+  );
+}
+
+function DateCell({ iso }: { iso: string | null | undefined }) {
+  if (!iso) return <>—</>;
+  const d = new Date(iso);
+  return (
+    <>
+      {format(d, "dd MMM yyyy")}
+      <span className="cell-sub">{format(d, "HH:mm")}</span>
+    </>
+  );
+}
+
+function formatAmount(amount: string): string {
+  return parseFloat(amount).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+const isAccepted = (t: TransactionStatus) =>
+  t.status === "ACSP" || t.status === "ACWC";
+// Ready = the bank processed it and the ERP has not been told yet.
+const isReady = (t: TransactionStatus) => isAccepted(t) && !t.synced_to_xero;
+
+const matchesFilter = (t: TransactionStatus, f: Filter) => {
+  switch (f) {
+    case "ready":
+      return isReady(t);
+    case "synced":
+      return t.synced_to_xero;
+    case "pending":
+      return t.status === "PDNG";
+    case "failed":
+      return t.status === "RJCT";
+    default:
+      return true;
+  }
 };
 
 // ============================================================
@@ -106,8 +167,7 @@ const STATUS_CONFIG: Record<
 
 export default function BankReconciliationPage() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [syncedFilter, setSyncedFilter] = useState("all");
+  const [filter, setFilter] = useState<Filter>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
@@ -150,15 +210,7 @@ export default function BankReconciliationPage() {
 
   // Client-side filtering
   const filtered = transactions.filter((t) => {
-    // Status (ACSP + ACWC both count as "Accepted")
-    if (statusFilter !== "all") {
-      if (statusFilter === "ACSP") {
-        if (t.status !== "ACSP" && t.status !== "ACWC") return false;
-      } else if (t.status !== statusFilter) {
-        return false;
-      }
-    }
-    // Search
+    if (!matchesFilter(t, filter)) return false;
     if (search) {
       const q = search.toLowerCase();
       const matches =
@@ -169,36 +221,36 @@ export default function BankReconciliationPage() {
         (t.status_description || "").toLowerCase().includes(q);
       if (!matches) return false;
     }
-    // Date range
     if (startDate && new Date(t.created_at) < new Date(startDate)) return false;
     if (endDate && new Date(t.created_at) > new Date(endDate + "T23:59:59"))
-      return false;
-    // Synced filter
-    if (syncedFilter === "synced" && !t.synced_to_xero)
-      return false;
-    if (syncedFilter === "unsynced" && t.synced_to_xero)
       return false;
     return true;
   });
 
-  // Counts
+  // Counts (whole list, so the tiles and pills don't shrink as you filter)
+  const count = (f: Filter) => transactions.filter((t) => matchesFilter(t, f)).length;
   const counts = {
-    accepted: transactions.filter(
-      (t) => t.status === "ACSP" || t.status === "ACWC"
-    ).length,
-    rejected: transactions.filter((t) => t.status === "RJCT").length,
-    pending: transactions.filter((t) => t.status === "PDNG").length,
+    all: transactions.length,
+    ready: count("ready"),
+    synced: count("synced"),
+    pending: count("pending"),
+    failed: count("failed"),
   };
+  const share = (n: number) =>
+    counts.all > 0
+      ? `${Math.round((n / counts.all) * 100)}% of ${counts.all} responses`
+      : "No bank responses yet";
+
+  const pills: { value: Filter; label: string; count: number }[] = [
+    { value: "all", label: "All", count: counts.all },
+    { value: "ready", label: "Ready", count: counts.ready },
+    { value: "synced", label: "Synced", count: counts.synced },
+    { value: "pending", label: "Awaiting bank", count: counts.pending },
+    { value: "failed", label: "Failed", count: counts.failed },
+  ];
 
   // Selectable = accepted transactions that haven't been synced yet
-  const selectableIds = filtered
-    .filter(
-      (t) =>
-        (t.status === "ACSP" || t.status === "ACWC") &&
-        !t.synced_to_xero
-    )
-    .map((t) => t.id);
-
+  const selectableIds = filtered.filter(isReady).map((t) => t.id);
   const selectedValid = selected.filter((id) => selectableIds.includes(id));
 
   const toggle = (id: number) =>
@@ -276,6 +328,8 @@ export default function BankReconciliationPage() {
       toast.error(err?.response?.data?.error || "Failed to post payment to ERP");
     },
   });
+  // The payment event currently being posted, so only its row shows a spinner.
+  const postingId = postToErpMutation.isPending ? postToErpMutation.variables : undefined;
 
   // Re-queue a failed payment
   const requeueMutation = useMutation({
@@ -289,6 +343,7 @@ export default function BankReconciliationPage() {
     },
     onError: () => toast.error("Failed to re-queue payment"),
   });
+  const requeueingId = requeueMutation.isPending ? requeueMutation.variables : undefined;
 
   // Re-link unlinked payment records
   const relinkMutation = useMutation({
@@ -316,20 +371,16 @@ export default function BankReconciliationPage() {
   });
 
   const hasFilters =
-    statusFilter !== "all" ||
-    syncedFilter !== "all" ||
-    startDate !== "" ||
-    endDate !== "" ||
-    search !== "";
+    filter !== "all" || startDate !== "" || endDate !== "" || search !== "";
 
-  // Export
-  const STATUS_LABELS: Record<string, string> = {
-    ACSP: "Accepted",
-    ACWC: "Accepted (warnings)",
-    RJCT: "Rejected",
-    PDNG: "Pending",
+  const clearFilters = () => {
+    setFilter("all");
+    setStartDate("");
+    setEndDate("");
+    setSearch("");
   };
 
+  // Export
   const exportColumns: ExportColumn[] = [
     { header: "Date", accessor: (r) => format(new Date(r.created_at as string), "dd MMM yyyy"), width: 14 },
     { header: "Vendor", accessor: (r) => (r.vendor_name as string) || (r.creditor_name as string) || "", width: 30 },
@@ -341,7 +392,7 @@ export default function BankReconciliationPage() {
     { header: "Bank Account", accessor: "source_bank_account_name", width: 24 },
     { header: "Amount", accessor: (r) => formatCurrency(parseFloat(r.original_amount as string), r.original_currency as string), width: 18 },
     { header: "Currency", accessor: "original_currency", width: 8 },
-    { header: "Bank Status", accessor: (r) => STATUS_LABELS[r.status as string] || (r.status as string) || "", width: 14 },
+    { header: "Bank Status", accessor: (r) => EXPORT_STATUS_LABELS[r.status as string] || (r.status as string) || "", width: 14 },
     { header: "Status Code", accessor: "status_code", width: 12 },
     { header: "Reason", accessor: "status_description", width: 36 },
     { header: "Synced to ERP", accessor: (r) => (r.synced_to_xero as boolean) ? "Yes" : "No", width: 12 },
@@ -362,14 +413,26 @@ export default function BankReconciliationPage() {
     if (fmt !== "pdf") toast.success(`Exported ${filtered.length} records as ${fmt.toUpperCase()}`);
   };
 
+  const tiles: {
+    key: Filter;
+    label: string;
+    value: number;
+    icon: typeof Upload;
+    variant: "info" | "success" | "warning" | "danger";
+  }[] = [
+    { key: "ready", label: "Ready to sync", value: counts.ready, icon: Upload, variant: "info" },
+    { key: "synced", label: "Synced", value: counts.synced, icon: CheckCircle2, variant: "success" },
+    { key: "pending", label: "Awaiting bank", value: counts.pending, icon: Clock, variant: "warning" },
+    { key: "failed", label: "Failed", value: counts.failed, icon: XCircle, variant: "danger" },
+  ];
+
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Sync to ERP"
-        subtitle="Post bank-accepted payments to your ERP"
+        title="ERP Sync"
         breadcrumbs={[
           { label: "Banking", href: "/banking" },
-          { label: "Sync to ERP" },
+          { label: "ERP Sync" },
         ]}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
@@ -422,378 +485,250 @@ export default function BankReconciliationPage() {
               })
             }
             className="h-9"
+            aria-label="Refresh"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </PageHeader>
 
-      <div className="px-6 py-6 space-y-5">
-        {/* Summary KPI tiles — clickable to filter the grid by status.
-            Active tile gets a primary ring on top of the tone stripe so
-            the filter state is visible. */}
-        <div className="flex items-stretch gap-3">
-          <div className="grid grid-cols-3 gap-3 flex-1">
-            {([
-              {
-                key: "ACSP",
-                label: "Accepted",
-                value: counts.accepted,
-                icon: CheckCircle2,
-                tone: "success" as const,
-              },
-              {
-                key: "RJCT",
-                label: "Rejected",
-                value: counts.rejected,
-                icon: XCircle,
-                tone: "danger" as const,
-              },
-              {
-                key: "PDNG",
-                label: "Pending",
-                value: counts.pending,
-                icon: Clock,
-                tone: "warning" as const,
-              },
-            ]).map((t) => {
-              const total = counts.accepted + counts.rejected + counts.pending;
-              const pct = total > 0 ? Math.round((t.value / total) * 100) : 0;
-              const active = statusFilter === t.key;
+      <div className="px-6 py-6">
+        {/* Summary — each tile also toggles the matching grid filter. */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6">
+          {tiles.map((t) => {
+            const active = filter === t.key;
+            return (
+              <StatCard
+                key={t.key}
+                label={t.label}
+                value={t.value}
+                subtext={share(t.value)}
+                icon={t.icon}
+                variant={t.value > 0 ? t.variant : "default"}
+                onClick={() => setFilter(active ? "all" : t.key)}
+                className={active ? "ring-2 ring-primary/40" : ""}
+              />
+            );
+          })}
+        </div>
+
+        <ContentCard noPadding>
+          {/* Toolbar: status pills + search/dates + selection actions */}
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
+            {pills.map((p) => {
+              const active = filter === p.value;
               return (
-                <MetricTile
-                  key={t.key}
-                  label={t.label}
-                  value={t.value}
-                  icon={t.icon}
-                  tone={t.tone}
-                  hint={total > 0 ? `${pct}% of responses` : "no data"}
-                  onClick={() => setStatusFilter(active ? "all" : t.key)}
-                  className={active ? "ring-2 ring-primary/40" : ""}
-                />
+                <button
+                  key={p.value}
+                  onClick={() => setFilter(p.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
+                  }`}
+                >
+                  {p.label} ({p.count})
+                </button>
               );
             })}
-          </div>
 
-          {/* Bulk action card — same MetricTile shape as the KPI tiles,
-              only visible when user has selected accepted-not-yet-synced
-              rows. Action button rides in the footer. */}
-          {selectedValid.length > 0 && (
-            <div className="min-w-[200px]">
-              <MetricTile
-                label="Selected"
-                value={selectedValid.length}
-                icon={FileCheck}
-                tone="accent"
-                footer={
-                  <Button
-                    size="sm"
-                    onClick={handleBulkPost}
-                    disabled={bulkPosting}
-                    className="h-8 mt-3 w-full"
-                  >
-                    {bulkPosting ? (
-                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <Upload className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    Post to ERP
-                  </Button>
-                }
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Table card — pills/filters header + grid (bills-grid style) */}
-        <ContentCard noPadding>
-          <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
-          {([
-            { value: "all", label: "All", count: counts.accepted + counts.rejected + counts.pending, color: undefined as string | undefined },
-            { value: "ACSP", label: "Accepted", count: counts.accepted, color: "var(--color-success)" },
-            { value: "RJCT", label: "Rejected", count: counts.rejected, color: "var(--color-danger)" },
-            { value: "PDNG", label: "Pending", count: counts.pending, color: "var(--color-warning-400)" },
-          ]).map((p) => {
-            const active = statusFilter === p.value;
-            return (
-              <button
-                key={p.value}
-                onClick={() => setStatusFilter(p.value)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
-                }`}
-              >
-                {p.label} ({p.count})
-              </button>
-            );
-          })}
-
-          <span className="hidden sm:block h-5 w-px bg-border mx-1" />
-
-          {([
-            { value: "all", label: "All ERP" },
-            { value: "synced", label: "Synced" },
-            { value: "unsynced", label: "Not synced" },
-          ]).map((p) => {
-            const active = syncedFilter === p.value;
-            return (
-              <button
-                key={p.value}
-                onClick={() => setSyncedFilter(p.value)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
-                }`}
-              >
-                {p.label}
-              </button>
-            );
-          })}
-
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
-            <div className="relative w-44">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-              <Input
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 text-sm"
-              />
-            </div>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="h-9 w-[135px] text-sm"
-            />
-            <span className="text-xs text-muted-foreground">to</span>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="h-9 w-[135px] text-sm"
-            />
-            {hasFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setStatusFilter("all");
-                  setSyncedFilter("all");
-                  setStartDate("");
-                  setEndDate("");
-                  setSearch("");
-                }}
-                className="h-9 text-muted-foreground"
-              >
-                <X className="h-3.5 w-3.5 mr-1" />
-                Clear
-              </Button>
-            )}
-            {selectableIds.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={selectAll}
-                className="h-9 text-xs"
-              >
-                {selectedValid.length === selectableIds.length
-                  ? "Deselect all"
-                  : `Select all (${selectableIds.length})`}
-              </Button>
-            )}
-          </div>
-        </div>
-
-          {isLoading ? (
-            <div className="px-6 py-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-11 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-                <FileCheck className="h-6 w-6 text-muted-foreground" />
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <div className="relative w-44">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                <Input
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9"
+                />
               </div>
-              <p className="text-sm font-normal text-foreground">
-                No bank responses found
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {hasFilters
-                  ? "Try adjusting your filters"
-                  : "Export payment files to receive bank responses"}
-              </p>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-9 w-[135px]"
+                aria-label="From date"
+              />
+              <span className="text-xs text-muted-foreground">to</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-9 w-[135px]"
+                aria-label="To date"
+              />
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-9 text-muted-foreground"
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Clear
+                </Button>
+              )}
+              {selectableIds.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  className="h-9"
+                >
+                  {selectedValid.length === selectableIds.length
+                    ? "Deselect all"
+                    : `Select all (${selectableIds.length})`}
+                </Button>
+              )}
+              {selectedValid.length > 0 && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleBulkPost}
+                  disabled={bulkPosting}
+                  className="h-9"
+                >
+                  {bulkPosting ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  Sync {selectedValid.length} to ERP
+                </Button>
+              )}
             </div>
+          </div>
+
+          {/* Body */}
+          {isLoading ? (
+            <LoadingState />
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={FileCheck}
+              title={hasFilters ? "No payments match your filters" : "No bank responses yet"}
+              description={
+                hasFilters
+                  ? "Try adjusting your filters"
+                  : "Upload payment files to the bank to receive responses here"
+              }
+            />
           ) : (
-            /* Single table — the wrapper is the scroll container and
-               .table-professional already makes <thead th> sticky, so the
-               header stays pinned while the body scrolls. Two tables drift
-               apart under HTML auto-layout (Currency lands under Amount,
-               Amount lands under Reason). One table = one column flow. */
-            <div className="max-h-[calc(100vh-380px)] overflow-y-auto">
-              <table className="w-full table-professional">
-                <colgroup>
-                  <col className="w-10" />
-                  <col className="w-[88px]" />
-                  <col />
-                  <col className="w-[140px]" />
-                  <col className="w-[48px]" />
-                  <col className="w-[110px]" />
-                  <col />
-                  <col className="w-[100px]" />
-                  <col className="w-[132px]" />
-                </colgroup>
+            <div className="table-scroll-container">
+              <table className="table-professional">
                 <thead>
                   <tr>
-                    <th />
+                    <th className="w-10" />
                     <th>Date</th>
                     <th>Vendor</th>
                     <th>Bill</th>
                     <th className="cell-currency">Ccy</th>
                     <th className="text-right">Amount</th>
                     <th>Reason</th>
-                    <th className="text-right pr-6">Action</th>
-                    <th>Status</th>
+                    <th>Bank</th>
+                    <th>ERP</th>
+                    <th className="text-right"></th>
                   </tr>
                 </thead>
                 <tbody>
-                    {filtered.map((txn) => {
-                      const cfg = STATUS_CONFIG[txn.status];
-                      const Icon = cfg?.icon;
-                      const isAccepted =
-                        txn.status === "ACSP" || txn.status === "ACWC";
-                      const isRejected = txn.status === "RJCT";
-                      const isSynced = txn.synced_to_xero;
-                      const isSelectable = isAccepted && !isSynced;
-                      const isSelected = selected.includes(txn.id);
-
-                      return (
-                        <tr key={txn.id} className={isSelected ? "is-selected" : ""}>
-                          {/* Checkbox */}
-                          <td>
-                            {isSelectable && (
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={() => toggle(txn.id)}
-                              />
-                            )}
-                          </td>
-
-                          {/* Date */}
-                          <td className="cell-muted tabular-nums whitespace-nowrap">
-                            {format(new Date(txn.created_at), "dd MMM yy")}
-                          </td>
-
-                          {/* Vendor */}
-                          <td className="cell-primary max-w-0">
-                            <div className="truncate">
-                              {txn.vendor_name || txn.creditor_name || "—"}
-                            </div>
-                            <span className="cell-sub truncate">
-                              {[txn.payment_method, txn.source_bank_account_name]
-                                .filter(Boolean)
-                                .join(" · ")}
+                  {filtered.map((txn) => {
+                    const ready = isReady(txn);
+                    const isSelected = selected.includes(txn.id);
+                    return (
+                      <tr key={txn.id} className={isSelected ? "is-selected" : undefined}>
+                        <td>
+                          {ready && (
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggle(txn.id)}
+                              aria-label="Select payment"
+                            />
+                          )}
+                        </td>
+                        <td className="cell-muted whitespace-nowrap">
+                          <DateCell iso={txn.created_at} />
+                        </td>
+                        <td className="cell-primary">
+                          <span className="block truncate max-w-[220px]">
+                            {txn.vendor_name || txn.creditor_name || "—"}
+                          </span>
+                          <span className="cell-sub truncate max-w-[220px]">
+                            {[txn.payment_method, txn.source_bank_account_name]
+                              .filter(Boolean)
+                              .join(" · ") || "—"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="block truncate max-w-[160px]">
+                            {txn.invoice_number || "—"}
+                          </span>
+                          {txn.bill_reference && (
+                            <span className="cell-sub truncate max-w-[160px]">
+                              {txn.bill_reference}
                             </span>
-                          </td>
-
-                          {/* Bill */}
-                          <td>
-                            <div className="truncate">
-                              {txn.invoice_number || "—"}
-                            </div>
-                            {txn.bill_reference && (
-                              <span className="cell-sub truncate">
-                                {txn.bill_reference}
-                              </span>
-                            )}
-                            {txn.bill_due_date && (
-                              <span className="cell-sub truncate">
-                                Due {format(new Date(txn.bill_due_date), "dd MMM yy")}
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Currency */}
-                          <td className="cell-currency">{txn.original_currency}</td>
-
-                          {/* Amount */}
-                          <td className="cell-amount">
-                            {parseFloat(txn.original_amount).toLocaleString(undefined, {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 2,
-                            })}
-                          </td>
-
-                          {/* Reason */}
-                          <td className="cell-muted max-w-0">
-                            <div className="truncate">
-                              {txn.status_description || "—"}
-                            </div>
-                            {txn.status_code && txn.status_code !== "NARR" && (
-                              <span className="cell-sub font-mono truncate">
-                                {txn.status_code}
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Action */}
-                          <td className="text-right pr-6">
-                            {isSynced && (
-                              <span className="inline-flex items-center gap-1 text-xs text-success-600">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Synced
-                              </span>
-                            )}
-                            {isAccepted && !isSynced && txn.payment_event_id && (
+                          )}
+                          {txn.bill_due_date && (
+                            <span className="cell-sub">
+                              Due {format(new Date(txn.bill_due_date), "dd MMM yyyy")}
+                            </span>
+                          )}
+                        </td>
+                        <td className="cell-currency">{txn.original_currency}</td>
+                        <td className="cell-amount">{formatAmount(txn.original_amount)}</td>
+                        <td className="cell-muted">
+                          <span className="block truncate max-w-[240px]">
+                            {txn.status_description || "—"}
+                          </span>
+                          {txn.status_code && txn.status_code !== "NARR" && (
+                            <span className="cell-sub font-mono">{txn.status_code}</span>
+                          )}
+                        </td>
+                        <td>
+                          <BankStatus status={txn.status} />
+                        </td>
+                        <td>
+                          <ErpStatus synced={txn.synced_to_xero} />
+                        </td>
+                        <td>
+                          <div className="flex items-center justify-end gap-1">
+                            {ready && txn.payment_event_id && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                className="h-7 text-xs"
-                                onClick={() =>
-                                  postToErpMutation.mutate(txn.payment_event_id)
-                                }
-                                disabled={postToErpMutation.isPending}
+                                className="h-8 text-muted-foreground hover:text-primary"
+                                onClick={() => postToErpMutation.mutate(txn.payment_event_id)}
+                                disabled={postToErpMutation.isPending || bulkPosting}
+                                title="Post this payment to the ERP"
                               >
-                                {postToErpMutation.isPending ? (
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                {postingId === txn.payment_event_id ? (
+                                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
                                 ) : (
-                                  <Upload className="h-3 w-3 mr-1" />
+                                  <Upload className="h-3.5 w-3.5 mr-1" />
                                 )}
-                                Post to ERP
+                                Sync
                               </Button>
                             )}
-                            {isRejected && txn.payment_event_id && (
+                            {txn.status === "RJCT" && txn.payment_event_id && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                className="h-7 text-xs"
-                                onClick={() =>
-                                  requeueMutation.mutate(txn.payment_event_id)
-                                }
+                                className="h-8 text-muted-foreground hover:text-primary"
+                                onClick={() => requeueMutation.mutate(txn.payment_event_id)}
                                 disabled={requeueMutation.isPending}
+                                title="Queue this payment for the next export batch"
                               >
-                                <RotateCcw className="h-3 w-3 mr-1" />
+                                {requeueingId === txn.payment_event_id ? (
+                                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                                )}
                                 Re-queue
                               </Button>
                             )}
-                          </td>
-
-                          {/* Status (last column) */}
-                          <td>
-                            <span
-                              className={`status-pill ${
-                                cfg?.className ||
-                                "bg-muted text-muted-foreground border-border"
-                              }`}
-                            >
-                              {Icon && <Icon className="h-3 w-3 shrink-0" />}
-                              {cfg?.label || txn.status}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
