@@ -51,7 +51,7 @@ export default function OrganizationsPage() {
         />
         <div className="px-6 py-6">
           <div className="bg-card rounded-lg border border-border text-center py-12">
-            <Building2 className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+            <Building2 className="h-8 w-8 text-ochre mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Error Loading Organizations</p>
             <p className="text-xs text-muted-foreground/60 mt-1">
               {(error as Error).message || 'Failed to load organizations'}
@@ -190,7 +190,7 @@ function OrganizationCard({ organization }: OrganizationCardProps) {
         {/* Info */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Currency</span>
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-warning-400/10 text-warning-400">
             {organization.primary_currency}
           </span>
         </div>

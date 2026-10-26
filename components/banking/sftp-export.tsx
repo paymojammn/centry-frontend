@@ -12,7 +12,6 @@ import {
   Loader2,
   Download,
   Search,
-  CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -56,14 +55,14 @@ function formatCurrency(amount: string, currency: string): string {
 function renderStatusBadge(status: string) {
   const style =
     status === "uploaded" || status === "uploading"
-      ? "bg-blue-500/10 text-blue-700 border-blue-500/20"
+      ? "bg-info-500/10 text-info-700 border-info-500/20"
       : status === "processed"
-      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+      ? "bg-success-500/10 text-success-700 border-success-500/20"
       : status === "failed"
-      ? "bg-red-500/10 text-red-700 border-red-500/20"
+      ? "bg-danger-500/10 text-danger-700 border-danger-500/20"
       : status === "superseded"
       ? "bg-muted text-muted-foreground border-border"
-      : "bg-amber-500/10 text-amber-700 border-amber-500/20";
+      : "bg-warning-500/10 text-warning-700 border-warning-500/20";
   const label =
     status === "generated" || status === "pending"
       ? "Ready"
@@ -108,7 +107,6 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
 
   const uploadFile = useSFTPUpload();
   const regenerate = useRegenerateExport();
-  const [regeneratingId, setRegeneratingId] = useState<number | undefined>();
   const { data: taskStatus } = useSFTPTaskStatus(activeTaskId);
 
   useEffect(() => {
@@ -139,19 +137,22 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
 
   const isReady = (e: BankPaymentExport) =>
     e.status === "generated" || e.status === "pending";
-  // A file whose value date the bank can no longer honour must be regenerated
-  // (the backend refuses to upload it — Stanbic would bounce it with FI/E8).
-  const needsRegeneration = (e: BankPaymentExport) =>
+  // A file whose value date the bank can no longer honour is refreshed as part
+  // of Upload (the backend refuses a stale date — Stanbic would bounce it with FI/E8).
+  const isStale = (e: BankPaymentExport) =>
     (isReady(e) || e.status === "failed") && !!e.value_date_passed;
+  const canUpload = (e: BankPaymentExport) => isReady(e) || isStale(e);
   const isUploaded = (e: BankPaymentExport) =>
     e.status === "uploaded" || e.status === "processed";
 
-  const pendingExports = exports.filter(isReady);
+  const pendingExports = exports.filter(canUpload);
   const uploadedExports = exports.filter(isUploaded);
 
   const filteredExports = exports.filter((e) => {
-    if (statusFilter === "ready" && !isReady(e)) return false;
+    if (statusFilter === "ready" && !canUpload(e)) return false;
     if (statusFilter === "uploaded" && !isUploaded(e)) return false;
+    // Replaced files are history; only show them when asked for explicitly.
+    if (statusFilter === "all" && e.status === "superseded") return false;
     if (fileSearch) {
       const q = fileSearch.toLowerCase();
       if (
@@ -163,55 +164,52 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
     return true;
   });
 
+  const uploadExport = (exportFile: BankPaymentExport, credentialId: number) =>
+    uploadFile.mutateAsync({
+      bank_account_id: exportFile.bank_account.id,
+      sftp_credential_id: credentialId,
+      file_path: exportFile.file_path,
+      remote_filename: exportFile.file_name,
+      export_id: exportFile.id,
+      async_upload: true,
+    });
+
+  // Regenerate the file with the earliest value date the bank accepts now and
+  // return the replacement (uploaded with the connection chosen on this tab).
+  const refreshExport = async (exportFile: BankPaymentExport) => {
+    const result = await regenerate.mutateAsync({ exportId: exportFile.id });
+    return result.export;
+  };
+
+  // Upload is self-healing: a file whose value date has lapsed is regenerated
+  // first, and a 409 from the bank-side guard (date lapsed between the list
+  // loading and the click) is retried the same way.
   const handleUploadFile = async (exportFile: BankPaymentExport) => {
     if (!exportFile.bank_account?.id || !selectedSFTPCredentialId) return;
+    const credentialId = selectedSFTPCredentialId;
     try {
       setUploadingFileId(exportFile.id);
-      const result = await uploadFile.mutateAsync({
-        bank_account_id: exportFile.bank_account.id,
-        sftp_credential_id: selectedSFTPCredentialId,
-        file_path: exportFile.file_path,
-        remote_filename: exportFile.file_name,
-        export_id: exportFile.id,
-        async_upload: true,
-      });
+      let target = exportFile;
+      if (isStale(exportFile)) target = await refreshExport(exportFile);
+      let result;
+      try {
+        result = await uploadExport(target, credentialId);
+      } catch (error: any) {
+        if (error?.response?.data?.code !== "value_date_passed") throw error;
+        target = await refreshExport(target);
+        result = await uploadExport(target, credentialId);
+      }
+      if (target.id !== exportFile.id) {
+        toast.success(
+          `Payment date updated to ${formatValueDate(target.requested_execution_date)}; uploading ${target.file_name}`,
+        );
+        setUploadingFileId(target.id);
+        refetchExports();
+      }
       if (result.task_id) setActiveTaskId(result.task_id);
     } catch (error: any) {
       setUploadingFileId(undefined);
-      const data = error?.response?.data;
-      toast.error(
-        data?.code === "value_date_passed"
-          ? `${data.error} Earliest value date: ${data.earliest_value_date}.`
-          : data?.error || error?.message || "Upload failed",
-      );
-    }
-  };
-
-  // Regenerate with the earliest value date the bank accepts now, then hand
-  // the new file straight to the upload flow (same connection selection).
-  const handleRegenerate = async (exportFile: BankPaymentExport) => {
-    try {
-      setRegeneratingId(exportFile.id);
-      const result = await regenerate.mutateAsync({
-        exportId: exportFile.id,
-        upload: !!selectedSFTPCredentialId,
-      });
-      const newDate = result.export.requested_execution_date || result.export.earliest_value_date;
-      if (result.upload?.queued) {
-        toast.success(`Regenerated ${result.export.file_name} (value date ${newDate}); upload queued`);
-        if (result.upload.task_id) setActiveTaskId(result.upload.task_id);
-      } else {
-        toast.success(
-          `Regenerated ${result.export.file_name} (value date ${newDate})${
-            result.upload?.reason ? ` — ${result.upload.reason}` : ""
-          }`,
-        );
-      }
-      refetchExports();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || error?.message || "Could not regenerate file");
-    } finally {
-      setRegeneratingId(undefined);
+      toast.error(error?.response?.data?.error || error?.message || "Upload failed");
     }
   };
 
@@ -233,7 +231,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
     }
   };
 
-  const isUploading = uploadFile.isPending || !!activeTaskId;
+  const isUploading = uploadFile.isPending || regenerate.isPending || !!activeTaskId;
   const hasFilters = fileSearch !== "" || statusFilter !== "all";
 
   return (
@@ -242,7 +240,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         {([
           { value: "all", label: "All", count: exports.length, color: undefined },
-          { value: "ready", label: "Ready", count: pendingExports.length, color: "#D4B35A" },
+          { value: "ready", label: "Ready", count: pendingExports.length, color: "var(--color-warning-400)" },
           { value: "uploaded", label: "Uploaded", count: uploadedExports.length, color: PILL_COLORS.uploaded },
         ]).map((p) => {
           const active = statusFilter === p.value;
@@ -393,13 +391,13 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
                   </p>
                 </div>
                 <div className="col-span-1 min-w-0 tabular-nums">
-                  <p className={needsRegeneration(e) ? "text-red-700" : "text-foreground"}>
-                    {formatValueDate(e.requested_execution_date)}
-                  </p>
-                  {needsRegeneration(e) && (
-                    <p className="text-[11px] text-red-700/80 mt-0.5 flex items-center gap-1">
-                      <CalendarClock className="h-3 w-3" />
-                      Value date passed
+                  <p className="text-foreground">{formatValueDate(e.requested_execution_date)}</p>
+                  {isStale(e) && (
+                    <p
+                      className="text-[11px] text-muted-foreground mt-0.5"
+                      title={`The bank can no longer pay on this date. Upload will move it to ${formatValueDate(e.earliest_value_date)}.`}
+                    >
+                      Updated on upload
                     </p>
                   )}
                 </div>
@@ -426,29 +424,17 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
                       <Download className="h-3 w-3" />
                     )}
                   </Button>
-                  {needsRegeneration(e) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRegenerate(e)}
-                      disabled={regenerate.isPending || regeneratingId === e.id}
-                      className="h-8 btn-press border-red-500/30 text-red-700 hover:bg-red-500/10"
-                      title={`Regenerate with value date ${e.earliest_value_date}`}
-                    >
-                      {regeneratingId === e.id ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                      )}
-                      Regenerate
-                    </Button>
-                  )}
-                  {isReady(e) && !needsRegeneration(e) && (
+                  {canUpload(e) && (
                     <Button
                       size="sm"
                       onClick={() => handleUploadFile(e)}
                       disabled={isUploading || uploadingFileId === e.id || !selectedSFTPCredentialId}
                       className="h-8 bg-primary hover:bg-primary/90 btn-press"
+                      title={
+                        isStale(e)
+                          ? `Refreshes the payment date to ${formatValueDate(e.earliest_value_date)} and uploads`
+                          : undefined
+                      }
                     >
                       {uploadingFileId === e.id ? (
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />

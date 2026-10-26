@@ -61,14 +61,14 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
         );
       case "failed":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4944A]/10 text-[#D4944A]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-500/10 text-warning-700">
             <XCircle className="h-3 w-3" />
             Failed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-400/10 text-warning-400">
             <Clock className="h-3 w-3" />
             {status || "Pending"}
           </span>
@@ -87,7 +87,7 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
           </div>
         </div>
         <div className="text-center py-12">
-          <AlertCircle className="h-8 w-8 text-[#D4B35A] mx-auto mb-2" />
+          <AlertCircle className="h-8 w-8 text-warning-400 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">No export file selected</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
             Select an export file from the SFTP Export tab to view its payments
@@ -123,7 +123,7 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
           </div>
         </div>
         <div className="text-center py-12">
-          <XCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+          <XCircle className="h-8 w-8 text-ochre mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Failed to load payments</p>
         </div>
       </div>
@@ -147,11 +147,11 @@ export function ExportTransactionList({ exportId, organizationId }: ExportTransa
       <div className="p-4 space-y-4">
         {/* Selected Export Info */}
         {selectedExport && (
-          <div className="bg-[#6B8FB8]/10 border border-[#6B8FB8]/20 rounded-lg px-4 py-3 flex items-center gap-3">
-            <FileText className="h-4 w-4 text-[#6B8FB8]" />
+          <div className="bg-info/10 border border-info/20 rounded-lg px-4 py-3 flex items-center gap-3">
+            <FileText className="h-4 w-4 text-info" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#6B8FB8]">{selectedExport.file_name}</p>
-              <p className="text-xs text-[#6B8FB8]">
+              <p className="text-sm font-medium text-info">{selectedExport.file_name}</p>
+              <p className="text-xs text-info">
                 {selectedExport.payment_count} payments · {formatCurrency(selectedExport.total_amount, selectedExport.currency)}
               </p>
             </div>

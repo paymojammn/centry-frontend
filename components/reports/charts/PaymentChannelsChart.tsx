@@ -16,9 +16,9 @@ const CHANNEL_COLORS: Record<string, string> = {
 const fallbackColors = [
   "rgb(var(--brand-primary))",
   "rgb(var(--warning))",
-  "#6366f1",
-  "#06b6d4",
-  "#10b981",
+  "var(--color-info-600)",
+  "var(--color-info)",
+  "var(--color-success)",
 ];
 
 const formatCurrency = (value: number) =>

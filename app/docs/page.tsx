@@ -128,11 +128,11 @@ export default function PlatformDocsPage() {
               <Endpoint method="POST" path="/api/auth/token/refresh/" description="Refreshes an expired access token. The dashboard does this automatically on a 401." />
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
-              <Shield className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-warning-500/10 border border-warning-500/20 rounded-xl p-4 flex gap-3">
+              <Shield className="size-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-medium text-amber-700 text-sm">Session tokens</h4>
-                <p className="text-xs text-amber-600 mt-1">
+                <h4 className="font-medium text-warning-700 text-sm">Session tokens</h4>
+                <p className="text-xs text-warning-600 mt-1">
                   After sign-in, every dashboard API call carries{' '}
                   <code className="text-[11px]">Authorization: Bearer &lt;access token&gt;</code>.
                   Tokens are short-lived and refreshed transparently; signing out clears them
@@ -268,11 +268,11 @@ export default function PlatformDocsPage() {
               <p className="text-sm text-muted-foreground">
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">draft</code> <ArrowRight className="inline size-3" />{' '}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">pending</code> <ArrowRight className="inline size-3" />{' '}
-                <code className="text-xs bg-emerald-500/10 text-emerald-600 px-1 py-0.5 rounded">approved</code> |{' '}
-                <code className="text-xs bg-red-500/10 text-red-600 px-1 py-0.5 rounded">rejected</code> <ArrowRight className="inline size-3" />{' '}
+                <code className="text-xs bg-success-500/10 text-success-600 px-1 py-0.5 rounded">approved</code> |{' '}
+                <code className="text-xs bg-danger-500/10 text-danger-600 px-1 py-0.5 rounded">rejected</code> <ArrowRight className="inline size-3" />{' '}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">processing</code> <ArrowRight className="inline size-3" />{' '}
-                <code className="text-xs bg-emerald-500/10 text-emerald-600 px-1 py-0.5 rounded">completed</code> |{' '}
-                <code className="text-xs bg-red-500/10 text-red-600 px-1 py-0.5 rounded">failed</code>
+                <code className="text-xs bg-success-500/10 text-success-600 px-1 py-0.5 rounded">completed</code> |{' '}
+                <code className="text-xs bg-danger-500/10 text-danger-600 px-1 py-0.5 rounded">failed</code>
               </p>
             </div>
 

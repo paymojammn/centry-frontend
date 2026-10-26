@@ -266,7 +266,7 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
                 <td className="cell-primary">
                   <div className="flex items-center gap-2">
                     {account.is_default && (
-                      <Star className="h-3.5 w-3.5 text-[#D4B35A] fill-[#D4B35A] flex-shrink-0" />
+                      <Star className="h-3.5 w-3.5 text-warning-400 fill-warning-400 flex-shrink-0" />
                     )}
                     <div>
                       <div>{account.account_name}</div>

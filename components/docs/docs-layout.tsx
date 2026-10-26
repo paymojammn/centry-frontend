@@ -288,10 +288,10 @@ interface EndpointProps {
 
 export function Endpoint({ method, path, description }: EndpointProps) {
   const methodColors = {
-    GET: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-    POST: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    PUT: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    DELETE: 'bg-red-500/10 text-red-600 border-red-500/20',
+    GET: 'bg-success-500/10 text-success-600 border-success-500/20',
+    POST: 'bg-info-500/10 text-info-600 border-info-500/20',
+    PUT: 'bg-warning-500/10 text-warning-600 border-warning-500/20',
+    DELETE: 'bg-danger-500/10 text-danger-600 border-danger-500/20',
     PATCH: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
   };
 

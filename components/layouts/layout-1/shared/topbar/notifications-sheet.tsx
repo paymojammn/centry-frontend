@@ -44,30 +44,30 @@ const SEVERITY_STYLES: Record<
 > = {
   info: {
     icon: Info,
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-700',
-    ring: 'ring-blue-500/20',
+    bg: 'bg-info-500/10',
+    text: 'text-info-700',
+    ring: 'ring-info-500/20',
     label: 'Info',
   },
   warning: {
     icon: AlertTriangle,
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-700',
-    ring: 'ring-amber-500/20',
+    bg: 'bg-warning-500/10',
+    text: 'text-warning-700',
+    ring: 'ring-warning-500/20',
     label: 'Warning',
   },
   error: {
     icon: AlertCircle,
-    bg: 'bg-red-500/10',
-    text: 'text-red-700',
-    ring: 'ring-red-500/20',
+    bg: 'bg-danger-500/10',
+    text: 'text-danger-700',
+    ring: 'ring-danger-500/20',
     label: 'Error',
   },
   critical: {
     icon: AlertOctagon,
-    bg: 'bg-red-600/15',
-    text: 'text-red-800',
-    ring: 'ring-red-600/25',
+    bg: 'bg-danger-600/15',
+    text: 'text-danger-800',
+    ring: 'ring-danger-600/25',
     label: 'Critical',
   },
 };
@@ -105,7 +105,7 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
               <SheetTitle className="text-base font-normal flex items-center gap-2">
                 Activity
                 {unreadCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500/10 text-red-700 text-[10px] font-medium tabular-nums">
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-danger-500/10 text-danger-700 text-[10px] font-medium tabular-nums">
                     {unreadCount}
                   </span>
                 )}
@@ -250,7 +250,7 @@ function NotificationRow({ item }: { item: AuditLog }) {
             </p>
           )}
           {item.error_message && (
-            <p className="text-[11px] text-red-600 truncate mt-0.5" title={item.error_message}>
+            <p className="text-[11px] text-danger-600 truncate mt-0.5" title={item.error_message}>
               {item.error_message}
             </p>
           )}

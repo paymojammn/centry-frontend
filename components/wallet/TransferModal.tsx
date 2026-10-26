@@ -196,8 +196,8 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
           {/* No linked accounts warning */}
           {!accountsLoading && !hasAnyLinkedAccount && step === 'source' && (
             <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-                <AlertCircle className="w-8 h-8 text-amber-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-warning-100 rounded-full mb-4">
+                <AlertCircle className="w-8 h-8 text-warning-600" />
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">No Linked Accounts</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -273,8 +273,8 @@ export default function TransferModal({ isOpen, onClose, wallet }: TransferModal
                 </div>
               ) : destinationAccounts.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-                    <AlertCircle className="w-8 h-8 text-amber-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-warning-100 rounded-full mb-4">
+                    <AlertCircle className="w-8 h-8 text-warning-600" />
                   </div>
                   <h3 className="text-lg font-medium text-foreground mb-2">No Destination Accounts</h3>
                   <p className="text-muted-foreground max-w-md mx-auto">

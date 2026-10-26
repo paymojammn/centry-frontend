@@ -255,29 +255,29 @@ export function ContactImportDialog() {
 
           {/* Error Result */}
           {importResult && importResult.status === 'error' && (
-            <div className="p-3 bg-orange-50 border border-orange-100 rounded-lg">
+            <div className="p-3 bg-warning-50 border border-warning-100 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
-                <AlertCircle className="h-4 w-4 text-orange-600" />
-                <p className="text-sm font-medium text-orange-800">Import Failed</p>
+                <AlertCircle className="h-4 w-4 text-warning-600" />
+                <p className="text-sm font-medium text-warning-800">Import Failed</p>
               </div>
-              <p className="text-xs text-orange-600">{importResult.error}</p>
+              <p className="text-xs text-warning-600">{importResult.error}</p>
             </div>
           )}
 
           {/* Row Errors */}
           {importResult && importResult.errors && importResult.errors.length > 0 && (
-            <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
-              <p className="text-xs font-medium text-amber-800 mb-2">
+            <div className="p-3 bg-warning-50 border border-warning-100 rounded-lg">
+              <p className="text-xs font-medium text-warning-800 mb-2">
                 {importResult.errors.length} row{importResult.errors.length > 1 ? 's' : ''} had errors
               </p>
               <div className="max-h-24 overflow-y-auto space-y-1">
                 {importResult.errors.slice(0, 5).map((err, idx) => (
-                  <p key={idx} className="text-xs text-amber-700">
+                  <p key={idx} className="text-xs text-warning-700">
                     <span className="font-mono">Row {err.row}</span>: {err.contact} - {err.error}
                   </p>
                 ))}
                 {importResult.errors.length > 5 && (
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-warning-600">
                     +{importResult.errors.length - 5} more errors
                   </p>
                 )}

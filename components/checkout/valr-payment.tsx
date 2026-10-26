@@ -97,8 +97,8 @@ export function ValrPayment({
   if (expired) {
     return (
       <div className="text-center py-8 space-y-4">
-        <div className="size-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto">
-          <Clock className="size-10 text-amber-500" />
+        <div className="size-20 rounded-full bg-warning-50 flex items-center justify-center mx-auto">
+          <Clock className="size-10 text-warning-500" />
         </div>
         <div>
           <h3 className="text-xl font-semibold text-foreground">Payment expired</h3>
@@ -114,9 +114,9 @@ export function ValrPayment({
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00D4AA]/10 rounded-full mb-3">
-          <div className="size-2 rounded-full bg-[#00D4AA] animate-pulse" />
-          <span className="text-sm font-medium text-[#00D4AA]">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full mb-3">
+          <div className="size-2 rounded-full bg-success animate-pulse" />
+          <span className="text-sm font-medium text-success">
             Pay with {receiveCurrency}
           </span>
         </div>
@@ -148,7 +148,7 @@ export function ValrPayment({
           {status === 'processing' && (
             <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
               <div className="text-center space-y-2">
-                <Loader2 className="size-8 animate-spin text-[#00D4AA] mx-auto" />
+                <Loader2 className="size-8 animate-spin text-success mx-auto" />
                 <p className="text-sm font-medium text-foreground">Confirming...</p>
               </div>
             </div>
@@ -186,7 +186,7 @@ export function ValrPayment({
         <Button
           onClick={handleOpenApp}
           size="lg"
-          className="w-full bg-[#00D4AA] hover:bg-[#00B894] text-white"
+          className="w-full bg-success hover:bg-success text-white"
         >
           <ExternalLink className="size-4 mr-2" />
           Open VALR App
@@ -211,7 +211,7 @@ export function ValrPayment({
             href="https://www.valr.com/download"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#00D4AA] hover:underline"
+            className="text-success hover:underline"
           >
             Download the app
           </a>

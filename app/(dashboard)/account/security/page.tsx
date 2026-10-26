@@ -209,10 +209,10 @@ export default function SecurityPage() {
 
   const getSeverityBadge = (severity: string) => {
     const styles = {
-      info: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
-      warning: "bg-[#D4B35A]/10 text-[#D4B35A]",
+      info: "bg-info/10 text-info",
+      warning: "bg-warning-400/10 text-warning-400",
       error: "bg-destructive/10 text-destructive",
-      critical: "bg-[#8B7BB8]/10 text-[#8B7BB8]",
+      critical: "bg-heather/10 text-heather",
     };
     return styles[severity as keyof typeof styles] || styles.info;
   };
@@ -220,13 +220,13 @@ export default function SecurityPage() {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case "critical":
-        return <AlertTriangle className="h-4 w-4 text-[#8B7BB8]" />;
+        return <AlertTriangle className="h-4 w-4 text-heather" />;
       case "error":
         return <XCircle className="h-4 w-4 text-destructive" />;
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-[#D4B35A]" />;
+        return <AlertTriangle className="h-4 w-4 text-warning-400" />;
       default:
-        return <CheckCircle2 className="h-4 w-4 text-[#6B8FB8]" />;
+        return <CheckCircle2 className="h-4 w-4 text-info" />;
     }
   };
 
@@ -246,10 +246,10 @@ export default function SecurityPage() {
   const getAuthMethodBadge = (method: string) => {
     const styles: Record<string, string> = {
       password: "bg-muted text-foreground",
-      "2fa_otp": "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+      "2fa_otp": "bg-info/10 text-info",
       "2fa_totp": "bg-primary/10 text-primary",
-      "2fa_backup": "bg-[#D4B35A]/10 text-[#D4B35A]",
-      xero: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+      "2fa_backup": "bg-warning-400/10 text-warning-400",
+      xero: "bg-info/10 text-info",
     };
     const labels: Record<string, string> = {
       password: "Password",
@@ -494,8 +494,8 @@ export default function SecurityPage() {
                     {stats?.total_logs || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-[#6B8FB8]/10 rounded-lg">
-                  <Activity className="h-6 w-6 text-[#6B8FB8]" />
+                <div className="p-3 bg-info/10 rounded-lg">
+                  <Activity className="h-6 w-6 text-info" />
                 </div>
               </div>
             </Card>
@@ -532,12 +532,12 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Critical</p>
-                  <p className="text-2xl font-bold text-[#8B7BB8] mt-2">
+                  <p className="text-2xl font-bold text-heather mt-2">
                     {stats?.critical_count || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-[#8B7BB8]/10 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-[#8B7BB8]" />
+                <div className="p-3 bg-heather/10 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-heather" />
                 </div>
               </div>
             </Card>

@@ -29,7 +29,7 @@ import { Input } from '@/components/ui/input';
 export default function ManualPaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planCode = searchParams.get('plan') || 'sme';
+  const planCode = searchParams.get('plan') || 'starter';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
   const orgId = searchParams.get('organization_id') || undefined;
 

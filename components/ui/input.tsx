@@ -28,7 +28,7 @@ const inputVariants = cva(
 );
 
 const inputAddonVariants = cva(
-  'flex items-center shrink-0 justify-center bg-muted border border-input shadow-xs shadow-[rgba(0,0,0,0.05)] text-secondary-foreground [&_svg]:text-secondary-foreground/60',
+  'flex items-center shrink-0 justify-center bg-muted border border-input shadow-xs shadow-ink/5 text-secondary-foreground [&_svg]:text-secondary-foreground/60',
   {
     variants: {
       variant: {

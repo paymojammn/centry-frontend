@@ -117,7 +117,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
     }
     if (contact.is_supplier) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-info/10 text-info">
           <Package className="h-3 w-3" /> Supplier
         </span>
       );
@@ -134,7 +134,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
 
   const statusBadge =
     contact.contact_status === 'ACTIVE' ? (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#5C8A65]/10 text-[#5C8A65]">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success">
         <CheckCircle className="h-3 w-3" /> Active
       </span>
     ) : (

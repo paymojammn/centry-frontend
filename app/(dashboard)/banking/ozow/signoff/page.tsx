@@ -367,8 +367,8 @@ export default function OzowSignoffPage() {
                     className={
                       "text-[10px] font-mono px-1.5 py-0.5 rounded " +
                       (a.active_environment === "sandbox"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-rose-100 text-rose-800")
+                        ? "bg-info-100 text-info-800"
+                        : "bg-danger-100 text-danger-800")
                     }
                   >
                     {a.active_environment}
@@ -382,13 +382,13 @@ export default function OzowSignoffPage() {
 
       <div className="px-6 py-6 space-y-6">
         {selectedAccount && !isSandbox && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="flex items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 px-4 py-3 text-sm text-warning-900">
             <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium">
                 Production account selected — sign-off tests are disabled.
               </p>
-              <p className="text-amber-800 mt-0.5">
+              <p className="text-warning-800 mt-0.5">
                 Ozow's enablement checklist mandates sign-off on staging. Switch{" "}
                 <span className="font-mono">active_environment</span> to{" "}
                 <span className="font-mono">sandbox</span> on this account, or
@@ -632,7 +632,7 @@ export default function OzowSignoffPage() {
                       </div>
                     </div>
                     {requiresPayoutId && !payoutId && (
-                      <p className="mt-1 ml-6 text-xs text-amber-700">
+                      <p className="mt-1 ml-6 text-xs text-warning-700">
                         Needs a payoutId — run Test Case 3 first or paste one above.
                       </p>
                     )}
@@ -713,8 +713,8 @@ export default function OzowSignoffPage() {
                           className={
                             "text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded " +
                             (outcome.last_verify_result === "verified"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-amber-100 text-amber-800")
+                              ? "bg-success-100 text-success-800"
+                              : "bg-warning-100 text-warning-800")
                           }
                         >
                           {outcome.last_verify_result}

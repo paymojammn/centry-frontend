@@ -1,3 +1,4 @@
+import { hex } from '@/lib/colors';
 /**
  * Ozow sign-off result export — Excel + PDF.
  *
@@ -294,20 +295,20 @@ const esc = (s: unknown) =>
 
 function statusPill(status: string): string {
   const s = status.toLowerCase();
-  let bg = "#eef2ff",
-    color = "#312e81";
+  let bg = hex.heather50,
+    color = hex.heather700;
   if (s.includes("validationfailed") || s.includes("complete")) {
-    bg = "#d1fae5";
-    color = "#065f46";
+    bg = hex.success50;
+    color = hex.success800;
   } else if (s.includes("cancelled") || s.includes("error") || s.includes("exception")) {
-    bg = "#fee2e2";
-    color = "#991b1b";
+    bg = hex.danger50;
+    color = hex.danger700;
   } else if (s.includes("pending") || s.includes("verification")) {
-    bg = "#fef3c7";
-    color = "#92400e";
+    bg = hex.warning50;
+    color = hex.warning800;
   } else if (s === "not run") {
-    bg = "#e2e8f0";
-    color = "#475569";
+    bg = hex.neutral200;
+    color = hex.neutral500;
   }
   return `<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:600;background:${bg};color:${color}">${esc(status)}</span>`;
 }
@@ -392,14 +393,14 @@ export function exportSignoffPDF(args: SignoffExportArgs) {
     @page { size: A4; margin: 14mm 12mm; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin: 0; padding: 20px; color: #0f172a;
+      margin: 0; padding: 20px; color: ${hex.ink};
     }
-    header { border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
+    header { border-bottom: 1px solid ${hex.neutral200}; padding-bottom: 16px; margin-bottom: 16px; }
     h1 { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
-    header .meta { font-size: 11px; color: #475569; line-height: 1.6; }
-    header .meta code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
+    header .meta { font-size: 11px; color: ${hex.neutral500}; line-height: 1.6; }
+    header .meta code { background: ${hex.neutral50}; padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
     section.test {
-      border: 1px solid #e2e8f0;
+      border: 1px solid ${hex.neutral200};
       border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 12px;
@@ -411,21 +412,21 @@ export function exportSignoffPDF(args: SignoffExportArgs) {
     }
     section.test .slug {
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 10px; color: #64748b; margin-bottom: 2px;
+      font-size: 10px; color: ${hex.neutral500}; margin-bottom: 2px;
     }
     section.test h2 { font-size: 13px; font-weight: 600; margin: 0; }
     .kv { font-size: 11px; margin: 2px 0; display: flex; gap: 8px; }
-    .kv .k { color: #64748b; min-width: 130px; }
-    .kv code { background: #f8fafc; padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
+    .kv .k { color: ${hex.neutral500}; min-width: 130px; }
+    .kv code { background: ${hex.neutral50}; padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
     pre {
-      background: #0f172a; color: #e2e8f0;
+      background: ${hex.ink}; color: ${hex.neutral200};
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
       font-size: 10px; line-height: 1.5;
       padding: 10px 12px; border-radius: 6px;
       white-space: pre-wrap; word-break: break-word;
       margin: 8px 0 0;
     }
-    .empty { font-size: 11px; color: #94a3b8; font-style: italic; margin: 4px 0 0; }
+    .empty { font-size: 11px; color: ${hex.neutral400}; font-style: italic; margin: 4px 0 0; }
   </style>
 </head>
 <body>

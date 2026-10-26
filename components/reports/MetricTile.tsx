@@ -52,28 +52,28 @@ const TONE_STYLES: Record<
     iconColor: "text-primary",
   },
   success: {
-    accent: "border-l-4 border-l-emerald-500",
-    spark: "#10b981",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-600",
+    accent: "border-l-4 border-l-success-500",
+    spark: "var(--color-success)",
+    iconBg: "bg-success-500/10",
+    iconColor: "text-success-600",
   },
   warning: {
-    accent: "border-l-4 border-l-amber-500",
-    spark: "#f59e0b",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-600",
+    accent: "border-l-4 border-l-warning-500",
+    spark: "var(--color-warning)",
+    iconBg: "bg-warning-500/10",
+    iconColor: "text-warning-600",
   },
   danger: {
-    accent: "border-l-4 border-l-red-500",
-    spark: "#ef4444",
-    iconBg: "bg-red-500/10",
-    iconColor: "text-red-600",
+    accent: "border-l-4 border-l-danger-500",
+    spark: "var(--color-danger)",
+    iconBg: "bg-danger-500/10",
+    iconColor: "text-danger-600",
   },
   info: {
-    accent: "border-l-4 border-l-blue-500",
-    spark: "#3b82f6",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600",
+    accent: "border-l-4 border-l-info-500",
+    spark: "var(--color-info)",
+    iconBg: "bg-info-500/10",
+    iconColor: "text-info-600",
   },
 };
 
@@ -140,8 +140,8 @@ export function MetricTile({
               className={cn(
                 "inline-flex items-center gap-0.5 text-xs font-medium rounded-full px-1.5 py-0.5",
                 trendGood
-                  ? "bg-emerald-500/10 text-emerald-700"
-                  : "bg-red-500/10 text-red-700"
+                  ? "bg-success-500/10 text-success-700"
+                  : "bg-danger-500/10 text-danger-700"
               )}
             >
               {trendUp ? (

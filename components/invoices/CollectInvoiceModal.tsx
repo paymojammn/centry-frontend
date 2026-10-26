@@ -333,7 +333,7 @@ export default function CollectInvoiceModal({
                   </p>
                 </div>
                 {selectedSource && selectedSource.currency !== currency && (
-                  <span className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-800">
+                  <span className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-warning-100 text-warning-800">
                     {currency} → {selectedSource.currency}
                   </span>
                 )}

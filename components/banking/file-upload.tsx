@@ -146,8 +146,8 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : bankAccounts.length === 0 ? (
-            <div className="bg-[#D4B35A]/10 border border-[#D4B35A]/20 rounded-lg p-4">
-              <p className="text-sm font-medium text-[#D4B35A]">No bank accounts synced</p>
+            <div className="bg-warning-400/10 border border-warning-400/20 rounded-lg p-4">
+              <p className="text-sm font-medium text-warning-400">No bank accounts synced</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Please sync bank accounts from Xero first in{" "}
                 <a href="/banking/accounts" className="text-primary font-medium hover:underline">
@@ -189,8 +189,8 @@ export function FileUpload({ onUploadComplete, organizationId }: FileUploadProps
         )}
 
         {!activeConnection && organizationId && (
-          <div className="bg-[#D4944A]/10 border border-[#D4944A]/20 rounded-lg p-3">
-            <p className="text-sm font-medium text-[#D4944A]">No active Xero connection</p>
+          <div className="bg-ochre/10 border border-ochre/20 rounded-lg p-3">
+            <p className="text-sm font-medium text-ochre">No active Xero connection</p>
             <p className="text-xs text-muted-foreground mt-0.5">Please set up a Xero connection first</p>
           </div>
         )}

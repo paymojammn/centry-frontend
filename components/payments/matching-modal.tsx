@@ -114,7 +114,7 @@ export function MatchingModal({
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.8) return "text-primary bg-primary/5";
     if (confidence >= 0.6) return "text-primary bg-primary/10";
-    if (confidence >= 0.4) return "text-[#D4944A] bg-[#D4944A]/10";
+    if (confidence >= 0.4) return "text-ochre bg-ochre/10";
     return "text-muted-foreground bg-muted";
   };
 
@@ -281,7 +281,7 @@ export function MatchingModal({
                           : match.confidence >= 0.6
                           ? "bg-primary"
                           : match.confidence >= 0.4
-                          ? "bg-[#D4944A]"
+                          ? "bg-ochre"
                           : "bg-muted-foreground/60"
                       }`}
                       style={{ width: `${confidencePercent}%` }}

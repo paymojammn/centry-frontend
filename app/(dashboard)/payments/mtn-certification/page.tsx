@@ -302,8 +302,8 @@ export default function MtnCertificationPage() {
                     className={
                       'text-[10px] font-mono px-1.5 py-0.5 rounded ' +
                       (a.active_environment === 'sandbox'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-rose-100 text-rose-800')
+                        ? 'bg-info-100 text-info-800'
+                        : 'bg-danger-100 text-danger-800')
                     }
                   >
                     {a.active_environment}
@@ -317,11 +317,11 @@ export default function MtnCertificationPage() {
 
       <div className="px-6 py-6 space-y-6">
         {isProduction && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="flex items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 px-4 py-3 text-sm text-warning-900">
             <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium">Production account selected — tests fire real transactions.</p>
-              <p className="text-amber-800 mt-0.5">
+              <p className="text-warning-800 mt-0.5">
                 Pick a sandbox account for SIT sign-off unless you intend to move real funds.
               </p>
             </div>

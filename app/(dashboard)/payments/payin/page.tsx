@@ -65,7 +65,7 @@ const ITEM_STATUS_STYLES: Record<
   pending: { label: 'Queued', className: 'text-muted-foreground bg-muted', Icon: Clock },
   requested: {
     label: 'Awaiting payer',
-    className: 'text-amber-700 bg-amber-50',
+    className: 'text-warning-700 bg-warning-50',
     Icon: Clock,
   },
   success: { label: 'Collected', className: 'text-primary bg-primary/5', Icon: CheckCircle2 },
@@ -614,9 +614,9 @@ function CollectionRow({
 function StatusPill({ status, label }: { status: string; label: string }) {
   const styles: Record<string, string> = {
     draft: 'text-muted-foreground bg-muted',
-    processing: 'text-amber-700 bg-amber-50',
+    processing: 'text-warning-700 bg-warning-50',
     completed: 'text-primary bg-primary/5',
-    partial: 'text-amber-700 bg-amber-50',
+    partial: 'text-warning-700 bg-warning-50',
     failed: 'text-destructive bg-destructive/5',
     cancelled: 'text-muted-foreground bg-muted',
   };

@@ -342,25 +342,25 @@ export default function TwoFactorSettingsPage() {
           className={`p-4 border ${
             settings?.is_2fa_enabled
               ? "border-primary/20 bg-primary/5"
-              : "border-[#D4B35A]/20 bg-[#D4B35A]/10"
+              : "border-warning-400/20 bg-warning-400/10"
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-lg ${
-                settings?.is_2fa_enabled ? "bg-primary/10" : "bg-[#D4B35A]/10"
+                settings?.is_2fa_enabled ? "bg-primary/10" : "bg-warning-400/10"
               }`}
             >
               <Shield
                 className={`h-5 w-5 ${
-                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-warning-400"
                 }`}
               />
             </div>
             <div className="flex-1">
               <h3
                 className={`font-medium ${
-                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-warning-400"
                 }`}
               >
                 {settings?.is_2fa_enabled
@@ -369,7 +369,7 @@ export default function TwoFactorSettingsPage() {
               </h3>
               <p
                 className={`text-sm ${
-                  settings?.is_2fa_enabled ? "text-primary" : "text-[#D4B35A]"
+                  settings?.is_2fa_enabled ? "text-primary" : "text-warning-400"
                 }`}
               >
                 {settings?.is_2fa_enabled
@@ -416,7 +416,7 @@ export default function TwoFactorSettingsPage() {
                         </Badge>
                       )}
                       {settings?.preferred_method === method && (
-                        <Badge className="bg-[#6B8FB8]/10 text-[#6B8FB8] text-xs">
+                        <Badge className="bg-info/10 text-info text-xs">
                           Preferred
                         </Badge>
                       )}
@@ -505,7 +505,7 @@ export default function TwoFactorSettingsPage() {
               </Button>
             </div>
             {!settings?.is_2fa_enabled && (
-              <p className="text-xs text-[#D4B35A] mt-2">
+              <p className="text-xs text-warning-400 mt-2">
                 Enable at least one 2FA method to generate backup codes
               </p>
             )}
@@ -907,9 +907,9 @@ export default function TwoFactorSettingsPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-start gap-2 p-3 bg-[#D4B35A]/10 border border-[#D4B35A]/20 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-[#D4B35A] mt-0.5 shrink-0" />
-                  <p className="text-sm text-[#D4B35A]">
+                <div className="flex items-start gap-2 p-3 bg-warning-400/10 border border-warning-400/20 rounded-lg">
+                  <AlertTriangle className="h-4 w-4 text-warning-400 mt-0.5 shrink-0" />
+                  <p className="text-sm text-warning-400">
                     Generating new codes will invalidate any existing backup codes.
                   </p>
                 </div>

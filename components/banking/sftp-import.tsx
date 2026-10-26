@@ -273,20 +273,20 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
       {activeTaskId && taskStatus && (
         <div className={`rounded-lg border p-4 flex items-center gap-3 ${
           taskStatus.status === "SUCCESS" ? "border-primary/20 bg-primary/5" :
-          taskStatus.status === "FAILURE" ? "border-[#D4944A]/20 bg-[#D4944A]/10" :
-          "border-[#6B8FB8]/20 bg-[#6B8FB8]/10"
+          taskStatus.status === "FAILURE" ? "border-ochre/20 bg-ochre/10" :
+          "border-info/20 bg-info/10"
         }`}>
           {taskStatus.status === "SUCCESS" ? (
             <CheckCircle2 className="h-5 w-5 text-primary" />
           ) : taskStatus.status === "FAILURE" ? (
-            <XCircle className="h-5 w-5 text-[#D4944A]" />
+            <XCircle className="h-5 w-5 text-ochre" />
           ) : (
-            <Loader2 className="h-5 w-5 text-[#6B8FB8] animate-spin" />
+            <Loader2 className="h-5 w-5 text-info animate-spin" />
           )}
           <span className={`text-sm font-medium ${
             taskStatus.status === "SUCCESS" ? "text-primary" :
-            taskStatus.status === "FAILURE" ? "text-[#D4944A]" :
-            "text-[#6B8FB8]"
+            taskStatus.status === "FAILURE" ? "text-ochre" :
+            "text-info"
           }`}>
             {taskStatus.status === "SUCCESS" ? (
               <>Download complete! {taskStatus.result?.files_downloaded ? `${taskStatus.result.files_downloaded} file(s)` : ""}</>
@@ -387,7 +387,7 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {file.is_dir ? (
-                        <FolderOpen className="h-4 w-4 text-[#D4B35A]" />
+                        <FolderOpen className="h-4 w-4 text-warning-400" />
                       ) : (
                         <FileText className="h-4 w-4 text-muted-foreground/60" />
                       )}
@@ -436,8 +436,8 @@ export function SFTPImport({ organizationId, onImportComplete }: SFTPImportProps
                   <td className="px-6 py-3">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
                       log.status === "success" ? "bg-primary/5 text-primary" :
-                      log.status === "failed" ? "bg-[#D4944A]/10 text-[#D4944A]" :
-                      "bg-[#6B8FB8]/10 text-[#6B8FB8]"
+                      log.status === "failed" ? "bg-warning-500/10 text-warning-700" :
+                      "bg-info/10 text-info"
                     }`}>
                       {log.status === "success" && <CheckCircle2 className="h-3 w-3" />}
                       {log.status === "failed" && <XCircle className="h-3 w-3" />}

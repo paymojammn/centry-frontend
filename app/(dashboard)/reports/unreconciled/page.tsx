@@ -187,7 +187,7 @@ export default function UnreconciledReportPage() {
                           <td className="py-2.5 text-right tabular-nums">
                             {formatCurrency(parseFloat(r.amount), r.currency)}
                           </td>
-                          <td className="py-2.5 text-right tabular-nums text-amber-600">
+                          <td className="py-2.5 text-right tabular-nums text-warning-600">
                             {r.age_hours.toFixed(1)}h
                           </td>
                         </tr>
@@ -284,7 +284,7 @@ export default function UnreconciledReportPage() {
                           <td className="py-2.5 text-right tabular-nums">
                             {formatCurrency(parseFloat(r.amount), r.currency)}
                           </td>
-                          <td className="py-2.5 text-right tabular-nums text-amber-600">
+                          <td className="py-2.5 text-right tabular-nums text-warning-600">
                             {r.age_hours.toFixed(1)}h
                           </td>
                         </tr>

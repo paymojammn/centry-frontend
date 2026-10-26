@@ -62,7 +62,7 @@ export default function BillDetailPage() {
 
   const statusConfig = {
     'PAID': { color: 'bg-primary/10 text-primary', icon: CheckCircle2 },
-    'AUTHORISED': { color: 'bg-[#6B8FB8]/10 text-[#6B8FB8]', icon: Clock },
+    'AUTHORISED': { color: 'bg-info/10 text-info', icon: Clock },
     'VOIDED': { color: 'bg-destructive/10 text-destructive', icon: XCircle },
   };
 

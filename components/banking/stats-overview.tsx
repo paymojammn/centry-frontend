@@ -19,11 +19,11 @@ interface StatsOverviewProps {
 
 function StatPill({ label, value, color }: { label: string; value: string | number; color: string }) {
   const colors: Record<string, string> = {
-    blue: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+    blue: "bg-info/10 text-info",
     green: "bg-primary/5 text-primary",
-    amber: "bg-[#D4B35A]/10 text-[#D4B35A]",
-    orange: "bg-[#D4944A]/10 text-[#D4944A]",
-    teal: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
+    amber: "bg-warning-400/10 text-warning-400",
+    orange: "bg-warning-500/10 text-warning-700",
+    teal: "bg-info/10 text-info",
   };
   return (
     <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                     {isFullySynced ? (
                       <CheckCircle className="h-4 w-4 text-primary" />
                     ) : (
-                      <Clock className="h-4 w-4 text-[#D4B35A]" />
+                      <Clock className="h-4 w-4 text-warning-400" />
                     )}
                     <div>
                       <p className="text-sm font-normal text-foreground">{imp.original_filename}</p>
@@ -184,7 +184,7 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-normal ${isFullySynced ? 'text-primary' : 'text-[#D4B35A]'}`}>
+                    <p className={`text-sm font-normal ${isFullySynced ? 'text-primary' : 'text-warning-400'}`}>
                       {imp.transactions_synced}/{imp.transactions_count}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -212,10 +212,10 @@ export function StatsOverview({ dateFrom, dateTo, organizationId, mode = "import
               const statusColor = exp.status === 'uploaded'
                 ? 'text-primary'
                 : exp.status === 'pending'
-                ? 'text-[#D4B35A]'
+                ? 'text-warning-400'
                 : exp.status === 'failed'
-                ? 'text-[#D4944A]'
-                : 'text-[#6B8FB8]';
+                ? 'text-warning-700'
+                : 'text-info-700';
 
               const StatusIcon = exp.status === 'uploaded'
                 ? CheckCircle

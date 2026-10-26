@@ -262,7 +262,7 @@ function GithubButton({
         <div className="relative inline-flex shrink-0">
           <Star className="fill-muted-foreground text-muted-foreground" aria-hidden="true" />
           <Star
-            className="absolute top-0 start-0 text-yellow-400 fill-yellow-400"
+            className="absolute top-0 start-0 text-warning-400 fill-warning-400"
             size={18}
             aria-hidden="true"
             style={{

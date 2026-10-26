@@ -62,7 +62,7 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
         );
       case "FAILED":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4944A]/10 text-[#D4944A]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-500/10 text-warning-700">
             <XCircle className="h-3 w-3" />
             Failed
           </span>
@@ -76,7 +76,7 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-400/10 text-warning-400">
             <Clock className="h-3 w-3" />
             Pending
           </span>
@@ -110,7 +110,7 @@ export function TransactionList({ fileImportId, organizationId }: TransactionLis
           </div>
         </div>
         <div className="text-center py-12">
-          <XCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-2" />
+          <XCircle className="h-8 w-8 text-ochre mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Failed to load transactions</p>
         </div>
       </div>

@@ -197,7 +197,7 @@ export default function PayExpensesModal({
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="text-sm text-muted-foreground">
               {expenses.length} expense{expenses.length > 1 ? 's' : ''}
-              {hasPartialPayments && <span className="text-amber-600 ml-1">(partial)</span>}
+              {hasPartialPayments && <span className="text-warning-600 ml-1">(partial)</span>}
             </div>
             <div className="text-lg font-bold text-foreground">
               {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -233,7 +233,7 @@ export default function PayExpensesModal({
               {walletsLoading ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">Loading...</div>
               ) : departmentWallets.length === 0 ? (
-                <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
+                <div className="flex items-center gap-2 p-3 bg-warning-50 rounded-lg text-sm text-warning-800">
                   <AlertCircle className="h-4 w-4" />
                   No wallets available
                 </div>
@@ -334,7 +334,7 @@ export default function PayExpensesModal({
             >
               <span>
                 {expenses.length} expense{expenses.length > 1 ? 's' : ''}
-                {hasCustomAmounts && <span className="text-amber-600 ml-1">(custom amounts)</span>}
+                {hasCustomAmounts && <span className="text-warning-600 ml-1">(custom amounts)</span>}
               </span>
               {showAmountEditor ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -357,7 +357,7 @@ export default function PayExpensesModal({
                           <p className="text-sm font-semibold text-foreground">
                             {currency} {payableAmount.toLocaleString()}
                           </p>
-                          {isPartial && <span className="text-xs text-amber-600">remaining</span>}
+                          {isPartial && <span className="text-xs text-warning-600">remaining</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export default function PayExpensesModal({
                           />
                         </div>
                         {customAmount && parseFloat(customAmount) < payableAmount && (
-                          <span className="text-xs text-amber-600">Partial</span>
+                          <span className="text-xs text-warning-600">Partial</span>
                         )}
                       </div>
                     </div>

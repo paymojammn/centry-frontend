@@ -62,7 +62,7 @@ export default function NaturalLanguageQuery({
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative flex items-center">
           <div className="absolute left-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[#8B7BB8]" />
+            <Sparkles className="h-4 w-4 text-heather" />
           </div>
           <Input
             value={query}
@@ -70,7 +70,7 @@ export default function NaturalLanguageQuery({
             onFocus={() => setShowExamples(true)}
             onBlur={() => setTimeout(() => setShowExamples(false), 200)}
             placeholder="Ask a question about your finances..."
-            className="pl-10 pr-24 py-6 text-base border-[#8B7BB8]/20 focus:border-[#8B7BB8] focus:ring-[#8B7BB8]"
+            className="pl-10 pr-24 py-6 text-base border-heather/20 focus:border-heather focus:ring-heather"
           />
           <div className="absolute right-2 flex items-center gap-2">
             {query && (
@@ -88,7 +88,7 @@ export default function NaturalLanguageQuery({
               type="submit"
               size="sm"
               disabled={!query.trim() || mutation.isPending}
-              className="bg-[#8B7BB8] hover:bg-[#7A6BA8]"
+              className="bg-heather hover:bg-heather"
             >
               {mutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -105,7 +105,7 @@ export default function NaturalLanguageQuery({
 
       {/* Example Queries */}
       {showExamples && !result && (
-        <Card className="absolute z-10 w-full mt-1 shadow-lg border-[#8B7BB8]/20">
+        <Card className="absolute z-10 w-full mt-1 shadow-lg border-heather/20">
           <CardContent className="p-3">
             <div className="text-xs text-muted-foreground mb-2">Try asking:</div>
             <div className="space-y-1">
@@ -114,9 +114,9 @@ export default function NaturalLanguageQuery({
                   key={idx}
                   type="button"
                   onClick={() => handleExampleClick(example)}
-                  className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-[#8B7BB8]/10 rounded-md transition-colors flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-heather/10 rounded-md transition-colors flex items-center gap-2"
                 >
-                  <ArrowRight className="h-3 w-3 text-[#8B7BB8]/60" />
+                  <ArrowRight className="h-3 w-3 text-heather/60" />
                   {example}
                 </button>
               ))}
@@ -127,11 +127,11 @@ export default function NaturalLanguageQuery({
 
       {/* Query Result */}
       {result && (
-        <Card className="mt-4 border-[#8B7BB8]/20">
+        <Card className="mt-4 border-heather/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#8B7BB8]" />
+                <Sparkles className="h-4 w-4 text-heather" />
                 <span className="text-sm font-medium text-foreground">
                   Results for: "{result.query}"
                 </span>
@@ -154,7 +154,7 @@ export default function NaturalLanguageQuery({
                     {Object.entries(result.filters).map(([key, value]) => (
                       <span
                         key={key}
-                        className="text-xs bg-[#8B7BB8]/10 text-[#8B7BB8] px-2 py-1 rounded-full"
+                        className="text-xs bg-heather/10 text-heather px-2 py-1 rounded-full"
                       >
                         {key}: {String(value)}
                       </span>

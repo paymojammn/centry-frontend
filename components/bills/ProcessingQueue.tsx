@@ -8,11 +8,11 @@
  * - SENT_PAYMENT/SUCCESS_PAYMENT/FAILED_PAYMENT: Final states
  *
  * Color Scheme:
- * - #6B8FB8 Blue - Draft
- * - #fed652 Mustard – Awaiting Approval
- * - #f77f00 Orange – Awaiting Payment
- * - #5C8A65 Green – Paid
- * - #bec3c6 Grey - Repeating
+ * - var(--color-info) Blue - Draft
+ * - var(--color-warning-400) Mustard – Awaiting Approval
+ * - var(--color-ochre) Orange – Awaiting Payment
+ * - var(--color-success) Green – Paid
+ * - var(--color-neutral-300) Grey - Repeating
  */
 
 'use client';
@@ -31,12 +31,8 @@ import {
 } from '@/hooks/use-bills';
 import { paymentEventsApi } from '@/lib/bills-api';
 import { launchOneGateCheckout, openOneGateHostedModal } from '@/lib/onegate-checkout';
-import { useBankAccounts, useBankValueDate } from '@/hooks/use-banking';
+import { useBankAccounts } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
-import { Calendar } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { isValueDateDisabled, parseIsoDate, toIsoDate, valueDateHint } from '@/lib/value-date';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
 import {
   Send,
@@ -61,7 +57,6 @@ import {
   ThumbsDown,
   RotateCcw,
   Pencil,
-  CalendarDays,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -87,13 +82,13 @@ import { Input } from '@/components/ui/input';
 
 // Status color constants (matching bills page)
 const STATUS_COLORS = {
-  pending_approval: { bg: '#fed652', text: '#7a5c00', light: '#FFF9E5' },
-  processing: { bg: '#6B8FB8', text: '#ffffff', light: '#E8F2FA' },
-  pending: { bg: '#bec3c6', text: '#4a5568', light: '#F5F6F7' },
-  accepted: { bg: '#2A9D8F', text: '#ffffff', light: '#E6F4F1' },
-  sent: { bg: '#f77f00', text: '#ffffff', light: '#FFF0E5' },
-  success: { bg: '#5C8A65', text: '#ffffff', light: '#E8F5E5' },
-  failed: { bg: '#dc2626', text: '#ffffff', light: '#FEE2E2' },
+  pending_approval: { bg: 'var(--color-warning-400)', text: 'var(--color-warning-800)', light: 'var(--color-warning-50)' },
+  processing: { bg: 'var(--color-info)', text: 'var(--color-white)', light: 'var(--color-info-50)' },
+  pending: { bg: 'var(--color-neutral-300)', text: 'var(--color-ink)', light: 'var(--color-neutral-50)' },
+  accepted: { bg: 'var(--color-reconcile)', text: 'var(--color-white)', light: 'var(--color-reconcile-50)' },
+  sent: { bg: 'var(--color-ochre)', text: 'var(--color-white)', light: 'var(--color-ochre-50)' },
+  success: { bg: 'var(--color-success)', text: 'var(--color-white)', light: 'var(--color-success-50)' },
+  failed: { bg: 'var(--color-danger)', text: 'var(--color-white)', light: 'var(--color-danger-50)' },
 } as const;
 
 interface ProcessingQueueProps {
@@ -132,11 +127,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
   const [reverseReason, setReverseReason] = useState('');
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
   const [selectedFileFormat, setSelectedFileFormat] = useState<'csv' | 'xml'>('xml');
-  // Value date (ReqdExctnDt) for the file. null = use the bank's earliest
-  // achievable date (default). Reset whenever the dialog opens.
-  const [selectedValueDate, setSelectedValueDate] = useState<string | null>(null);
-  const [valueDatePickerOpen, setValueDatePickerOpen] = useState(false);
-  const [uploadAfterGenerate, setUploadAfterGenerate] = useState(true);
   const [isPayNowDialogOpen, setIsPayNowDialogOpen] = useState(false);
   const [payNowAmount, setPayNowAmount] = useState('');
   const [payNowLoading, setPayNowLoading] = useState(false);
@@ -164,11 +154,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
   const approvePayments = useApprovePayments();
   const rejectPayments = useRejectPayments();
   const generateFile = useGeneratePaymentFile();
-  // Earliest value date the chosen account's bank will accept right now.
-  const { data: valueDateWindow, isLoading: valueDateLoading } = useBankValueDate(
-    isGenerateDialogOpen ? selectedBankAccountId : null,
-  );
-  const effectiveValueDate = selectedValueDate || valueDateWindow?.earliest_value_date || null;
   const sendProviderPayout = useSendProviderPayout();
   const denyPayments = useDenyPayments();
   const reversePayment = useReversePayment();
@@ -348,19 +333,10 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
         paymentEventIds: Array.from(selectedPayments),
         sourceBankAccountId: sourceId,
         fileFormat: selectedFileFormat,
-        executionDate: selectedValueDate,
-        upload: uploadAfterGenerate,
       });
       setSelectedPayments(new Set());
       setIsGenerateDialogOpen(false);
-      const uploadLine = result.upload
-        ? result.upload.queued
-          ? 'Upload to bank: queued'
-          : `Upload to bank: not queued — ${result.upload.reason}`
-        : 'Upload the file from Banking → Export → Pay';
-      alert(
-        `Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}\nValue date: ${result.requested_execution_date || '—'}\n${uploadLine}`,
-      );
+      alert(`Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}`);
     } catch (error: any) {
       alert(error?.message || 'Failed to generate file. You may not have permission.');
     }
@@ -368,13 +344,14 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
 
   // Click on "Generate File": if the source was already chosen at bill-payment time
   // (consensus across all selected events), skip the picker. Otherwise open the dialog
-  // so the user can resolve mixed/missing sources.
-  // Always open the dialog: the value date must be visible (and adjustable)
-  // before a file is generated, even when the source is already known.
+  // so the user can resolve mixed/missing sources. The value date is chosen by
+  // the backend (earliest the bank will honour) and refreshed on upload if it lapses.
   const handleGenerateFileClick = () => {
-    if (consensusSourceBankAccountId) setSelectedBankAccountId(consensusSourceBankAccountId);
-    setSelectedValueDate(null);
-    setIsGenerateDialogOpen(true);
+    if (consensusSourceBankAccountId) {
+      handleGenerateFile(consensusSourceBankAccountId);
+    } else {
+      setIsGenerateDialogOpen(true);
+    }
   };
 
   const handleOpenPayNow = () => {
@@ -595,7 +572,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
   const getStatusIcon = (status: PaymentEventStatus) => {
     switch (status) {
       case 'PENDING_APPROVAL':
-        return <ShieldCheck className="h-4 w-4 text-amber-500" />;
+        return <ShieldCheck className="h-4 w-4 text-warning-500" />;
       case 'PROCESSING':
         return <FileText className="h-4 w-4 text-primary" />;
       case 'PENDING':
@@ -603,7 +580,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       case 'ACCEPTED_BANK':
         return <ShieldCheck className="h-4 w-4" style={{ color: STATUS_COLORS.accepted.bg }} />;
       case 'SENT_PAYMENT':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+        return <Loader2 className="h-4 w-4 text-info-500 animate-spin" />;
       case 'SUCCESS_PAYMENT':
         return <CheckCircle2 className="h-4 w-4 text-primary" />;
       case 'FAILED_PAYMENT':
@@ -639,7 +616,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
         className="status-pill"
         style={{
           backgroundColor: config.light,
-          color: config.bg !== '#bec3c6' ? config.bg : config.text,
+          color: config.bg !== 'var(--color-neutral-300)' ? config.bg : config.text,
           borderColor: 'transparent',
         }}
       >
@@ -1020,7 +997,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                               handleApproveRow(payment.id);
                             }}
                             disabled={approvePayments.isPending}
-                            className="h-7 px-2 text-xs border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-700"
+                            className="h-7 px-2 text-xs border-success-200 bg-success-50 text-success-700 hover:bg-success-100 hover:text-success-700"
                             title="Approve this payment"
                           >
                             <Check className="h-3 w-3 mr-1" />
@@ -1035,7 +1012,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                               handleRejectRow(payment.id);
                             }}
                             disabled={rejectPayments.isPending}
-                            className="h-7 px-2 text-xs border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-700"
+                            className="h-7 px-2 text-xs border-danger-200 bg-danger-50 text-danger-700 hover:bg-danger-100 hover:text-danger-700"
                             title="Reject this payment"
                           >
                             <X className="h-3 w-3 mr-1" />
@@ -1141,7 +1118,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                       </div>
                     )}
                     {payment.retry_of && (
-                      <div className="text-xs text-amber-600 mt-1">
+                      <div className="text-xs text-warning-600 mt-1">
                         Retry #{payment.retry_count} of #{payment.retry_of}
                       </div>
                     )}
@@ -1291,87 +1268,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                 </button>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-normal text-foreground mb-2">
-                Value date
-              </label>
-              <Popover open={valueDatePickerOpen} onOpenChange={setValueDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start font-normal h-10"
-                    disabled={!selectedBankAccountId || valueDateLoading}
-                    data-testid="value-date-trigger"
-                  >
-                    <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                    {effectiveValueDate
-                      ? parseIsoDate(effectiveValueDate).toLocaleDateString(undefined, {
-                          weekday: 'short',
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })
-                      : selectedBankAccountId
-                      ? 'Loading…'
-                      : 'Select a bank account first'}
-                    {effectiveValueDate && !selectedValueDate && (
-                      <span className="ml-auto text-xs text-muted-foreground">earliest</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    defaultMonth={effectiveValueDate ? parseIsoDate(effectiveValueDate) : undefined}
-                    selected={effectiveValueDate ? parseIsoDate(effectiveValueDate) : undefined}
-                    disabled={(d) => isValueDateDisabled(d, valueDateWindow)}
-                    onSelect={(d) => {
-                      setSelectedValueDate(d ? toIsoDate(d) : null);
-                      setValueDatePickerOpen(false);
-                    }}
-                  />
-                  {selectedValueDate && (
-                    <div className="flex justify-end border-t border-border p-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          setSelectedValueDate(null);
-                          setValueDatePickerOpen(false);
-                        }}
-                      >
-                        Use earliest
-                      </Button>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
-              {valueDateWindow && (
-                <p
-                  className={`text-xs mt-1.5 ${
-                    valueDateWindow.same_day_available ? 'text-muted-foreground' : 'text-amber-700'
-                  }`}
-                >
-                  {valueDateHint(valueDateWindow)}
-                </p>
-              )}
-            </div>
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <Checkbox
-                checked={uploadAfterGenerate}
-                onCheckedChange={(v) => setUploadAfterGenerate(v === true)}
-                className="mt-0.5"
-              />
-              <span>
-                <span className="block text-sm text-foreground">Upload to bank immediately</span>
-                <span className="block text-xs text-muted-foreground">
-                  Sends the file over the account&apos;s host-to-host connection as soon as it is
-                  generated, so the value date cannot lapse in the Outbox. Needs an active SFTP
-                  connection; otherwise the file waits in Banking → Export → Pay.
-                </span>
-              </span>
-            </label>
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setIsGenerateDialogOpen(false)}>

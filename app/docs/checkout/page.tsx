@@ -224,11 +224,11 @@ console.log(session.checkout_url); // Redirect customer here`,
               </ul>
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
-              <Shield className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-warning-500/10 border border-warning-500/20 rounded-xl p-4 flex gap-3">
+              <Shield className="size-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-medium text-amber-700 text-sm">Keep your API key secure</h4>
-                <p className="text-xs text-amber-600 mt-1">
+                <h4 className="font-medium text-warning-700 text-sm">Keep your API key secure</h4>
+                <p className="text-xs text-warning-600 mt-1">
                   Never expose your API key in client-side code. Use environment variables on
                   your server, rotate compromised keys immediately, and pair production keys
                   with an IP whitelist.
@@ -326,7 +326,7 @@ def create_checkout(request):
                   { step: 'Server', desc: 'Receive webhook at your webhook_url confirming payment' },
                 ].map((s, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${s.step === 'Server' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${s.step === 'Server' ? 'bg-warning-100 text-warning-700' : 'bg-info-100 text-info-700'}`}>
                       {s.step}
                     </span>
                     <span className="text-sm text-foreground">{s.desc}</span>
@@ -432,11 +432,11 @@ if (payment.requires_redirect) {
               />
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
-              <Shield className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-warning-500/10 border border-warning-500/20 rounded-xl p-4 flex gap-3">
+              <Shield className="size-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-medium text-amber-700 text-sm">CORS enabled</h4>
-                <p className="text-xs text-amber-600 mt-1">
+                <h4 className="font-medium text-warning-700 text-sm">CORS enabled</h4>
+                <p className="text-xs text-warning-600 mt-1">
                   The public checkout endpoints (<code className="text-xs">/checkout/&#123;token&#125;/</code>) accept cross-origin
                   requests from any domain. No API key is needed — the session token is the auth.
                   Your API key stays on your server.
@@ -575,7 +575,7 @@ if (payment.requires_redirect) {
       "provider": "onegate",
       "name": "OneGate",
       "icon": "onegate.svg",
-      "color": "#E94E1B",
+      "color": "var(--color-ochre)",
       "requires_redirect": true,
       "supports_inline": false,
       "methods": [
@@ -588,7 +588,7 @@ if (payment.requires_redirect) {
       "provider": "ozow",
       "name": "Ozow",
       "icon": "ozow.svg",
-      "color": "#3EC7F4",
+      "color": "var(--color-info)",
       "requires_redirect": true,
       "methods": [
         {"code": "instant_eft", "name": "Instant EFT (Ozow)", "description": "Pay via instant bank transfer"}
@@ -652,7 +652,7 @@ if (payment.requires_redirect) {
 }`}
             />
             <p className="text-muted-foreground text-sm">
-              <strong>Statuses:</strong> <code className="text-xs bg-muted px-1 py-0.5 rounded">pending</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-muted px-1 py-0.5 rounded">processing</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-emerald-500/10 text-emerald-600 px-1 py-0.5 rounded">completed</code> | <code className="text-xs bg-red-500/10 text-red-600 px-1 py-0.5 rounded">failed</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">expired</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">cancelled</code>
+              <strong>Statuses:</strong> <code className="text-xs bg-muted px-1 py-0.5 rounded">pending</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-muted px-1 py-0.5 rounded">processing</code> <ArrowRight className="inline size-3" /> <code className="text-xs bg-success-500/10 text-success-600 px-1 py-0.5 rounded">completed</code> | <code className="text-xs bg-danger-500/10 text-danger-600 px-1 py-0.5 rounded">failed</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">expired</code> | <code className="text-xs bg-muted px-1 py-0.5 rounded">cancelled</code>
             </p>
           </div>
         </DocsSection>
@@ -834,9 +834,9 @@ if (payment.requires_redirect) {
                 compare against the header. Strip the{' '}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">sha256=</code> prefix first.
               </p>
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3 mb-3">
-                <AlertTriangle className="size-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-600">
+              <div className="bg-warning-500/10 border border-warning-500/20 rounded-xl p-4 flex gap-3 mb-3">
+                <AlertTriangle className="size-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-warning-600">
                   Centry signs the <strong>canonically re-serialized</strong> JSON (sorted keys,
                   no whitespace), <em>not</em> the raw request bytes. Parse the body to an object,
                   then re-dump it with sorted keys before computing the HMAC. The separate{' '}
@@ -1008,7 +1008,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
               >
-                <div className="size-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3">
+                <div className="size-10 rounded-lg bg-success-500/10 text-success-600 flex items-center justify-center mb-3">
                   <Zap className="size-5" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">Swagger UI</h3>
@@ -1024,7 +1024,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
               >
-                <div className="size-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3">
+                <div className="size-10 rounded-lg bg-info-500/10 text-info-600 flex items-center justify-center mb-3">
                   <Code2 className="size-5" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">ReDoc</h3>
@@ -1040,7 +1040,7 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                 rel="noopener noreferrer"
                 className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all group"
               >
-                <div className="size-10 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center mb-3">
+                <div className="size-10 rounded-lg bg-warning-500/10 text-warning-600 flex items-center justify-center mb-3">
                   <Code2 className="size-5" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">Raw schema</h3>
@@ -1233,9 +1233,9 @@ app.post('/webhooks/centry', express.raw({ type: 'application/json' }), (req, re
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">Paystack</td><td className="px-4 py-3 font-mono text-xs">4084 0840 8408 4081</td><td className="px-4 py-3 text-emerald-600 text-xs font-medium">Success</td></tr>
-                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">Paystack</td><td className="px-4 py-3 font-mono text-xs">4084 0840 8408 4099</td><td className="px-4 py-3 text-red-600 text-xs font-medium">Declined</td></tr>
-                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">OneGate</td><td className="px-4 py-3 font-mono text-xs">4229 9899 9900 0012</td><td className="px-4 py-3 text-emerald-600 text-xs font-medium">Success (3DS code: test123)</td></tr>
+                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">Paystack</td><td className="px-4 py-3 font-mono text-xs">4084 0840 8408 4081</td><td className="px-4 py-3 text-success-600 text-xs font-medium">Success</td></tr>
+                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">Paystack</td><td className="px-4 py-3 font-mono text-xs">4084 0840 8408 4099</td><td className="px-4 py-3 text-danger-600 text-xs font-medium">Declined</td></tr>
+                    <tr className="hover:bg-muted/30"><td className="px-4 py-3 text-xs text-muted-foreground">OneGate</td><td className="px-4 py-3 font-mono text-xs">4229 9899 9900 0012</td><td className="px-4 py-3 text-success-600 text-xs font-medium">Success (3DS code: test123)</td></tr>
                   </tbody>
                 </table>
               </div>

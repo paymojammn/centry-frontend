@@ -58,7 +58,7 @@ export function RailSelector({
     return (
       <div className="sm:col-span-2">
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <AlertCircle className="h-5 w-5 text-warning-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-foreground">No rails configured</p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -122,7 +122,7 @@ export function RailSelector({
       {/* Notices span the grid so they read as belonging to the form, not to
           whichever field happens to sit last in the row. */}
       {rail && !rail.supported && (
-        <div className="sm:col-span-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 text-amber-800">
+        <div className="sm:col-span-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-800">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <p className="text-xs">{rail.unsupported_reason}</p>
         </div>

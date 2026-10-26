@@ -37,7 +37,7 @@ const METHOD_ICONS: Record<string, typeof RiSmartphoneLine> = {
 export default function CheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planCode = searchParams.get('plan') || 'sme';
+  const planCode = searchParams.get('plan') || 'starter';
   const billingCycle = (searchParams.get('cycle') || 'monthly') as 'monthly' | 'annual';
   // Per-org billing: carried from the paywall redirect via /billing/subscribe.
   const orgId = searchParams.get('organization_id') || undefined;

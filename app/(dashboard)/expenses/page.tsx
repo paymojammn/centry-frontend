@@ -553,7 +553,7 @@ function ExpensesTable({ expenses, selectedExpenses, onSelectExpenses, onRefresh
                     {expense.currency} {parseFloat(expense.amount).toLocaleString()}
                   </div>
                   {expense.payment_status === 'partial' && expense.remaining_amount && (
-                    <div className="text-xs text-amber-600">
+                    <div className="text-xs text-warning-600">
                       Remaining: {expense.currency} {parseFloat(expense.remaining_amount).toLocaleString()}
                     </div>
                   )}

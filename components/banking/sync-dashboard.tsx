@@ -173,8 +173,8 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
             </div>
           ) : connections.length === 0 ? (
             <div className="text-center py-8">
-              <div className="p-4 bg-[#D4B35A]/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <AlertCircle className="h-8 w-8 text-[#D4B35A]" />
+              <div className="p-4 bg-warning-400/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-warning-400" />
               </div>
               <p className="text-sm font-medium text-muted-foreground">No ERP connections found</p>
               <Button variant="outline" size="sm" className="mt-3 rounded-lg border-border hover:border-primary hover:text-primary">
@@ -231,14 +231,14 @@ export function SyncDashboard({ selectedImportId, onSyncComplete, organizationId
           {/* Sync to Xero */}
           <div className="border border-border rounded-xl p-4 transition-all hover:border-primary/30 bg-card">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 bg-[#6B8FB8]/10 rounded-lg">
-                <ArrowUpRight className="h-4 w-4 text-[#6B8FB8]" />
+              <div className="p-1.5 bg-info/10 rounded-lg">
+                <ArrowUpRight className="h-4 w-4 text-info" />
               </div>
               <span className="font-semibold text-foreground">Bank → Xero</span>
             </div>
 
             {!selectedImportId ? (
-              <p className="text-sm text-[#D4B35A] mb-3">Select an import first</p>
+              <p className="text-sm text-warning-400 mb-3">Select an import first</p>
             ) : selectedImport ? (
               <p className="text-sm text-muted-foreground mb-3">
                 <span className="font-medium">{selectedImport.original_filename}</span>

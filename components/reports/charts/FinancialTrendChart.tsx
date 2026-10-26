@@ -55,14 +55,14 @@ const CustomTooltip = ({ active, payload, label, currency }: any) => {
         <p className="text-sm font-medium text-foreground mb-2">{data.dateFormatted}</p>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: '#22c55e' }} />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: 'var(--color-success)' }} />
             <span className="text-sm text-muted-foreground">Income:</span>
             <span className="text-sm font-medium text-primary">
               {formatCurrency(data.inflow, currency)}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444' }} />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: 'var(--color-danger)' }} />
             <span className="text-sm text-muted-foreground">Expenses:</span>
             <span className="text-sm font-medium text-destructive">
               {formatCurrency(data.outflow, currency)}
@@ -107,23 +107,23 @@ export default function FinancialTrendChart({
         >
           <defs>
             <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--color-danger)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--color-danger)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-100)" />
           <XAxis
             dataKey="dateFormatted"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: 'var(--color-neutral-500)' }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: 'var(--color-neutral-200)' }}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: 'var(--color-neutral-500)' }}
             tickLine={false}
             axisLine={false}
             tickFormatter={formatCompactCurrency}
@@ -139,7 +139,7 @@ export default function FinancialTrendChart({
             type="monotone"
             dataKey="inflow"
             name="Income"
-            stroke="#22c55e"
+            stroke="var(--color-success)"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorInflow)"
@@ -148,7 +148,7 @@ export default function FinancialTrendChart({
             type="monotone"
             dataKey="outflow"
             name="Expenses"
-            stroke="#ef4444"
+            stroke="var(--color-danger)"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorOutflow)"

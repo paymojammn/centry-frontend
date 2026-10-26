@@ -55,12 +55,12 @@ interface PaymentApprovalQueueProps {
 
 // Status colors matching expenses page
 const PAYMENT_STATUS_COLORS = {
-  pending: { bg: '#fed652', text: '#7a5c00' },
-  approved: { bg: '#6B8FB8', text: '#ffffff' },
-  processing: { bg: '#9b59b6', text: '#ffffff' },
-  completed: { bg: '#5C8A65', text: '#ffffff' },
-  failed: { bg: '#dc2626', text: '#ffffff' },
-  rejected: { bg: '#bec3c6', text: '#4a5568' },
+  pending: { bg: 'var(--color-warning-400)', text: 'var(--color-warning-800)' },
+  approved: { bg: 'var(--color-info)', text: 'var(--color-white)' },
+  processing: { bg: 'var(--color-heather)', text: 'var(--color-white)' },
+  completed: { bg: 'var(--color-success)', text: 'var(--color-white)' },
+  failed: { bg: 'var(--color-danger)', text: 'var(--color-white)' },
+  rejected: { bg: 'var(--color-neutral-300)', text: 'var(--color-ink)' },
 } as const;
 
 export default function PaymentApprovalQueue({
@@ -376,7 +376,7 @@ export default function PaymentApprovalQueue({
                             size="sm"
                             onClick={() => handleProcess(request)}
                             disabled={isProcessing}
-                            className="h-7 px-3 bg-[#6B8FB8] hover:bg-[#567A9E] text-white"
+                            className="h-7 px-3 bg-info hover:bg-info text-white"
                           >
                             <Play className="h-3 w-3 mr-1" />
                             Pay

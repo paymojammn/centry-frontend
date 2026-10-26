@@ -25,9 +25,9 @@ const badgeVariants = cva(
         primary: 'bg-primary text-primary-foreground',
         secondary: 'bg-secondary text-secondary-foreground',
         success:
-          'bg-[var(--color-success-accent,var(--color-green-500))] text-[var(--color-success-foreground,var(--color-white))]',
+          'bg-[var(--color-success-accent,var(--color-success-500))] text-[var(--color-success-foreground,var(--color-white))]',
         warning:
-          'bg-[var(--color-warning-accent,var(--color-yellow-500))] text-[var(--color-warning-foreground,var(--color-white))]',
+          'bg-[var(--color-warning-accent,var(--color-warning-500))] text-[var(--color-warning-foreground,var(--color-white))]',
         info: 'bg-[var(--color-info-accent,var(--color-violet-500))] text-[var(--color-info-foreground,var(--color-white))]',
         outline: 'bg-transparent border border-border text-secondary-foreground',
         destructive: 'bg-destructive text-destructive-foreground',
@@ -58,7 +58,7 @@ const badgeVariants = cva(
         variant: 'primary',
         appearance: 'light',
         className:
-          'text-[var(--color-primary-accent,var(--color-blue-700))] bg-[var(--color-primary-soft,var(--color-blue-50))] dark:bg-[var(--color-primary-soft,var(--color-blue-950))] dark:text-[var(--color-primary-soft,var(--color-blue-600))]',
+          'text-[var(--color-primary-accent,var(--color-info-700))] bg-[var(--color-primary-soft,var(--color-info-50))] dark:bg-[var(--color-primary-soft,var(--color-info-950))] dark:text-[var(--color-primary-soft,var(--color-info-600))]',
       },
       {
         variant: 'secondary',
@@ -69,13 +69,13 @@ const badgeVariants = cva(
         variant: 'success',
         appearance: 'light',
         className:
-          'text-[var(--color-success-accent,var(--color-green-800))] bg-[var(--color-success-soft,var(--color-green-100))] dark:bg-[var(--color-success-soft,var(--color-green-950))] dark:text-[var(--color-success-soft,var(--color-green-600))]',
+          'text-[var(--color-success-accent,var(--color-success-800))] bg-[var(--color-success-soft,var(--color-success-100))] dark:bg-[var(--color-success-soft,var(--color-success-950))] dark:text-[var(--color-success-soft,var(--color-success-600))]',
       },
       {
         variant: 'warning',
         appearance: 'light',
         className:
-          'text-[var(--color-warning-accent,var(--color-yellow-700))] bg-[var(--color-warning-soft,var(--color-yellow-100))] dark:bg-[var(--color-warning-soft,var(--color-yellow-950))] dark:text-[var(--color-warning-soft,var(--color-yellow-600))]',
+          'text-[var(--color-warning-accent,var(--color-warning-700))] bg-[var(--color-warning-soft,var(--color-warning-100))] dark:bg-[var(--color-warning-soft,var(--color-warning-950))] dark:text-[var(--color-warning-soft,var(--color-warning-600))]',
       },
       {
         variant: 'info',
@@ -87,26 +87,26 @@ const badgeVariants = cva(
         variant: 'destructive',
         appearance: 'light',
         className:
-          'text-[var(--color-destructive-accent,var(--color-red-700))] bg-[var(--color-destructive-soft,var(--color-red-50))] dark:bg-[var(--color-destructive-soft,var(--color-red-950))] dark:text-[var(--color-destructive-soft,var(--color-red-600))]',
+          'text-[var(--color-destructive-accent,var(--color-danger-700))] bg-[var(--color-destructive-soft,var(--color-danger-50))] dark:bg-[var(--color-destructive-soft,var(--color-danger-950))] dark:text-[var(--color-destructive-soft,var(--color-danger-600))]',
       },
       /* Outline */
       {
         variant: 'primary',
         appearance: 'outline',
         className:
-          'text-[var(--color-primary-accent,var(--color-blue-700))] border-[var(--color-primary-soft,var(--color-blue-100))] bg-[var(--color-primary-soft,var(--color-blue-50))] dark:bg-[var(--color-primary-soft,var(--color-blue-950))] dark:border-[var(--color-primary-soft,var(--color-blue-900))] dark:text-[var(--color-primary-soft,var(--color-blue-600))]',
+          'text-[var(--color-primary-accent,var(--color-info-700))] border-[var(--color-primary-soft,var(--color-info-100))] bg-[var(--color-primary-soft,var(--color-info-50))] dark:bg-[var(--color-primary-soft,var(--color-info-950))] dark:border-[var(--color-primary-soft,var(--color-info-900))] dark:text-[var(--color-primary-soft,var(--color-info-600))]',
       },
       {
         variant: 'success',
         appearance: 'outline',
         className:
-          'text-[var(--color-success-accent,var(--color-green-700))] border-[var(--color-success-soft,var(--color-green-200))] bg-[var(--color-success-soft,var(--color-green-50))] dark:bg-[var(--color-success-soft,var(--color-green-950))] dark:border-[var(--color-success-soft,var(--color-green-900))] dark:text-[var(--color-success-soft,var(--color-green-600))]',
+          'text-[var(--color-success-accent,var(--color-success-700))] border-[var(--color-success-soft,var(--color-success-200))] bg-[var(--color-success-soft,var(--color-success-50))] dark:bg-[var(--color-success-soft,var(--color-success-950))] dark:border-[var(--color-success-soft,var(--color-success-900))] dark:text-[var(--color-success-soft,var(--color-success-600))]',
       },
       {
         variant: 'warning',
         appearance: 'outline',
         className:
-          'text-[var(--color-warning-accent,var(--color-yellow-700))] border-[var(--color-warning-soft,var(--color-yellow-200))] bg-[var(--color-warning-soft,var(--color-yellow-50))] dark:bg-[var(--color-warning-soft,var(--color-yellow-950))] dark:border-[var(--color-warning-soft,var(--color-yellow-900))] dark:text-[var(--color-warning-soft,var(--color-yellow-600))]',
+          'text-[var(--color-warning-accent,var(--color-warning-700))] border-[var(--color-warning-soft,var(--color-warning-200))] bg-[var(--color-warning-soft,var(--color-warning-50))] dark:bg-[var(--color-warning-soft,var(--color-warning-950))] dark:border-[var(--color-warning-soft,var(--color-warning-900))] dark:text-[var(--color-warning-soft,var(--color-warning-600))]',
       },
       {
         variant: 'info',
@@ -118,7 +118,7 @@ const badgeVariants = cva(
         variant: 'destructive',
         appearance: 'outline',
         className:
-          'text-[var(--color-destructive-accent,var(--color-red-700))] border-[var(--color-destructive-soft,var(--color-red-100))] bg-[var(--color-destructive-soft,var(--color-red-50))] dark:bg-[var(--color-destructive-soft,var(--color-red-950))] dark:border-[var(--color-destructive-soft,var(--color-red-900))] dark:text-[var(--color-destructive-soft,var(--color-red-600))]',
+          'text-[var(--color-destructive-accent,var(--color-danger-700))] border-[var(--color-destructive-soft,var(--color-danger-100))] bg-[var(--color-destructive-soft,var(--color-danger-50))] dark:bg-[var(--color-destructive-soft,var(--color-danger-950))] dark:border-[var(--color-destructive-soft,var(--color-danger-900))] dark:text-[var(--color-destructive-soft,var(--color-danger-600))]',
       },
       /* Ghost */
       {
@@ -134,12 +134,12 @@ const badgeVariants = cva(
       {
         variant: 'success',
         appearance: 'ghost',
-        className: 'text-[var(--color-success-accent,var(--color-green-500))]',
+        className: 'text-[var(--color-success-accent,var(--color-success-500))]',
       },
       {
         variant: 'warning',
         appearance: 'ghost',
-        className: 'text-[var(--color-warning-accent,var(--color-yellow-500))]',
+        className: 'text-[var(--color-warning-accent,var(--color-warning-500))]',
       },
       {
         variant: 'info',

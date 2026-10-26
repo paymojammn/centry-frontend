@@ -25,15 +25,15 @@ import { formatCurrency } from "@/lib/utils";
 import type { Loan } from "@/types/lending";
 
 const STATUS_STYLES: Record<string, string> = {
-  Active: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  Disbursed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  "Partially Disbursed": "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  Sanctioned: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  Active: "bg-success-500/10 text-success-700 border-success-500/20",
+  Disbursed: "bg-success-500/10 text-success-700 border-success-500/20",
+  "Partially Disbursed": "bg-info-500/10 text-info-700 border-info-500/20",
+  Sanctioned: "bg-warning-500/10 text-warning-700 border-warning-500/20",
   Draft: "bg-muted text-muted-foreground border-border",
-  "Loan Closure Requested": "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  "Loan Closure Requested": "bg-warning-500/10 text-warning-700 border-warning-500/20",
   Closed: "bg-muted text-muted-foreground border-border",
   Settled: "bg-muted text-muted-foreground border-border",
-  "Written Off": "bg-red-500/10 text-red-700 border-red-500/20",
+  "Written Off": "bg-danger-500/10 text-danger-700 border-danger-500/20",
 };
 
 const STATUS_PILLS = [

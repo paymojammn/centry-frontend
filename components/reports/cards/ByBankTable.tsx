@@ -64,10 +64,10 @@ export function ByBankTable({ rows }: Props) {
                     <td className="py-2.5 text-right tabular-nums text-foreground">
                       {formatCurrencyCompact(parseFloat(row.sent_amount), row.currency)}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums text-emerald-600">
+                    <td className="py-2.5 text-right tabular-nums text-success-600">
                       {row.accepted_count}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums text-red-600">
+                    <td className="py-2.5 text-right tabular-nums text-danger-600">
                       {row.rejected_count}
                     </td>
                     <td className="py-2.5 text-right tabular-nums">

@@ -204,7 +204,7 @@ export function PaymentReconciliationItem({
     if (confidence >= 80) {
       return <Badge className="bg-primary/10 text-primary text-xs">High confidence</Badge>;
     } else if (confidence >= 50) {
-      return <Badge className="bg-[#6B8FB8]/10 text-[#6B8FB8] text-xs">Medium confidence</Badge>;
+      return <Badge className="bg-info/10 text-info text-xs">Medium confidence</Badge>;
     }
     return <Badge className="bg-muted text-foreground text-xs">Low confidence</Badge>;
   };

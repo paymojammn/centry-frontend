@@ -4,11 +4,11 @@ type Param = { name: string; type: string; required: boolean; description: strin
 const requestBodies = schema.requestBodies as Record<string, Param[]>;
 
 const methodColor: Record<string, string> = {
-  GET: 'text-emerald-600',
-  POST: 'text-blue-600',
-  PUT: 'text-amber-600',
+  GET: 'text-success-600',
+  POST: 'text-info-600',
+  PUT: 'text-warning-600',
   PATCH: 'text-purple-600',
-  DELETE: 'text-red-600',
+  DELETE: 'text-danger-600',
 };
 
 /**

@@ -83,12 +83,12 @@ interface BankFileImportRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  FULLY_SYNCED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  PARTIALLY_SYNCED: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  PROCESSING: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  PENDING: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  FAILED: "bg-red-500/10 text-red-700 border-red-500/20",
+  COMPLETED: "bg-success-500/10 text-success-700 border-success-500/20",
+  FULLY_SYNCED: "bg-success-500/10 text-success-700 border-success-500/20",
+  PARTIALLY_SYNCED: "bg-info-500/10 text-info-700 border-info-500/20",
+  PROCESSING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  PENDING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  FAILED: "bg-danger-500/10 text-danger-700 border-danger-500/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -350,7 +350,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
           {([
             { value: "all", label: "All", count: accountStatements.length, color: undefined },
             { value: "synced", label: "Synced", count: statusCount(isSynced), color: PILL_COLORS.processed },
-            { value: "pending", label: "Pending", count: statusCount(isPendingStatus), color: "#D4B35A" },
+            { value: "pending", label: "Pending", count: statusCount(isPendingStatus), color: "var(--color-warning-400)" },
             { value: "failed", label: "Failed", count: statusCount((s) => s === "FAILED"), color: PILL_COLORS.failed },
           ]).map((p) => {
             const active = statusFilter === p.value;
@@ -663,8 +663,8 @@ function StatementTransactions({ fileImportId }: { fileImportId: number }) {
                 <span
                   className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-normal ${
                     isCredit
-                      ? "bg-emerald-500/10 text-emerald-700"
-                      : "bg-red-500/10 text-red-700"
+                      ? "bg-success-500/10 text-success-700"
+                      : "bg-danger-500/10 text-danger-700"
                   }`}
                 >
                   {isCredit ? "CR" : "DR"}
@@ -672,7 +672,7 @@ function StatementTransactions({ fileImportId }: { fileImportId: number }) {
               </div>
               <div
                 className={`col-span-3 text-right tabular-nums ${
-                  isCredit ? "text-emerald-700" : "text-foreground"
+                  isCredit ? "text-success-700" : "text-foreground"
                 }`}
               >
                 {isCredit ? "+" : "−"}

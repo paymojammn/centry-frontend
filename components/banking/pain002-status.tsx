@@ -58,14 +58,14 @@ function getStatusBadge(status: string) {
       );
     case "ACWC":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-warning-400/10 text-warning-400">
           <AlertTriangle className="h-3 w-3" />
           Accepted with Change
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
           <Clock className="h-3 w-3" />
           Pending
         </span>
@@ -90,7 +90,7 @@ function getGroupStatusBadge(status: string | null) {
   switch (status) {
     case "RCVD":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
           Received
         </span>
       );
@@ -102,13 +102,13 @@ function getGroupStatusBadge(status: string | null) {
       );
     case "PART":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#D4B35A]/10 text-[#D4B35A]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-warning-400/10 text-warning-400">
           Partial
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
           Pending
         </span>
       );
@@ -141,13 +141,13 @@ function getReportTypeBadge(type: string) {
       );
     case "INTERIM":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
           Interim
         </span>
       );
     case "FINAL":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#8B7BB8]/10 text-[#8B7BB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-heather/10 text-heather">
           Final
         </span>
       );
@@ -338,7 +338,7 @@ function StatusDetail({ status }: { status: PaymentExportStatus }) {
         <div className="flex items-center gap-4 text-sm">
           <span className="text-primary">{status.successful_count} accepted</span>
           <span className="text-destructive">{status.rejected_count} rejected</span>
-          <span className="text-[#6B8FB8]">{status.pending_count} pending</span>
+          <span className="text-info">{status.pending_count} pending</span>
         </div>
       </div>
 

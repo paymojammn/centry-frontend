@@ -23,7 +23,7 @@ interface StatsBarProps {
 const VARIANT_COLORS = {
   default: { bg: 'bg-muted', text: 'text-foreground' },
   success: { bg: 'bg-primary/5', text: 'text-primary' },
-  warning: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  warning: { bg: 'bg-warning-50', text: 'text-warning-700' },
   danger: { bg: 'bg-destructive/5', text: 'text-destructive' },
   info: { bg: 'bg-primary/5', text: 'text-primary' },
 };

@@ -31,10 +31,10 @@ const STATUS_CONFIG: Record<
     iconBgColor: 'bg-primary/10',
   },
   pending: {
-    icon: <Clock className="size-8 text-amber-500" />,
+    icon: <Clock className="size-8 text-warning-500" />,
     title: 'Awaiting confirmation',
     description: 'Please complete the payment on your device',
-    iconBgColor: 'bg-amber-50',
+    iconBgColor: 'bg-warning-50',
   },
   success: {
     icon: <CheckCircle2 className="size-8 text-primary" />,

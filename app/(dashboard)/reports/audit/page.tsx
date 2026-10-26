@@ -40,32 +40,32 @@ import { toast } from "sonner";
 
 const SEVERITY_TONE: Record<string, string> = {
   info: "bg-slate-500/10 text-slate-700",
-  warning: "bg-amber-500/10 text-amber-700",
-  error: "bg-red-500/10 text-red-700",
-  critical: "bg-red-600/15 text-red-800 font-semibold",
+  warning: "bg-warning-500/10 text-warning-700",
+  error: "bg-danger-500/10 text-danger-700",
+  critical: "bg-danger-600/15 text-danger-800 font-semibold",
 };
 
 // Color the action chip by its module prefix (auth., payment., bank., etc.)
 function moduleTone(actionType: string): string {
   const mod = actionType.split(".")[0] || "";
   const tones: Record<string, string> = {
-    auth: "bg-blue-500/10 text-blue-700",
+    auth: "bg-info-500/10 text-info-700",
     payment: "bg-violet-500/10 text-violet-700",
     bank: "bg-indigo-500/10 text-indigo-700",
     banking: "bg-indigo-500/10 text-indigo-700",
-    expense: "bg-amber-500/10 text-amber-700",
-    bill: "bg-amber-500/10 text-amber-700",
-    user: "bg-emerald-500/10 text-emerald-700",
-    org: "bg-emerald-500/10 text-emerald-700",
-    organization: "bg-emerald-500/10 text-emerald-700",
-    erp: "bg-cyan-500/10 text-cyan-700",
+    expense: "bg-warning-500/10 text-warning-700",
+    bill: "bg-warning-500/10 text-warning-700",
+    user: "bg-success-500/10 text-success-700",
+    org: "bg-success-500/10 text-success-700",
+    organization: "bg-success-500/10 text-success-700",
+    erp: "bg-info-500/10 text-info-700",
     recon: "bg-purple-500/10 text-purple-700",
-    security: "bg-red-500/10 text-red-700",
+    security: "bg-danger-500/10 text-danger-700",
     data: "bg-slate-500/10 text-slate-700",
-    investment: "bg-emerald-500/10 text-emerald-700",
-    dividend: "bg-emerald-500/10 text-emerald-700",
-    sacco: "bg-emerald-500/10 text-emerald-700",
-    verification: "bg-cyan-500/10 text-cyan-700",
+    investment: "bg-success-500/10 text-success-700",
+    dividend: "bg-success-500/10 text-success-700",
+    sacco: "bg-success-500/10 text-success-700",
+    verification: "bg-info-500/10 text-info-700",
     wallet: "bg-pink-500/10 text-pink-700",
     system: "bg-slate-500/10 text-slate-700",
   };
@@ -338,7 +338,7 @@ export default function AuditTrailPage() {
                             {e.action_type}
                           </span>
                           {!e.success && (
-                            <span className="ml-1 text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 font-medium bg-red-500/10 text-red-700">
+                            <span className="ml-1 text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 font-medium bg-danger-500/10 text-danger-700">
                               failed
                             </span>
                           )}
@@ -370,7 +370,7 @@ export default function AuditTrailPage() {
                         <td className="py-2.5 text-xs text-muted-foreground max-w-[320px] truncate">
                           {e.action_description}
                           {e.error_message && (
-                            <div className="text-red-600 text-[11px] mt-0.5">
+                            <div className="text-danger-600 text-[11px] mt-0.5">
                               {e.error_message}
                             </div>
                           )}

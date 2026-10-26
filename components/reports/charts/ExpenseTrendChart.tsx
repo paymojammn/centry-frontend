@@ -84,19 +84,19 @@ export default function ExpenseTrendChart({
         >
           <defs>
             <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#9b59b6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#9b59b6" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--color-heather)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--color-heather)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-100)" />
           <XAxis
             dataKey="dateFormatted"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: 'var(--color-neutral-500)' }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: 'var(--color-neutral-200)' }}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: 'var(--color-neutral-500)' }}
             tickLine={false}
             axisLine={false}
             tickFormatter={formatCompactCurrency}
@@ -105,7 +105,7 @@ export default function ExpenseTrendChart({
           <Area
             type="monotone"
             dataKey="amount"
-            stroke="#9b59b6"
+            stroke="var(--color-heather)"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorExpense)"

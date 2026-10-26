@@ -103,7 +103,7 @@ const DEFAULTS: FormData = {
 function StatusBadge({ status }: { status: SFTPCredential["connection_status"] }) {
   if (status === "connected") {
     return (
-      <Badge variant="secondary" className="gap-1 text-emerald-600">
+      <Badge variant="secondary" className="gap-1 text-success-600">
         <CheckCircle2 className="h-3 w-3" /> Connected
       </Badge>
     );

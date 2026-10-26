@@ -1,3 +1,4 @@
+import { hex } from '@/lib/colors';
 /**
  * OneGate sign-off result export — Excel + PDF.
  *
@@ -300,19 +301,19 @@ export function exportOnegateSignoffExcel(args: OnegateExportArgs) {
 // ---------------------------------------------------------------------------
 
 function summaryPill(passed: boolean): string {
-  const bg = passed ? "#d1fae5" : "#fee2e2";
-  const color = passed ? "#065f46" : "#991b1b";
+  const bg = passed ? hex.success50 : hex.danger50;
+  const color = passed ? hex.success800 : hex.danger700;
   const label = passed ? "Passed" : "Failed";
   return `<span class="pill" style="background:${bg};color:${color}">${label}</span>`;
 }
 
 function methodChip(method: string): string {
   const m = (method || "").toUpperCase();
-  let bg = "#e0e7ff", color = "#3730a3";
-  if (m === "GET") { bg = "#dbeafe"; color = "#1e40af"; }
-  else if (m === "POST") { bg = "#dcfce7"; color = "#166534"; }
-  else if (m === "PUT" || m === "PATCH") { bg = "#fef3c7"; color = "#92400e"; }
-  else if (m === "DELETE") { bg = "#fee2e2"; color = "#991b1b"; }
+  let bg = hex.heather50, color = hex.heather700;
+  if (m === "GET") { bg = hex.info50; color = hex.info800; }
+  else if (m === "POST") { bg = hex.success50; color = hex.success800; }
+  else if (m === "PUT" || m === "PATCH") { bg = hex.warning50; color = hex.warning800; }
+  else if (m === "DELETE") { bg = hex.danger50; color = hex.danger700; }
   return `<span class="method" style="background:${bg};color:${color}">${esc(m || "—")}</span>`;
 }
 
@@ -452,9 +453,9 @@ function refsCellHtml(refs: OneGateTestRef[]): string {
 }
 
 function svcStatusPill(b: SignoffBadge): string {
-  let bg = "#e2e8f0", color = "#475569", label = "Untested";
-  if (b === "passed") { bg = "#d1fae5"; color = "#065f46"; label = "Passed"; }
-  else if (b === "failures_only") { bg = "#fee2e2"; color = "#991b1b"; label = "Failures only"; }
+  let bg = hex.neutral200, color = hex.neutral500, label = "Untested";
+  if (b === "passed") { bg = hex.success50; color = hex.success800; label = "Passed"; }
+  else if (b === "failures_only") { bg = hex.danger50; color = hex.danger700; label = "Failures only"; }
   return `<span class="pill" style="background:${bg};color:${color}">${esc(label)}</span>`;
 }
 
@@ -470,8 +471,8 @@ function depositRowHtml(r: OneGateDepositRow): string {
       <td class="refs-cell">${refsCellHtml(r.references)}</td>
       <td>${svcStatusPill(r.status)}</td>
       <td class="counts-cell">
-        <div>Paid <strong style="color:#047857">${r.paid}</strong></div>
-        <div>Failed <strong style="color:#b91c1c">${r.failed}</strong></div>
+        <div>Paid <strong style="color:${hex.success600}">${r.paid}</strong></div>
+        <div>Failed <strong style="color:${hex.danger700}">${r.failed}</strong></div>
         <div>Pending <strong>${r.pending}</strong></div>
         <div class="muted">${r.total} total</div>
       </td>
@@ -493,8 +494,8 @@ function payoutRowHtml(r: OneGatePayoutRow): string {
       <td class="refs-cell">${refsCellHtml(r.references)}</td>
       <td>${svcStatusPill(r.status)}</td>
       <td class="counts-cell">
-        <div>Paid <strong style="color:#047857">${r.paid}</strong></div>
-        <div>Failed <strong style="color:#b91c1c">${r.failed}</strong></div>
+        <div>Paid <strong style="color:${hex.success600}">${r.paid}</strong></div>
+        <div>Failed <strong style="color:${hex.danger700}">${r.failed}</strong></div>
         <div>Pending <strong>${r.pending + r.batched}</strong></div>
         <div class="muted">${r.total} total</div>
       </td>
@@ -522,13 +523,13 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin: 0; padding: 18px; color: #0f172a; line-height: 1.45;
+      margin: 0; padding: 18px; color: ${hex.ink}; line-height: 1.45;
     }
 
     /* Hero */
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #f8fafc;
+      background: linear-gradient(135deg, ${hex.ink} 0%, ${hex.ink} 100%);
+      color: ${hex.neutral50};
       border-radius: 12px;
       padding: 22px 26px;
       margin-bottom: 22px;
@@ -537,7 +538,7 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
       font-size: 22px; font-weight: 700; margin: 0 0 4px;
       letter-spacing: -0.01em;
     }
-    .hero .subtitle { font-size: 11px; color: #cbd5e1; margin-bottom: 14px; }
+    .hero .subtitle { font-size: 11px; color: ${hex.neutral200}; margin-bottom: 14px; }
     .hero-stats {
       display: flex; gap: 10px; flex-wrap: wrap;
       margin-top: 6px;
@@ -551,30 +552,30 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .stat .stat-num { font-size: 18px; font-weight: 700; }
     .stat .stat-label {
-      font-size: 9.5px; color: #cbd5e1; text-transform: uppercase;
+      font-size: 9.5px; color: ${hex.neutral200}; text-transform: uppercase;
       letter-spacing: 0.04em; margin-top: 2px;
     }
-    .stat.ok .stat-num { color: #6ee7b7; }
-    .stat.fail .stat-num { color: #fca5a5; }
+    .stat.ok .stat-num { color: ${hex.success300}; }
+    .stat.fail .stat-num { color: ${hex.danger300}; }
     .hero-meta {
       margin-top: 14px;
-      font-size: 10.5px; color: #cbd5e1;
+      font-size: 10.5px; color: ${hex.neutral200};
       display: flex; flex-wrap: wrap; gap: 14px;
     }
     .hero-meta code {
-      background: rgba(255,255,255,0.1); color: #f1f5f9;
+      background: rgba(255,255,255,0.1); color: ${hex.neutral50};
       padding: 1px 6px; border-radius: 4px; font-size: 10px;
     }
 
     /* Section heads */
     .section-head {
       font-size: 13px; font-weight: 700;
-      color: #0f172a; margin: 26px 0 12px;
-      padding-bottom: 6px; border-bottom: 2px solid #e2e8f0;
+      color: ${hex.ink}; margin: 26px 0 12px;
+      padding-bottom: 6px; border-bottom: 2px solid ${hex.neutral200};
       display: flex; align-items: center; gap: 8px;
     }
     .section-count {
-      font-size: 10px; color: #64748b; font-weight: 500;
+      font-size: 10px; color: ${hex.neutral500}; font-weight: 500;
     }
 
     /* Pills */
@@ -588,11 +589,11 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
 
     /* Test-case card */
     .tc {
-      border: 1px solid #e2e8f0;
+      border: 1px solid ${hex.neutral200};
       border-radius: 10px;
       padding: 14px 16px;
       margin-bottom: 14px;
-      background: #ffffff;
+      background: ${hex.white};
       page-break-inside: avoid;
     }
     .tc-head {
@@ -600,7 +601,7 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
       gap: 12px;
       padding-bottom: 10px;
       margin-bottom: 12px;
-      border-bottom: 1px dashed #e2e8f0;
+      border-bottom: 1px dashed ${hex.neutral200};
     }
     .tc-id {
       flex-shrink: 0;
@@ -609,7 +610,7 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .tc-num {
       display: inline-block;
-      background: #0f172a; color: #f8fafc;
+      background: ${hex.ink}; color: ${hex.neutral50};
       padding: 3px 10px;
       border-radius: 6px;
       font-size: 10.5px; font-weight: 700;
@@ -617,15 +618,15 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .tc-meta { flex: 1; }
     .tc-label { font-size: 13.5px; font-weight: 600; margin: 0 0 3px; }
-    .tc-sub { font-size: 10.5px; color: #64748b; }
-    .tc-pass { color: #047857; font-weight: 600; }
-    .tc-fail { color: #b91c1c; font-weight: 600; }
+    .tc-sub { font-size: 10.5px; color: ${hex.neutral500}; }
+    .tc-pass { color: ${hex.success600}; font-weight: 600; }
+    .tc-fail { color: ${hex.danger700}; font-weight: 600; }
 
     /* Step */
     .step {
       margin-top: 10px;
       padding-top: 10px;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid ${hex.neutral50};
       page-break-inside: avoid;
     }
     .step:first-child { border-top: none; padding-top: 0; margin-top: 0; }
@@ -635,18 +636,18 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .step-num {
       font-size: 9.5px; font-weight: 700;
-      color: #64748b; letter-spacing: 0.04em; text-transform: uppercase;
-      background: #f1f5f9;
+      color: ${hex.neutral500}; letter-spacing: 0.04em; text-transform: uppercase;
+      background: ${hex.neutral50};
       padding: 2px 7px; border-radius: 4px;
     }
-    .step-title { flex: 1; font-size: 12px; font-weight: 600; color: #0f172a; }
+    .step-title { flex: 1; font-size: 12px; font-weight: 600; color: ${hex.ink}; }
     .step-badge {
       font-size: 10px; font-weight: 600;
       padding: 1px 8px; border-radius: 999px;
     }
-    .step-pass { background: #d1fae5; color: #065f46; }
-    .step-fail { background: #fee2e2; color: #991b1b; }
-    .step-detail { font-size: 10.5px; color: #475569; margin: 4px 0 8px; }
+    .step-pass { background: ${hex.success50}; color: ${hex.success800}; }
+    .step-fail { background: ${hex.danger50}; color: ${hex.danger700}; }
+    .step-detail { font-size: 10.5px; color: ${hex.neutral500}; margin: 4px 0 8px; }
 
     /* Request / response panels */
     .panels {
@@ -656,21 +657,21 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
       margin-top: 6px;
     }
     .panel {
-      border: 1px solid #e2e8f0;
+      border: 1px solid ${hex.neutral200};
       border-radius: 8px;
-      background: #f8fafc;
+      background: ${hex.neutral50};
       overflow: hidden;
     }
-    .panel-skip { background: #fafafa; border-style: dashed; }
+    .panel-skip { background: ${hex.neutral50}; border-style: dashed; }
     .panel-head {
       display: flex; align-items: center; gap: 8px;
       padding: 6px 10px;
-      background: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
+      background: ${hex.white};
+      border-bottom: 1px solid ${hex.neutral200};
     }
     .panel-label {
       font-size: 9.5px; font-weight: 700;
-      color: #475569; letter-spacing: 0.05em;
+      color: ${hex.neutral500}; letter-spacing: 0.05em;
       text-transform: uppercase;
     }
     .panel .method {
@@ -682,8 +683,8 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .panel .url {
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 9.5px; color: #1e293b;
-      background: #f1f5f9;
+      font-size: 9.5px; color: ${hex.ink};
+      background: ${hex.neutral50};
       padding: 1px 6px; border-radius: 4px;
       flex: 1;
       overflow-wrap: anywhere;
@@ -694,19 +695,19 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
       padding: 1px 8px; border-radius: 4px;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     }
-    .status-ok     { background: #d1fae5; color: #065f46; }
-    .status-redir  { background: #dbeafe; color: #1e3a8a; }
-    .status-client { background: #fee2e2; color: #991b1b; }
-    .status-server { background: #fde2e2; color: #7f1d1d; }
-    .status-gray   { background: #e2e8f0; color: #475569; }
+    .status-ok     { background: ${hex.success50}; color: ${hex.success800}; }
+    .status-redir  { background: ${hex.info50}; color: ${hex.info800}; }
+    .status-client { background: ${hex.danger50}; color: ${hex.danger700}; }
+    .status-server { background: ${hex.danger50}; color: ${hex.danger900}; }
+    .status-gray   { background: ${hex.neutral200}; color: ${hex.neutral500}; }
     .panel .latency {
-      font-size: 9.5px; color: #64748b;
+      font-size: 9.5px; color: ${hex.neutral500};
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     }
     .panel-body {
       margin: 0;
       padding: 10px 12px;
-      background: #0f172a; color: #e2e8f0;
+      background: ${hex.ink}; color: ${hex.neutral200};
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
       font-size: 9.5px; line-height: 1.5;
       white-space: pre-wrap; word-break: break-word;
@@ -714,19 +715,19 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     }
     .panel-empty {
       padding: 8px 12px;
-      font-size: 10px; color: #94a3b8; font-style: italic;
+      font-size: 10px; color: ${hex.neutral400}; font-style: italic;
     }
-    .panel-extra { padding: 0; border-top: 1px solid #e2e8f0; }
+    .panel-extra { padding: 0; border-top: 1px solid ${hex.neutral200}; }
     .panel-extra summary {
       cursor: pointer;
       padding: 5px 12px;
-      font-size: 9.5px; font-weight: 600; color: #475569;
-      background: #ffffff;
+      font-size: 9.5px; font-weight: 600; color: ${hex.neutral500};
+      background: ${hex.white};
     }
     .panel-extra pre {
       margin: 0;
       padding: 8px 12px;
-      background: #1e293b; color: #cbd5e1;
+      background: ${hex.ink}; color: ${hex.neutral200};
       font-size: 9px; line-height: 1.5;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
       white-space: pre-wrap; word-break: break-word;
@@ -735,30 +736,30 @@ export function exportOnegateSignoffPDF(args: OnegateExportArgs) {
     /* Observation tables */
     table { width: 100%; border-collapse: collapse; font-size: 10.5px; table-layout: fixed; }
     thead th {
-      background: #f8fafc; border-bottom: 2px solid #cbd5e1;
+      background: ${hex.neutral50}; border-bottom: 2px solid ${hex.neutral200};
       text-align: left; padding: 6px 8px;
-      font-size: 10px; color: #334155; font-weight: 600;
+      font-size: 10px; color: ${hex.ink}; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.02em;
     }
-    tbody td { border-bottom: 1px solid #e2e8f0; padding: 8px; vertical-align: top; page-break-inside: avoid; }
-    .service-name { font-weight: 600; font-size: 11px; color: #0f172a; }
+    tbody td { border-bottom: 1px solid ${hex.neutral200}; padding: 8px; vertical-align: top; page-break-inside: avoid; }
+    .service-name { font-weight: 600; font-size: 11px; color: ${hex.ink}; }
     .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 9.5px; }
-    .muted { color: #64748b; font-size: 10px; }
-    .refs-cell code { font-size: 9.5px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: #1e293b; background: #f1f5f9; padding: 0.5px 4px; border-radius: 3px; }
+    .muted { color: ${hex.neutral500}; font-size: 10px; }
+    .refs-cell code { font-size: 9.5px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: ${hex.ink}; background: ${hex.neutral50}; padding: 0.5px 4px; border-radius: 3px; }
     .ref-line { line-height: 1.45; padding-left: 8px; border-left: 2px solid transparent; }
-    .ref-paid    { border-left-color: #10b981; }
-    .ref-failed  { border-left-color: #ef4444; }
-    .ref-pending { border-left-color: #f59e0b; }
-    .ref-unknown { border-left-color: #94a3b8; }
+    .ref-paid    { border-left-color: ${hex.success}; }
+    .ref-failed  { border-left-color: ${hex.danger}; }
+    .ref-pending { border-left-color: ${hex.warning}; }
+    .ref-unknown { border-left-color: ${hex.neutral400}; }
     .counts-cell div { font-size: 10px; line-height: 1.5; }
-    .obs-cell { color: #1e293b; font-size: 10.5px; line-height: 1.45; }
+    .obs-cell { color: ${hex.ink}; font-size: 10.5px; line-height: 1.45; }
     .chip { display:inline-block; padding:1px 7px; border-radius:999px; font-size:9.5px; font-weight:500; }
-    .chip-yes { background:#dbeafe; color:#1e3a8a; }
-    .chip-no { background:#f1f5f9; color:#475569; }
-    .chip-undecided { background:#fef3c7; color:#92400e; }
-    .badge-rsa { display:inline-block; margin-top:3px; padding:1px 6px; border-radius:3px; font-size:9.5px; background:#fef3c7; color:#92400e; font-weight:600; }
+    .chip-yes { background:${hex.info50}; color:${hex.info800}; }
+    .chip-no { background:${hex.neutral50}; color:${hex.neutral500}; }
+    .chip-undecided { background:${hex.warning50}; color:${hex.warning800}; }
+    .badge-rsa { display:inline-block; margin-top:3px; padding:1px 6px; border-radius:3px; font-size:9.5px; background:${hex.warning50}; color:${hex.warning800}; font-weight:600; }
 
-    .empty-note { font-size: 10.5px; color: #64748b; font-style: italic; padding: 12px 0; }
+    .empty-note { font-size: 10.5px; color: ${hex.neutral500}; font-style: italic; padding: 12px 0; }
   </style>
 </head>
 <body>

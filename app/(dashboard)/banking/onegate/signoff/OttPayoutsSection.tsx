@@ -196,7 +196,7 @@ export default function OttPayoutsSection({ accountId }: { accountId: string | n
                   <span
                     className={
                       'mt-1 block text-[11px] ' +
-                      (amountInvalid ? 'text-red-600' : 'text-muted-foreground')
+                      (amountInvalid ? 'text-danger-600' : 'text-muted-foreground')
                     }
                   >
                     Allowed: R{money(method.min_amount)}–R{money(method.max_amount)} · {method.action_time}
@@ -210,12 +210,12 @@ export default function OttPayoutsSection({ accountId }: { accountId: string | n
                 {/* Requirement badges */}
                 <div className="flex flex-wrap gap-1.5">
                   {method.rsa_id_required && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning-100 text-warning-900">
                       ID number required
                     </span>
                   )}
                   {method.requires_bank_account && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-900">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-info-100 text-info-900">
                       Bank account + branch required
                     </span>
                   )}
@@ -301,7 +301,7 @@ export default function OttPayoutsSection({ accountId }: { accountId: string | n
                     </span>
                   )}
                   {amountInvalid && form.amount !== '' && (
-                    <span className="text-[11px] text-red-600">Amount out of range</span>
+                    <span className="text-[11px] text-danger-600">Amount out of range</span>
                   )}
                 </div>
 
@@ -311,8 +311,8 @@ export default function OttPayoutsSection({ accountId }: { accountId: string | n
                     className={
                       'rounded-md border px-3 py-2 text-sm flex items-start gap-2 ' +
                       (result.ok
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                        : 'border-red-200 bg-red-50 text-red-900')
+                        ? 'border-success-200 bg-success-50 text-success-900'
+                        : 'border-danger-200 bg-danger-50 text-danger-900')
                     }
                   >
                     {result.ok ? (
