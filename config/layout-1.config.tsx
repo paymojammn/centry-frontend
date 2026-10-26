@@ -100,9 +100,33 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: "Reports",
     icon: BarChart3,
     children: [
-      { title: "Dashboard", path: "/reports" },
-      { title: "Transactions", path: "/reports/transactions" },
-      { title: "Audit Trail", path: "/reports/audit" },
+      { title: "Overview", path: "/reports" },
+      {
+        title: "Payments",
+        children: [
+          { title: "Transactions", path: "/reports/transactions" },
+          { title: "Settlement", path: "/reports/settlement" },
+          { title: "Throughput", path: "/reports/throughput" },
+          { title: "Failures", path: "/reports/failures" },
+        ],
+      },
+      {
+        title: "Control",
+        children: [
+          { title: "Unreconciled", path: "/reports/unreconciled" },
+          { title: "Concentration", path: "/reports/concentration" },
+          { title: "Approval cycle", path: "/reports/approval-cycle" },
+          { title: "Audit trail", path: "/reports/audit" },
+        ],
+      },
+      {
+        title: "Finance",
+        children: [
+          { title: "Liquidity", path: "/reports/liquidity" },
+          { title: "Fees", path: "/reports/fees" },
+          { title: "Expenses", path: "/reports/expenses" },
+        ],
+      },
     ],
   },
 ];
