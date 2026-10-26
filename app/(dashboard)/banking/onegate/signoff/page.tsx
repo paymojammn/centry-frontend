@@ -1536,7 +1536,7 @@ function PaymentMethodMatrix({
         </p>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="table-professional text-xs">
           <thead>
             <tr className="bg-muted/20 border-b border-border">
               <th className="text-left px-4 py-2 font-medium text-muted-foreground">

@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Send,
   Receipt,
-  Loader2,
   AlertCircle,
   User,
   Mail,
@@ -22,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { PaymentEvent } from '@/types/bill';
+import { LoadingState } from '@/components/layout/loading-state';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -43,9 +43,7 @@ export default function InvoiceDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <LoadingState fullPage />
     );
   }
 
@@ -86,8 +84,8 @@ export default function InvoiceDetailPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="px-6 py-4">
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={() => router.push('/erp/invoices')}>
@@ -95,10 +93,9 @@ export default function InvoiceDetailPage() {
               </Button>
               <div className="h-6 w-px bg-border" />
               <div>
-                <h1 className="text-lg font-semibold text-foreground">
+                <h1 className="text-lg font-semibold tracking-tight text-foreground">
                   {invoice.invoice_number ? `Invoice #${invoice.invoice_number}` : 'Invoice'}
                 </h1>
-                <p className="text-sm text-muted-foreground">{invoice.customer_name}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

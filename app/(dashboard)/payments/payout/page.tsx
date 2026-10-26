@@ -66,6 +66,7 @@ import {
   Users,
   XCircle,
 } from 'lucide-react';
+import { LoadingState } from '@/components/layout/loading-state';
 
 const STATUS_BADGE_MAP: Record<string, { status: string; label: string }> = {
   draft: { status: 'draft', label: 'Draft' },
@@ -563,9 +564,7 @@ export default function PayOutPage() {
             />
 
             {loadingRequests ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-              </div>
+              <LoadingState />
             ) : visibleRequests.length === 0 ? (
               <TableState
                 icon={ClipboardCheck}

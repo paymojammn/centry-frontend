@@ -27,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingState } from '@/components/layout/loading-state';
 
 interface VendorDetailPageProps {
   params: Promise<{ id: string }>;
@@ -87,9 +88,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[rgb(var(--page-bg))] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/60" />
-      </div>
+      <LoadingState fullPage />
     );
   }
 
@@ -146,8 +145,8 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="px-6 py-4">
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="px-6 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
               <Button variant="ghost" size="sm" onClick={() => router.push('/erp/vendors')}>
@@ -155,10 +154,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
               </Button>
               <div className="h-6 w-px bg-border" />
               <div className="min-w-0">
-                <h1 className="text-lg font-semibold text-foreground truncate">{contact.name}</h1>
-                {contact.organization_name && (
-                  <p className="text-sm text-muted-foreground truncate">{contact.organization_name}</p>
-                )}
+                <h1 className="text-lg font-semibold tracking-tight text-foreground truncate">{contact.name}</h1>
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">

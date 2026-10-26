@@ -234,7 +234,7 @@ export default function ProfilePage() {
       {/* Content */}
       <div className="px-6 py-6 animate-fade-in-up">
         {activeTab === 'personal' && (
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
             <div className="px-6 py-4 border-b border-border">
               <h2 className="text-sm font-medium text-foreground">Personal Information</h2>
               <p className="text-xs text-muted-foreground mt-1">
@@ -340,7 +340,7 @@ export default function ProfilePage() {
         )}
 
         {activeTab === 'organizations' && (
-          <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
             <div className="px-6 py-4 border-b border-border">
               <h2 className="text-sm font-medium text-foreground">Organizations</h2>
               <p className="text-xs text-muted-foreground mt-1">
@@ -400,7 +400,7 @@ export default function ProfilePage() {
 
         {activeTab === 'security' && (
           <div className="space-y-4">
-            <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+            <div className="bg-card rounded-xl border border-border shadow-sm">
               <div className="px-6 py-4 border-b border-border">
                 <h2 className="text-sm font-medium text-foreground">Security Settings</h2>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -443,7 +443,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border/80 shadow-sm">
+            <div className="bg-card rounded-xl border border-border shadow-sm">
               <div className="px-6 py-4 border-b border-border">
                 <h2 className="text-sm font-medium text-foreground">Account Information</h2>
               </div>

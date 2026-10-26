@@ -37,8 +37,10 @@ interface MetricTileProps {
 // paper card, and the tone shows only as a 6px dot beside the label and the
 // sparkline colour — no stripes, no tinted icon chips.
 const TONE_STYLES: Record<Tone, { dot: string; spark: string }> = {
+  // `accent` keeps the neutral dot too: only attention states (warning /
+  // danger / success / info) earn a coloured dot, exactly as on the dashboard.
   default: { dot: "bg-neutral-300", spark: "var(--muted-foreground)" },
-  accent: { dot: "bg-primary", spark: "var(--primary)" },
+  accent: { dot: "bg-neutral-300", spark: "var(--primary)" },
   success: { dot: "bg-success", spark: "var(--color-success)" },
   warning: { dot: "bg-warning", spark: "var(--color-warning)" },
   danger: { dot: "bg-danger", spark: "var(--color-danger)" },

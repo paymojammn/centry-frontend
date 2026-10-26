@@ -23,7 +23,6 @@ import {
   RefreshCw,
   AlertTriangle,
   Clock,
-  Loader2,
   Calendar,
   Wallet,
   ChevronRight,
@@ -44,6 +43,7 @@ import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
 import CollectionsQueue from '@/components/invoices/CollectionsQueue';
 import { CreditCard } from 'lucide-react';
 import type { Invoice, InvoiceFilters } from '@/lib/invoices-api';
+import { LoadingState } from '@/components/layout/loading-state';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -435,9 +435,7 @@ export default function InvoicesPage() {
 
               {/* Table */}
               {isLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-                </div>
+                <LoadingState />
               ) : error ? (
                 <div className="text-center py-16">
                   <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />

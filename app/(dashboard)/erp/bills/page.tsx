@@ -30,7 +30,6 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Loader2,
   Calendar,
   Wallet,
   ChevronRight,
@@ -45,6 +44,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
 import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
+import { LoadingState } from '@/components/layout/loading-state';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -457,9 +457,7 @@ export default function BillsPage() {
 
               {/* Bills Table */}
               {isLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-                </div>
+                <LoadingState />
               ) : error ? (
                 <div className="text-center py-16">
                   <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />

@@ -85,7 +85,7 @@ export default function BankRegistryPage() {
           </div>
         )}
 
-        <div className="bg-card rounded-lg border border-border">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
           <div className="px-6 py-4 border-b border-border flex flex-wrap items-end gap-3">
             <div className="w-full sm:w-64">
               <SearchableSelect

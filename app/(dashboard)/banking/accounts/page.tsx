@@ -212,7 +212,7 @@ export default function BankAccountsPage() {
 
       {/* Content */}
       <div className="px-6 py-6">
-        <div className="bg-card rounded-lg border border-border">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Landmark className="h-4 w-4 text-muted-foreground/60" />
