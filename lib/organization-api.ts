@@ -4,12 +4,15 @@
  */
 
 import { get, post, patch, del } from './api';
+import { getApiUrl } from '@/config/api';
 import type {
   Organization,
   OrganizationDetail,
   OrganizationMember,
   OrganizationStats,
   OrganizationInvitation,
+  InvitationLookup,
+  MembershipRole,
   PaginatedResponse,
   OrganizationCreate,
   OrganizationUpdate,
@@ -101,17 +104,41 @@ export async function getOrganizationStats(
 }
 
 /**
- * Get all memberships for the current user
+ * Memberships visible to the current user (every org they belong to), or
+ * those of one organization when `organizationId` is given.
  */
-export async function getMemberships(): Promise<PaginatedResponse<OrganizationMember>> {
-  return get<PaginatedResponse<OrganizationMember>>('/api/v1/erp/memberships/');
+export async function getMemberships(
+  organizationId?: string
+): Promise<PaginatedResponse<OrganizationMember>> {
+  return get<PaginatedResponse<OrganizationMember>>('/api/v1/memberships/', {
+    params: organizationId ? { organization: organizationId, page_size: 500 } : { page_size: 500 },
+  });
+}
+
+/**
+ * Add an existing user to an organization with a role
+ */
+export async function createMembership(data: {
+  user: string;
+  organization: string;
+  role: MembershipRole;
+  permissions?: Record<string, unknown>;
+}): Promise<OrganizationMember> {
+  return post<OrganizationMember>('/api/v1/memberships/', data);
+}
+
+/**
+ * Remove a membership from an organization
+ */
+export async function removeMembership(id: string): Promise<void> {
+  return del<void>(`/api/v1/memberships/${id}/`);
 }
 
 /**
  * Get a specific membership
  */
 export async function getMembership(id: string): Promise<OrganizationMember> {
-  return get<OrganizationMember>(`/api/v1/erp/memberships/${id}/`);
+  return get<OrganizationMember>(`/api/v1/memberships/${id}/`);
 }
 
 /**
@@ -121,14 +148,14 @@ export async function updateMembership(
   id: string,
   data: Partial<Pick<OrganizationMember, 'role' | 'permissions'>>
 ): Promise<OrganizationMember> {
-  return patch<OrganizationMember>(`/api/v1/erp/memberships/${id}/`, data);
+  return patch<OrganizationMember>(`/api/v1/memberships/${id}/`, data);
 }
 
 /**
  * Activate a membership
  */
 export async function activateMembership(id: string): Promise<{ status: string; message: string }> {
-  return post<{ status: string; message: string }>(`/api/v1/erp/memberships/${id}/activate/`);
+  return post<{ status: string; message: string }>(`/api/v1/memberships/${id}/activate/`);
 }
 
 /**
@@ -137,14 +164,18 @@ export async function activateMembership(id: string): Promise<{ status: string; 
 export async function deactivateMembership(
   id: string
 ): Promise<{ status: string; message: string }> {
-  return post<{ status: string; message: string }>(`/api/v1/erp/memberships/${id}/deactivate/`);
+  return post<{ status: string; message: string }>(`/api/v1/memberships/${id}/deactivate/`);
 }
 
 /**
- * Get invitations for organizations the user manages
+ * Invitations for organizations the user belongs to, optionally one org only
  */
-export async function getInvitations(): Promise<PaginatedResponse<OrganizationInvitation>> {
-  return get<PaginatedResponse<OrganizationInvitation>>('/api/v1/erp/invitations/');
+export async function getInvitations(
+  organizationId?: string
+): Promise<PaginatedResponse<OrganizationInvitation>> {
+  return get<PaginatedResponse<OrganizationInvitation>>('/api/v1/invitations/', {
+    params: organizationId ? { organization: organizationId, page_size: 500 } : { page_size: 500 },
+  });
 }
 
 /**
@@ -153,7 +184,7 @@ export async function getInvitations(): Promise<PaginatedResponse<OrganizationIn
 export async function sendInvitation(
   data: InviteUserPayload
 ): Promise<OrganizationInvitation> {
-  return post<OrganizationInvitation>('/api/v1/erp/invitations/', data);
+  return post<OrganizationInvitation>('/api/v1/invitations/', data);
 }
 
 /**
@@ -163,22 +194,42 @@ export async function resendInvitation(
   id: string
 ): Promise<{ status: string; message: string; email: string }> {
   return post<{ status: string; message: string; email: string }>(
-    `/api/v1/erp/invitations/${id}/resend/`
+    `/api/v1/invitations/${id}/resend/`
   );
 }
 
 /**
- * Cancel an invitation
+ * Cancel a pending invitation
  */
-export async function cancelInvitation(id: string): Promise<void> {
-  return del<void>(`/api/v1/erp/invitations/${id}/`);
+export async function cancelInvitation(id: string): Promise<{ status: string; message: string }> {
+  return post<{ status: string; message: string }>(`/api/v1/invitations/${id}/cancel/`);
 }
 
 /**
- * Accept an invitation
+ * Public preview of an invitation (no auth) so the accept page can render
+ * before the invitee signs in. Uses a bare fetch: the shared client would
+ * attach a stale Bearer token and bounce to login on 401.
  */
-export async function acceptInvitation(token: string): Promise<{ status: string; message: string }> {
-  return post<{ status: string; message: string }>('/api/v1/erp/invitations/accept/', { token });
+export async function lookupInvitation(token: string): Promise<InvitationLookup> {
+  const base = (getApiUrl() || '').replace(/\/$/, '');
+  const res = await fetch(
+    `${base}/api/v1/invitations/lookup/?token=${encodeURIComponent(token)}`,
+    { credentials: 'omit' }
+  );
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body?.error || body?.detail || 'This invitation link is not valid.');
+  }
+  return body as InvitationLookup;
+}
+
+/**
+ * Accept an invitation as the signed-in user
+ */
+export async function acceptInvitation(
+  token: string
+): Promise<{ status: string; message: string; organization_id: string; membership: OrganizationMember }> {
+  return post('/api/v1/invitations/accept/', { token });
 }
 
 export default {
@@ -193,12 +244,15 @@ export default {
   getOrganizationStats,
   getMemberships,
   getMembership,
+  createMembership,
   updateMembership,
+  removeMembership,
   activateMembership,
   deactivateMembership,
   getInvitations,
   sendInvitation,
   resendInvitation,
   cancelInvitation,
+  lookupInvitation,
   acceptInvitation,
 };

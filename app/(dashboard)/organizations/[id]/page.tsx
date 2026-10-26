@@ -77,6 +77,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { clearOrganizationData, resyncOrganizationData } from '@/lib/organization-api';
+import { MembersPanel } from '@/components/organizations/members-panel';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -84,7 +85,7 @@ export default function OrganizationDetailsPage() {
   const organizationId = params?.id as string;
 
   const { data: organization, isLoading: orgLoading } = useOrganization(organizationId);
-  const { data: members, isLoading: membersLoading } = useOrganizationMembers(organizationId);
+  const { data: members } = useOrganizationMembers(organizationId);
   const { data: stats, isLoading: statsLoading } = useOrganizationStats(organizationId);
   const { data: departments, isLoading: departmentsLoading } = useDepartments({ organization_id: organizationId });
 
@@ -189,7 +190,7 @@ export default function OrganizationDetailsPage() {
   };
 
   const DATA_CATEGORIES = [
-    { key: 'members', label: 'Members & Invitations' },
+    { key: 'members', label: 'Users & Invitations' },
     { key: 'departments', label: 'Departments' },
     { key: 'payments', label: 'Payments' },
     { key: 'banking', label: 'Banking Data' },
@@ -382,7 +383,7 @@ export default function OrganizationDetailsPage() {
             value="members"
             className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md px-4 py-2 transition-all"
           >
-            Members
+            Users
           </TabsTrigger>
           <TabsTrigger
             value="departments"
@@ -458,116 +459,9 @@ export default function OrganizationDetailsPage() {
           </div>
         </TabsContent>
 
-        {/* Members Tab */}
+        {/* Users Tab — shared panel, same as /organizations/members */}
         <TabsContent value="members" className="mt-6">
-          <div className="bg-card border border-border rounded-lg shadow-sm">
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Team Members</h3>
-                <p className="text-sm text-muted-foreground">
-                  Manage your organization's team members and their roles
-                </p>
-              </div>
-              <Button type="button">
-                <Mail className="h-4 w-4" />
-                Invite Member
-              </Button>
-            </div>
-            <div className="p-6">
-              {membersLoading ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 w-full bg-muted animate-pulse rounded" />
-                  ))}
-                </div>
-              ) : members && members.length > 0 ? (
-                <div className="table-professional">
-                  <table className="table-professional">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-muted-foreground font-semibold">Member</th>
-                        <th className="text-muted-foreground font-semibold">Role</th>
-                        <th className="text-muted-foreground font-semibold">Status</th>
-                        <th className="text-muted-foreground font-semibold">Joined</th>
-                        <th className="text-right text-muted-foreground font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {members.map((member) => (
-                      <tr key={member.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                        <td>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-primary">
-                                {member.user_name
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')
-                                  .toUpperCase()}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="font-medium text-foreground">{member.user_name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {member.user_email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
-                            member.role === 'owner' ? 'bg-destructive/10 text-destructive' :
-                            member.role === 'admin' ? 'bg-primary/10 text-primary' :
-                            member.role === 'manager' ? 'bg-info/10 text-info' :
-                            'bg-muted text-foreground'
-                          }`}>
-                            {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
-                            member.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
-                          }`}>
-                            {member.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="text-sm text-muted-foreground">
-                          {new Date(member.joined_at).toLocaleDateString()}
-                        </td>
-                        <td className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" mode="icon" aria-label="Member actions">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="border-border shadow-sm">
-                              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
-                                Edit Role
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary">
-                                View Permissions
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-muted" />
-                              <DropdownMenuItem className="text-destructive hover:bg-destructive/5">
-                                Remove Member
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Users className="h-12 w-12 text-muted-foreground/40 mb-4" />
-                  <p className="text-muted-foreground">No members found</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <MembersPanel organizationId={organizationId} organizationName={organization?.name} />
         </TabsContent>
 
         {/* Departments Tab */}
@@ -764,8 +658,8 @@ export default function OrganizationDetailsPage() {
                 <SelectContent>
                   <SelectItem value="none">No manager assigned</SelectItem>
                   {members?.map((member) => (
-                    <SelectItem key={member.id} value={member.user.id}>
-                      {member.user.full_name || member.user.email}
+                    <SelectItem key={member.id} value={member.user}>
+                      {member.user_name || member.user_email}
                     </SelectItem>
                   ))}
                 </SelectContent>
