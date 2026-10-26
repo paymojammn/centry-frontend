@@ -692,7 +692,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
                     {canCreatePayment && canPay && (
                       <Button
                         size="sm"
-                        className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
+                        className="h-7 px-2.5 text-xs font-normal"
                         onClick={() => onPayOne(bill.id)}
                       >
                         <CreditCard className="h-3 w-3 mr-1" />

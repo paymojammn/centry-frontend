@@ -186,7 +186,7 @@ export function ValrPayment({
         <Button
           onClick={handleOpenApp}
           size="lg"
-          className="w-full bg-success hover:bg-success text-white"
+          className="w-full"
         >
           <ExternalLink className="size-4 mr-2" />
           Open VALR App

@@ -570,7 +570,7 @@ export default function InvoicesPage() {
                                 {canCollect && isCollectable && (
                                   <Button
                                     size="sm"
-                                    className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
+                                    className="h-7 px-2.5 text-xs font-normal"
                                     onClick={() => {
                                       setSelectedInvoices(new Set([inv.id]));
                                       setIsCollectModalOpen(true);
