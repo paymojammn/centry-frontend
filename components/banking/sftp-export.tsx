@@ -7,10 +7,13 @@
  * former Upload + Outbox tabs, which listed the same rows twice. One grid,
  * every status, with Download / Upload / Details on the row.
  *
- * Upload is self-healing: a file whose value date has lapsed is regenerated
- * with the earliest date the bank accepts, then uploaded; a 409 from the
- * bank-side guard is retried the same way. Both dates are persisted on the
- * export (`created_at`, `sftp_uploaded_at`) and shown as a pair.
+ * Upload is self-healing on the server: the upload task regenerates a file
+ * whose value date has lapsed and sends the replacement. The browser keeps a
+ * fallback for manual uploads (regenerate on a 409 `value_date_passed`, then
+ * upload again) but it should rarely fire. The Status column shows the
+ * server's upload state (`upload_state`: ready / queued / uploading /
+ * awaiting bank / processed / failed / superseded); both dates are persisted
+ * on the export (`created_at`, `sftp_uploaded_at`) and shown as a pair.
  */
 
 import { useState, useEffect } from "react";
@@ -47,10 +50,13 @@ interface SFTPExportProps {
   canUpload?: boolean;
 }
 
-// One vocabulary for file status across the banking tabs.
+// One vocabulary for file status across the banking tabs. Keyed by the
+// server's `upload_state` (falls back to the raw `status` for older rows).
 const FILE_STATUS: Record<string, { label: string; pill: string }> = {
+  ready: { label: "Ready", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20" },
   generated: { label: "Ready", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20" },
   pending: { label: "Ready", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20" },
+  queued: { label: "Queued", pill: "bg-info-500/10 text-info-700 border-info-500/20" },
   uploading: { label: "Uploading", pill: "bg-info-500/10 text-info-700 border-info-500/20" },
   uploaded: { label: "Awaiting bank", pill: "bg-info-500/10 text-info-700 border-info-500/20" },
   processed: { label: "Processed", pill: "bg-success-500/10 text-success-700 border-success-500/20" },
@@ -58,9 +64,26 @@ const FILE_STATUS: Record<string, { label: string; pill: string }> = {
   superseded: { label: "Superseded", pill: "bg-muted text-muted-foreground border-border" },
 };
 
-function FileStatus({ status }: { status: string }) {
-  const s = FILE_STATUS[status] || { label: status, pill: "bg-muted text-muted-foreground border-border" };
-  return <span className={`status-pill ${s.pill}`}>{s.label}</span>;
+function FileStatus({ file }: { file: BankPaymentExport }) {
+  const state = file.upload_state || file.status;
+  const s = FILE_STATUS[state] || { label: state, pill: "bg-muted text-muted-foreground border-border" };
+  const regenerated = (file.upload_log || []).some((e) => e.event === "regenerated_from");
+  // Explain the pill on hover: the last upload error, or that the server
+  // refreshed this file's value date before sending it.
+  const title =
+    state === "failed" && file.last_upload_error
+      ? file.last_upload_error
+      : state === "queued"
+        ? "Upload queued; the bank's connection will pick it up shortly"
+        : regenerated
+          ? "Regenerated server-side with a fresh value date"
+          : undefined;
+  return (
+    <span className={`status-pill ${s.pill}`} title={title}>
+      {(state === "queued" || state === "uploading") && <Loader2 className="h-3 w-3 animate-spin" />}
+      {s.label}
+    </span>
+  );
 }
 
 function formatFileSize(bytes: number): string {
@@ -144,10 +167,13 @@ export function SFTPExport({
   const exports = exportsData?.results || [];
 
   const isReady = (e: BankPaymentExport) => e.status === "generated" || e.status === "pending";
+  // A queued file is about to be picked up by the server; don't offer a second
+  // manual upload that the duplicate guard would only skip.
+  const isQueued = (e: BankPaymentExport) => e.upload_state === "queued";
   // A file whose value date the bank can no longer honour is refreshed as part
   // of Upload (the backend refuses a stale date — Stanbic would bounce it with FI/E8).
   const isStale = (e: BankPaymentExport) => (isReady(e) || e.status === "failed") && !!e.value_date_passed;
-  const canUpload = (e: BankPaymentExport) => isReady(e) || isStale(e);
+  const canUpload = (e: BankPaymentExport) => (isReady(e) || isStale(e)) && !isQueued(e);
 
   const count = (pred: (e: BankPaymentExport) => boolean) => exports.filter(pred).length;
   const pills = [
@@ -378,7 +404,7 @@ export function SFTPExport({
                   <td className="cell-currency">{e.currency}</td>
                   <td className="cell-amount">{formatAmount(e.total_amount)}</td>
                   <td>
-                    <FileStatus status={e.status} />
+                    <FileStatus file={e} />
                   </td>
                   <td>
                     <div className="flex items-center justify-end gap-1">

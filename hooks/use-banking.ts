@@ -513,6 +513,8 @@ export interface SFTPCredential {
   timeout: number;
   is_active: boolean;
   is_default: boolean;
+  /** Send payment files to the bank automatically as soon as they are generated after approval. */
+  auto_upload_enabled: boolean;
   last_connection_test: string | null;
   last_connection_error: string | null;
   connection_status: 'untested' | 'connected' | 'error';
@@ -539,6 +541,7 @@ export interface SFTPCredentialInput {
   timeout?: number;
   is_active?: boolean;
   is_default?: boolean;
+  auto_upload_enabled?: boolean;
 }
 
 export interface SFTPTransferLog {
@@ -582,6 +585,21 @@ export type BankPaymentExportStatus =
   | 'failed'
   | 'superseded';
 
+export type BankPaymentExportUploadState =
+  | 'ready'
+  | 'queued'
+  | 'uploading'
+  | 'uploaded'
+  | 'processed'
+  | 'failed'
+  | 'superseded';
+
+export interface BankPaymentExportUploadLogEntry {
+  at: string;
+  event: string;
+  [detail: string]: unknown;
+}
+
 export interface BankPaymentExport {
   id: number;
   bank_account: {
@@ -607,6 +625,12 @@ export interface BankPaymentExport {
   /** Set on a superseded export: the regenerated export that replaced it. */
   superseded_by: number | null;
   sftp_uploaded_at: string | null;
+  /** Server-side upload pipeline state (status + upload log), e.g. "queued" while a Celery upload is pending. */
+  upload_state: BankPaymentExportUploadState;
+  /** Chronological trail of upload attempts and server-side regenerations. */
+  upload_log: BankPaymentExportUploadLogEntry[];
+  /** Error of the most recent failed upload attempt, if that was the last thing that happened. */
+  last_upload_error: string | null;
   created_at: string;
   updated_at: string;
 }

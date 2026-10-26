@@ -139,10 +139,10 @@ export function useGeneratePaymentFile() {
   return useMutation<
     GenerateFileResponse,
     Error,
-    { paymentEventIds: number[]; sourceBankAccountId: number; fileFormat: 'csv' | 'xml' }
+    { paymentEventIds: number[]; sourceBankAccountId: number; fileFormat: 'csv' | 'xml'; upload?: boolean }
   >({
-    mutationFn: ({ paymentEventIds, sourceBankAccountId, fileFormat }) =>
-      paymentEventsApi.generatePaymentFile(paymentEventIds, sourceBankAccountId, fileFormat),
+    mutationFn: ({ paymentEventIds, sourceBankAccountId, fileFormat, upload }) =>
+      paymentEventsApi.generatePaymentFile(paymentEventIds, sourceBankAccountId, fileFormat, { upload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-events'] });
       queryClient.invalidateQueries({ queryKey: ['payment-event-stats'] });
