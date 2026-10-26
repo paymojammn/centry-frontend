@@ -122,7 +122,7 @@ const categories: Category[] = [
       {
         q: 'How does SFTP upload work?',
         keywords: 'sftp upload download',
-        a: `Go to Banking → Export → Pay tab. Select the generated file and click Upload. ${BRAND.name} sends the file to your bank\'s SFTP server automatically. You need SFTP credentials configured under Banking → Accounts.`,
+        a: `Go to Banking → Dashboard → Upload tab. Select the generated file and click Upload. ${BRAND.name} sends the file to your bank\'s SFTP server automatically. You need SFTP credentials configured under Banking → Accounts.`,
       },
       {
         q: 'What is pain.002 reconciliation?',

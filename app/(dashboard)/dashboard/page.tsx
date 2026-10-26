@@ -160,7 +160,7 @@ export default function DashboardPage() {
   const { data: pipelineStats } = usePaymentPipelineStats(orgId, 'OUT');
   const { data: bankResponseStats } = useBankResponseStats(orgId);
   const { data: invoiceStats } = useInvoiceStats(orgId);
-  // Bank payment-export files awaiting SFTP upload (the Pay tab "Ready" pill).
+  // Bank payment-export files awaiting SFTP upload (the Upload tab "Ready" pill).
   const { data: exportStats } = useExportStats({ organizationId: orgId || undefined });
   // Outward-payment data — drives Latest Payment Events, Payments by
   // Channel, and By Bank cards. Default 90-day window from the service.
@@ -224,7 +224,7 @@ export default function DashboardPage() {
   const failedPayments = (pipelineStats?.failed || 0) + (pipelineStats?.rejected || 0);
   // Outstanding sales invoices awaiting payment.
   const pendingInvoices = Number(invoiceStats?.outstanding_count || 0);
-  // Bank files generated but not yet uploaded (matches the export Pay tab
+  // Bank files generated but not yet uploaded (matches the Upload tab
   // "Ready" pill: status generated or pending).
   const bankFilesReady = (exportStats?.by_status || [])
     .filter((s) => s.status === 'pending' || s.status === 'generated')

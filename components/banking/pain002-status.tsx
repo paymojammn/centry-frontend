@@ -526,7 +526,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
           </div>
           <p className="text-sm font-normal text-foreground">No uploaded exports yet</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Upload payment files from the Pay tab to track their status
+            Upload payment files from the Upload tab to track their status
           </p>
         </div>
       ) : (
