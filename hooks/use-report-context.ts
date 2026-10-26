@@ -16,6 +16,7 @@ import {
   subDays,
 } from "date-fns";
 import { useOrganizations } from "@/hooks/use-organization";
+import { currencyCode } from "@/components/reports/chart-theme";
 
 export function useReportOrganization() {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
@@ -24,7 +25,10 @@ export function useReportOrganization() {
   useEffect(() => {
     if (!organizationId && organizations?.length) setOrganizationId(organizations[0].id);
   }, [organizations, organizationId]);
-  return { organizations, organizationId, setOrganizationId, isLoading };
+  const current = organizations.find((o: any) => o.id === organizationId);
+  /** The organization's reporting currency (ISO code); never assume one in a page. */
+  const currency = currencyCode(current?.primary_currency || current?.currency);
+  return { organizations, organizationId, setOrganizationId, isLoading, currency };
 }
 
 export type PeriodPreset = "7d" | "30d" | "90d" | "mtd" | "qtd" | "ytd" | "custom";

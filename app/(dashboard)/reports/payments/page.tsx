@@ -50,6 +50,7 @@ interface AccountAggregate {
 
 export default function PaymentsReportPage() {
   const org = useReportOrganization();
+  const ccy = org.currency;
   const period = useReportPeriod("30d");
   const [granularity, setGranularity] = useState<Granularity>("week");
   const [channel, setChannel] = useState("all");
@@ -207,7 +208,7 @@ export default function PaymentsReportPage() {
           <ReportSummary>
             <MetricTile
               label="Processed"
-              value={formatCurrencyCompact(currentAmount)}
+              value={formatCurrencyCompact(currentAmount, ccy)}
               hint={`${paymentCount.toLocaleString()} payments · ${period.label.toLowerCase()}`}
               icon={TrendingUp}
               sparkline={series.length >= 2 ? series.map((s) => s.total) : undefined}
@@ -215,13 +216,13 @@ export default function PaymentsReportPage() {
             <MetricTile
               label="Change vs prior period"
               value={momPct === null ? "—" : `${momPct > 0 ? "+" : ""}${momPct}%`}
-              hint={`Prior ${period.days} days · ${formatCurrencyCompact(prevAmount)}`}
+              hint={`Prior ${period.days} days · ${formatCurrencyCompact(prevAmount, ccy)}`}
               icon={momPct !== null && momPct < 0 ? TrendingDown : TrendingUp}
               tone={momPct === null || momPct === 0 ? "default" : momPct > 0 ? "success" : "danger"}
             />
             <MetricTile
               label="Estimated fees"
-              value={formatCurrencyCompact(totalFees)}
+              value={formatCurrencyCompact(totalFees, ccy)}
               hint={`${effectiveRate}% effective rate`}
               icon={Coins}
             />
@@ -328,7 +329,7 @@ export default function PaymentsReportPage() {
                             {e.sub && <span className="cell-sub">{e.sub}</span>}
                           </td>
                           <td className="cell-amount">{e.count.toLocaleString()}</td>
-                          <td className="cell-amount">{formatCurrencyFull(parseFloat(e.amount))}</td>
+                          <td className="cell-amount">{formatCurrencyFull(parseFloat(e.amount), ccy)}</td>
                           <td className="cell-amount">{e.share}%</td>
                         </tr>
                       ))}
@@ -359,8 +360,8 @@ export default function PaymentsReportPage() {
                             {a.account_name}
                             <span className="cell-sub">{a.provider}</span>
                           </td>
-                          <td className="cell-amount">{formatCurrencyFull(parseFloat(a.amount))}</td>
-                          <td className="cell-amount">{formatCurrencyFull(parseFloat(a.fees))}</td>
+                          <td className="cell-amount">{formatCurrencyFull(parseFloat(a.amount), ccy)}</td>
+                          <td className="cell-amount">{formatCurrencyFull(parseFloat(a.fees), ccy)}</td>
                           <td className="cell-amount">{a.effective_rate_pct}%</td>
                         </tr>
                       ))}

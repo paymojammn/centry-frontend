@@ -110,7 +110,7 @@ interface UnrecRow {
   ageHours: number | null;
 }
 
-function flattenUnreconciled(sections: UnreconciledReport["sections"]): UnrecRow[] {
+function flattenUnreconciled(sections: UnreconciledReport["sections"], fallbackCurrency: string): UnrecRow[] {
   const rows: UnrecRow[] = [];
   for (const r of sections.bank_no_response || []) {
     rows.push({
@@ -133,7 +133,7 @@ function flattenUnreconciled(sections: UnreconciledReport["sections"]): UnrecRow
       primary: r.end_to_end_id || r.instruction_id || "—",
       sub: r.source_file,
       detail: [r.status, r.status_description].filter(Boolean).join(" · ") || "—",
-      currency: r.currency || "UGX",
+      currency: r.currency || fallbackCurrency,
       amount: r.amount,
       ageHours: ageHours(r.received_at),
     });
@@ -158,6 +158,7 @@ const waitingSince = (r: PaymentRequest) => r.submitted_at || r.created_at;
 
 export default function ExceptionsReportPage() {
   const org = useReportOrganization();
+  const ccy = org.currency;
   const period = useReportPeriod("30d");
   const [show, setShow] = useState<Show>("all");
   const [reasonQuery, setReasonQuery] = useState("");
@@ -208,7 +209,7 @@ export default function ExceptionsReportPage() {
   const noResponseAmount = parseFloat(unrecSummary.bank_no_response?.amount || "0");
   const unmatched = unrecSummary.bank_unmatched?.count ?? 0;
   const stuck = unrecSummary.provider_stuck?.count ?? 0;
-  const unrecRows = flattenUnreconciled(unreconciled.data?.sections || {});
+  const unrecRows = flattenUnreconciled(unreconciled.data?.sections || {}, ccy);
   const minAgeHours = parseInt(minAge) || 0;
 
   const summaryLoading = approvals.isLoading || failures.isLoading || unreconciled.isLoading;
@@ -251,7 +252,7 @@ export default function ExceptionsReportPage() {
             value={failedCount.toLocaleString()}
             hint={
               failedCount > 0
-                ? `${formatCurrencyCompact(failedAmount)} · ${period.label.toLowerCase()}`
+                ? `${formatCurrencyCompact(failedAmount, ccy)} · ${period.label.toLowerCase()}`
                 : `No failures · ${period.label.toLowerCase()}`
             }
             icon={AlertOctagon}
@@ -262,7 +263,7 @@ export default function ExceptionsReportPage() {
             value={noResponse.toLocaleString()}
             hint={
               noResponse > 0
-                ? `${formatCurrencyCompact(noResponseAmount)} in ${noResponse.toLocaleString()} ${noResponse === 1 ? "file" : "files"} without pain.002`
+                ? `${formatCurrencyCompact(noResponseAmount, ccy)} in ${noResponse.toLocaleString()} ${noResponse === 1 ? "file" : "files"} without pain.002`
                 : `No files older than ${minAgeHours}h`
             }
             icon={FileX}

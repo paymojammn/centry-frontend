@@ -28,6 +28,7 @@ function periodLabel(p: string): string {
 
 export default function ExpensesReportPage() {
   const org = useReportOrganization();
+  const ccy = org.currency;
   const period = useReportPeriod("90d");
   const organizationId = org.organizationId || undefined;
 
@@ -65,8 +66,8 @@ export default function ExpensesReportPage() {
           <ReportSummary>
             <MetricTile
               label="Total spend"
-              value={formatCurrencyCompact(total)}
-              hint={`${period.label.toLowerCase()} · avg ${formatCurrencyCompact(summary?.avg_amount || 0)} per bill`}
+              value={formatCurrencyCompact(total, ccy)}
+              hint={`${period.label.toLowerCase()} · avg ${formatCurrencyCompact(summary?.avg_amount || 0, ccy)} per bill`}
               icon={Wallet}
               sparkline={trend.length >= 2 ? trend.map((t) => t.total) : undefined}
             />
@@ -79,12 +80,12 @@ export default function ExpensesReportPage() {
             <MetricTile
               label="Top vendor"
               value={topVendor ? topVendor.vendor__name || "Unknown vendor" : "—"}
-              hint={topVendor && total > 0 ? `${formatCurrencyCompact(topVendor.total)} · ${Math.round((topVendor.total / total) * 100)}% of spend` : "No bills in this period"}
+              hint={topVendor && total > 0 ? `${formatCurrencyCompact(topVendor.total, ccy)} · ${Math.round((topVendor.total / total) * 100)}% of spend` : "No bills in this period"}
               icon={Users}
             />
             <MetricTile
               label="Avg per day"
-              value={formatCurrencyCompact(total / period.days)}
+              value={formatCurrencyCompact(total / period.days, ccy)}
               hint={`Over ${period.days} ${period.days === 1 ? "day" : "days"}`}
               icon={CalendarDays}
             />
@@ -135,7 +136,7 @@ export default function ExpensesReportPage() {
                         <td className="cell-primary">{v.vendor__name || "Unknown vendor"}</td>
                         <td className="cell-amount">{v.count.toLocaleString()}</td>
                         <td className="cell-amount cell-muted">{total > 0 ? `${((v.total / total) * 100).toFixed(1)}%` : "—"}</td>
-                        <td className="cell-amount">{formatCurrencyFull(v.total)}</td>
+                        <td className="cell-amount">{formatCurrencyFull(v.total, ccy)}</td>
                       </tr>
                     ))}
                   </tbody>

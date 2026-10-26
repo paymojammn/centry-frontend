@@ -99,6 +99,7 @@ function ReportCard({
 
 export default function ReportsPage() {
   const org = useReportOrganization();
+  const ccy = org.currency;
   const organizationId = org.organizationId || undefined;
   const endDate = format(new Date(), "yyyy-MM-dd");
   const startDate = format(subDays(new Date(), DAYS), "yyyy-MM-dd");
@@ -143,7 +144,7 @@ export default function ReportsPage() {
           <ReportSummary>
             <MetricTile
               label="Processed"
-              value={formatCurrencyCompact(periodAmount)}
+              value={formatCurrencyCompact(periodAmount, ccy)}
               hint={`${periodCount.toLocaleString()} payments`}
               icon={CheckCircle2}
               sparkline={spark.length >= 2 ? spark : undefined}
@@ -182,7 +183,7 @@ export default function ReportsPage() {
             description="Volume over time, settlement and fees by account, top recipients."
             href="/reports/payments"
             stats={[
-              { label: "Processed", value: formatCurrencyCompact(periodAmount) },
+              { label: "Processed", value: formatCurrencyCompact(periodAmount, ccy) },
               { label: "Payments", value: periodCount.toLocaleString() },
               { label: "Success", value: decided > 0 ? `${successRate}%` : "—" },
             ]}
@@ -204,9 +205,9 @@ export default function ReportsPage() {
             description="Bill spend over time, by status and by vendor."
             href="/reports/expenses"
             stats={[
-              { label: "Spend", value: formatCurrencyCompact(spend?.total_amount ?? 0) },
+              { label: "Spend", value: formatCurrencyCompact(spend?.total_amount ?? 0, ccy) },
               { label: "Bills", value: (spend?.count ?? 0).toLocaleString() },
-              { label: "Avg bill", value: formatCurrencyCompact(spend?.avg_amount ?? 0) },
+              { label: "Avg bill", value: formatCurrencyCompact(spend?.avg_amount ?? 0, ccy) },
             ]}
           />
         </div>
