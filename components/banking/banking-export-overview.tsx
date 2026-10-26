@@ -7,10 +7,11 @@
  * can land here and immediately see the state of the entire SFTP / pain
  * payment pipeline without clicking through.
  *
- * Sections:
- *   1. KPI tiles  — Outbox files · Awaiting bank · Accepted · Rejected
- *   2. Pipeline   — left: payment stage funnel · right: bank acceptance ratio
- *   3. Recent     — Outbox files · Inbox responses · Statements imported
+ * Laid out exactly like the main dashboard (shared MetricTile / ContentCard /
+ * SectionTitle), so the two read as one product:
+ *   1. Bank files      — Outbox · Awaiting bank · Accepted · Rejected
+ *   2. Payment pipeline — stage counts, full width
+ *   3. Recent activity  — Outbox · Inbox · Statements
  *
  * Each "View all" link calls `onNavigate(tab)` so the parent can switch tabs
  * without a route change.
@@ -20,15 +21,17 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
-  FileText,
   FolderOpen,
   Inbox,
   Loader2,
   Send,
-  Upload,
   Wallet,
   XCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MetricTile } from "@/components/reports/MetricTile";
+import { ContentCard, ContentCardHeader } from "@/components/layout/content-card";
+import { SectionTitle } from "@/components/reports/chart-theme";
 import { formatDistanceToNow } from "date-fns";
 import {
   useBankPaymentExports,
@@ -91,122 +94,78 @@ export function BankingExportOverview({
   const recentStatements = (imports?.results || []).slice(0, 4);
 
   return (
-    <div className="space-y-5">
-      {/* ─ KPI tiles ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiTile
-          icon={FolderOpen}
-          label="Outbox"
-          value={fmtNum(outboxFiles)}
-          sub={`${fmtNum(exports?.results?.reduce((s, e) => s + (e.payment_count || 0), 0) || 0)} payments`}
-          accent="primary"
-          onClick={() => onNavigate?.("files")}
-        />
-        <KpiTile
-          icon={Clock}
-          label="Awaiting bank"
-          value={fmtNum(awaitingBank)}
-          sub="sent · pending pain.002"
-          accent="amber"
-          onClick={() => onNavigate?.("inbox")}
-        />
-        <KpiTile
-          icon={CheckCircle2}
-          label="Accepted"
-          value={fmtNum(accepted)}
-          sub={
-            acceptancePct !== null ? `${acceptancePct}% acceptance` : "no data"
-          }
-          accent="emerald"
-          onClick={() => onNavigate?.("bank-status")}
-        />
-        <KpiTile
-          icon={XCircle}
-          label="Rejected"
-          value={fmtNum(rejected)}
-          sub={acceptanceTotal > 0 ? `of ${fmtNum(acceptanceTotal)} responses` : "no data"}
-          accent="red"
-          onClick={() => onNavigate?.("bank-status")}
-        />
-      </div>
-
-      {/* ─ Pipeline + Acceptance ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* Pipeline funnel */}
-        <Card className="lg:col-span-2">
-          <CardHeader
-            title="Payment pipeline"
-            subtitle="Across the lifecycle from approval to bank acceptance"
-            action={
-              <NavLink onClick={() => onNavigate?.("sftp-export")}>
-                Generate next file
-              </NavLink>
-            }
-          />
-          <div className="p-5 pt-0 space-y-3">
-            <PipelineRow
-              icon={Clock}
-              label="Pending approval"
-              count={pipeline?.pending_approval ?? 0}
-              amount={pipeline?.total_amount_pending_approval}
-              tone="muted"
-            />
-            <PipelineRow
-              icon={Loader2}
-              label="Processing"
-              count={pipeline?.processing ?? 0}
-              amount={pipeline?.total_amount_processing}
-              tone="info"
-            />
-            <PipelineRow
-              icon={Upload}
-              label="Sent to bank"
-              count={pipeline?.sent ?? 0}
-              amount={pipeline?.total_amount_sent}
-              tone="amber"
-            />
-            <PipelineRow
-              icon={CheckCircle2}
-              label="Successful"
-              count={pipeline?.success ?? 0}
-              tone="emerald"
-            />
-            <PipelineRow
-              icon={XCircle}
-              label="Failed / Rejected"
-              count={(pipeline?.failed ?? 0) + (pipeline?.rejected ?? 0)}
-              tone="red"
-            />
-          </div>
-        </Card>
-
-        {/* Acceptance ratio */}
-        <Card>
-          <CardHeader
-            title="Bank acceptance"
-            subtitle="Pain.002 responses received"
-          />
-          <div className="p-5 pt-0">
-            <AcceptanceRing
-              percentage={acceptancePct}
-              accepted={accepted}
-              rejected={rejected}
-              pending={bankResp?.pending_transactions ?? 0}
-            />
-          </div>
-        </Card>
-      </div>
-
-      {/* ─ Recent activity ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <Card>
-          <CardHeader
-            title="Outbox"
+    <div className="space-y-8">
+      {/* ─── Section 1: summary tiles ─── */}
+      <div>
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <MetricTile
+            label="Files"
+            value={fmtNum(outboxFiles)}
+            hint={`${fmtNum(exports?.results?.reduce((s, e) => s + (e.payment_count || 0), 0) || 0)} payments`}
             icon={FolderOpen}
-            action={
-              <NavLink onClick={() => onNavigate?.("files")}>View all</NavLink>
+            onClick={() => onNavigate?.("files")}
+          />
+          <MetricTile
+            label="Awaiting bank"
+            value={fmtNum(awaitingBank)}
+            hint="Sent · pending pain.002"
+            icon={Clock}
+            tone={awaitingBank > 0 ? "warning" : "default"}
+            onClick={() => onNavigate?.("inbox")}
+          />
+          <MetricTile
+            label="Accepted"
+            value={fmtNum(accepted)}
+            hint={acceptancePct !== null ? `${acceptancePct}% acceptance` : "No responses yet"}
+            icon={CheckCircle2}
+            tone={accepted > 0 ? "success" : "default"}
+            onClick={() => onNavigate?.("bank-status")}
+          />
+          <MetricTile
+            label="Rejected"
+            value={fmtNum(rejected)}
+            hint={acceptanceTotal > 0 ? `of ${fmtNum(acceptanceTotal)} responses` : "No responses yet"}
+            icon={XCircle}
+            tone={rejected > 0 ? "danger" : "default"}
+            onClick={() => onNavigate?.("bank-status")}
+          />
+        </div>
+      </div>
+
+      {/* ─── Section 2: Payment pipeline ─── */}
+      <ContentCard noPadding>
+        <ContentCardHeader className="px-6">
+          <SectionTitle
+            icon={<Send className="h-4 w-4" />}
+            title="Payment pipeline"
+            subtitle="From approval to bank acceptance"
+            right={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-primary h-8"
+                onClick={() => onNavigate?.("sftp-export")}
+              >
+                Generate next file <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
             }
           />
+        </ContentCardHeader>
+        <div className="px-6 py-2">
+          <PipelineRow label="Pending approval" count={pipeline?.pending_approval ?? 0} amount={pipeline?.total_amount_pending_approval} tone="muted" />
+          <PipelineRow label="Processing" count={pipeline?.processing ?? 0} amount={pipeline?.total_amount_processing} tone="info" />
+          <PipelineRow label="Sent to bank" count={pipeline?.sent ?? 0} amount={pipeline?.total_amount_sent} tone="amber" />
+          <PipelineRow label="Successful" count={pipeline?.success ?? 0} tone="emerald" />
+          <PipelineRow label="Failed / Rejected" count={(pipeline?.failed ?? 0) + (pipeline?.rejected ?? 0)} tone="red" />
+        </div>
+      </ContentCard>
+
+      {/* ─── Section 3: Recent activity ─── */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <ContentCard noPadding>
+          <ContentCardHeader className="px-6">
+            <SectionTitle icon={<FolderOpen className="h-4 w-4" />} title="Files" right={<ViewAll onClick={() => onNavigate?.("files")} />} />
+          </ContentCardHeader>
           <RecentList
             items={recentOutbox}
             empty="No files generated yet"
@@ -217,16 +176,11 @@ export function BankingExportOverview({
               status: e.status,
             })}
           />
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Inbox"
-            icon={Inbox}
-            action={
-              <NavLink onClick={() => onNavigate?.("inbox")}>View all</NavLink>
-            }
-          />
+        </ContentCard>
+        <ContentCard noPadding>
+          <ContentCardHeader className="px-6">
+            <SectionTitle icon={<Inbox className="h-4 w-4" />} title="Inbox" right={<ViewAll onClick={() => onNavigate?.("inbox")} />} />
+          </ContentCardHeader>
           <RecentList
             items={recentInbox}
             empty="No bank responses yet"
@@ -237,18 +191,11 @@ export function BankingExportOverview({
               status: e.status,
             })}
           />
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Statements"
-            icon={Wallet}
-            action={
-              <NavLink onClick={() => onNavigate?.("statements")}>
-                View all
-              </NavLink>
-            }
-          />
+        </ContentCard>
+        <ContentCard noPadding>
+          <ContentCardHeader className="px-6">
+            <SectionTitle icon={<Wallet className="h-4 w-4" />} title="Statements" right={<ViewAll onClick={() => onNavigate?.("statements")} />} />
+          </ContentCardHeader>
           <RecentList
             items={recentStatements}
             empty="No statements imported"
@@ -259,264 +206,56 @@ export function BankingExportOverview({
               status: i.status,
             })}
           />
-        </Card>
+        </ContentCard>
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Building blocks (kept local; reusable shapes for this dashboard)
+// Building blocks local to this overview
 // ─────────────────────────────────────────────────────────────────────
 
-function Card({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function ViewAll({ onClick }: { onClick?: () => void }) {
   return (
-    <div
-      className={`bg-card rounded-xl border border-border ${className || ""}`}
-    >
-      {children}
-    </div>
+    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary h-8" onClick={onClick}>
+      View all <ArrowRight className="h-3.5 w-3.5 ml-1" />
+    </Button>
   );
 }
 
-function CardHeader({
-  title,
-  subtitle,
-  icon: Icon,
-  action,
-}: {
-  title: string;
-  subtitle?: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3 p-5 pb-3">
-      <div className="flex items-start gap-2.5 min-w-0">
-        {Icon && (
-          <div className="size-7 rounded-md bg-muted flex items-center justify-center shrink-0">
-            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-        )}
-        <div className="min-w-0">
-          <h3 className="text-sm font-normal text-foreground truncate">
-            {title}
-          </h3>
-          {subtitle && (
-            <p className="text-[12px] text-muted-foreground mt-0.5">
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-      {action && <div className="shrink-0">{action}</div>}
-    </div>
-  );
-}
-
-function NavLink({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1 text-[12px] font-normal text-primary hover:opacity-80 transition-opacity"
-    >
-      {children}
-      <ArrowRight className="h-3 w-3" />
-    </button>
-  );
-}
-
-const ACCENTS = {
-  primary: {
-    bg: "bg-primary/10",
-    text: "text-primary",
-    ring: "ring-primary/20",
-  },
-  amber: {
-    bg: "bg-warning-500/10",
-    text: "text-warning-700",
-    ring: "ring-warning-500/20",
-  },
-  emerald: {
-    bg: "bg-success-500/10",
-    text: "text-success-700",
-    ring: "ring-success-500/20",
-  },
-  red: { bg: "bg-danger-500/10", text: "text-danger-700", ring: "ring-danger-500/20" },
-  info: {
-    bg: "bg-info-500/10",
-    text: "text-info-700",
-    ring: "ring-info-500/20",
-  },
-  muted: {
-    bg: "bg-muted",
-    text: "text-muted-foreground",
-    ring: "ring-border",
-  },
+// Stage dot colours — same semantics as the main dashboard's pipeline.
+const STAGE_DOT = {
+  muted: "bg-neutral-300",
+  info: "bg-info",
+  amber: "bg-warning",
+  emerald: "bg-success",
+  red: "bg-danger",
 } as const;
 
-type Accent = keyof typeof ACCENTS;
-
-function KpiTile({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  accent,
-  onClick,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  sub?: string;
-  accent: Accent;
-  onClick?: () => void;
-}) {
-  const a = ACCENTS[accent];
-  return (
-    <button
-      onClick={onClick}
-      className="text-left bg-card rounded-xl border border-border p-4 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all group"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className={`size-8 rounded-lg ${a.bg} flex items-center justify-center ring-1 ${a.ring}`}>
-          <Icon className={`h-4 w-4 ${a.text}`} />
-        </div>
-        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-      </div>
-      <div className="mt-3">
-        <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
-          {label}
-        </p>
-        <p className="text-2xl font-normal text-foreground tabular-nums mt-1 leading-none">
-          {value}
-        </p>
-        {sub && (
-          <p className="text-[12px] text-muted-foreground mt-1.5">{sub}</p>
-        )}
-      </div>
-    </button>
-  );
-}
-
 function PipelineRow({
-  icon: Icon,
   label,
   count,
   amount,
   tone,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   count: number;
   amount?: string;
-  tone: Accent;
+  tone: keyof typeof STAGE_DOT;
 }) {
-  const a = ACCENTS[tone];
   return (
-    <div className="flex items-center justify-between gap-3 py-2 border-b border-border last:border-b-0">
+    <div className="flex items-center justify-between gap-3 py-3 border-b border-border last:border-b-0">
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className={`size-6 rounded-md ${a.bg} flex items-center justify-center`}>
-          <Icon className={`h-3 w-3 ${a.text}`} />
-        </div>
-        <span className="text-[13px] text-foreground truncate">{label}</span>
+        <span aria-hidden className={`h-1.5 w-1.5 rounded-full shrink-0 ${STAGE_DOT[tone]}`} />
+        <span className="text-sm text-foreground truncate">{label}</span>
       </div>
       <div className="flex items-baseline gap-3 shrink-0">
         {amount && (
-          <span className="text-[12px] text-muted-foreground tabular-nums">
-            {fmtNum(parseFloat(amount))}
-          </span>
+          <span className="text-xs text-muted-foreground tabular-nums">{fmtNum(parseFloat(amount))}</span>
         )}
-        <span className="text-[13px] text-foreground tabular-nums min-w-[2ch] text-right">
-          {fmtNum(count)}
-        </span>
+        <span className="text-sm font-semibold text-foreground tabular-nums w-10 text-right">{fmtNum(count)}</span>
       </div>
-    </div>
-  );
-}
-
-function AcceptanceRing({
-  percentage,
-  accepted,
-  rejected,
-  pending,
-}: {
-  percentage: number | null;
-  accepted: number;
-  rejected: number;
-  pending: number;
-}) {
-  // SVG conic ring — sage = accepted, red = rejected, muted ring = remainder.
-  const total = accepted + rejected + pending;
-  const acceptedDeg = total > 0 ? (accepted / total) * 360 : 0;
-  const rejectedDeg = total > 0 ? (rejected / total) * 360 : 0;
-  const display = percentage !== null ? `${percentage}%` : "—";
-
-  const ringBg =
-    total > 0
-      ? `conic-gradient(
-          rgb(var(--brand-primary)) 0 ${acceptedDeg}deg,
-          rgb(239 68 68) ${acceptedDeg}deg ${acceptedDeg + rejectedDeg}deg,
-          rgb(245 158 11 / 0.7) ${acceptedDeg + rejectedDeg}deg 360deg
-        )`
-      : "conic-gradient(rgb(var(--border)) 0 360deg)";
-
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <div
-        className="relative size-32 rounded-full flex items-center justify-center"
-        style={{ background: ringBg }}
-      >
-        <div className="absolute inset-2 rounded-full bg-card flex flex-col items-center justify-center">
-          <span className="text-2xl font-normal text-foreground tabular-nums leading-none">
-            {display}
-          </span>
-          <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground mt-1">
-            Accepted
-          </span>
-        </div>
-      </div>
-      <div className="w-full space-y-1.5 text-[12px]">
-        <LegendRow color="bg-primary" label="Accepted" value={accepted} />
-        <LegendRow color="bg-danger-500" label="Rejected" value={rejected} />
-        <LegendRow
-          color="bg-warning-500/70"
-          label="Pending"
-          value={pending}
-        />
-      </div>
-    </div>
-  );
-}
-
-function LegendRow({
-  color,
-  label,
-  value,
-}: {
-  color: string;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <span className={`size-2 rounded-full ${color}`} />
-        {label}
-      </div>
-      <span className="text-foreground tabular-nums">{fmtNum(value)}</span>
     </div>
   );
 }

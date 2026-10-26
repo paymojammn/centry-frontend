@@ -1,18 +1,27 @@
 "use client";
 
+/**
+ * Banking → Dashboard · Files tab
+ *
+ * The single list of bank payment files (BankPaymentExport). Replaces the
+ * former Upload + Outbox tabs, which listed the same rows twice. One grid,
+ * every status, with Download / Upload / Details on the row.
+ *
+ * Upload is self-healing: a file whose value date has lapsed is regenerated
+ * with the earliest date the bank accepts, then uploaded; a 409 from the
+ * bank-side guard is retried the same way. Both dates are persisted on the
+ * export (`created_at`, `sftp_uploaded_at`) and shown as a pair.
+ */
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentCard } from "@/components/layout/content-card";
-import {
-  Upload,
-  RefreshCw,
-  Loader2,
-  Download,
-  Search,
-} from "lucide-react";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
+import { Upload, RefreshCw, Loader2, Download, Search, FolderOpen, ListTree } from "lucide-react";
 import { toast } from "sonner";
 import {
   useBankAccounts,
@@ -25,7 +34,6 @@ import {
   type SFTPCredential,
 } from "@/hooks/use-banking";
 import { api } from "@/lib/api";
-import { PILL_COLORS } from "@/lib/theme";
 import { parseIsoDate } from "@/lib/value-date";
 
 interface SFTPExportProps {
@@ -33,8 +41,26 @@ interface SFTPExportProps {
   onExportComplete?: () => void;
   onSelectExport?: (exportId: number) => void;
   selectedExportId?: number;
-  /** Initial status-pill filter (All/Ready/Uploaded), e.g. deep-linked in. */
+  /** Initial status-pill filter, e.g. deep-linked from the dashboard. */
   initialStatus?: string;
+  /** Whether the viewer may upload (banking.export); everyone may download. */
+  canUpload?: boolean;
+}
+
+// One vocabulary for file status across the banking tabs.
+const FILE_STATUS: Record<string, { label: string; pill: string }> = {
+  generated: { label: "Ready", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20" },
+  pending: { label: "Ready", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20" },
+  uploading: { label: "Uploading", pill: "bg-info-500/10 text-info-700 border-info-500/20" },
+  uploaded: { label: "Awaiting bank", pill: "bg-info-500/10 text-info-700 border-info-500/20" },
+  processed: { label: "Processed", pill: "bg-success-500/10 text-success-700 border-success-500/20" },
+  failed: { label: "Failed", pill: "bg-danger-500/10 text-danger-700 border-danger-500/20" },
+  superseded: { label: "Superseded", pill: "bg-muted text-muted-foreground border-border" },
+};
+
+function FileStatus({ status }: { status: string }) {
+  const s = FILE_STATUS[status] || { label: status, pill: "bg-muted text-muted-foreground border-border" };
+  return <span className={`status-pill ${s.pill}`}>{s.label}</span>;
 }
 
 function formatFileSize(bytes: number): string {
@@ -45,35 +71,8 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-function formatCurrency(amount: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency || "KES",
-  }).format(parseFloat(amount));
-}
-
-function renderStatusBadge(status: string) {
-  const style =
-    status === "uploaded" || status === "uploading"
-      ? "bg-info-500/10 text-info-700 border-info-500/20"
-      : status === "processed"
-      ? "bg-success-500/10 text-success-700 border-success-500/20"
-      : status === "failed"
-      ? "bg-danger-500/10 text-danger-700 border-danger-500/20"
-      : status === "superseded"
-      ? "bg-muted text-muted-foreground border-border"
-      : "bg-warning-500/10 text-warning-700 border-warning-500/20";
-  const label =
-    status === "generated" || status === "pending"
-      ? "Ready"
-      : status.charAt(0).toUpperCase() + status.slice(1);
-  return (
-    <span
-      className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${style}`}
-    >
-      {label}
-    </span>
-  );
+function formatAmount(amount: string): string {
+  return parseFloat(amount).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function formatValueDate(iso: string | null | undefined): string {
@@ -81,7 +80,25 @@ function formatValueDate(iso: string | null | undefined): string {
   return parseIsoDate(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function SFTPExport({ organizationId, onExportComplete, initialStatus }: SFTPExportProps) {
+function DateCell({ iso }: { iso: string | null | undefined }) {
+  if (!iso) return <>—</>;
+  const d = new Date(iso);
+  return (
+    <>
+      {format(d, "dd MMM yyyy")}
+      <span className="cell-sub">{format(d, "HH:mm")}</span>
+    </>
+  );
+}
+
+export function SFTPExport({
+  organizationId,
+  onExportComplete,
+  onSelectExport,
+  selectedExportId,
+  initialStatus,
+  canUpload: mayUpload = true,
+}: SFTPExportProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [selectedSFTPCredentialId, setSelectedSFTPCredentialId] = useState<number | undefined>();
   const [activeTaskId, setActiveTaskId] = useState<string | undefined>();
@@ -100,10 +117,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
     data: exportsData,
     isLoading: exportsLoading,
     refetch: refetchExports,
-  } = useBankPaymentExports({
-    bankAccountId: selectedAccountId,
-    organizationId,
-  });
+  } = useBankPaymentExports({ bankAccountId: selectedAccountId, organizationId });
 
   const uploadFile = useSFTPUpload();
   const regenerate = useRegenerateExport();
@@ -112,11 +126,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
   useEffect(() => {
     if (sftpCredentials.length > 0 && !selectedSFTPCredentialId) {
       const activeCredential = sftpCredentials.find((c: SFTPCredential) => c.is_active);
-      if (activeCredential) {
-        setSelectedSFTPCredentialId(activeCredential.id);
-      } else {
-        setSelectedSFTPCredentialId(sftpCredentials[0].id);
-      }
+      setSelectedSFTPCredentialId(activeCredential ? activeCredential.id : sftpCredentials[0].id);
     }
   }, [sftpCredentials, selectedSFTPCredentialId, selectedAccountId]);
 
@@ -126,38 +136,43 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
         setActiveTaskId(undefined);
         setUploadingFileId(undefined);
         refetchExports();
-        if (taskStatus.status === "SUCCESS" && onExportComplete) {
-          onExportComplete();
-        }
+        if (taskStatus.status === "SUCCESS" && onExportComplete) onExportComplete();
       }, 3000);
     }
   }, [taskStatus, onExportComplete, refetchExports]);
 
   const exports = exportsData?.results || [];
 
-  const isReady = (e: BankPaymentExport) =>
-    e.status === "generated" || e.status === "pending";
+  const isReady = (e: BankPaymentExport) => e.status === "generated" || e.status === "pending";
   // A file whose value date the bank can no longer honour is refreshed as part
   // of Upload (the backend refuses a stale date — Stanbic would bounce it with FI/E8).
-  const isStale = (e: BankPaymentExport) =>
-    (isReady(e) || e.status === "failed") && !!e.value_date_passed;
+  const isStale = (e: BankPaymentExport) => (isReady(e) || e.status === "failed") && !!e.value_date_passed;
   const canUpload = (e: BankPaymentExport) => isReady(e) || isStale(e);
-  const isUploaded = (e: BankPaymentExport) =>
-    e.status === "uploaded" || e.status === "processed";
 
-  const pendingExports = exports.filter(canUpload);
-  const uploadedExports = exports.filter(isUploaded);
+  const count = (pred: (e: BankPaymentExport) => boolean) => exports.filter(pred).length;
+  const pills = [
+    { value: "all", label: "All", count: count((e) => e.status !== "superseded") },
+    { value: "ready", label: "Ready", count: count(canUpload) },
+    { value: "uploaded", label: "Awaiting bank", count: count((e) => e.status === "uploaded") },
+    { value: "processed", label: "Processed", count: count((e) => e.status === "processed") },
+    { value: "failed", label: "Failed", count: count((e) => e.status === "failed") },
+    { value: "superseded", label: "Superseded", count: count((e) => e.status === "superseded") },
+  ];
 
   const filteredExports = exports.filter((e) => {
     if (statusFilter === "ready" && !canUpload(e)) return false;
-    if (statusFilter === "uploaded" && !isUploaded(e)) return false;
+    if (statusFilter === "uploaded" && e.status !== "uploaded") return false;
+    if (statusFilter === "processed" && e.status !== "processed") return false;
+    if (statusFilter === "failed" && e.status !== "failed") return false;
+    if (statusFilter === "superseded" && e.status !== "superseded") return false;
     // Replaced files are history; only show them when asked for explicitly.
     if (statusFilter === "all" && e.status === "superseded") return false;
     if (fileSearch) {
       const q = fileSearch.toLowerCase();
       if (
         !(e.file_name || "").toLowerCase().includes(q) &&
-        !(e.bank_account?.account_name || "").toLowerCase().includes(q)
+        !(e.bank_account?.account_name || "").toLowerCase().includes(q) &&
+        !(e.currency || "").toLowerCase().includes(q)
       )
         return false;
     }
@@ -181,9 +196,6 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
     return result.export;
   };
 
-  // Upload is self-healing: a file whose value date has lapsed is regenerated
-  // first, and a 409 from the bank-side guard (date lapsed between the list
-  // loading and the click) is retried the same way.
   const handleUploadFile = async (exportFile: BankPaymentExport) => {
     if (!exportFile.bank_account?.id || !selectedSFTPCredentialId) return;
     const credentialId = selectedSFTPCredentialId;
@@ -216,10 +228,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
   const handleDownloadFile = async (exportFile: BankPaymentExport) => {
     try {
       setDownloadingFileId(exportFile.id);
-      const blob = await api.get<Blob>(
-        `/api/v1/banking/exports/files/${exportFile.id}/`,
-        { responseType: "blob" }
-      );
+      const blob = await api.get<Blob>(`/api/v1/banking/exports/files/${exportFile.id}/`, { responseType: "blob" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -236,20 +245,18 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
 
   return (
     <ContentCard noPadding>
-      {/* Toolbar: status pills + account/connection + search/refresh (bills-grid style) */}
+      {/* Toolbar: status pills + account/connection + search/refresh */}
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
-        {([
-          { value: "all", label: "All", count: exports.length, color: undefined },
-          { value: "ready", label: "Ready", count: pendingExports.length, color: "var(--color-warning-400)" },
-          { value: "uploaded", label: "Uploaded", count: uploadedExports.length, color: PILL_COLORS.uploaded },
-        ]).map((p) => {
+        {pills.map((p) => {
           const active = statusFilter === p.value;
           return (
             <button
               key={p.value}
               onClick={() => setStatusFilter(p.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
               }`}
             >
               {p.label} ({p.count})
@@ -286,13 +293,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
           >
             <SelectTrigger className="w-[160px] h-9">
               <SelectValue
-                placeholder={
-                  credentialsLoading
-                    ? "Loading..."
-                    : sftpCredentials.length === 0
-                    ? "No connection"
-                    : "Connection"
-                }
+                placeholder={credentialsLoading ? "Loading..." : sftpCredentials.length === 0 ? "No connection" : "Connection"}
               />
             </SelectTrigger>
             <SelectContent>
@@ -309,21 +310,10 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
 
           <div className="relative w-44">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-            <Input
-              placeholder="Search files..."
-              value={fileSearch}
-              onChange={(e) => setFileSearch(e.target.value)}
-              className="pl-9 h-9"
-            />
+            <Input placeholder="Search files..." value={fileSearch} onChange={(e) => setFileSearch(e.target.value)} className="pl-9 h-9" />
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetchExports()}
-            disabled={exportsLoading}
-            className="h-9 btn-press"
-          >
+          <Button variant="outline" size="sm" onClick={() => refetchExports()} disabled={exportsLoading} className="h-9 btn-press" aria-label="Refresh">
             <RefreshCw className={`h-3.5 w-3.5 ${exportsLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
@@ -331,119 +321,108 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
 
       {/* Body */}
       {exportsLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
+        <LoadingState />
       ) : filteredExports.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-            <Upload className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-normal text-foreground">
-            {hasFilters ? "No files match your filters" : "No payment files"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {hasFilters
-              ? "Try adjusting your filters"
-              : "Generate payment files from the Payments page"}
-          </p>
-        </div>
+        <EmptyState
+          icon={FolderOpen}
+          title={hasFilters ? "No files match your filters" : "No payment files yet"}
+          description={hasFilters ? "Try adjusting your filters" : "Generate a payment file from Bills to see it here"}
+        />
       ) : (
-        <>
-          <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-            <div className="col-span-2">Date</div>
-            <div className="col-span-2">Filename</div>
-            <div className="col-span-2">Account</div>
-            <div className="col-span-1">Value date</div>
-            <div className="col-span-1 text-center">Payments</div>
-            <div className="col-span-1 text-right">Amount</div>
-            <div className="col-span-1">Status</div>
-            <div className="col-span-2"></div>
-          </div>
-          <div className="divide-y divide-border max-h-[calc(100vh-350px)] overflow-y-auto">
-            {filteredExports.map((e) => (
-              <div
-                key={e.id}
-                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
-              >
-                <div className="col-span-2 text-muted-foreground tabular-nums">
-                  {e.created_at ? format(new Date(e.created_at), "dd MMM yyyy") : "—"}
-                  {e.created_at && (
-                    <p className="text-[12px] text-muted-foreground/60 mt-0.5">
-                      {format(new Date(e.created_at), "HH:mm")}
-                    </p>
-                  )}
-                </div>
-                <div className="col-span-2 min-w-0">
-                  <p className="text-foreground truncate">{e.file_name || "—"}</p>
-                  <p className="text-[12px] text-muted-foreground mt-0.5">
-                    {e.file_size ? formatFileSize(e.file_size) : "—"}
-                  </p>
-                </div>
-                <div className="col-span-2 min-w-0">
-                  <p className="text-[12px] text-muted-foreground truncate">
-                    {e.bank_account?.account_name || "—"}
-                  </p>
-                </div>
-                <div className="col-span-1 min-w-0 tabular-nums">
-                  <p className="text-foreground">{formatValueDate(e.requested_execution_date)}</p>
-                  {isStale(e) && (
-                    <p
-                      className="text-[11px] text-muted-foreground mt-0.5"
-                      title={`The bank can no longer pay on this date. Upload will move it to ${formatValueDate(e.earliest_value_date)}.`}
-                    >
-                      Updated on upload
-                    </p>
-                  )}
-                </div>
-                <div className="col-span-1 text-center">
-                  <span className="tabular-nums text-foreground">{e.payment_count}</span>
-                </div>
-                <div className="col-span-1 text-right">
-                  <span className="tabular-nums text-foreground">
-                    {formatCurrency(e.total_amount, e.currency)}
-                  </span>
-                </div>
-                <div className="col-span-1">{renderStatusBadge(e.status)}</div>
-                <div className="col-span-2 flex items-center justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownloadFile(e)}
-                    disabled={downloadingFileId === e.id}
-                    className="h-8 btn-press"
+        <div className="table-scroll-container">
+          <table className="table-professional">
+            <thead>
+              <tr>
+                <th>Created</th>
+                <th>File</th>
+                <th>Account</th>
+                <th>Value date</th>
+                <th>Uploaded</th>
+                <th className="text-right">Payments</th>
+                <th className="cell-currency">Ccy</th>
+                <th className="text-right">Amount</th>
+                <th>Status</th>
+                <th className="text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredExports.map((e) => (
+                <tr key={e.id} className={selectedExportId === e.id ? "is-selected" : undefined}>
+                  <td className="cell-muted whitespace-nowrap">
+                    <DateCell iso={e.created_at} />
+                  </td>
+                  <td className="cell-primary">
+                    <span className="block truncate max-w-[220px]">{e.file_name || "—"}</span>
+                    <span className="cell-sub">
+                      {e.file_size ? formatFileSize(e.file_size) : "—"}
+                      {e.superseded_by ? ` · replaced by #${e.superseded_by}` : ""}
+                    </span>
+                  </td>
+                  <td className="cell-muted">
+                    <span className="block truncate max-w-[160px]">{e.bank_account?.account_name || "—"}</span>
+                  </td>
+                  <td
+                    className={`whitespace-nowrap tabular-nums ${e.value_date_passed ? "text-danger-700" : ""}`}
+                    title={
+                      e.value_date_passed
+                        ? `The bank can no longer pay on this date. Upload moves it to ${formatValueDate(e.earliest_value_date)}.`
+                        : undefined
+                    }
                   >
-                    {downloadingFileId === e.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Download className="h-3 w-3" />
-                    )}
-                  </Button>
-                  {canUpload(e) && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleUploadFile(e)}
-                      disabled={isUploading || uploadingFileId === e.id || !selectedSFTPCredentialId}
-                      className="h-8 bg-primary hover:bg-primary/90 btn-press"
-                      title={
-                        isStale(e)
-                          ? `Refreshes the payment date to ${formatValueDate(e.earliest_value_date)} and uploads`
-                          : undefined
-                      }
-                    >
-                      {uploadingFileId === e.id ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      ) : (
-                        <Upload className="h-3 w-3 mr-1" />
+                    {formatValueDate(e.requested_execution_date)}
+                  </td>
+                  <td className="cell-muted whitespace-nowrap">
+                    <DateCell iso={e.sftp_uploaded_at} />
+                  </td>
+                  <td className="cell-amount">{e.payment_count}</td>
+                  <td className="cell-currency">{e.currency}</td>
+                  <td className="cell-amount">{formatAmount(e.total_amount)}</td>
+                  <td>
+                    <FileStatus status={e.status} />
+                  </td>
+                  <td>
+                    <div className="flex items-center justify-end gap-1">
+                      {onSelectExport && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                          onClick={() => onSelectExport(e.id)}
+                          aria-label="Details"
+                          title="Payments in this file"
+                        >
+                          <ListTree className="h-3.5 w-3.5" />
+                        </Button>
                       )}
-                      Upload
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                        onClick={() => handleDownloadFile(e)}
+                        disabled={downloadingFileId === e.id}
+                        aria-label="Download"
+                        title="Download file"
+                      >
+                        {downloadingFileId === e.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                      </Button>
+                      {mayUpload && canUpload(e) && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleUploadFile(e)}
+                          disabled={isUploading || uploadingFileId === e.id || !selectedSFTPCredentialId}
+                          className="h-8 btn-press"
+                        >
+                          {uploadingFileId === e.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />}
+                          Upload
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </ContentCard>
   );

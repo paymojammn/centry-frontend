@@ -8,6 +8,9 @@ import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PageHeader } from "@/components/layout/page-header";
+import { ContentCard } from "@/components/layout/content-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import { BankFormDialog } from "@/components/banking/bank-registry/bank-form-dialog";
 import { BranchesSheet } from "@/components/banking/bank-registry/branches-sheet";
 import { RegistryPager } from "@/components/banking/bank-registry/registry-pager";
@@ -62,12 +65,10 @@ export default function BankRegistryPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Banks & Branches"
-        subtitle="The banks and branch codes available when paying recipients"
-        breadcrumbs={[{ label: "Banking", href: "/banking" }, { label: "Banks & Branches" }]}
+        title="Banks"
       >
         {rights.add_bank && (
-          <Button size="sm" onClick={() => openBankForm(null)} className="h-9 bg-primary hover:bg-primary/90">
+          <Button size="sm" onClick={() => openBankForm(null)} className="h-9">
             <Plus className="h-4 w-4 mr-2" />
             Add Bank
           </Button>
@@ -85,7 +86,7 @@ export default function BankRegistryPage() {
           </div>
         )}
 
-        <div className="bg-card rounded-xl border border-border shadow-sm">
+        <ContentCard noPadding>
           <div className="px-6 py-4 border-b border-border flex flex-wrap items-end gap-3">
             <div className="w-full sm:w-64">
               <SearchableSelect
@@ -126,25 +127,26 @@ export default function BankRegistryPage() {
               Couldn&apos;t load banks — {(error as Error).message}
             </p>
           ) : isLoading || !country ? (
-            <p className="px-6 py-12 text-center text-sm text-muted-foreground">Loading banks…</p>
+            <LoadingState />
           ) : banks.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <Landmark className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-foreground">
-                {debouncedSearch
-                  ? `No banks in ${selectedCountry?.name} match "${debouncedSearch}".`
-                  : `No banks on file for ${selectedCountry?.name} yet.`}
-              </p>
+            <EmptyState
+              icon={Landmark}
+              title={
+                debouncedSearch
+                  ? `No banks in ${selectedCountry?.name} match "${debouncedSearch}"`
+                  : `No banks on file for ${selectedCountry?.name} yet`
+              }
+            >
               {rights.add_bank && (
                 <Button variant="outline" size="sm" className="mt-4 h-9" onClick={() => openBankForm(null)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add a bank in {selectedCountry?.name}
                 </Button>
               )}
-            </div>
+            </EmptyState>
           ) : (
             <div className={`overflow-x-auto transition-opacity ${isFetching ? "opacity-60" : ""}`}>
-              <table className="w-full table-professional">
+              <table className="table-professional">
                 <thead>
                   <tr>
                     <th>Bank</th>
@@ -217,7 +219,7 @@ export default function BankRegistryPage() {
               />
             </div>
           )}
-        </div>
+        </ContentCard>
       </div>
 
       <BankFormDialog

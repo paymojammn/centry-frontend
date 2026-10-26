@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { BankingExportOverview } from "@/components/banking/banking-export-overview";
 import { SFTPExport } from "@/components/banking/sftp-export";
@@ -20,52 +11,7 @@ import { Pain002Status } from "@/components/banking/pain002-status";
 import { BankStatements } from "@/components/banking/bank-statements";
 import { ExportTransactionList } from "@/components/banking/export-transaction-list";
 import { useOrganizations } from "@/hooks/use-organization";
-import { useBankPaymentExports, useBankAccounts } from "@/hooks/use-banking";
-import { ContentCard } from "@/components/layout/content-card";
-import {
-  FolderOpen,
-  Search,
-  Download,
-  X,
-} from "lucide-react";
-import { } from "@/lib/theme";
-import { format } from "date-fns";
-import { api } from "@/lib/api";
 import { useHasPermission } from "@/hooks/use-user";
-import { parseIsoDate } from "@/lib/value-date";
-
-// ============================================================
-// Status styles for export files
-// ============================================================
-
-const FILE_STATUS_STYLES: Record<string, string> = {
-  pending: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  generated: "bg-info-500/10 text-info-700 border-info-500/20",
-  uploading: "bg-info-500/10 text-info-700 border-info-500/20",
-  uploaded: "bg-info-500/10 text-info-700 border-info-500/20",
-  processed: "bg-success-500/10 text-success-700 border-success-500/20",
-  failed: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-  superseded: "bg-muted text-muted-foreground border-border",
-};
-
-const FILE_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending",
-  generated: "Generated",
-  uploading: "Uploading",
-  uploaded: "Uploaded",
-  processed: "Processed",
-  failed: "Failed",
-  superseded: "Superseded",
-};
-
-function formatValueDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return parseIsoDate(iso).toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 // ============================================================
 // Page
@@ -80,18 +26,13 @@ export default function BankingExportPage() {
     number | undefined
   >();
 
-  // Files tab filters
-  const [fileSearch, setFileSearch] = useState("");
-  const [fileStatusFilter, setFileStatusFilter] = useState("all");
-  const [fileAccountFilter, setFileAccountFilter] = useState("all");
-
-  // Deep-link: ?tab=<tab> opens a tab, ?status=<pill> pre-selects the Pay
+  // Deep-link: ?tab=<tab> opens a tab, ?status=<pill> pre-selects the Files
   // tab's status filter (used by the dashboard "Bank Files" card).
   const searchParams = useSearchParams();
   const [payInitialStatus, setPayInitialStatus] = useState<string | undefined>();
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab) setActiveTab(tab);
+    if (tab) setActiveTab(tab === "sftp-export" ? "files" : tab);
     const status = searchParams.get("status");
     if (status) setPayInitialStatus(status);
     // run once on mount
@@ -111,48 +52,6 @@ export default function BankingExportPage() {
     }
   }, [organizations, selectedOrganizationId]);
 
-  const { data: bankAccountsData } = useBankAccounts(
-    selectedOrganizationId || undefined
-  );
-  const bankAccounts = (bankAccountsData as any)?.results || [];
-
-  // Fetch all statuses for the org/account so the status-pill counts stay
-  // accurate; status is filtered client-side (matches the other grids).
-  const { data: exportsData, isLoading: exportsLoading } =
-    useBankPaymentExports({
-      organizationId: selectedOrganizationId || undefined,
-      bankAccountId:
-        fileAccountFilter !== "all" ? Number(fileAccountFilter) : undefined,
-    });
-
-  const exports = exportsData?.results || [];
-
-  const fileStatusCount = (s: string) =>
-    exports.filter((e) => e.status === s).length;
-
-  // Client-side status + search filter
-  const filteredExports = exports.filter((e) => {
-    if (fileStatusFilter !== "all" && e.status !== fileStatusFilter) return false;
-    if (!fileSearch) return true;
-    const q = fileSearch.toLowerCase();
-    return (
-      (e.file_name || "").toLowerCase().includes(q) ||
-      (e.bank_account?.account_name || "").toLowerCase().includes(q) ||
-      (e.currency || "").toLowerCase().includes(q)
-    );
-  });
-
-  const hasFileFilters =
-    fileSearch !== "" ||
-    fileStatusFilter !== "all" ||
-    fileAccountFilter !== "all";
-
-  const clearFileFilters = () => {
-    setFileSearch("");
-    setFileStatusFilter("all");
-    setFileAccountFilter("all");
-  };
-
   const handleExportComplete = () => {
     setActiveTab("overview");
   };
@@ -161,30 +60,12 @@ export default function BankingExportPage() {
     setSelectedExportId(exportId);
   };
 
-  const handleDownload = async (exportId: number, filename: string) => {
-    try {
-      const blob = await api.get<Blob>(
-        `/api/v1/banking/exports/files/${exportId}/`,
-        { responseType: "blob" }
-      );
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      // Silently handle
-    }
-  };
-
   const hasBankingExport = useHasPermission("banking.export");
 
   const tabs = useMemo(() => {
     const allTabs = [
       { value: "overview", label: "Overview" },
-      { value: "sftp-export", label: "Pay", requiresExport: true },
-      { value: "files", label: "Outbox" },
+      { value: "files", label: "Files" },
       { value: "inbox", label: "Inbox", requiresExport: true },
       { value: "statements", label: "Statements" },
       { value: "bank-status", label: "Reconciliation", requiresExport: true },
@@ -195,12 +76,7 @@ export default function BankingExportPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Export"
-        subtitle="Generate, upload and reconcile bank payment files"
-        breadcrumbs={[
-          { label: "Banking", href: "/banking" },
-          { label: "Export" },
-        ]}
+        title="Dashboard"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}
@@ -236,7 +112,7 @@ export default function BankingExportPage() {
             onNavigate={setActiveTab}
           />
         )}
-        {activeTab === "sftp-export" && (
+        {activeTab === "files" && (
           <div className="space-y-6">
             <SFTPExport
               organizationId={selectedOrganizationId || undefined}
@@ -244,6 +120,7 @@ export default function BankingExportPage() {
               onSelectExport={handleSelectExport}
               selectedExportId={selectedExportId}
               initialStatus={payInitialStatus}
+              canUpload={hasBankingExport}
             />
             {selectedExportId && (
               <div className="space-y-2">
@@ -277,196 +154,6 @@ export default function BankingExportPage() {
         )}
         {activeTab === "statements" && (
           <BankStatements organizationId={selectedOrganizationId || undefined} />
-        )}
-        {activeTab === "files" && (
-          <div className="space-y-5">
-            {/* Table — status pills header + grid (bills-grid style) */}
-            <ContentCard noPadding>
-              <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
-                {([
-                  { value: "all", label: "All", count: exports.length },
-                  { value: "pending", label: "Pending", count: fileStatusCount("pending") },
-                  { value: "uploaded", label: "Uploaded", count: fileStatusCount("uploaded") },
-                  { value: "processed", label: "Processed", count: fileStatusCount("processed") },
-                  { value: "failed", label: "Failed", count: fileStatusCount("failed") },
-                  { value: "superseded", label: "Superseded", count: fileStatusCount("superseded") },
-                ]).map((p) => {
-                  const active = fileStatusFilter === p.value;
-                  return (
-                    <button
-                      key={p.value}
-                      onClick={() => setFileStatusFilter(p.value)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                        active
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
-                      }`}
-                    >
-                      {p.label} ({p.count})
-                    </button>
-                  );
-                })}
-
-                <div className="ml-auto flex items-center gap-2 flex-wrap">
-                  <Select
-                    value={fileAccountFilter}
-                    onValueChange={setFileAccountFilter}
-                  >
-                    <SelectTrigger className="w-[160px] h-9">
-                      <SelectValue placeholder="All accounts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All accounts</SelectItem>
-                      {bankAccounts.map((a: any) => (
-                        <SelectItem key={a.id} value={a.id.toString()}>
-                          {a.account_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="relative w-44">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                    <Input
-                      placeholder="Search files..."
-                      value={fileSearch}
-                      onChange={(e) => setFileSearch(e.target.value)}
-                      className="pl-9 h-9"
-                    />
-                  </div>
-                  {hasFileFilters && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFileFilters}
-                      className="h-9 text-muted-foreground"
-                    >
-                      <X className="h-3.5 w-3.5 mr-1" />
-                      Clear
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {exportsLoading ? (
-                <div className="px-6 py-6 space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-11 w-full rounded-lg" />
-                  ))}
-                </div>
-              ) : filteredExports.length === 0 ? (
-                <div className="text-center py-20">
-                  <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-                    <FolderOpen className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm font-normal text-foreground">
-                    Outbox is empty
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {hasFileFilters
-                      ? "Try adjusting your filters"
-                      : "No payment files have been generated yet"}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-                    <div className="col-span-2">Date</div>
-                    <div className="col-span-2">Filename</div>
-                    <div className="col-span-1">Account</div>
-                    <div className="col-span-1">Value date</div>
-                    <div className="col-span-1 text-center">Payments</div>
-                    <div className="col-span-1 text-right">Ccy</div>
-                    <div className="col-span-2 text-right">Amount</div>
-                    <div className="col-span-1">Status</div>
-                    <div className="col-span-1"></div>
-                  </div>
-                  <div className="divide-y divide-border max-h-[calc(100vh-350px)] overflow-y-auto">
-                    {filteredExports.map((e) => (
-                      <div
-                        key={e.id}
-                        className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
-                      >
-                        <div className="col-span-2 text-muted-foreground tabular-nums">
-                          {format(new Date(e.created_at), "dd MMM yyyy")}
-                          <p className="text-[12px] text-muted-foreground/60 mt-0.5">
-                            {format(new Date(e.created_at), "HH:mm")}
-                          </p>
-                        </div>
-                        <div className="col-span-2 min-w-0">
-                          <p className="text-foreground truncate">
-                            {e.file_name || "—"}
-                          </p>
-                          <p className="text-[12px] text-muted-foreground mt-0.5">
-                            {e.file_size
-                              ? `${(e.file_size / 1024).toFixed(1)} KB`
-                              : "—"}
-                            {e.superseded_by ? ` · replaced by #${e.superseded_by}` : ""}
-                          </p>
-                        </div>
-                        <div className="col-span-1 min-w-0">
-                          <p className="text-[12px] text-muted-foreground truncate">
-                            {e.bank_account?.account_name || "—"}
-                          </p>
-                        </div>
-                        <div
-                          className={`col-span-1 tabular-nums ${
-                            e.value_date_passed ? "text-danger-700" : "text-foreground"
-                          }`}
-                          title={
-                            e.value_date_passed
-                              ? `The bank can no longer pay on this date. Upload it from the Pay tab and the date moves to ${formatValueDate(e.earliest_value_date)}.`
-                              : undefined
-                          }
-                        >
-                          {formatValueDate(e.requested_execution_date)}
-                        </div>
-                        <div className="col-span-1 text-center">
-                          <span className="tabular-nums text-foreground">
-                            {e.payment_count}
-                          </span>
-                        </div>
-                        <div className="col-span-1 text-right text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
-                          {e.currency}
-                        </div>
-                        <div className="col-span-2 text-right">
-                          <span className="tabular-nums text-foreground">
-                            {parseFloat(e.total_amount).toLocaleString(undefined, {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 2,
-                            })}
-                          </span>
-                        </div>
-                        <div className="col-span-1">
-                          <span
-                            className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${
-                              FILE_STATUS_STYLES[e.status] ||
-                              "bg-muted text-muted-foreground border-border"
-                            }`}
-                          >
-                            {FILE_STATUS_LABELS[e.status] || e.status}
-                          </span>
-                        </div>
-                        {hasBankingExport && (
-                          <div className="col-span-1 flex justify-end">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0"
-                              onClick={() =>
-                                handleDownload(e.id, e.file_name || "export.xml")
-                              }
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </ContentCard>
-          </div>
         )}
       </div>
     </div>

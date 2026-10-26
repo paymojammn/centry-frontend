@@ -153,7 +153,7 @@ export default function LendingPage() {
             label="Open"
             value={stats?.open ?? "—"}
             icon={Clock}
-            variant="warning"
+            variant="default"
           />
           <StatCard
             label="Outstanding"
@@ -161,13 +161,13 @@ export default function LendingPage() {
               stats ? formatCurrency(parseFloat(stats.outstanding_amount) || 0, currency) : "—"
             }
             icon={Wallet}
-            variant="info"
+            variant="default"
           />
           <StatCard
             label="Due today"
             value={stats ? formatCurrency(parseFloat(stats.due_today) || 0, currency) : "—"}
             icon={CheckCircle2}
-            variant="success"
+            variant="default"
           />
         </div>
 

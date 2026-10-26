@@ -1,11 +1,17 @@
 "use client";
 
+/**
+ * Bank statement line awaiting reconciliation.
+ *
+ * The line itself is one grid row (table-professional) with its ERP state;
+ * the matching workbench (Match / Create / Transfer / Discuss) opens in a
+ * right-hand sheet so the list stays a list.
+ */
+
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -22,21 +28,26 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ContentCard } from "@/components/layout/content-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
-import { 
-  ChevronDown, 
-  ChevronUp,
+import {
   Search,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Loader2,
+  Link2,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -71,11 +82,48 @@ interface BankReconciliationItemProps {
   isReconciled?: boolean;
 }
 
-export function BankReconciliationItem({ 
-  transaction, 
+// Semantic status-pill tints (success / warning / danger / info / neutral).
+const PILL = {
+  success: "bg-success-500/10 text-success-700 border-success-500/20",
+  warning: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  danger: "bg-danger-500/10 text-danger-700 border-danger-500/20",
+  info: "bg-info-500/10 text-info-700 border-info-500/20",
+  neutral: "bg-muted text-muted-foreground border-border",
+} as const;
+
+/** ERP state of the line: Synced (reconciled) / Ready (matched) / Not synced. */
+function LineStatus({ matched, reconciled }: { matched: boolean; reconciled: boolean }) {
+  if (reconciled) return <span className={`status-pill ${PILL.success}`}>Synced</span>;
+  if (matched) return <span className={`status-pill ${PILL.info}`}>Ready</span>;
+  return <span className={`status-pill ${PILL.neutral}`}>Not synced</span>;
+}
+
+function ConfidencePill({ confidence }: { confidence: number }) {
+  if (confidence >= 80) {
+    return <span className={`status-pill ${PILL.success}`}>High confidence</span>;
+  }
+  if (confidence >= 50) {
+    return <span className={`status-pill ${PILL.info}`}>Medium confidence</span>;
+  }
+  return <span className={`status-pill ${PILL.neutral}`}>Low confidence</span>;
+}
+
+function DateCell({ iso }: { iso: string | null | undefined }) {
+  if (!iso) return <>—</>;
+  const d = new Date(iso);
+  return (
+    <>
+      {format(d, "dd MMM yyyy")}
+      <span className="cell-sub">{format(d, "HH:mm")}</span>
+    </>
+  );
+}
+
+export function BankReconciliationItem({
+  transaction,
   onUpdate,
   isMatched = false,
-  isReconciled = false
+  isReconciled = false,
 }: BankReconciliationItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState("match");
@@ -85,13 +133,11 @@ export function BankReconciliationItem({
   const [showUSDOnly, setShowUSDOnly] = useState(false);
   const [selectedBankAccount, setSelectedBankAccount] = useState("");
   const [transferReference, setTransferReference] = useState("");
-  
+
   // Create transaction form state
   const [contactName, setContactName] = useState("");
   const [accountCode, setAccountCode] = useState("");
   const [description, setDescription] = useState(transaction.description);
-
-  const queryClient = useQueryClient();
 
   // Fetch suggested matches
   const { data: matchesData, isLoading: matchesLoading } = useQuery<Match[]>({
@@ -147,7 +193,7 @@ export function BankReconciliationItem({
   const reconcileMutation = useMutation({
     mutationFn: () =>
       api.post(`/api/v1/banking/transactions/bulk_sync_to_erp/`, {
-        transaction_ids: [transaction.id]
+        transaction_ids: [transaction.id],
       }),
     onSuccess: () => {
       toast.success("Transaction reconciled successfully");
@@ -170,11 +216,11 @@ export function BankReconciliationItem({
       return;
     }
 
-    const selectedMatch = matches.find(m => m.id === selectedMatches[0]);
+    const selectedMatch = matches.find((m) => m.id === selectedMatches[0]);
     if (selectedMatch) {
       matchMutation.mutate({
         matched_to_id: selectedMatch.id,
-        matched_to_type: selectedMatch.type
+        matched_to_type: selectedMatch.type,
       });
     }
   };
@@ -203,18 +249,12 @@ export function BankReconciliationItem({
     unmatchMutation.mutate();
   };
 
-  const getConfidenceBadge = (confidence: number) => {
-    if (confidence >= 80) {
-      return <Badge className="bg-primary/10 text-primary text-xs">High confidence</Badge>;
-    } else if (confidence >= 50) {
-      return <Badge className="bg-info/10 text-info text-xs">Medium confidence</Badge>;
-    }
-    return <Badge className="bg-muted text-muted-foreground text-xs">Low confidence</Badge>;
-  };
-
-  const filteredMatches = matches.filter(match => {
-    if (searchQuery && !match.contact_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !match.reference.toLowerCase().includes(searchQuery.toLowerCase())) {
+  const filteredMatches = matches.filter((match) => {
+    if (
+      searchQuery &&
+      !match.contact_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !match.reference.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
     if (searchAmount && Math.abs(match.amount - parseFloat(searchAmount)) > 0.01) {
@@ -224,101 +264,105 @@ export function BankReconciliationItem({
   });
 
   const selectedTotal = selectedMatches.reduce((sum, id) => {
-    const match = matches.find(m => m.id === id);
+    const match = matches.find((m) => m.id === id);
     return sum + (match?.amount || 0);
   }, 0);
 
   const amountDifference = Math.abs(transaction.amount - selectedTotal);
+  const isDebit = transaction.transaction_type === "DEBIT";
+  const amountLabel = formatCurrency(transaction.amount, transaction.currency);
 
   return (
-    <Card className="border-border/80 overflow-hidden shadow-sm rounded-xl">
-      {/* Transaction Header */}
-      <div className="bg-muted p-4 flex items-center justify-between border-b">
-        <div className="flex items-center gap-4 flex-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-0 h-auto hover:bg-transparent"
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-primary" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-primary" />
-            )}
-          </Button>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-foreground">
-                {format(new Date(transaction.transaction_date), "dd MMM yyyy")}
-              </span>
-              <div className="flex-1">
-                <div className="font-medium text-foreground">{transaction.description}</div>
-                {transaction.counterparty_name && (
-                  <div className="text-sm text-muted-foreground">{transaction.counterparty_name}</div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-sm font-medium text-muted-foreground">Spent</div>
-              {transaction.transaction_type === "DEBIT" && (
-                <div className="font-semibold text-foreground">
-                  {formatCurrency(transaction.amount, transaction.currency)}
-                </div>
-              )}
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-muted-foreground">Received</div>
-              {transaction.transaction_type === "CREDIT" && (
-                <div className="font-semibold text-foreground">
-                  {formatCurrency(transaction.amount, transaction.currency)}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {!isExpanded && !isReconciled && (
-            <Button
-              size="sm"
-              onClick={() => setIsExpanded(true)}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              OK
-            </Button>
-          )}
-
-          {isReconciled && (
-            <Badge className="bg-primary/20 text-primary">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Reconciled
-            </Badge>
-          )}
+    <>
+      {/* The line itself — one grid row */}
+      <ContentCard noPadding>
+        <div className="table-scroll-container">
+          <table className="table-professional">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th className="cell-currency">Ccy</th>
+                <th className="text-right">Spent</th>
+                <th className="text-right">Received</th>
+                <th>Status</th>
+                <th className="text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="cell-muted whitespace-nowrap">
+                  <DateCell iso={transaction.transaction_date} />
+                </td>
+                <td className="cell-primary">
+                  <span className="block truncate max-w-[280px]">{transaction.description}</span>
+                  {transaction.counterparty_name && (
+                    <span className="cell-sub truncate max-w-[280px]">{transaction.counterparty_name}</span>
+                  )}
+                </td>
+                <td className="cell-currency">{transaction.currency}</td>
+                <td className="cell-amount">
+                  {isDebit ? formatCurrency(transaction.amount, transaction.currency) : ""}
+                </td>
+                <td className="cell-amount">
+                  {!isDebit ? formatCurrency(transaction.amount, transaction.currency) : ""}
+                </td>
+                <td>
+                  <LineStatus matched={isMatched} reconciled={isReconciled} />
+                </td>
+                <td>
+                  <div className="flex items-center justify-end gap-1">
+                    {!isReconciled && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-muted-foreground hover:text-primary"
+                        onClick={() => setIsExpanded(true)}
+                        title={isMatched ? "Review the match and reconcile" : "Find a matching ERP document"}
+                      >
+                        <Link2 className="h-3.5 w-3.5 mr-1" />
+                        {isMatched ? "Reconcile" : "Match"}
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </ContentCard>
 
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div className="p-6 bg-card">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4 bg-muted">
-              <TabsTrigger value="match">Match</TabsTrigger>
-              <TabsTrigger value="create">Create</TabsTrigger>
-              <TabsTrigger value="transfer">Transfer</TabsTrigger>
-              <TabsTrigger value="discuss">Discuss</TabsTrigger>
-            </TabsList>
+      {/* Matching workbench — right-hand sheet */}
+      <Sheet open={isExpanded} onOpenChange={setIsExpanded}>
+        <SheetContent className="w-full sm:w-[640px] sm:max-w-none p-0 gap-0 flex flex-col">
+          <SheetHeader className="px-6 pt-6 pb-4 pr-14 border-b border-border">
+            <div className="flex items-center gap-2 min-w-0">
+              <SheetTitle className="truncate">{transaction.description}</SheetTitle>
+              <LineStatus matched={isMatched} reconciled={isReconciled} />
+            </div>
+            <SheetDescription>
+              {format(new Date(transaction.transaction_date), "dd MMM yyyy")}
+              {transaction.counterparty_name && ` · ${transaction.counterparty_name}`}
+              {` · ${isDebit ? "Spent" : "Received"} ${amountLabel}`}
+            </SheetDescription>
+          </SheetHeader>
 
-            {/* Match Tab */}
-            <TabsContent value="match" className="space-y-4">
-              {isMatched ? (
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="match">Match</TabsTrigger>
+                <TabsTrigger value="create">Create</TabsTrigger>
+                <TabsTrigger value="transfer">Transfer</TabsTrigger>
+                <TabsTrigger value="discuss">Discuss</TabsTrigger>
+              </TabsList>
+
+              {/* Match Tab */}
+              <TabsContent value="match" className="space-y-4">
+                {isMatched ? (
+                  <ContentCard variant="outlined" className="p-4 flex items-center justify-between gap-4">
                     <div>
-                      <h4 className="font-medium text-primary">Transaction Matched</h4>
-                      <p className="text-sm text-primary mt-1">
+                      <p className="text-sm font-medium text-foreground">Transaction matched</p>
+                      <p className="text-sm text-muted-foreground mt-1">
                         This transaction is ready to be reconciled
                       </p>
                     </div>
@@ -329,190 +373,192 @@ export function BankReconciliationItem({
                         onClick={handleUnmatch}
                         disabled={unmatchMutation.isPending}
                       >
+                        {unmatchMutation.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
                         Unmatch
                       </Button>
                       <Button
+                        variant="primary"
                         size="sm"
                         onClick={handleReconcile}
                         disabled={reconcileMutation.isPending}
-                        className="bg-primary hover:bg-primary/90 text-white"
                       >
-                        {reconcileMutation.isPending ? "Reconciling..." : "Reconcile"}
+                        {reconcileMutation.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                        Reconcile
                       </Button>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-center py-4 bg-muted rounded-lg">
-                    <p className="text-sm text-foreground">Find & select matching transactions below</p>
-                  </div>
-
-                  {/* Search Filters */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="show-usd"
-                        checked={showUSDOnly}
-                        onCheckedChange={(checked) => setShowUSDOnly(checked as boolean)}
-                      />
-                      <Label htmlFor="show-usd" className="text-sm">
-                        Show {transaction.currency} items only
-                      </Label>
-                    </div>
-                    <div className="flex-1 flex items-center gap-2">
+                  </ContentCard>
+                ) : (
+                  <>
+                    {/* Search filters */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative flex-1 min-w-[180px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                        <Input
+                          placeholder="Search by name or reference"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
                       <Input
-                        placeholder="Search by name or reference"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="max-w-xs"
-                      />
-                      <Input
-                        placeholder="Search by amount"
+                        placeholder="Amount"
                         type="number"
                         step="0.01"
                         value={searchAmount}
                         onChange={(e) => setSearchAmount(e.target.value)}
-                        className="max-w-[150px]"
+                        className="h-9 w-[130px]"
+                        aria-label="Search by amount"
                       />
-                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
-                        Go
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="link"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setSearchAmount("");
-                        }}
-                        className="text-primary"
-                      >
-                        Clear search
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Matches Table */}
-                  <div className="border border-border/80 rounded-xl overflow-hidden">
-                    <table className="w-full table-professional">
-                      <thead className="bg-muted border-b">
-                        <tr>
-                          <th className="text-left p-3 text-sm font-medium text-foreground">Date</th>
-                          <th className="text-left p-3 text-sm font-medium text-foreground">Name</th>
-                          <th className="text-left p-3 text-sm font-medium text-foreground">Reference</th>
-                          <th className="text-right p-3 text-sm font-medium text-foreground">Spent</th>
-                          <th className="text-right p-3 text-sm font-medium text-foreground">Received</th>
-                        </tr>
-                      </thead>
-                      <tbody className="animate-stagger">
-                        {matchesLoading ? (
-                          <tr>
-                            <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                              Loading matches...
-                            </td>
-                          </tr>
-                        ) : filteredMatches.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                              No matching transactions found
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredMatches.map((match) => (
-                            <tr
-                              key={match.id}
-                              className={`border-b row-interactive cursor-pointer ${
-                                selectedMatches.includes(match.id) ? "bg-primary/5" : ""
-                              }`}
-                              onClick={() => handleMatchSelect(match.id)}
-                            >
-                              <td className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <Checkbox
-                                    checked={selectedMatches.includes(match.id)}
-                                    onCheckedChange={() => handleMatchSelect(match.id)}
-                                  />
-                                  <span className="text-sm">
-                                    {format(new Date(match.date), "dd MMM yyyy")}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <div>
-                                  <div className="text-sm font-medium text-primary hover:underline">
-                                    {match.contact_name}
-                                  </div>
-                                  {match.confidence && (
-                                    <div className="mt-1">{getConfidenceBadge(match.confidence)}</div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="p-3 text-sm">{match.reference}</td>
-                              <td className="p-3 text-right text-sm font-medium">
-                                {match.type === "bill" || transaction.transaction_type === "DEBIT"
-                                  ? formatCurrency(match.amount, transaction.currency)
-                                  : ""}
-                              </td>
-                              <td className="p-3 text-right text-sm font-medium">
-                                {match.type === "invoice" || transaction.transaction_type === "CREDIT"
-                                  ? formatCurrency(match.amount, transaction.currency)
-                                  : ""}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Match Summary */}
-                  {selectedMatches.length > 0 && (
-                    <div className="bg-muted border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">
-                          Must match money {transaction.transaction_type === "DEBIT" ? "spent" : "received"}:
-                        </span>
-                        <span className="font-semibold">
-                          {formatCurrency(transaction.amount, transaction.currency)}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`show-ccy-${transaction.id}`}
+                          checked={showUSDOnly}
+                          onCheckedChange={(checked) => setShowUSDOnly(checked as boolean)}
+                        />
+                        <Label htmlFor={`show-ccy-${transaction.id}`} className="text-xs text-muted-foreground">
+                          {transaction.currency} only
+                        </Label>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{transaction.currency} 0.00</span>
-                        {amountDifference > 0.01 ? (
-                          <span className="text-sm text-destructive flex items-center gap-1">
-                            <XCircle className="h-4 w-4" />
-                            Total is out by: {formatCurrency(amountDifference, transaction.currency)}
+                      {(searchQuery || searchAmount) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setSearchAmount("");
+                          }}
+                          className="h-9 text-muted-foreground"
+                        >
+                          <XCircle className="h-3.5 w-3.5 mr-1" />
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Suggested matches */}
+                    <ContentCard noPadding variant="outlined">
+                      {matchesLoading ? (
+                        <LoadingState />
+                      ) : filteredMatches.length === 0 ? (
+                        <EmptyState
+                          icon={Search}
+                          title="No matching transactions found"
+                          description={
+                            searchQuery || searchAmount
+                              ? "Try a different name, reference or amount"
+                              : "Create a transaction or record a transfer instead"
+                          }
+                        />
+                      ) : (
+                        <div className="table-scroll-container">
+                          <table className="table-professional">
+                            <thead>
+                              <tr>
+                                <th className="w-10" />
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Reference</th>
+                                <th className="text-right">Spent</th>
+                                <th className="text-right">Received</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredMatches.map((match) => {
+                                const checked = selectedMatches.includes(match.id);
+                                return (
+                                  <tr
+                                    key={match.id}
+                                    className={`cursor-pointer ${checked ? "is-selected" : ""}`}
+                                    onClick={() => handleMatchSelect(match.id)}
+                                  >
+                                    <td>
+                                      <Checkbox
+                                        checked={checked}
+                                        onCheckedChange={() => handleMatchSelect(match.id)}
+                                        aria-label="Select match"
+                                      />
+                                    </td>
+                                    <td className="cell-muted whitespace-nowrap">
+                                      {format(new Date(match.date), "dd MMM yyyy")}
+                                    </td>
+                                    <td className="cell-primary">
+                                      <span className="block truncate max-w-[180px]">{match.contact_name}</span>
+                                      {match.confidence ? (
+                                        <span className="cell-sub">
+                                          <ConfidencePill confidence={match.confidence} />
+                                        </span>
+                                      ) : null}
+                                    </td>
+                                    <td className="cell-muted">
+                                      <span className="block truncate max-w-[140px]">{match.reference}</span>
+                                    </td>
+                                    <td className="cell-amount">
+                                      {match.type === "bill" || isDebit
+                                        ? formatCurrency(match.amount, transaction.currency)
+                                        : ""}
+                                    </td>
+                                    <td className="cell-amount">
+                                      {match.type === "invoice" || !isDebit
+                                        ? formatCurrency(match.amount, transaction.currency)
+                                        : ""}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </ContentCard>
+
+                    {/* Match summary */}
+                    {selectedMatches.length > 0 && (
+                      <ContentCard variant="outlined" className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Must match money {isDebit ? "spent" : "received"}
                           </span>
+                          <span className="text-sm font-medium text-foreground tabular-nums">{amountLabel}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Selected</span>
+                          <span className="text-sm font-medium text-foreground tabular-nums">
+                            {formatCurrency(selectedTotal, transaction.currency)}
+                          </span>
+                        </div>
+                        {amountDifference > 0.01 ? (
+                          <p className="text-sm text-danger-700 flex items-center gap-1 justify-end">
+                            <XCircle className="h-4 w-4" />
+                            Total is out by {formatCurrency(amountDifference, transaction.currency)}
+                          </p>
                         ) : (
-                          <span className="text-sm text-primary flex items-center gap-1">
+                          <p className="text-sm text-success-700 flex items-center gap-1 justify-end">
                             <CheckCircle2 className="h-4 w-4" />
                             Amounts match
-                          </span>
+                          </p>
                         )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
+                      </ContentCard>
+                    )}
+                  </>
+                )}
+              </TabsContent>
 
-            {/* Create Tab */}
-            <TabsContent value="create" className="space-y-4">
-              <div className="space-y-4">
+              {/* Create Tab */}
+              <TabsContent value="create" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="who">Who</Label>
+                    <Label htmlFor={`who-${transaction.id}`}>Who</Label>
                     <Input
-                      id="who"
+                      id={`who-${transaction.id}`}
                       placeholder="Name of the contact..."
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="what">What</Label>
+                    <Label htmlFor={`what-${transaction.id}`}>What</Label>
                     <Select value={accountCode} onValueChange={setAccountCode}>
-                      <SelectTrigger>
+                      <SelectTrigger id={`what-${transaction.id}`}>
                         <SelectValue placeholder="Choose the account..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -524,26 +570,23 @@ export function BankReconciliationItem({
                     </Select>
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="why">Why</Label>
+                  <Label htmlFor={`why-${transaction.id}`}>Why</Label>
                   <Input
-                    id="why"
+                    id={`why-${transaction.id}`}
                     placeholder="Enter a description..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            {/* Transfer Tab */}
-            <TabsContent value="transfer" className="space-y-4">
-              <div className="space-y-4">
+              {/* Transfer Tab */}
+              <TabsContent value="transfer" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bank-account">Select a bank account</Label>
+                  <Label htmlFor={`bank-account-${transaction.id}`}>Select a bank account</Label>
                   <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
-                    <SelectTrigger>
+                    <SelectTrigger id={`bank-account-${transaction.id}`}>
                       <SelectValue placeholder="Select account..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -552,64 +595,62 @@ export function BankReconciliationItem({
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="reference">Reference</Label>
+                  <Label htmlFor={`reference-${transaction.id}`}>Reference</Label>
                   <Input
-                    id="reference"
+                    id={`reference-${transaction.id}`}
                     placeholder="Enter reference..."
                     value={transferReference}
                     onChange={(e) => setTransferReference(e.target.value)}
                   />
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            {/* Discuss Tab */}
-            <TabsContent value="discuss" className="space-y-4">
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Discussion feature coming soon...</p>
-              </div>
-            </TabsContent>
-          </Tabs>
+              {/* Discuss Tab */}
+              <TabsContent value="discuss">
+                <EmptyState
+                  icon={MessageSquare}
+                  title="Discussion coming soon"
+                  description="Leave notes on a transaction for your team"
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setIsExpanded(false)}
-            >
+          <SheetFooter className="px-6 py-3 border-t border-border flex-row justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsExpanded(false)}>
               Cancel
             </Button>
             {activeTab === "match" && !isMatched && (
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleOkClick}
                 disabled={selectedMatches.length === 0 || matchMutation.isPending}
-                className="bg-primary hover:bg-primary/90 text-white"
               >
-                {matchMutation.isPending ? "Matching..." : "OK"}
+                {matchMutation.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Match
               </Button>
             )}
             {activeTab === "create" && (
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleCreateTransaction}
                 disabled={!contactName || !accountCode || createMutation.isPending}
-                className="bg-primary hover:bg-primary/90 text-white"
               >
-                {createMutation.isPending ? "Creating..." : "Create"}
+                {createMutation.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Create
               </Button>
             )}
             {activeTab === "transfer" && (
-              <Button
-                disabled={!selectedBankAccount}
-                className="bg-primary hover:bg-primary/90 text-white"
-              >
+              <Button variant="primary" size="sm" disabled={!selectedBankAccount}>
                 Transfer
               </Button>
             )}
-          </div>
-        </div>
-      )}
-    </Card>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

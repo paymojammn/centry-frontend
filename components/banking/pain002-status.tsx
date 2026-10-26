@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentCard } from "@/components/layout/content-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   Link2,
   RefreshCw,
@@ -36,7 +39,7 @@ interface Pain002StatusProps {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleString();
+  return format(new Date(dateString), "dd MMM yyyy HH:mm");
 }
 
 function formatCurrency(amount: string | null, currency: string): string {
@@ -47,117 +50,101 @@ function formatCurrency(amount: string | null, currency: string): string {
   }).format(parseFloat(amount));
 }
 
+// Semantic status-pill tints (success / warning / danger / info / neutral).
+const PILL_SUCCESS = "bg-success-500/10 text-success-700 border-success-500/20";
+const PILL_WARNING = "bg-warning-500/10 text-warning-700 border-warning-500/20";
+const PILL_DANGER = "bg-danger-500/10 text-danger-700 border-danger-500/20";
+const PILL_INFO = "bg-info-500/10 text-info-700 border-info-500/20";
+const PILL_NEUTRAL = "bg-muted text-muted-foreground border-border";
+
+/** Per-transaction ISO 20022 status (ACSP / ACWC / PDNG / RJCT). */
 function getStatusBadge(status: string) {
   switch (status) {
     case "ACSP":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
-          <CheckCircle2 className="h-3 w-3" />
+        <span className={`status-pill ${PILL_SUCCESS}`}>
+          <CheckCircle2 className="h-3 w-3 shrink-0" />
           Accepted
         </span>
       );
     case "ACWC":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-warning-400/10 text-warning-400">
-          <AlertTriangle className="h-3 w-3" />
-          Accepted with Change
+        <span className={`status-pill ${PILL_WARNING}`}>
+          <AlertTriangle className="h-3 w-3 shrink-0" />
+          Accepted with change
         </span>
       );
     case "PDNG":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
-          <Clock className="h-3 w-3" />
+        <span className={`status-pill ${PILL_WARNING}`}>
+          <Clock className="h-3 w-3 shrink-0" />
           Pending
         </span>
       );
     case "RJCT":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
-          <XCircle className="h-3 w-3" />
+        <span className={`status-pill ${PILL_DANGER}`}>
+          <XCircle className="h-3 w-3 shrink-0" />
           Rejected
         </span>
       );
     default:
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-muted text-foreground">
-          {status || "Unknown"}
-        </span>
-      );
+      return <span className={`status-pill ${PILL_NEUTRAL}`}>{status || "Unknown"}</span>;
   }
 }
 
+/** Group-level outcome of a pain.002 report. */
 function getGroupStatusBadge(status: string | null) {
   switch (status) {
     case "RCVD":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
-          Received
-        </span>
-      );
+      return <span className={`status-pill ${PILL_INFO}`}>Received</span>;
     case "ACSP":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
-          All Accepted
-        </span>
-      );
+      return <span className={`status-pill ${PILL_SUCCESS}`}>All accepted</span>;
     case "PART":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-warning-400/10 text-warning-400">
-          Partial
-        </span>
-      );
+      return <span className={`status-pill ${PILL_WARNING}`}>Partial</span>;
     case "PDNG":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
-          Pending
-        </span>
-      );
+      return <span className={`status-pill ${PILL_WARNING}`}>Pending</span>;
     case "RJCT":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
-          Rejected
-        </span>
-      );
+      return <span className={`status-pill ${PILL_DANGER}`}>Rejected</span>;
     default:
       return null;
   }
 }
 
+/** Report type of a pain.002 (ACK / NACK / INTERIM / FINAL / …). */
 function getReportTypeBadge(type: string) {
   switch (type) {
     case "ACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-primary/5 text-primary">
-          <FileCheck className="h-3 w-3" />
+        <span className={`status-pill ${PILL_SUCCESS}`}>
+          <FileCheck className="h-3 w-3 shrink-0" />
           ACK
         </span>
       );
     case "NACK":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-destructive/5 text-destructive">
-          <XCircle className="h-3 w-3" />
+        <span className={`status-pill ${PILL_DANGER}`}>
+          <XCircle className="h-3 w-3 shrink-0" />
           NACK
         </span>
       );
     case "INTERIM":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
-          Interim
-        </span>
-      );
+      return <span className={`status-pill ${PILL_INFO}`}>Interim</span>;
     case "FINAL":
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-heather/10 text-heather">
-          Final
-        </span>
-      );
+      return <span className={`status-pill ${PILL_NEUTRAL}`}>Final</span>;
     default:
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-muted text-foreground">
-          {type}
-        </span>
-      );
+      return <span className={`status-pill ${PILL_NEUTRAL}`}>{type}</span>;
   }
+}
+
+/** Export file waiting on its pain.002. */
+function AwaitingBankPill() {
+  return (
+    <span className={`status-pill ${PILL_WARNING}`}>
+      <Clock className="h-3 w-3 shrink-0" />
+      Awaiting bank
+    </span>
+  );
 }
 
 function TransactionStatusRow({ tx }: { tx: PaymentTransactionStatus }) {
@@ -165,62 +152,56 @@ function TransactionStatusRow({ tx }: { tx: PaymentTransactionStatus }) {
 
   return (
     <>
-      <tr className="hover:bg-muted">
-        <td className="px-4 py-2">
+      <tr>
+        <td>
           <button
+            type="button"
             onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Hide transaction details" : "Show transaction details"}
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
           >
             {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
         </td>
-        <td className="px-4 py-2">
-          <p className="text-sm font-mono text-foreground">{tx.original_end_to_end_id}</p>
+        <td className="cell-primary">
+          <span className="font-mono">{tx.original_end_to_end_id}</span>
         </td>
-        <td className="px-4 py-2">
-          {getStatusBadge(tx.status)}
-        </td>
-        <td className="px-4 py-2 text-sm text-muted-foreground">
-          {tx.status_code || "-"}
-        </td>
-        <td className="px-4 py-2 text-sm text-foreground">
-          {formatCurrency(tx.original_amount, tx.original_currency)}
-        </td>
-        <td className="px-4 py-2 text-sm text-muted-foreground">
-          {tx.payment_event_id ? `#${tx.payment_event_id}` : "-"}
-        </td>
+        <td>{getStatusBadge(tx.status)}</td>
+        <td className="cell-muted">{tx.status_code || "-"}</td>
+        <td className="cell-amount">{formatCurrency(tx.original_amount, tx.original_currency)}</td>
+        <td className="cell-muted pl-4">{tx.payment_event_id ? `#${tx.payment_event_id}` : "-"}</td>
       </tr>
       {isExpanded && (
         <tr className="bg-muted/50">
-          <td colSpan={6} className="px-4 py-3">
+          <td colSpan={6}>
             <div className="ml-6 space-y-2 text-sm">
               {tx.creditor_name && (
                 <div>
-                  <span className="font-normal text-muted-foreground">Creditor:</span>{" "}
+                  <span className="text-muted-foreground">Creditor:</span>{" "}
                   <span className="text-foreground">{tx.creditor_name}</span>
                 </div>
               )}
               {tx.invoice_number && (
                 <div>
-                  <span className="font-normal text-muted-foreground">Invoice:</span>{" "}
+                  <span className="text-muted-foreground">Invoice:</span>{" "}
                   <span className="text-foreground">{tx.invoice_number}</span>
                 </div>
               )}
               {tx.status_description && (
                 <div>
-                  <span className="font-normal text-muted-foreground">Description:</span>{" "}
+                  <span className="text-muted-foreground">Description:</span>{" "}
                   <span className="text-foreground">{tx.status_description}</span>
                 </div>
               )}
               {tx.original_instruction_id && (
                 <div>
-                  <span className="font-normal text-muted-foreground">Instruction ID:</span>{" "}
+                  <span className="text-muted-foreground">Instruction ID:</span>{" "}
                   <span className="font-mono text-foreground">{tx.original_instruction_id}</span>
                 </div>
               )}
               {tx.additional_info && tx.additional_info.length > 0 && (
                 <div>
-                  <span className="font-normal text-muted-foreground">Additional Info:</span>
+                  <span className="text-muted-foreground">Additional Info:</span>
                   <ul className="list-disc list-inside mt-1 text-foreground">
                     {tx.additional_info.map((info, i) => (
                       <li key={i}>{info}</li>
@@ -236,7 +217,112 @@ function TransactionStatusRow({ tx }: { tx: PaymentTransactionStatus }) {
   );
 }
 
-function ExportStatusCard({
+function StatusDetail({ status }: { status: PaymentExportStatus }) {
+  const [showTransactions, setShowTransactions] = useState(false);
+  const { data: detailData, isLoading: detailLoading } = usePaymentExportStatusDetail(
+    showTransactions ? status.id : undefined
+  );
+  const transactions = detailData?.transaction_statuses || [];
+
+  return (
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          {getReportTypeBadge(status.report_type)}
+          {getGroupStatusBadge(status.group_status)}
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {formatDate(status.received_at)}
+          </span>
+        </div>
+        <div className="flex items-center gap-4 text-sm tabular-nums">
+          <span className="text-success-700">{status.successful_count} accepted</span>
+          <span className="text-danger-700">{status.rejected_count} rejected</span>
+          <span className="text-warning-700">{status.pending_count} pending</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-3 text-sm">
+        <div>
+          <span className="text-muted-foreground">Message ID:</span>
+          <p className="font-mono text-xs text-foreground truncate" title={status.message_id}>
+            {status.message_id}
+          </p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Original Message:</span>
+          <p className="font-mono text-xs text-foreground truncate" title={status.original_message_id}>
+            {status.original_message_id}
+          </p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Source:</span>
+          <p className="text-xs text-foreground truncate" title={status.source_file || undefined}>
+            {status.source_file || "-"}
+          </p>
+        </div>
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowTransactions(!showTransactions)}
+        className="h-7 text-xs"
+      >
+        {showTransactions ? (
+          <>
+            <ChevronDown className="h-3 w-3 mr-1" />
+            Hide transactions
+          </>
+        ) : (
+          <>
+            <ChevronRight className="h-3 w-3 mr-1" />
+            View {status.total_transactions} transactions
+          </>
+        )}
+      </Button>
+
+      {showTransactions && (
+        <div className="mt-3 border border-border rounded-lg overflow-hidden">
+          {detailLoading ? (
+            <LoadingState />
+          ) : transactions.length === 0 ? (
+            <EmptyState icon={FileText} title="No transaction details available" />
+          ) : (
+            <table className="w-full table-professional">
+              <colgroup>
+                <col className="w-10" />
+                <col />{/* End-to-End ID — flexible */}
+                <col className="w-[180px]" />{/* Status */}
+                <col className="w-[90px]" />{/* Code */}
+                <col className="w-[140px]" />{/* Amount */}
+                <col className="w-[100px]" />{/* Payment */}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>End-to-End ID</th>
+                  <th>Status</th>
+                  <th>Code</th>
+                  <th className="text-right">Amount</th>
+                  <th>Payment</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {transactions.map((tx) => (
+                  <TransactionStatusRow key={tx.id} tx={tx} />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const EXPORT_COLUMNS = 6;
+
+function ExportStatusRow({
   exportFile,
   isSelected,
   onSelect,
@@ -251,163 +337,79 @@ function ExportStatusCard({
   const latestStatus = statuses[0];
 
   return (
-    <div
-      className={`transition-colors ${
-        isSelected ? "bg-primary/5" : "hover:bg-muted/20"
-      }`}
-    >
-      <div
-        className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-muted"
+    <>
+      <tr
+        className={`${isSelected ? "is-selected" : ""} cursor-pointer`}
         onClick={() => {
           setIsExpanded(!isExpanded);
           onSelect();
         }}
       >
-        <div className="flex items-center gap-3">
-          <button className="text-muted-foreground/60 hover:text-muted-foreground">
-            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-          <div>
-            <p className="text-sm font-normal text-foreground">{exportFile.file_name}</p>
-            <p className="text-xs text-muted-foreground">
-              {exportFile.payment_count} payments · {formatCurrency(exportFile.total_amount, exportFile.currency)}
-            </p>
+        <td className="text-muted-foreground/60">
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </td>
+        <td className="cell-primary">
+          <div className="min-w-0">
+            <div className="truncate" title={exportFile.file_name}>
+              {exportFile.file_name}
+            </div>
+            <span className="cell-sub truncate">
+              {exportFile.bank_account?.account_name}
+              {exportFile.format ? ` · ${exportFile.format}` : ""}
+            </span>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
+        </td>
+        <td className="cell-muted">
+          {exportFile.sftp_uploaded_at ? (
+            <>
+              {format(new Date(exportFile.sftp_uploaded_at), "dd MMM yyyy")}
+              <span className="cell-sub">{format(new Date(exportFile.sftp_uploaded_at), "HH:mm")}</span>
+            </>
+          ) : (
+            "—"
+          )}
+        </td>
+        <td className="cell-amount">{exportFile.payment_count}</td>
+        <td className="cell-amount">{formatCurrency(exportFile.total_amount, exportFile.currency)}</td>
+        <td className="pl-4">
           {latestStatus ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {getReportTypeBadge(latestStatus.report_type)}
               {getGroupStatusBadge(latestStatus.group_status)}
-              <div className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground tabular-nums">
                 {latestStatus.successful_count}/{latestStatus.total_transactions} OK
-              </div>
+              </span>
             </div>
           ) : statusesLoading ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
           ) : (
-            <span className="text-xs text-muted-foreground/60">No bank response yet</span>
+            <AwaitingBankPill />
           )}
-        </div>
-      </div>
+        </td>
+      </tr>
 
       {isExpanded && (
-        <div className="border-t border-border">
-          {statusesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
-            </div>
-          ) : statuses.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Awaiting bank response</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">
-                Pull pain.002 files from SFTP to get status updates
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {statuses.map((status) => (
-                <StatusDetail key={status.id} status={status} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StatusDetail({ status }: { status: PaymentExportStatus }) {
-  const [showTransactions, setShowTransactions] = useState(false);
-  const { data: detailData, isLoading: detailLoading } = usePaymentExportStatusDetail(
-    showTransactions ? status.id : undefined
-  );
-  const transactions = detailData?.transaction_statuses || [];
-
-  return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {getReportTypeBadge(status.report_type)}
-          {getGroupStatusBadge(status.group_status)}
-          <span className="text-xs text-muted-foreground">
-            {formatDate(status.received_at)}
-          </span>
-        </div>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-primary">{status.successful_count} accepted</span>
-          <span className="text-destructive">{status.rejected_count} rejected</span>
-          <span className="text-info">{status.pending_count} pending</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 mb-3 text-sm">
-        <div>
-          <span className="text-muted-foreground">Message ID:</span>
-          <p className="font-mono text-xs text-foreground truncate">{status.message_id}</p>
-        </div>
-        <div>
-          <span className="text-muted-foreground">Original Message:</span>
-          <p className="font-mono text-xs text-foreground truncate">{status.original_message_id}</p>
-        </div>
-        <div>
-          <span className="text-muted-foreground">Source:</span>
-          <p className="text-xs text-foreground">{status.source_file || "-"}</p>
-        </div>
-      </div>
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowTransactions(!showTransactions)}
-        className="h-7 text-xs"
-      >
-        {showTransactions ? (
-          <>
-            <ChevronDown className="h-3 w-3 mr-1" />
-            Hide Transactions
-          </>
-        ) : (
-          <>
-            <ChevronRight className="h-3 w-3 mr-1" />
-            View {status.total_transactions} Transactions
-          </>
-        )}
-      </Button>
-
-      {showTransactions && (
-        <div className="mt-3 border border-border rounded-lg overflow-hidden">
-          {detailLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="text-center py-6 text-sm text-muted-foreground">
-              No transaction details available
-            </div>
-          ) : (
-            <table className="w-full text-sm table-professional">
-              <thead>
-                <tr className="bg-muted border-b border-border">
-                  <th className="w-8 px-4 py-2"></th>
-                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">End-to-End ID</th>
-                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Code</th>
-                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Amount</th>
-                  <th className="text-left px-4 py-2 text-xs font-normal text-muted-foreground">Payment</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {transactions.map((tx) => (
-                  <TransactionStatusRow key={tx.id} tx={tx} />
+        <tr className="bg-muted/20">
+          <td colSpan={EXPORT_COLUMNS} className="p-0">
+            {statusesLoading ? (
+              <LoadingState />
+            ) : statuses.length === 0 ? (
+              <EmptyState
+                icon={Clock}
+                title="Awaiting bank"
+                description="Pull pain.002 files from SFTP to get status updates"
+              />
+            ) : (
+              <div className="divide-y divide-border">
+                {statuses.map((status) => (
+                  <StatusDetail key={status.id} status={status} />
                 ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              </div>
+            )}
+          </td>
+        </tr>
       )}
-    </div>
+    </>
   );
 }
 
@@ -453,15 +455,19 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
 
   const exports = exportsData?.results || [];
 
-  // Filter exports that have been uploaded (have bank response potential)
-  const uploadedExports = exports.filter(
-    (e) =>
-      e.status === "uploaded" ||
-      e.status === "processed" ||
-      e.status === "completed" ||
-      e.status === "partial" ||
-      e.status === "failed"
-  );
+  // Filter exports that have been uploaded (have bank response potential).
+  // "completed" / "partial" are legacy backend values outside the typed
+  // union; compare as strings so they keep matching if they ever appear.
+  const uploadedExports = exports.filter((e) => {
+    const status = e.status as string;
+    return (
+      status === "uploaded" ||
+      status === "processed" ||
+      status === "completed" ||
+      status === "partial" ||
+      status === "failed"
+    );
+  });
 
   return (
     <ContentCard noPadding>
@@ -508,6 +514,7 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
             size="sm"
             onClick={() => refetchExports()}
             disabled={exportsLoading}
+            title="Refresh"
             className="h-9 btn-press"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${exportsLoading ? "animate-spin" : ""}`} />
@@ -516,29 +523,45 @@ export function Pain002Status({ organizationId, onSelectExport, selectedExportId
       </div>
 
       {exportsLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
+        <LoadingState />
       ) : uploadedExports.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-            <FileText className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-normal text-foreground">No uploaded exports yet</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Upload payment files from the Pay tab to track their status
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No uploaded exports yet"
+          description="Upload payment files from the Files tab to track their status"
+        />
       ) : (
-        <div className="divide-y divide-border">
-          {uploadedExports.map((exportFile) => (
-            <ExportStatusCard
-              key={exportFile.id}
-              exportFile={exportFile}
-              isSelected={selectedExportId === exportFile.id}
-              onSelect={() => onSelectExport?.(exportFile.id)}
-            />
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full table-professional">
+            <colgroup>
+              <col className="w-10" />{/* Expand */}
+              <col />{/* Export file — flexible */}
+              <col className="w-[140px]" />{/* Uploaded */}
+              <col className="w-[90px]" />{/* Payments */}
+              <col className="w-[150px]" />{/* Amount */}
+              <col className="w-[320px]" />{/* Bank response */}
+            </colgroup>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Export file</th>
+                <th>Uploaded</th>
+                <th className="text-right">Payments</th>
+                <th className="text-right">Amount</th>
+                <th>Bank response</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {uploadedExports.map((exportFile) => (
+                <ExportStatusRow
+                  key={exportFile.id}
+                  exportFile={exportFile}
+                  isSelected={selectedExportId === exportFile.id}
+                  onSelect={() => onSelectExport?.(exportFile.id)}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </ContentCard>

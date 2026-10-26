@@ -83,13 +83,13 @@ export default function OrganizationsPage() {
             label="Members"
             value={stats.totalMembers}
             icon={Users}
-            variant="info"
+            variant="default"
           />
           <StatCard
             label="Connections"
             value={stats.totalConnections}
             icon={Globe}
-            variant="success"
+            variant="default"
           />
         </div>
       </div>
