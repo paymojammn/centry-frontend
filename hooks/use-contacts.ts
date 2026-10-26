@@ -8,15 +8,25 @@ import {
   type Contact,
   type ContactBankAccount,
   type ContactBankAccountInput,
+  type BankAccountOwner,
   type BankOption,
   type BankBranchOption,
 } from '@/lib/contacts-api';
 
-export function useContactBankAccounts(contactId: number | undefined) {
+/** Cache key shared by the list query and the mutations' invalidations. */
+export function bankAccountsKey(owner: number | BankAccountOwner | undefined) {
+  if (owner === undefined) return ['contact-bank-accounts', undefined];
+  if (typeof owner === 'number') return ['contact-bank-accounts', owner];
+  return 'contact' in owner
+    ? ['contact-bank-accounts', owner.contact]
+    : ['contact-bank-accounts', 'erpnext', owner.erpnext_contact];
+}
+
+export function useContactBankAccounts(owner: number | BankAccountOwner | undefined) {
   return useQuery<ContactBankAccount[], Error>({
-    queryKey: ['contact-bank-accounts', contactId],
-    queryFn: () => contactsApi.getContactBankAccounts(contactId!),
-    enabled: !!contactId,
+    queryKey: bankAccountsKey(owner),
+    queryFn: () => contactsApi.getContactBankAccounts(owner!),
+    enabled: owner !== undefined && owner !== 0,
   });
 }
 
@@ -47,28 +57,28 @@ export function useBankBranches(bankId: number | undefined) {
   });
 }
 
-export function useCreateContactBankAccount(contactId: number) {
+export function useCreateContactBankAccount(owner: number | BankAccountOwner) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: ContactBankAccountInput) => contactsApi.createContactBankAccount(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contact-bank-accounts', contactId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: bankAccountsKey(owner) }),
   });
 }
 
-export function useUpdateContactBankAccount(contactId: number) {
+export function useUpdateContactBankAccount(owner: number | BankAccountOwner) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<ContactBankAccountInput> }) =>
       contactsApi.updateContactBankAccount(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contact-bank-accounts', contactId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: bankAccountsKey(owner) }),
   });
 }
 
-export function useDeleteContactBankAccount(contactId: number) {
+export function useDeleteContactBankAccount(owner: number | BankAccountOwner) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => contactsApi.deleteContactBankAccount(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contact-bank-accounts', contactId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: bankAccountsKey(owner) }),
   });
 }
 

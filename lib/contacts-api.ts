@@ -31,6 +31,10 @@ export interface Contact {
   organization_name: string;
   created_at: string;
   updated_utc: string | null;
+  /** Which ERP the contact came from (unified list only). */
+  provider?: 'xero' | 'qbo' | 'erpnext';
+  /** 'complete' when a payable bank / mobile-money account is on file. */
+  bank_details_status?: 'complete' | 'missing' | null;
 }
 
 export interface ContactsResponse {
@@ -74,32 +78,84 @@ export interface BankBranchOption {
   is_head_office: boolean;
 }
 
+export type BankAccountType = 'bank' | 'mobile_money';
+export type MobileProvider = 'mtn' | 'airtel' | 'safaricom' | 'other';
+
+export const MOBILE_PROVIDERS: { value: MobileProvider; label: string }[] = [
+  { value: 'mtn', label: 'MTN Mobile Money' },
+  { value: 'airtel', label: 'Airtel Money' },
+  { value: 'safaricom', label: 'M-Pesa (Safaricom)' },
+  { value: 'other', label: 'Other' },
+];
+
+/** 8 or 11 character BIC, after upper-casing and stripping spaces. */
+export const SWIFT_CODE_RE = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
+export const IBAN_RE = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/;
+
+export function normalizeSwift(value: string): string {
+  return (value || '').replace(/\s+/g, '').toUpperCase();
+}
+
+export function normalizeIban(value: string): string {
+  return (value || '').replace(/\s+/g, '').toUpperCase();
+}
+
+/**
+ * A vendor payout account. Bank accounts point at a registry bank (+ branch)
+ * or carry a free-text bank_name + swift_code for banks not in the registry;
+ * mobile-money accounts carry provider + number. Owned by either a Xero /
+ * QBO-mirrored contact (`contact`) or an ERPNext supplier (`erpnext_contact`).
+ */
 export interface ContactBankAccount {
   id: number;
-  contact: number;
-  bank: number;
+  contact: number | null;
+  erpnext_contact: string | null;
+  account_type: BankAccountType;
+  bank: number | null;
+  /** Registry short name when `bank` is set, else the free-text name. */
   bank_name: string;
   bank_country_code: string | null;
   branch: number | null;
   branch_code: string | null;
   branch_name: string | null;
+  /** Saved SWIFT, falling back to the registry bank's. */
+  swift_code: string;
+  iban: string;
+  country: string;
+  mobile_provider: MobileProvider | '';
+  mobile_number: string;
   account_name: string;
   account_number: string;
   currency: string;
   is_primary: boolean;
+  is_complete: boolean;
+  source: 'manual' | 'xero' | 'qbo' | 'erpnext';
+  owner_name: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface ContactBankAccountInput {
-  contact: number;
-  bank: number;
+  contact?: number | null;
+  erpnext_contact?: string | null;
+  account_type?: BankAccountType;
+  bank?: number | null;
   branch?: number | null;
+  bank_name?: string;
+  branch_name?: string;
+  swift_code?: string;
+  iban?: string;
+  country?: string;
+  mobile_provider?: MobileProvider | '';
+  mobile_number?: string;
   account_name: string;
-  account_number: string;
+  account_number?: string;
   currency?: string;
   is_primary?: boolean;
 }
+
+/** Which vendor a bank-account list belongs to. */
+export type BankAccountOwner = { contact: number } | { erpnext_contact: string };
 
 export const contactsApi = {
   /**
@@ -141,10 +197,14 @@ export const contactsApi = {
     return await api.patch<Contact>(`${XERO_BASE_URL}/contacts/${id}/details/`, data);
   },
 
-  /** A vendor's bank accounts (account + bank + branch). */
-  async getContactBankAccounts(contactId: number): Promise<ContactBankAccount[]> {
+  /** A vendor's payout accounts (bank transfer / mobile money). */
+  async getContactBankAccounts(owner: number | BankAccountOwner): Promise<ContactBankAccount[]> {
+    const params = new URLSearchParams();
+    if (typeof owner === 'number') params.append('contact', String(owner));
+    else if ('contact' in owner) params.append('contact', String(owner.contact));
+    else params.append('erpnext_contact', owner.erpnext_contact);
     const res = await api.get<ContactBankAccount[] | { results: ContactBankAccount[] }>(
-      `${XERO_BASE_URL}/contact-bank-accounts/?contact=${contactId}`,
+      `${XERO_BASE_URL}/contact-bank-accounts/?${params.toString()}`,
     );
     return Array.isArray(res) ? res : res.results || [];
   },
@@ -206,32 +266,6 @@ export const contactsApi = {
     const url = `${UNIFIED_CONTACTS_URL}/stats/${queryString ? `?${queryString}` : ''}`;
 
     const response = await api.get<ContactStats>(url);
-    return response;
-  },
-
-  /**
-   * Get contact payment details from ERP
-   * @param id - Contact ID
-   */
-  async getContactPaymentDetails(id: string): Promise<{
-    contact_id: string;
-    name: string;
-    bank_account_details?: string;
-    bank_account_number?: string;
-    bank_account_name?: string;
-    linked_bank_id?: number;
-    linked_bank_name?: string;
-    accounts_payable_tax_type?: string;
-    default_currency?: string;
-    phone_numbers?: Array<{
-      type: string;
-      number: string;
-    }>;
-    email?: string;
-  }> {
-    const response = await api.get(
-      `${XERO_BASE_URL}/contacts/${id}/payment-details/`
-    );
     return response;
   },
 

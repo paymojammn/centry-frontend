@@ -5,7 +5,14 @@ import { Building2, Globe, ChevronDown, Check, Save, Loader2 } from 'lucide-reac
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi } from '@/lib/payment-sources-api';
-import { contactsApi, type ContactBankAccount, type BankBranchOption } from '@/lib/contacts-api';
+import {
+  contactsApi,
+  normalizeIban,
+  normalizeSwift,
+  SWIFT_CODE_RE,
+  type ContactBankAccount,
+  type BankBranchOption,
+} from '@/lib/contacts-api';
 import { useBankBranches, useBankCountries } from '@/hooks/use-contacts';
 import { useOzowBanks } from '@/hooks/use-ozow';
 import { useOneGatePayoutMethods, useOneGatePayoutBanks } from '@/hooks/use-onegate';
@@ -29,6 +36,8 @@ import type { PaymentSourceType } from '@/types/payment-sources';
 export interface RecipientDetails {
   bill_id: number;
   recipient_type: 'bank' | 'international';
+  /** Mobile-money payee number, prefilled from a saved mobile-money account. */
+  phone_number?: string;
   recipient_bank_id?: number;
   recipient_bank_branch_id?: number;
   recipient_bank_branch_name?: string;
@@ -70,6 +79,32 @@ export interface RecipientDetails {
   email?: string;
   requires_id?: boolean;
   requires_bank?: boolean;
+}
+
+/**
+ * Copy a saved vendor account onto the recipient form so the payment carries
+ * the supplier's SWIFT / IBAN / bank name (the pain.001 builder prefers the
+ * event's swift_code over the registry's). Mobile-money accounts fill the
+ * phone number only.
+ */
+function savedAccountToRecipient(a: ContactBankAccount): Partial<RecipientDetails> {
+  if (a.account_type === 'mobile_money') {
+    return {
+      account_name: a.account_name,
+      phone_number: a.mobile_number,
+    };
+  }
+  return {
+    recipient_bank_id: a.bank ?? undefined,
+    recipient_bank_branch_id: a.branch ?? undefined,
+    recipient_bank_branch_name: a.branch_name || undefined,
+    account_number: a.account_number || undefined,
+    account_name: a.account_name,
+    bank_name: a.bank_name,
+    swift_code: a.swift_code || undefined,
+    iban: a.iban || undefined,
+    beneficiary_country: a.bank_country_code || a.country || undefined,
+  };
 }
 
 interface RecipientDetailsStepProps {
@@ -547,16 +582,12 @@ export default function RecipientDetailsStep({
       if (!accts.length) return;
       const r = next.get(bill.id);
       if (r?.account_number || r?.recipient_bank_id) return; // already filled
-      const primary = accts.find((a) => a.is_primary) || accts[0];
+      const primary = accts.find((a) => a.is_primary && a.is_complete) || accts.find((a) => a.is_complete) || accts[0];
       if (!primary) return;
       next.set(bill.id, {
         ...(r || { bill_id: bill.id, recipient_type: recipientType }),
         recipient_type: recipientType,
-        recipient_bank_id: primary.bank,
-        recipient_bank_branch_id: primary.branch ?? undefined,
-        account_number: primary.account_number,
-        account_name: primary.account_name,
-        bank_name: primary.bank_name,
+        ...savedAccountToRecipient(primary),
       });
       changed = true;
     });
@@ -566,25 +597,26 @@ export default function RecipientDetailsStep({
   const applySaved = (bill: Bill, a: ContactBankAccount) => {
     update(bill.id, {
       recipient_type: recipientType,
-      recipient_bank_id: a.bank,
-      recipient_bank_branch_id: a.branch ?? undefined,
-      account_number: a.account_number,
-      account_name: a.account_name,
-      bank_name: a.bank_name,
+      ...savedAccountToRecipient(a),
     });
   };
 
   const saveForFuture = async (bill: Bill) => {
     const r = recipients.get(bill.id);
-    if (!bill.contact_id || !r?.recipient_bank_id || !r?.account_number || !r?.account_name) return;
+    if (!bill.contact_id || !r?.recipient_bank_id || !(r?.account_number || r?.iban) || !r?.account_name) return;
     setSavingFor(bill.id);
     try {
       const created = await contactsApi.createContactBankAccount({
         contact: bill.contact_id,
+        account_type: 'bank',
         bank: r.recipient_bank_id,
         branch: r.recipient_bank_branch_id ?? null,
+        swift_code: normalizeSwift(r.swift_code || ''),
+        iban: normalizeIban(r.iban || ''),
         account_name: r.account_name,
-        account_number: r.account_number,
+        account_number: r.account_number || '',
+        country: r.beneficiary_country || undefined,
+        currency: r.transfer_currency || undefined,
       });
       setSavedByContact((prev) => ({
         ...prev,
@@ -717,7 +749,9 @@ export default function RecipientDetailsStep({
                               : 'border-border text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          {a.bank_name} ••{a.account_number.slice(-4)}
+                          {a.account_type === 'mobile_money'
+                            ? `${a.mobile_provider ? a.mobile_provider.toUpperCase() : 'Mobile'} ${a.mobile_number}`
+                            : `${a.bank_name} ••${(a.account_number || a.iban).slice(-4)}`}
                           {a.is_primary ? ' ★' : ''}
                         </button>
                       );
@@ -1004,8 +1038,24 @@ export default function RecipientDetailsStep({
                   }}
                 />
               )}
-              {!isCustomRail && r?.swift_code && (
-                <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
+              {!isCustomRail && r?.recipient_bank_id && (
+                <TextField
+                  label="SWIFT / BIC"
+                  value={r?.swift_code || ''}
+                  onChange={(v) => update(bill.id, { swift_code: normalizeSwift(v).slice(0, 11) })}
+                  placeholder="e.g. SBICUGKX"
+                  maxLength={11}
+                  hint={
+                    r?.swift_code && !SWIFT_CODE_RE.test(normalizeSwift(r.swift_code))
+                      ? 'SWIFT/BIC must be 8 or 11 characters'
+                      : (() => {
+                          const bank = banksData?.banks.find((b: any) => b.id === r.recipient_bank_id);
+                          return bank?.swift_code && normalizeSwift(bank.swift_code) !== normalizeSwift(r?.swift_code || '')
+                            ? `Registry value: ${bank.swift_code}`
+                            : undefined;
+                        })()
+                  }
+                />
               )}
 
               {/* Branch selector — local pain.001 routing requires a sort code
@@ -1069,7 +1119,11 @@ export default function RecipientDetailsStep({
                           </p>
                         );
                       }
-                      const canSave = !!(r?.recipient_bank_id && r?.account_number?.trim() && r?.account_name?.trim());
+                      const canSave = !!(
+                        r?.recipient_bank_id &&
+                        (r?.account_number?.trim() || r?.iban?.trim()) &&
+                        r?.account_name?.trim()
+                      );
                       if (!canSave) return null;
                       return (
                         <button
