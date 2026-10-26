@@ -15,6 +15,7 @@
  * so a caller can never accidentally offer an expired org.
  */
 
+import { useEffect, useRef } from 'react';
 import { Building2 } from 'lucide-react';
 import {
   Select,
@@ -25,6 +26,25 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useSelectableOrganizations } from '@/hooks/use-organization';
+
+/** Shared with the dashboard, which restores the same key on load. */
+const STORAGE_KEY = 'selectedOrganizationId';
+
+function readSaved(): string | null {
+  try {
+    return typeof window === 'undefined' ? null : localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeSaved(id: string) {
+  try {
+    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id);
+  } catch {
+    /* storage unavailable (private mode) — selection still works for this page */
+  }
+}
 
 export interface OrganizationOption {
   id: string;
@@ -60,10 +80,32 @@ export function OrganizationSelect({
   const options = (organizations ?? fetched).filter((org) => org.billing_active !== false);
   const loading = !organizations && isLoading;
 
+  // Never sit blank: when nothing is selected, or the selection is not one
+  // of the offered organizations (e.g. a page defaulted to an org whose
+  // billing lapsed), pick the remembered organization if it is offered,
+  // else the first one. Pages don't have to repeat this logic.
+  const onChangeRef = useRef(onValueChange);
+  onChangeRef.current = onValueChange;
+  const optionKey = options.map((org) => org.id).join('|');
+  useEffect(() => {
+    const first = options[0];
+    if (!first) return;
+    if (value && options.some((org) => org.id === value)) return;
+    const saved = readSaved();
+    const next = saved && options.some((org) => org.id === saved) ? saved : first.id;
+    onChangeRef.current(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionKey, value]);
+
+  const handleChange = (id: string) => {
+    writeSaved(id);
+    onValueChange(id);
+  };
+
   return (
     <Select
       value={value ?? ''}
-      onValueChange={onValueChange}
+      onValueChange={handleChange}
       disabled={disabled || loading || options.length === 0}
     >
       <SelectTrigger
