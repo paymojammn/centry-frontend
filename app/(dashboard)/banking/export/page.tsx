@@ -195,12 +195,7 @@ export default function BankingExportPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
-        title="Export"
-        subtitle="Generate, upload and reconcile bank payment files"
-        breadcrumbs={[
-          { label: "Banking", href: "/banking" },
-          { label: "Export" },
-        ]}
+        title="Dashboard"
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={setSelectedOrganizationId}

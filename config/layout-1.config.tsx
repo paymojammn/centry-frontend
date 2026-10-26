@@ -79,7 +79,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: Building,
     requiredRole: "finance",
     children: [
-      { title: "Export", path: "/banking/export" },
+      { title: "Dashboard", path: "/banking/export" },
       { title: "Transactions", path: "/banking/transactions" },
       { title: "Sync to ERP", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },

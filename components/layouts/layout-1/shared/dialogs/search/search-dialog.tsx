@@ -46,7 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: Users, label: 'Vendors', path: '/erp/vendors', keywords: ['suppliers', 'contacts'], section: 'Main' },
   { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main' },
   // Banking
-  { icon: FileUp, label: 'Export Payments', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },
+  { icon: FileUp, label: 'Banking Dashboard', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },
   { icon: ArrowRightLeft, label: 'Transactions', path: '/banking/transactions', keywords: ['payments', 'history'], section: 'Banking' },
   { icon: FileDown, label: 'Reconciliation', path: '/banking/reconciliation', keywords: ['pain.002', 'bank response', 'sync'], section: 'Banking' },
   { icon: Building2, label: 'Bank Accounts', path: '/banking/accounts', keywords: ['accounts', 'iban'], section: 'Banking' },
