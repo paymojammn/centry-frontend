@@ -38,7 +38,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard } from '@/components/layout/content-card';
-import { STATUS_COLORS, PILL_COLORS, formatCompactNumber } from '@/lib/theme';
+import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 import { useCurrentUser } from '@/hooks/use-user';
 import CollectInvoiceModal from '@/components/invoices/CollectInvoiceModal';
 import CollectionsQueue from '@/components/invoices/CollectionsQueue';
@@ -376,7 +376,6 @@ export default function InvoicesPage() {
                       onClick={() => setIsCollectModalOpen(true)}
                       size="sm"
                       className="w-full text-white btn-press hover:opacity-90"
-                      style={{ backgroundColor: 'var(--foreground)' }}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Collect Payment
@@ -398,8 +397,8 @@ export default function InvoicesPage() {
               <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setFilters({ ...filters, status: 'all' })}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                    (filters.status || 'all') === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    (filters.status || 'all') === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   All ({invoiceStats?.total_invoices ?? 0})
@@ -415,10 +414,9 @@ export default function InvoicesPage() {
                     <button
                       key={p.value}
                       onClick={() => setFilters({ ...filters, status: p.value })}
-                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                        active ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                       }`}
-                      style={active ? { backgroundColor: PILL_COLORS[p.value] } : undefined}
                     >
                       {p.label} ({p.count ?? 0})
                     </button>
@@ -575,7 +573,6 @@ export default function InvoicesPage() {
                                   <Button
                                     size="sm"
                                     className="h-7 px-2.5 text-xs font-normal text-white hover:opacity-90"
-                                    style={{ backgroundColor: 'var(--foreground)' }}
                                     onClick={() => {
                                       setSelectedInvoices(new Set([inv.id]));
                                       setIsCollectModalOpen(true);

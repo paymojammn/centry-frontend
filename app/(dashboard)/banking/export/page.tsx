@@ -28,7 +28,7 @@ import {
   Download,
   X,
 } from "lucide-react";
-import { PILL_COLORS } from "@/lib/theme";
+import { } from "@/lib/theme";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
 import { useHasPermission } from "@/hooks/use-user";
@@ -292,19 +292,15 @@ export default function BankingExportPage() {
                   { value: "superseded", label: "Superseded", count: fileStatusCount("superseded") },
                 ]).map((p) => {
                   const active = fileStatusFilter === p.value;
-                  const color = p.value === "all" ? undefined : PILL_COLORS[p.value];
                   return (
                     <button
                       key={p.value}
                       onClick={() => setFileStatusFilter(p.value)}
-                      className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                         active
-                          ? color
-                            ? "text-white"
-                            : "bg-foreground text-card"
-                          : "bg-muted text-muted-foreground hover:text-foreground"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                       }`}
-                      style={active && color ? { backgroundColor: color } : undefined}
                     >
                       {p.label} ({p.count})
                     </button>

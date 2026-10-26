@@ -8,7 +8,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PILL_COLORS } from '@/lib/theme';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollectionEvents } from '@/hooks/use-invoices';
 import { useApprovePayments, useRejectPayments } from '@/hooks/use-bills';
@@ -254,8 +253,8 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         <button
           onClick={() => setStatusFilter('all')}
-          className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-            statusFilter === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            statusFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
           }`}
         >
           All ({byProvider.length})
@@ -266,12 +265,11 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
             <button
               key={status}
               onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 statusFilter === status
-                  ? 'text-white'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
               }`}
-              style={statusFilter === status ? { backgroundColor: PILL_COLORS[status.toLowerCase()] ?? cfg.bg } : undefined}
             >
               {cfg.label} ({count})
             </button>
@@ -600,7 +598,6 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
               }
               disabled={generatingId === sendLinkTarget?.id}
               className="text-white hover:opacity-90"
-              style={{ backgroundColor: 'var(--foreground)' }}
             >
               {generatingId === sendLinkTarget?.id ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />

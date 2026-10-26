@@ -231,7 +231,6 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
                     <Button
                       size="sm"
                       className="h-8 text-xs text-white hover:opacity-90"
-                      style={{ backgroundColor: 'var(--foreground)' }}
                       onClick={saveInfo}
                       disabled={updateDetails.isPending}
                     >

@@ -793,7 +793,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               disabled={generateFile.isPending}
               size="sm"
               className="h-8 text-white hover:opacity-90"
-              style={{ backgroundColor: 'var(--foreground)' }}
             >
               <FileDown className="h-4 w-4 mr-1.5" />
               Generate File
@@ -805,7 +804,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               onClick={handleOpenPayNow}
               size="sm"
               className="h-8 text-white hover:opacity-90"
-              style={{ backgroundColor: 'var(--foreground)' }}
             >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Pay Now
@@ -818,7 +816,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               disabled={sendProviderPayout.isPending}
               size="sm"
               className="h-8 text-white hover:opacity-90"
-              style={{ backgroundColor: 'var(--foreground)' }}
             >
               {sendProviderPayout.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending...</>
@@ -1058,7 +1055,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                               }}
                               disabled={sendProviderPayout.isPending}
                               className="h-7 px-2 text-xs text-white hover:opacity-90"
-                              style={{ backgroundColor: 'var(--foreground)' }}
                               title={
                                 payment.provider_status === 'ERROR_PAYMENT'
                                   ? 'Re-run this payout (the previous attempt was rejected)'

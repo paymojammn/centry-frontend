@@ -37,7 +37,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { StatCard } from "@/components/layout/stat-card";
-import { PILL_COLORS } from "@/lib/theme";
+import { } from "@/lib/theme";
 import { formatCurrency } from "@/lib/utils";
 import { exportData, type ExportColumn, type ExportFormat } from "@/lib/export";
 import { format } from "date-fns";
@@ -350,19 +350,15 @@ export default function BankTransactionsPage() {
               { value: "REJECTED", label: "Rejected", count: statusCount(["REJECTED"]) },
             ]).map((p) => {
               const active = statusFilter === p.value;
-              const color = p.value === "all" ? undefined : PILL_COLORS[p.value.toLowerCase()];
               return (
                 <button
                   key={p.value}
                   onClick={() => setStatusFilter(p.value)}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? color
-                        ? "text-white"
-                        : "bg-foreground text-card"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                   }`}
-                  style={active && color ? { backgroundColor: color } : undefined}
                 >
                   {p.label} ({p.count})
                 </button>
