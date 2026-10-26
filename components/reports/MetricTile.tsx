@@ -115,11 +115,8 @@ export function MetricTile({
             </span>
           )}
         </div>
-        {hint && (
-          <p className="text-xs text-muted-foreground mt-1.5 truncate">
-            {hint}
-          </p>
-        )}
+        {/* Always rendered (blank when absent) so every card in a row shares a height. */}
+        <p className="text-xs text-muted-foreground mt-1.5 truncate">{hint ?? "\u00A0"}</p>
         {footer}
       </div>
       {sparkline && sparkline.length >= 2 && (

@@ -193,7 +193,7 @@ export default function BankAccountsPage() {
             value={stats.balanceUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             subtext={`USD ${formatCurrencyAmount(stats.balanceUSD)}`}
             icon={CreditCard}
-            variant="info"
+            variant="default"
           />
           <StatCard
             label="Accounts"
@@ -205,7 +205,7 @@ export default function BankAccountsPage() {
             label="Active"
             value={stats.activeAccounts}
             icon={CheckCircle2}
-            variant="success"
+            variant="default"
           />
         </div>
       </div>

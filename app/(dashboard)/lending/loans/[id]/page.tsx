@@ -241,9 +241,9 @@ export default function LoanDetailPage() {
       <div className="px-6 py-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
           <StatCard label="Loan amount" value={fmt(loan.loan_amount)} icon={Banknote} variant="accent" />
-          <StatCard label="Disbursed" value={fmt(loan.disbursed_amount)} icon={ArrowUpFromLine} variant="info" />
-          <StatCard label="Repaid" value={fmt(loan.total_amount_paid)} icon={ArrowDownToLine} variant="success" />
-          <StatCard label="Outstanding" value={fmt(loan.outstanding_amount)} icon={Wallet} variant="warning" />
+          <StatCard label="Disbursed" value={fmt(loan.disbursed_amount)} icon={ArrowUpFromLine} variant="default" />
+          <StatCard label="Repaid" value={fmt(loan.total_amount_paid)} icon={ArrowDownToLine} variant="default" />
+          <StatCard label="Outstanding" value={fmt(loan.outstanding_amount)} icon={Wallet} variant="default" />
         </div>
 
         <ContentCard noPadding>

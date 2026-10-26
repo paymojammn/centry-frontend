@@ -179,7 +179,7 @@ export default function CollectionsPage() {
             label="Amount due"
             value={formatCurrency(totalDue, currency)}
             icon={CalendarClock}
-            variant="warning"
+            variant="default"
           />
           <StatCard
             label="In arrears"

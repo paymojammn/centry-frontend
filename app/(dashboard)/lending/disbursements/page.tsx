@@ -143,7 +143,7 @@ export default function DisbursementsPage() {
             value={formatCurrency(sum(thisMonth), currency)}
             subtext={`${thisMonth.length} disbursements`}
             icon={CalendarClock}
-            variant="success"
+            variant="default"
           />
           <StatCard
             label="Drafts"
@@ -156,7 +156,7 @@ export default function DisbursementsPage() {
             label="Documents"
             value={disbursements.length}
             icon={ArrowUpFromLine}
-            variant="info"
+            variant="default"
           />
         </div>
 
