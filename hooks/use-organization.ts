@@ -7,12 +7,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
-  Organization,
-  OrganizationDetail,
   OrganizationMember,
-  OrganizationStats,
   OrganizationCreate,
   OrganizationUpdate,
+  InviteUserPayload,
 } from '@/types/organization';
 import * as organizationApi from '@/lib/organization-api';
 
@@ -123,36 +121,93 @@ export function useDeleteOrganization() {
 }
 
 /**
- * Hook to fetch current user's memberships
+ * Memberships the current user may see — every org they belong to, or one
+ * organization's when `organizationId` is given.
  */
-export function useMemberships() {
+export function useMemberships(organizationId?: string | null) {
   return useQuery({
-    queryKey: ['memberships'],
-    queryFn: organizationApi.getMemberships,
+    queryKey: ['memberships', organizationId ?? 'all'],
+    queryFn: () => organizationApi.getMemberships(organizationId ?? undefined),
   });
 }
 
 /**
- * Hook to fetch invitations
+ * Invitations for one organization (or all the user's orgs)
  */
-export function useInvitations() {
+export function useInvitations(organizationId?: string | null) {
   return useQuery({
-    queryKey: ['invitations'],
-    queryFn: organizationApi.getInvitations,
+    queryKey: ['invitations', organizationId ?? 'all'],
+    queryFn: () => organizationApi.getInvitations(organizationId ?? undefined),
   });
+}
+
+function useInvalidateUserManagement() {
+  const queryClient = useQueryClient();
+  return () => {
+    queryClient.invalidateQueries({ queryKey: ['memberships'] });
+    queryClient.invalidateQueries({ queryKey: ['invitations'] });
+    queryClient.invalidateQueries({ queryKey: ['organization'] });
+    queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+  };
 }
 
 /**
  * Hook to send an invitation
  */
 export function useSendInvitation() {
-  const queryClient = useQueryClient();
-
+  const invalidate = useInvalidateUserManagement();
   return useMutation({
-    mutationFn: organizationApi.sendInvitation,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invitations'] });
-    },
+    mutationFn: (data: InviteUserPayload) => organizationApi.sendInvitation(data),
+    onSuccess: invalidate,
+  });
+}
+
+export function useResendInvitation() {
+  const invalidate = useInvalidateUserManagement();
+  return useMutation({
+    mutationFn: (id: string) => organizationApi.resendInvitation(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useCancelInvitation() {
+  const invalidate = useInvalidateUserManagement();
+  return useMutation({
+    mutationFn: (id: string) => organizationApi.cancelInvitation(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useAcceptInvitation() {
+  const invalidate = useInvalidateUserManagement();
+  return useMutation({
+    mutationFn: (token: string) => organizationApi.acceptInvitation(token),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * Change a member's role (and/or custom permissions)
+ */
+export function useUpdateMembership() {
+  const invalidate = useInvalidateUserManagement();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Pick<OrganizationMember, 'role' | 'permissions'>>;
+    }) => organizationApi.updateMembership(id, data),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRemoveMembership() {
+  const invalidate = useInvalidateUserManagement();
+  return useMutation({
+    mutationFn: (id: string) => organizationApi.removeMembership(id),
+    onSuccess: invalidate,
   });
 }
 
@@ -160,20 +215,13 @@ export function useSendInvitation() {
  * Hook to activate/deactivate membership
  */
 export function useToggleMembership() {
-  const queryClient = useQueryClient();
-
+  const invalidate = useInvalidateUserManagement();
   return useMutation({
     mutationFn: ({ id, activate }: { id: string; activate: boolean }) =>
       activate
         ? organizationApi.activateMembership(id)
         : organizationApi.deactivateMembership(id),
-    onSuccess: (_, variables) => {
-      // Invalidate memberships
-      queryClient.invalidateQueries({ queryKey: ['memberships'] });
-      queryClient.invalidateQueries({ 
-        queryKey: ['organization', variables.id, 'members'] 
-      });
-    },
+    onSuccess: invalidate,
   });
 }
 
@@ -188,5 +236,10 @@ export default {
   useMemberships,
   useInvitations,
   useSendInvitation,
+  useResendInvitation,
+  useCancelInvitation,
+  useAcceptInvitation,
+  useUpdateMembership,
+  useRemoveMembership,
   useToggleMembership,
 };

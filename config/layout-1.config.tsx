@@ -172,7 +172,7 @@ export const MENU_MEGA: MenuConfig = [
                 icon: Briefcase,
                 path: "/organizations",
               },
-              { title: "Members", icon: Users, path: "/organizations/members" },
+              { title: "Users", icon: Users, path: "/organizations/members" },
               { title: "Audit trail", icon: ShieldCheck, path: "/organizations/audit" },
             ],
           },
