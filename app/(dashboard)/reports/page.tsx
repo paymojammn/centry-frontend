@@ -49,27 +49,27 @@ const GROUPS: { title: string; reports: ReportLink[] }[] = [
   {
     title: "Payments",
     reports: [
-      { title: "Transactions", description: "Every gateway payment with status, method and fees", href: "/reports/transactions", icon: Receipt },
-      { title: "Settlement", description: "Per day, per account: processed, fees and net debited", href: "/reports/settlement", icon: Landmark },
-      { title: "Throughput", description: "Volume and value over time, by rail", href: "/reports/throughput", icon: TrendingUp },
-      { title: "Failures", description: "Failed and rejected payments with reasons", href: "/reports/failures", icon: AlertTriangle },
+      { title: "Transactions", description: "Every gateway payment with status, channel, approver and the bank files it went out in", href: "/reports/transactions", icon: Receipt },
+      { title: "Settlement", description: "Per day, per account: payments processed, fees and net debited, with current balances", href: "/reports/settlement", icon: Landmark },
+      { title: "Throughput", description: "Amount and payment count over time, bank vs provider rails, against the prior period", href: "/reports/throughput", icon: TrendingUp },
+      { title: "Failures", description: "Every failed or rejected payment by source, with the reason given", href: "/reports/failures", icon: AlertTriangle },
     ],
   },
   {
     title: "Control",
     reports: [
-      { title: "Unreconciled", description: "Payments without a matching bank record", href: "/reports/unreconciled", icon: FileSearch },
-      { title: "Concentration", description: "Exposure by recipient, bank and currency", href: "/reports/concentration", icon: Network },
-      { title: "Approval cycle", description: "How long bills wait at each approval step", href: "/reports/approval-cycle", icon: Timer },
-      { title: "Audit trail", description: "Who did what, when", href: "/reports/audit", icon: ShieldCheck },
+      { title: "Unreconciled", description: "Bank files with no response, unmatched bank lines and provider payments stuck processing", href: "/reports/unreconciled", icon: FileSearch },
+      { title: "Concentration", description: "Share of completed value by recipient, channel or currency", href: "/reports/concentration", icon: Network },
+      { title: "Approval cycle", description: "Pending approvals, time to approve and execute, and the slowest approvers", href: "/reports/approval-cycle", icon: Timer },
+      { title: "Audit trail", description: "Every system action with user, severity and outcome; searchable and exportable", href: "/reports/audit", icon: ShieldCheck },
     ],
   },
   {
     title: "Finance",
     reports: [
-      { title: "Liquidity", description: "Balances and runway across accounts and currencies", href: "/reports/liquidity", icon: Wallet },
-      { title: "Fees", description: "Provider and bank fees, by account and period", href: "/reports/fees", icon: Coins },
-      { title: "Expenses", description: "Spend by category and trend", href: "/reports/expenses", icon: BarChart3 },
+      { title: "Liquidity", description: "Current balances by provider account and currency, with stale-sync flags", href: "/reports/liquidity", icon: Wallet },
+      { title: "Fees", description: "Gateway volume, estimated pass-through fees and effective rate per account", href: "/reports/fees", icon: Coins },
+      { title: "Expenses", description: "Bill spend over time, by status and by vendor", href: "/reports/expenses", icon: BarChart3 },
     ],
   },
 ];

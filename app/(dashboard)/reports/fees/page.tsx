@@ -1,291 +1,169 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, subDays, parseISO } from "date-fns";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts";
-import { Calendar, Receipt, Percent } from "lucide-react";
-import {
-  AXIS_STYLE,
-  ChartGradients,
-  ChartTooltip,
-  EmptyState,
-  GRID_STYLE,
-  SectionTitle,
-  formatCurrencyCompact,
-} from "@/components/reports/chart-theme";
+/**
+ * Fees report — gateway pass-through fees by provider account over a period.
+ */
+
+import { useState } from "react";
+import { format, parseISO } from "date-fns";
+import { Coins, Hash, Percent, Receipt } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MetricTile } from "@/components/reports/MetricTile";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ContentCard,
-  ContentCardHeader,
-  ContentCardBody,
-} from "@/components/layout/content-card";
-import { PageHeader } from "@/components/layout/page-header";
+import { ReportSection, ReportShell, ReportSummary } from "@/components/reports/report-shell";
+import { ReportBarChart } from "@/components/reports/charts/ReportCharts";
+import { formatCurrencyCompact, formatCurrencyFull } from "@/components/reports/chart-theme";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import { useFeesLedgerReport } from "@/hooks/use-reports";
-import { useOrganizations } from "@/hooks/use-organization";
+import { useReportOrganization, useReportPeriod } from "@/hooks/use-report-context";
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-UG", {
-    style: "currency",
-    currency: "UGX",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-    notation: "compact",
-  }).format(value);
+export default function FeesReportPage() {
+  const org = useReportOrganization();
+  const period = useReportPeriod("30d");
+  const organizationId = org.organizationId || undefined;
 
-export default function FeesLedgerReportPage() {
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [periodDays, setPeriodDays] = useState("30");
   const [status, setStatus] = useState<"completed" | "all">("completed");
   const [accountId, setAccountId] = useState("all");
 
-  const { data: orgsResp, isLoading: orgsLoading } = useOrganizations();
-  const organizations = Array.isArray(orgsResp) ? orgsResp : (orgsResp as any)?.results || [];
-  useEffect(() => {
-    if (!selectedOrganizationId && organizations?.length) {
-      setSelectedOrganizationId(organizations[0].id);
-    }
-  }, [organizations, selectedOrganizationId]);
-
-  const organizationId = selectedOrganizationId || undefined;
-  const startDate = format(subDays(new Date(), parseInt(periodDays)), "yyyy-MM-dd");
-  const endDate = format(new Date(), "yyyy-MM-dd");
-
   const { data, isLoading } = useFeesLedgerReport(organizationId, {
-    start_date: startDate,
-    end_date: endDate,
+    start_date: period.startDate,
+    end_date: period.endDate,
     status,
     account_id: accountId === "all" ? undefined : accountId,
   });
 
   const accounts = data?.accounts || [];
   const daily = (data?.daily || []).map((d) => ({
-    ...d,
-    label: format(parseISO(d.date), "MMM d"),
+    label: format(parseISO(d.date), "dd MMM"),
+    count: d.count,
     amount: parseFloat(d.amount),
     estimated_fee: parseFloat(d.estimated_fee),
   }));
+  const totalAmount = parseFloat(data?.totals.amount || "0");
+  const totalFees = parseFloat(data?.totals.fees || "0");
+  const txCount = daily.reduce((s, d) => s + d.count, 0);
+
+  const filters = (
+    <>
+      <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+        <SelectTrigger className="h-9 w-[170px]"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="completed">Completed only</SelectItem>
+          <SelectItem value="all">All (incl. pending)</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={accountId} onValueChange={setAccountId}>
+        <SelectTrigger className="h-9 w-[240px]"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All accounts</SelectItem>
+          {accounts.map((a) => (
+            <SelectItem key={a.account_id} value={a.account_id}>
+              {a.account_name} ({a.provider})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      <PageHeader
-        title="Fees Ledger"
-        subtitle="Gateway pass-through fees by provider account"
-        breadcrumbs={[{ label: "Reports", href: "/reports" }, { label: "Fees" }]}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-        onOrganizationChange={setSelectedOrganizationId}
-        isLoadingOrgs={orgsLoading}
-      >
-        <Select value={periodDays} onValueChange={setPeriodDays}>
-          <SelectTrigger className="w-[150px]">
-            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="60">Last 60 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
-      </PageHeader>
-
-      <div className="px-6 py-6 space-y-6">
-        <ChartGradients />
-        {/* Filter bar */}
-        <ContentCard>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Status</label>
-              <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="completed">Completed only</SelectItem>
-                  <SelectItem value="all">All (incl. pending)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Provider account</label>
-              <Select value={accountId} onValueChange={setAccountId}>
-                <SelectTrigger className="w-[280px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All accounts</SelectItem>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.account_id} value={a.account_id}>
-                      {a.account_name} ({a.provider})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </ContentCard>
-
-        {/* Totals */}
-        <div className="grid gap-5 md:grid-cols-3">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-28 rounded-xl" />
-              <Skeleton className="h-28 rounded-xl" />
-              <Skeleton className="h-28 rounded-xl" />
-            </>
-          ) : (
-            <>
-              <MetricTile
-                label="Total volume"
-                value={formatCurrencyCompact(parseFloat(data?.totals.amount || "0"))}
-                icon={Receipt}
-                hint="Gross processed"
-                sparkline={daily.map((d) => d.amount)}
-                sparklineKind="area"
-              />
-              <MetricTile
-                label="Total fees"
-                value={formatCurrencyCompact(parseFloat(data?.totals.fees || "0"))}
-                icon={Receipt}
-                tone="accent"
-                hint="Estimated pass-through"
-                sparkline={daily.map((d) => d.estimated_fee)}
-                sparklineKind="area"
-              />
-              <MetricTile
-                label="Effective rate"
-                value={`${data?.totals.effective_rate_pct ?? 0}%`}
-                icon={Percent}
-                hint="Fees ÷ volume"
-              />
-            </>
-          )}
-        </div>
-
-        {/* Daily chart */}
-        <ContentCard noPadding>
-          <ContentCardHeader>
-            <SectionTitle
-              icon={<Receipt className="h-4 w-4" />}
-              title="Daily volume vs estimated fee"
-              subtitle="Bar pairs by day in the selected window"
+    <ReportShell
+      title="Fees"
+      organizations={org.organizations}
+      organizationId={org.organizationId}
+      onOrganizationChange={org.setOrganizationId}
+      isLoadingOrgs={org.isLoading}
+      period={period}
+      filters={filters}
+    >
+      {isLoading ? (
+        <LoadingState />
+      ) : (
+        <>
+          <ReportSummary>
+            <MetricTile
+              label="Volume"
+              value={formatCurrencyCompact(totalAmount)}
+              hint={`Gross processed · ${period.label.toLowerCase()}`}
+              icon={Receipt}
+              sparkline={daily.length >= 2 ? daily.map((d) => d.amount) : undefined}
             />
-          </ContentCardHeader>
-          <ContentCardBody>
-            {isLoading ? (
-              <Skeleton className="h-[260px]" />
-            ) : daily.length === 0 ? (
-              <EmptyState
-                icon={<Receipt className="h-5 w-5" />}
-                title="No fee data"
-                hint="Pick a wider period or check that the selected account has activity."
-              />
-            ) : (
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={daily} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid {...GRID_STYLE} />
-                    <XAxis dataKey="label" {...AXIS_STYLE} />
-                    <YAxis
-                      {...AXIS_STYLE}
-                      tickFormatter={(v) => formatCurrencyCompact(v)}
-                      width={56}
-                    />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Legend
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                      formatter={(v) => (
-                        <span className="text-muted-foreground">{v}</span>
-                      )}
-                    />
-                    <Bar
-                      dataKey="amount"
-                      name="Volume"
-                      fill="url(#bar-primary)"
-                      radius={[6, 6, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="estimated_fee"
-                      name="Est. fees"
-                      fill="url(#bar-info)"
-                      radius={[6, 6, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </ContentCardBody>
-        </ContentCard>
+            <MetricTile
+              label="Fees"
+              value={formatCurrencyCompact(totalFees)}
+              hint="Estimated pass-through"
+              icon={Coins}
+              sparkline={daily.length >= 2 ? daily.map((d) => d.estimated_fee) : undefined}
+            />
+            <MetricTile
+              label="Effective rate"
+              value={`${data?.totals.effective_rate_pct ?? 0}%`}
+              hint="Fees ÷ volume"
+              icon={Percent}
+            />
+            <MetricTile
+              label="Transactions"
+              value={txCount.toLocaleString()}
+              hint={status === "completed" ? "Completed payments" : "Including pending"}
+              icon={Hash}
+            />
+          </ReportSummary>
 
-        {/* Per-account table */}
-        <ContentCard noPadding>
-          <ContentCardHeader>
-            <h3 className="text-sm font-semibold text-foreground">
-              Per-account ledger
-            </h3>
-          </ContentCardHeader>
-          <ContentCardBody>
-            {isLoading ? (
-              <Skeleton className="h-[200px]" />
-            ) : accounts.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-4">No accounts</div>
+          <ReportSection
+            title="Daily volume vs estimated fee"
+            subtitle="Per day in the selected period"
+            icon={<Coins className="h-4 w-4" />}
+            padded
+          >
+            <ReportBarChart
+              data={daily}
+              xKey="label"
+              series={[
+                { key: "amount", label: "Volume" },
+                { key: "estimated_fee", label: "Est. fees" },
+              ]}
+              emptyTitle="No fee data"
+              emptyHint="Pick a wider period or check that the selected account has activity."
+            />
+          </ReportSection>
+
+          <ReportSection title="Per-account ledger" subtitle="Volume, configured fee and estimated fees per provider account">
+            {accounts.length === 0 ? (
+              <EmptyState icon={Coins} title="No accounts" description="No provider account had activity in this period." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm table-professional">
+              <div className="table-scroll-container">
+                <table className="table-professional">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                      <th className="py-2 font-medium">Account</th>
-                      <th className="py-2 font-medium text-right">#</th>
-                      <th className="py-2 font-medium text-right">Volume</th>
-                      <th className="py-2 font-medium text-right">Fee config</th>
-                      <th className="py-2 font-medium text-right">Fees</th>
-                      <th className="py-2 font-medium text-right">Eff. rate</th>
+                    <tr>
+                      <th>Account</th>
+                      <th className="text-right">Payments</th>
+                      <th className="text-right">Volume</th>
+                      <th className="text-right">Fee config</th>
+                      <th className="text-right">Fees</th>
+                      <th className="text-right">Eff. rate</th>
                     </tr>
                   </thead>
                   <tbody>
                     {accounts.map((a) => (
-                      <tr key={a.account_id} className="border-b border-border/40 last:border-0">
-                        <td className="py-2.5">
-                          <div className="font-medium text-foreground">{a.account_name}</div>
-                          <div className="text-xs text-muted-foreground">{a.provider}</div>
+                      <tr key={a.account_id}>
+                        <td className="cell-primary">
+                          {a.account_name}
+                          <span className="cell-sub">{a.provider}</span>
                         </td>
-                        <td className="py-2.5 text-right tabular-nums">{a.count}</td>
-                        <td className="py-2.5 text-right tabular-nums">
-                          {formatCurrency(parseFloat(a.amount))}
-                        </td>
-                        <td className="py-2.5 text-right text-xs text-muted-foreground tabular-nums">
-                          {a.fee_percentage}% + {a.fee_fixed}
-                        </td>
-                        <td className="py-2.5 text-right tabular-nums font-semibold text-foreground">
-                          {formatCurrency(parseFloat(a.fees))}
-                        </td>
-                        <td className="py-2.5 text-right tabular-nums">
-                          {a.effective_rate_pct}%
-                        </td>
+                        <td className="cell-amount">{a.count.toLocaleString()}</td>
+                        <td className="cell-amount">{formatCurrencyFull(parseFloat(a.amount))}</td>
+                        <td className="cell-amount cell-muted">{a.fee_percentage}% + {a.fee_fixed}</td>
+                        <td className="cell-amount">{formatCurrencyFull(parseFloat(a.fees))}</td>
+                        <td className="cell-amount">{a.effective_rate_pct}%</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </ContentCardBody>
-        </ContentCard>
-      </div>
-    </div>
+          </ReportSection>
+        </>
+      )}
+    </ReportShell>
   );
 }

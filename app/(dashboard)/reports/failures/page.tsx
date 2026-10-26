@@ -1,218 +1,175 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, subDays } from "date-fns";
-import { Calendar, AlertOctagon, Search } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+/**
+ * Failures — every failed or rejected payment with the reason given.
+ * Built on the shared report scaffold; data comes from useFailuresReport.
+ */
+
+import { useState } from "react";
+import { format } from "date-fns";
+import { AlertOctagon, Building2, FileWarning, ShieldAlert } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { StatCard } from "@/components/layout/stat-card";
-import {
-  ContentCard,
-  ContentCardHeader,
-  ContentCardBody,
-} from "@/components/layout/content-card";
-import { PageHeader } from "@/components/layout/page-header";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
+import { MetricTile } from "@/components/reports/MetricTile";
+import { ReportSection, ReportShell, ReportSummary } from "@/components/reports/report-shell";
+import { formatCurrencyCompact } from "@/components/reports/chart-theme";
 import { useFailuresReport } from "@/hooks/use-reports";
-import { useOrganizations } from "@/hooks/use-organization";
+import { useReportOrganization, useReportPeriod } from "@/hooks/use-report-context";
 
-const formatCurrency = (value: number, currency: string = "UGX") =>
-  new Intl.NumberFormat("en-UG", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-    notation: "compact",
-  }).format(value);
+type Source = "all" | "provider" | "bank" | "pain002";
 
-const SOURCE_LABEL: Record<string, string> = {
-  provider: "Provider",
-  bank: "Bank file",
-  pain002: "pain.002",
-};
+// One vocabulary for where a failure was reported, and its pill tint.
+const SOURCES: { key: Exclude<Source, "all">; label: string; pill: string; icon: typeof AlertOctagon }[] = [
+  { key: "provider", label: "Provider", pill: "bg-warning-500/10 text-warning-700 border-warning-500/20", icon: ShieldAlert },
+  { key: "bank", label: "Bank file", pill: "bg-danger-500/10 text-danger-700 border-danger-500/20", icon: Building2 },
+  { key: "pain002", label: "pain.002", pill: "bg-info-500/10 text-info-700 border-info-500/20", icon: FileWarning },
+];
+const NEUTRAL_PILL = "bg-muted text-muted-foreground border-border";
 
-const SOURCE_COLOR: Record<string, string> = {
-  provider: "bg-warning-500/10 text-warning-700",
-  bank: "bg-danger-500/10 text-danger-700",
-  pain002: "bg-purple-500/10 text-purple-700",
-};
+function SourcePill({ source }: { source: string }) {
+  const s = SOURCES.find((x) => x.key === source);
+  return <span className={`status-pill ${s?.pill || NEUTRAL_PILL}`}>{s?.label || source}</span>;
+}
+
+/** Plain number for `.cell-amount`; the currency code sits in its own `.cell-currency` cell. */
+const amount = (v: string | number) =>
+  Number(v || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 export default function FailuresReportPage() {
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [periodDays, setPeriodDays] = useState("30");
-  const [source, setSource] = useState<"all" | "provider" | "bank" | "pain002">("all");
+  const org = useReportOrganization();
+  const period = useReportPeriod("30d");
+  const [source, setSource] = useState<Source>("all");
   const [reasonQuery, setReasonQuery] = useState("");
 
-  const { data: orgsResp, isLoading: orgsLoading } = useOrganizations();
-  const organizations = Array.isArray(orgsResp) ? orgsResp : (orgsResp as any)?.results || [];
-  useEffect(() => {
-    if (!selectedOrganizationId && organizations?.length) {
-      setSelectedOrganizationId(organizations[0].id);
-    }
-  }, [organizations, selectedOrganizationId]);
-
-  const organizationId = selectedOrganizationId || undefined;
-  const startDate = format(subDays(new Date(), parseInt(periodDays)), "yyyy-MM-dd");
-  const endDate = format(new Date(), "yyyy-MM-dd");
-
+  const organizationId = org.organizationId || undefined;
   const { data, isLoading } = useFailuresReport(organizationId, {
-    start_date: startDate,
-    end_date: endDate,
+    start_date: period.startDate,
+    end_date: period.endDate,
     source,
     reason_contains: reasonQuery || undefined,
   });
 
   const rows = data?.rows || [];
   const summary = data?.summary || {};
+  const totalCount = SOURCES.reduce((n, s) => n + (summary[s.key]?.count ?? 0), 0);
+  const totalAmount = SOURCES.reduce((n, s) => n + (parseFloat(summary[s.key]?.amount || "0") || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
-      <PageHeader
-        title="Failed Payments Register"
-        subtitle="Every failed or rejected payment with the reason given"
-        breadcrumbs={[{ label: "Reports", href: "/reports" }, { label: "Failures" }]}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-        onOrganizationChange={setSelectedOrganizationId}
-        isLoadingOrgs={orgsLoading}
-      >
-        <Select value={periodDays} onValueChange={setPeriodDays}>
-          <SelectTrigger className="w-[150px]">
-            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="60">Last 60 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
-      </PageHeader>
-
-      <div className="px-6 py-6 space-y-6">
-        {/* Filter bar */}
-        <ContentCard>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Source</label>
-              <Select value={source} onValueChange={(v) => setSource(v as any)}>
-                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All sources</SelectItem>
-                  <SelectItem value="provider">Provider (gateway)</SelectItem>
-                  <SelectItem value="bank">Bank file</SelectItem>
-                  <SelectItem value="pain002">pain.002 rejections</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Reason contains</label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={reasonQuery}
-                  onChange={(e) => setReasonQuery(e.target.value)}
-                  placeholder="text search"
-                  className="w-[260px] pl-8"
+    <ReportShell
+      title="Failures"
+      organizations={org.organizations}
+      organizationId={org.organizationId}
+      onOrganizationChange={org.setOrganizationId}
+      isLoadingOrgs={org.isLoading}
+      period={period}
+      filters={
+        <>
+          <Select value={source} onValueChange={(v) => setSource(v as Source)}>
+            <SelectTrigger className="h-9 w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              <SelectItem value="provider">Provider (gateway)</SelectItem>
+              <SelectItem value="bank">Bank file</SelectItem>
+              <SelectItem value="pain002">pain.002 rejections</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            value={reasonQuery}
+            onChange={(e) => setReasonQuery(e.target.value)}
+            placeholder="Reason contains…"
+            aria-label="Reason contains"
+            className="h-9 w-56"
+          />
+        </>
+      }
+    >
+      {isLoading ? (
+        <LoadingState />
+      ) : (
+        <>
+          <ReportSummary>
+            <MetricTile
+              label="Failed payments"
+              value={totalCount.toLocaleString()}
+              hint={totalCount > 0 ? `${formatCurrencyCompact(totalAmount)} · ${period.label.toLowerCase()}` : `No failures · ${period.label.toLowerCase()}`}
+              icon={AlertOctagon}
+              tone={totalCount > 0 ? "danger" : "default"}
+            />
+            {SOURCES.map((s) => {
+              const count = summary[s.key]?.count ?? 0;
+              return (
+                <MetricTile
+                  key={s.key}
+                  label={`${s.label} failures`}
+                  value={count.toLocaleString()}
+                  hint={count > 0 ? formatCurrencyCompact(parseFloat(summary[s.key]?.amount || "0")) : "None in this period"}
+                  icon={s.icon}
                 />
-              </div>
-            </div>
-          </div>
-        </ContentCard>
+              );
+            })}
+          </ReportSummary>
 
-        {/* Summary per source */}
-        <div className="grid gap-5 md:grid-cols-3">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-28 rounded-xl" />
-              <Skeleton className="h-28 rounded-xl" />
-              <Skeleton className="h-28 rounded-xl" />
-            </>
-          ) : (
-            ["provider", "bank", "pain002"].map((k) => (
-              <StatCard
-                key={k}
-                label={`${SOURCE_LABEL[k]} failures`}
-                value={summary[k]?.count ?? 0}
+          <ReportSection title="Register" subtitle="Failed and rejected payments with the reason given">
+            {rows.length === 0 ? (
+              <EmptyState
                 icon={AlertOctagon}
-                variant={(summary[k]?.count ?? 0) > 0 ? "danger" : "default"}
-                subtext={formatCurrency(parseFloat(summary[k]?.amount || "0"))}
+                title="No failures"
+                description={reasonQuery ? "No failures match that reason in the selected period." : "Clean run — nothing failed or was rejected in the selected period."}
               />
-            ))
-          )}
-        </div>
-
-        {/* Register table */}
-        <ContentCard noPadding>
-          <ContentCardHeader>
-            <h3 className="text-sm font-semibold text-foreground">
-              Register
-            </h3>
-          </ContentCardHeader>
-          <ContentCardBody>
-            {isLoading ? (
-              <Skeleton className="h-[280px]" />
-            ) : rows.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-4">
-                No failures in this window — clean run.
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm table-professional">
+              <div className="table-scroll-container">
+                <table className="table-professional">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                      <th className="py-2 font-medium">Date</th>
-                      <th className="py-2 font-medium">Source</th>
-                      <th className="py-2 font-medium">Channel</th>
-                      <th className="py-2 font-medium">Recipient</th>
-                      <th className="py-2 font-medium text-right">Amount</th>
-                      <th className="py-2 font-medium">Reason</th>
+                    <tr>
+                      <th>Date</th>
+                      <th>Source</th>
+                      <th>Channel</th>
+                      <th>Recipient</th>
+                      <th className="cell-currency">Ccy</th>
+                      <th className="text-right">Amount</th>
+                      <th>Reason</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((r) => (
-                      <tr key={`${r.source}:${r.id}`} className="border-b border-border/40 last:border-0">
-                        <td className="py-2.5 text-foreground tabular-nums text-xs">
-                          {new Date(r.date).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </td>
-                        <td className="py-2.5">
-                          <span
-                            className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 ${SOURCE_COLOR[r.source] || ""}`}
-                          >
-                            {SOURCE_LABEL[r.source] || r.source}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-foreground">{r.channel}</td>
-                        <td className="py-2.5 text-foreground truncate max-w-[200px]">
-                          {r.recipient || "—"}
-                        </td>
-                        <td className="py-2.5 text-right tabular-nums">
-                          {formatCurrency(parseFloat(r.amount), r.currency || "UGX")}
-                        </td>
-                        <td className="py-2.5 text-xs text-muted-foreground max-w-[280px] truncate">
-                          {r.reason || "—"}
-                        </td>
-                      </tr>
-                    ))}
+                    {rows.map((r) => {
+                      const d = new Date(r.date);
+                      const valid = !Number.isNaN(d.getTime());
+                      return (
+                        <tr key={`${r.source}:${r.id}`}>
+                          <td className="cell-muted whitespace-nowrap">
+                            {valid ? format(d, "dd MMM yyyy") : r.date}
+                            {valid && <span className="cell-sub">{format(d, "HH:mm")}</span>}
+                          </td>
+                          <td>
+                            <SourcePill source={r.source} />
+                          </td>
+                          <td className="cell-muted">{r.channel || "—"}</td>
+                          <td className="cell-primary">
+                            <span className="block truncate max-w-[220px]" title={r.recipient || undefined}>
+                              {r.recipient || "—"}
+                            </span>
+                          </td>
+                          <td className="cell-currency">{r.currency}</td>
+                          <td className="cell-amount">{amount(r.amount)}</td>
+                          <td className="cell-muted">
+                            <span className="block truncate max-w-[320px]" title={r.reason || undefined}>
+                              {r.reason || "—"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
-          </ContentCardBody>
-        </ContentCard>
-      </div>
-    </div>
+          </ReportSection>
+        </>
+      )}
+    </ReportShell>
   );
 }
