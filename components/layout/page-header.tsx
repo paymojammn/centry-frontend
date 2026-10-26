@@ -38,7 +38,6 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
-  subtitle,
   organizations,
   selectedOrganizationId,
   onOrganizationChange,
