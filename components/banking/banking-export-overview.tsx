@@ -21,12 +21,10 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
-  FileText,
   FolderOpen,
   Inbox,
   Loader2,
   Send,
-  Upload,
   Wallet,
   XCircle,
 } from "lucide-react";
