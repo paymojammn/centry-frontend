@@ -70,16 +70,22 @@ export async function clearOrganizationData(
 }
 
 /**
- * Re-sync organization data from connected ERP systems
+ * Queued organization re-sync. The work runs in a Celery task; poll the
+ * sync-logs endpoint (see `useSyncLogs`) for the per-connection results.
  */
-export async function resyncOrganizationData(
-  id: string
-): Promise<{
-  connections_synced: number;
-  results: Record<string, number | string>;
-  errors?: Array<{ connection: string; error: string }>;
-}> {
-  return post(`/api/v1/erp/organizations/${id}/resync/`);
+export interface ResyncOrganizationResponse {
+  status: 'queued' | string;
+  task_id: string;
+  organization_id: string;
+  connection_ids: string[];
+  message: string;
+}
+
+/**
+ * Re-sync organization data from connected ERP systems (202, background)
+ */
+export async function resyncOrganizationData(id: string): Promise<ResyncOrganizationResponse> {
+  return post<ResyncOrganizationResponse>(`/api/v1/erp/organizations/${id}/resync/`);
 }
 
 /**

@@ -77,6 +77,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { clearOrganizationData, resyncOrganizationData } from '@/lib/organization-api';
+import { SyncHistoryCard } from '@/components/erp/SyncHistoryCard';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -92,6 +94,7 @@ export default function OrganizationDetailsPage() {
   const { mutate: updateDepartment, isPending: isUpdating } = useUpdateDepartment();
   const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment();
 
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('overview');
   const [isClearDataOpen, setIsClearDataOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -241,19 +244,17 @@ export default function OrganizationDetailsPage() {
   const handleResync = async () => {
     setIsResyncing(true);
     try {
+      // The backend queues a Celery task (202). Per-connection results land
+      // in the sync-history table below, which polls while runs are active.
       const result = await resyncOrganizationData(organizationId);
-      const syncedItems = Object.entries(result.results)
-        .filter(([, val]) => typeof val === 'number' && val > 0)
-        .map(([key, val]) => `${key}: ${val}`)
-        .join(', ');
-      toast.success(`Synced from ${result.connections_synced} connection(s)`, {
-        description: syncedItems || 'No new data found',
+      const n = result.connection_ids?.length ?? 0;
+      toast.success('Re-sync started', {
+        description: n
+          ? `Pulling data from ${n} connection${n === 1 ? '' : 's'} in the background.`
+          : result.message,
       });
-      if (result.errors && result.errors.length > 0) {
-        toast.warning('Some connections had errors', {
-          description: result.errors.map((e) => e.error).join('; '),
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ['erp-sync-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['erp-sync-status'] });
       setIsResyncOpen(false);
     } catch (err: any) {
       toast.error('Re-sync failed', {
@@ -456,6 +457,9 @@ export default function OrganizationDetailsPage() {
               </div>
             </div>
           </div>
+
+          {/* ERP sync history (fed by /api/v1/erp/sync-logs/) */}
+          <SyncHistoryCard organizationId={organizationId} />
         </TabsContent>
 
         {/* Members Tab */}
