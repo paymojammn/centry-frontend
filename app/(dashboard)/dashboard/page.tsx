@@ -19,34 +19,22 @@ import { usePayables } from '@/hooks/use-purchases';
 import {
   usePaymentPipelineStats,
   useBankResponseStats,
-  useBankAccounts,
-  useAllSFTPCredentials,
   useExportStats,
 } from '@/hooks/use-banking';
 import { useOrganizations } from '@/hooks/use-organization';
 import {
-  useAuditStats,
   usePipelineOverview,
 } from '@/hooks/use-reports';
 import { useInvoiceStats } from '@/hooks/use-invoices';
 import {
-  ArrowDownRight,
   ArrowUpRight,
-  Banknote,
   ChevronRight,
   CheckCircle,
   CreditCard,
   FileUp,
-  Flame,
-  Landmark,
   Loader2,
   FileText,
-  RefreshCw,
-  Scale,
   Send,
-  ShieldCheck,
-  Upload,
-  Wallet,
   Zap,
 } from 'lucide-react';
 import type { Payable } from '@/types/purchases';
@@ -62,7 +50,6 @@ import {
 import { LoadingState } from '@/components/layout/loading-state';
 import { StatusBadge } from '@/components/layout/status-badge';
 import { MetricTile } from '@/components/reports/MetricTile';
-import { CashFlowCard } from '@/components/reports/cards/CashFlowCard';
 import {
   ChartGradients,
   EmptyState,
@@ -105,12 +92,12 @@ function formatActivityDate(dateString: string) {
 // ─── Colors ───
 
 const PIPELINE_COLORS = {
-  pending_approval: '#D4B35A',
-  processing: '#6B8FB8',
-  sent: '#D4944A',
-  success: '#6B9B71',
-  failed: '#B85C5C',
-  synced: '#5C8A65',
+  pending_approval: 'var(--color-warning-400)',
+  processing: 'var(--color-info)',
+  sent: 'var(--color-ochre)',
+  success: 'var(--color-success)',
+  failed: 'var(--color-danger)',
+  synced: 'var(--color-forest)',
 };
 
 // ─── Main Page ───
@@ -173,13 +160,9 @@ export default function DashboardPage() {
   // include incoming invoice collections (IN).
   const { data: pipelineStats } = usePaymentPipelineStats(orgId, 'OUT');
   const { data: bankResponseStats } = useBankResponseStats(orgId);
-  const { data: bankAccountsData } = useBankAccounts(orgId);
-  const { data: sftpCredsData } = useAllSFTPCredentials(orgId);
   const { data: invoiceStats } = useInvoiceStats(orgId);
   // Bank payment-export files awaiting SFTP upload (the Pay tab "Ready" pill).
   const { data: exportStats } = useExportStats({ organizationId: orgId || undefined });
-  // Live system activity counters for the "Today" pulse card.
-  const { data: auditStats } = useAuditStats(orgId, 1);
   // Outward-payment data — drives Latest Payment Events, Payments by
   // Channel, and By Bank cards. Default 90-day window from the service.
   const { data: pipelineOverview, isLoading: loadingPipeline } =
@@ -189,100 +172,6 @@ export default function DashboardPage() {
 
   const openBills = Array.isArray(payables) ? payables : (payables as any)?.results || [];
   const overdueBills = openBills.filter((bill: Payable) => bill.due_date && new Date(bill.due_date) < new Date());
-
-  // Funding accounts — one card per account, in the account's own
-  // currency. Sources of truth:
-  //   • SFTPCredential (banking_integrations) — gates which BankAccounts
-  //     count as "wired" (i.e. actually push pain.001 over SFTP, covering
-  //     both SWIFT and local-rails payments).
-  //   • ProviderAccount (payments) — every gateway funding account
-  //     (Ozow / MoMo / Airtel / Paystack / OneGate / Netcash).
-  // Per-account so we never sum across currencies.
-  const sftpBankAccountIds = new Set<string>(
-    ((sftpCredsData as any)?.results || [])
-      .filter((c: any) => c.is_active && c.bank_account?.id)
-      .map((c: any) => String(c.bank_account.id))
-  );
-  const bankAccounts = ((bankAccountsData as any)?.results || []) as Array<{
-    id: number;
-    balance: string | null;
-    currency: string;
-  }>;
-  const bankBalanceById = new Map<string, { balance: number; currency: string }>(
-    bankAccounts.map((a) => [
-      String(a.id),
-      {
-        balance: parseFloat(a.balance ?? '0') || 0,
-        currency: (a.currency || '').replace('CurrencyCode.', '').toUpperCase() || 'UGX',
-      },
-    ])
-  );
-
-  type FundingCard = {
-    key: string;
-    bankName: string;
-    accountName: string;
-    currency: string;
-    balance: number | null;
-    accepted: number;
-    paymentCount: number;
-    iconKind: 'bank' | 'provider';
-  };
-
-  // One card per bank ACCOUNT — by_bank is split per currency, so the same
-  // account would otherwise appear twice (e.g. Stanbic UGX + Stanbic USD).
-  // Collapse by bank_account_id and sum the payments across currencies.
-  const bankCardById = new Map<string, FundingCard>();
-  for (const b of pipelineOverview?.by_bank || []) {
-    if (sftpBankAccountIds.size > 0 && !sftpBankAccountIds.has(b.bank_account_id)) continue;
-    const existing = bankCardById.get(b.bank_account_id);
-    if (existing) {
-      existing.paymentCount += b.sent_count;
-      existing.accepted += parseFloat(b.accepted_amount || '0') || 0;
-      continue;
-    }
-    const ba = bankBalanceById.get(b.bank_account_id);
-    bankCardById.set(b.bank_account_id, {
-      key: `bank:${b.bank_account_id}`,
-      bankName: b.bank_name,
-      accountName: b.account_name,
-      currency: ba?.currency || b.currency || 'UGX',
-      balance: ba ? ba.balance : null,
-      accepted: parseFloat(b.accepted_amount || '0') || 0,
-      paymentCount: b.sent_count,
-      iconKind: 'bank' as const,
-    });
-  }
-  const bankCards: FundingCard[] = Array.from(bankCardById.values());
-
-  const providerCards: FundingCard[] = (pipelineOverview?.provider_accounts || []).map((p) => {
-    const accepted = parseFloat(p.period_completed_amount || '0') || 0;
-    const balance = parseFloat(p.balance || '0');
-    const currency = (p.currency || 'UGX').toUpperCase();
-    return {
-      key: `prov:${p.account_id}`,
-      bankName: p.provider,
-      accountName: p.account_name,
-      currency,
-      balance: Number.isFinite(balance) ? balance : null,
-      accepted,
-      paymentCount: p.payment_count || 0,
-      iconKind: 'provider' as const,
-    };
-  });
-
-  const fundingCards = [...bankCards, ...providerCards].sort(
-    (a, b) => b.accepted - a.accepted
-  );
-  // Rotating summary-card palette (same tones as MetricTile) so the account
-  // cards stay colourful and consistent with the rest of the app.
-  const ACCOUNT_TONES = [
-    { border: 'border-l-blue-500', chip: 'bg-blue-500/10 text-blue-600', icon: 'text-blue-600' },
-    { border: 'border-l-emerald-500', chip: 'bg-emerald-500/10 text-emerald-600', icon: 'text-emerald-600' },
-    { border: 'border-l-amber-500', chip: 'bg-amber-500/10 text-amber-600', icon: 'text-amber-600' },
-    { border: 'border-l-primary', chip: 'bg-primary/10 text-primary', icon: 'text-primary' },
-    { border: 'border-l-red-500', chip: 'bg-red-500/10 text-red-600', icon: 'text-red-600' },
-  ];
 
   // Cash flow — all-time successful Centry collections (IN) and bill payments
   // (OUT) per currency, so every tile matches the Invoice/Bill Payments "Paid"
@@ -356,14 +245,21 @@ export default function DashboardPage() {
   const pipelineMax = Math.max(...pipeline.map(p => p.count || 1));
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--page-bg))] pb-20">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title={greeting}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
         onOrganizationChange={handleOrganizationChange}
         isLoadingOrgs={orgsLoading}
-      />
+      >
+        <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => router.push('/banking/export')}>
+          <Send className="h-3.5 w-3.5" /> Export to bank
+        </Button>
+        <Button size="sm" className="h-9 gap-1.5" onClick={() => router.push('/erp/bills')}>
+          <CreditCard className="h-3.5 w-3.5" /> Pay bills
+        </Button>
+      </PageHeader>
 
       <div className="px-6 py-6">
         <ChartGradients />
@@ -414,7 +310,7 @@ export default function DashboardPage() {
                   label={item.label}
                   value={item.count.toLocaleString()}
                   icon={item.count > 0 ? item.icon : CheckCircle}
-                  tone={item.count > 0 ? item.tone : 'success'}
+                  tone={item.count > 0 ? item.tone : 'default'}
                   hint={item.count > 0 ? 'Click to review' : 'All caught up'}
                   onClick={() => router.push(item.href)}
                 />
@@ -437,141 +333,39 @@ export default function DashboardPage() {
                 Through Centry · per currency
               </span>
             </div>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              {cashFlowCurrencies.flatMap((ccy) => {
-                const r = cashFlowFor(ccy);
-                return [
-                  <MetricTile
-                    key={`inflow-${ccy}`}
-                    label={`Invoice Inflows · ${ccy}`}
-                    value={`${ccy} ${formatCompact(r.inflow)}`}
-                    hint="Collected through Centry"
-                    icon={ArrowDownRight}
-                    tone="success"
-                    sparkline={r.inflowSpark.length >= 2 ? r.inflowSpark : undefined}
-                    sparklineKind="area"
-                    onClick={() => router.push('/erp/invoices?status=paid')}
-                  />,
-                  <MetricTile
-                    key={`outflow-${ccy}`}
-                    label={`Bill Outflows · ${ccy}`}
-                    value={`${ccy} ${formatCompact(r.outflow)}`}
-                    hint="Paid through Centry"
-                    icon={ArrowUpRight}
-                    tone="warning"
-                    sparkline={r.outflowSpark.length >= 2 ? r.outflowSpark : undefined}
-                    sparklineKind="area"
-                    onClick={() =>
-                      router.push('/erp/bills?tab=processing&queue_status=SUCCESS_PAYMENT')
-                    }
-                  />,
-                  <MetricTile
-                    key={`net-${ccy}`}
-                    label={`Net Position · ${ccy}`}
-                    value={`${r.net >= 0 ? '+' : '−'}${ccy} ${formatCompact(Math.abs(r.net))}`}
-                    hint="Inflows − Outflows"
-                    icon={Scale}
-                    tone={r.net >= 0 ? 'success' : 'danger'}
-                  />,
-                  <MetricTile
-                    key={`burn-${ccy}`}
-                    label={`Burn rate · ${ccy}`}
-                    value={`${ccy} ${formatCompact(r.burn)}/mo`}
-                    hint="Projected monthly spend"
-                    icon={Flame}
-                    tone="danger"
-                  />,
-                ];
-              })}
-            </div>
+            <ContentCard noPadding>
+              <table className="table-professional">
+                <thead>
+                  <tr>
+                    <th>Currency</th>
+                    <th className="text-right">Collected</th>
+                    <th className="text-right">Paid</th>
+                    <th className="text-right">Net</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cashFlowCurrencies.map((ccy) => {
+                    const r = cashFlowFor(ccy);
+                    return (
+                      <tr key={ccy}>
+                        <td className="cell-primary">{ccy}</td>
+                        <td className="cell-amount">{formatCompact(r.inflow)}</td>
+                        <td className="cell-amount">{formatCompact(r.outflow)}</td>
+                        <td className={`cell-amount ${r.net >= 0 ? 'text-success' : 'text-danger'}`}>
+                          {r.net >= 0 ? '+' : '−'}
+                          {formatCompact(Math.abs(r.net))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </ContentCard>
           </div>
 
-          {/* ─── Section 3: Active Accounts ─── */}
-          {/* One colourful card per active funding account (SFTP bank or
-              payment provider): account name, type (Ozow / OneGate / bank),
-              current balance, and the number of payments routed through it. */}
+          {/* ─── Payment Pipeline ─── */}
           <div>
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Active Accounts
-              </h2>
-              <span className="text-[11px] text-muted-foreground">
-                {fundingCards.length}{' '}
-                {fundingCards.length === 1 ? 'account' : 'accounts'}
-              </span>
-            </div>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              {loadingPipeline ? (
-                <div className="col-span-full flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : fundingCards.length === 0 ? (
-                <div className="col-span-full rounded-xl border border-border/80 bg-card py-8 text-center text-sm text-muted-foreground">
-                  No active accounts — wire an SFTP bank account or add a payment provider.
-                </div>
-              ) : (
-                fundingCards.map((c, idx) => {
-                  const tone = ACCOUNT_TONES[idx % ACCOUNT_TONES.length];
-                  return (
-                    <div
-                      key={c.key}
-                      className={`rounded-xl border border-border/80 border-l-4 ${tone.border} bg-card p-4 shadow-sm transition-shadow hover:shadow-md`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${tone.chip}`}
-                        >
-                          {c.bankName}
-                        </span>
-                        {c.iconKind === 'bank' ? (
-                          <Landmark className={`h-4 w-4 ${tone.icon}`} />
-                        ) : (
-                          <Wallet className={`h-4 w-4 ${tone.icon}`} />
-                        )}
-                      </div>
-                      <p
-                        className="mt-2 truncate text-sm font-medium text-foreground"
-                        title={c.accountName}
-                      >
-                        {c.accountName || '—'}
-                      </p>
-                      <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
-                        {c.balance === null
-                          ? '—'
-                          : `${c.currency} ${formatCompact(c.balance)}`}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">
-                        {c.balance === null ? 'Balance not synced' : 'Balance'} ·{' '}
-                        {c.paymentCount.toLocaleString()}{' '}
-                        {c.paymentCount === 1 ? 'payment' : 'payments'}
-                      </p>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* ─── Cash flow graphs — one card per currency ─── */}
-          {/* Realized monthly inflow vs outflow from cash_flow_series
-              (XeroPaymentEvent IN/OUT). Separate UGX / USD cards so the
-              two never share a y-axis. */}
-          {!loadingPipeline && (pipelineOverview?.cash_flow_series?.length ?? 0) > 0 && (
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                Cash flow
-              </h2>
-              <div className="grid gap-6 lg:grid-cols-2">
-                {pipelineOverview!.cash_flow_series.map((cf) => (
-                  <CashFlowCard key={cf.currency} data={cf} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ─── Section 3: Payment Pipeline + Today's Pulse ─── */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <ContentCard noPadding className="lg:col-span-2">
+            <ContentCard noPadding>
               <ContentCardHeader className="px-6">
                 <SectionTitle
                   icon={<Send className="h-4 w-4" />}
@@ -637,99 +431,14 @@ export default function DashboardPage() {
               </div>
             </ContentCard>
 
-            {/* Today's Pulse — live system activity (last 24h) */}
-            <ContentCard noPadding>
-              <ContentCardHeader className="px-6">
-                <SectionTitle
-                  icon={<ShieldCheck className="h-4 w-4" />}
-                  title="Today's Pulse"
-                  subtitle="System activity, last 24h"
-                />
-              </ContentCardHeader>
-              <div className="px-6 pb-5 space-y-3.5">
-                {!auditStats ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : auditStats.recent_count === 0 ? (
-                  <EmptyState
-                    icon={<ShieldCheck className="h-5 w-5" />}
-                    title="Quiet so far"
-                    hint="No actions logged in the last 24 hours."
-                  />
-                ) : (
-                  (() => {
-                    const total = auditStats.recent_count || 1;
-                    const rows = [
-                      {
-                        label: 'Events',
-                        value: auditStats.recent_count,
-                        color: 'rgb(var(--brand-primary))',
-                      },
-                      {
-                        label: 'Warnings',
-                        value: auditStats.by_severity?.warning || 0,
-                        color: '#d97706',
-                      },
-                      {
-                        label: 'Errors',
-                        value: auditStats.error_count || 0,
-                        color: '#dc2626',
-                      },
-                      {
-                        label: 'Critical',
-                        value: auditStats.critical_count || 0,
-                        color: '#991b1b',
-                      },
-                    ];
-                    return rows.map((r) => (
-                      <div key={r.label} className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ backgroundColor: r.color }}
-                            />
-                            <span className="text-sm text-foreground">{r.label}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-foreground tabular-nums">
-                            {r.value.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${Math.min((r.value / total) * 100, 100)}%`,
-                              background: `linear-gradient(90deg, ${r.color} 0%, ${r.color}cc 100%)`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ));
-                  })()
-                )}
-                <div className="pt-2 border-t border-border/50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-muted-foreground hover:text-primary h-8"
-                    onClick={() => router.push('/reports/audit')}
-                  >
-                    View audit trail
-                    <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            </ContentCard>
           </div>
 
-          {/* ─── Section 4: Latest Payment Events + Payments by Channel ─── */}
+          {/* ─── Latest Payment Events + Upcoming Bills ─── */}
           {/* Both cards source from /api/v1/reports/pipeline-overview/
               which merges PaymentRequest (gateway pipeline) +
               BankPaymentExport (SFTP/pain.001 pipeline). No ERP data. */}
-          <div className="grid gap-6 lg:grid-cols-5">
-            <ContentCard noPadding className="lg:col-span-3">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ContentCard noPadding>
               <ContentCardHeader className="px-6">
                 <SectionTitle
                   icon={<Send className="h-4 w-4" />}
@@ -766,91 +475,8 @@ export default function DashboardPage() {
               )}
             </ContentCard>
 
-            <ContentCard noPadding className="lg:col-span-2">
-              <ContentCardHeader className="px-6">
-                <SectionTitle
-                  icon={<CreditCard className="h-4 w-4" />}
-                  title="Payments by Channel"
-                  subtitle="By bank account and payment provider"
-                />
-              </ContentCardHeader>
-              <div className="px-6 pb-5">
-                {loadingPipeline ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : !pipelineOverview?.channels?.length ? (
-                  <EmptyState
-                    icon={<CreditCard className="h-5 w-5" />}
-                    title="No payments this period"
-                    hint="Channel breakdown shows once payments are processed."
-                  />
-                ) : (
-                  (() => {
-                    const channels = pipelineOverview.channels;
-                    const total = channels.reduce(
-                      (s, c) => s + parseFloat(c.amount || '0'),
-                      0
-                    );
-                    const colors = [
-                      'rgb(var(--brand-primary))',
-                      '#6366f1',
-                      '#0891b2',
-                      '#16a34a',
-                      '#d97706',
-                      '#db2777',
-                    ];
-                    return (
-                      <div className="space-y-3">
-                        {channels.map((c, i) => {
-                          const amount = parseFloat(c.amount || '0');
-                          const pct = total > 0 ? Math.round((amount / total) * 100) : 0;
-                          const color = colors[i % colors.length];
-                          return (
-                            <div key={c.label} className="space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                  <span className="text-sm text-foreground truncate">
-                                    {c.label}
-                                  </span>
-                                </div>
-                                <div className="flex items-baseline gap-2 shrink-0">
-                                  <span className="text-sm font-semibold text-foreground tabular-nums">
-                                    {formatCompact(amount)}
-                                  </span>
-                                  <span className="text-[11px] text-muted-foreground tabular-nums w-8 text-right">
-                                    {pct}%
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all duration-700"
-                                  style={{
-                                    width: `${pct}%`,
-                                    background: `linear-gradient(90deg, ${color} 0%, ${color}cc 100%)`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()
-                )}
-              </div>
-            </ContentCard>
-          </div>
-
-          {/* ─── Section 5: Bills + Activity ─── */}
-          <div className="grid gap-6 lg:grid-cols-5">
             {/* Upcoming Bills */}
-            <ContentCard className="lg:col-span-3" noPadding>
+            <ContentCard noPadding>
               <ContentCardHeader className="px-6">
                 <SectionTitle
                   icon={<CreditCard className="h-4 w-4" />}
@@ -900,94 +526,13 @@ export default function DashboardPage() {
               )}
             </ContentCard>
 
-            {/* Payments by Bank — backend: pipeline-overview.by_bank
-                (BankPaymentExport grouped by source bank account) */}
-            <ContentCard className="lg:col-span-2" noPadding>
-              <ContentCardHeader className="px-6">
-                <SectionTitle
-                  icon={<Banknote className="h-4 w-4" />}
-                  title="Payments by Bank"
-                  subtitle="Sent volume per provider account"
-                />
-              </ContentCardHeader>
-              <div className="px-6 pb-5">
-                {loadingPipeline ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : !pipelineOverview?.by_bank?.length ? (
-                  <EmptyState
-                    icon={<Banknote className="h-5 w-5" />}
-                    title="No bank activity yet"
-                    hint="Bank-level totals appear once exports are sent."
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    {pipelineOverview.by_bank.slice(0, 6).map((b) => {
-                      const sent = parseFloat(b.sent_amount || '0');
-                      const decided = b.accepted_count + b.rejected_count;
-                      const rate =
-                        decided > 0
-                          ? Math.round((b.accepted_count / decided) * 100)
-                          : null;
-                      return (
-                        <div
-                          key={`${b.bank_account_id}:${b.currency}`}
-                          className="flex items-center justify-between gap-3 py-1"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {b.bank_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {b.account_name || '—'}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-semibold text-foreground tabular-nums">
-                              {b.currency} {formatCompact(sent)}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground tabular-nums">
-                              {b.sent_count} sent
-                              {rate !== null && (
-                                <span className="ml-1.5 text-emerald-600">
-                                  · {rate}% accepted
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </ContentCard>
           </div>
         </div>
       </div>
 
-      {/* ─── Quick Actions Bar ─── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-sm border-t border-border shadow-lg">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-center gap-3">
-          <Button size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/erp/bills')}>
-            <CreditCard className="h-3.5 w-3.5" /> Pay Bills
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/banking/export')}>
-            <Send className="h-3.5 w-3.5" /> Export to Bank
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/banking/transactions')}>
-            <Upload className="h-3.5 w-3.5" /> Transactions
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={() => router.push('/banking/reconciliation')}>
-            <RefreshCw className="h-3.5 w-3.5" /> Sync to ERP
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
-
 // ─── Bill Item ───
 
 function BillItem({ bill }: { bill: Payable }) {
@@ -1001,7 +546,7 @@ function BillItem({ bill }: { bill: Payable }) {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold ${
-            isOverdue ? 'bg-[#D4944A]/10 text-[#D4944A]' : 'bg-primary/10 text-primary'
+            isOverdue ? 'bg-warning-500/10 text-warning-700' : 'bg-primary/10 text-primary'
           }`}>
             {bill.vendor_name?.charAt(0).toUpperCase() || 'V'}
           </div>
@@ -1019,7 +564,7 @@ function BillItem({ bill }: { bill: Payable }) {
             </p>
           </div>
         </div>
-        <p className={`text-sm font-semibold ${isOverdue ? 'text-[#D4944A]' : 'text-foreground'}`}>
+        <p className={`text-sm font-semibold ${isOverdue ? 'text-warning-700' : 'text-foreground'}`}>
           {formatCurrency(bill.amount, bill.currency)}
         </p>
       </div>
@@ -1045,9 +590,9 @@ function PaymentEventItem({ event }: { event: PipelineRecentTransaction }) {
       : { status: 'pending', label: event.status_label };
 
   const iconBg =
-    event.kind === 'bank' ? 'bg-[#6B8FB8]/10' : 'bg-primary/10';
+    event.kind === 'bank' ? 'bg-info-500/10' : 'bg-primary/10';
   const iconColor =
-    event.kind === 'bank' ? 'text-[#6B8FB8]' : 'text-primary';
+    event.kind === 'bank' ? 'text-info-700' : 'text-primary';
   const Icon = event.kind === 'bank' ? FileUp : Send;
 
   return (
