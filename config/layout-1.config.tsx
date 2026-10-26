@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  ShieldCheck,
 } from "lucide-react";
 import { MenuConfig } from "@/config/types";
 
@@ -101,32 +102,9 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: BarChart3,
     children: [
       { title: "Overview", path: "/reports" },
-      {
-        title: "Payments",
-        children: [
-          { title: "Transactions", path: "/reports/transactions" },
-          { title: "Settlement", path: "/reports/settlement" },
-          { title: "Throughput", path: "/reports/throughput" },
-          { title: "Failures", path: "/reports/failures" },
-        ],
-      },
-      {
-        title: "Control",
-        children: [
-          { title: "Unreconciled", path: "/reports/unreconciled" },
-          { title: "Concentration", path: "/reports/concentration" },
-          { title: "Approval cycle", path: "/reports/approval-cycle" },
-          { title: "Audit trail", path: "/reports/audit" },
-        ],
-      },
-      {
-        title: "Finance",
-        children: [
-          { title: "Liquidity", path: "/reports/liquidity" },
-          { title: "Fees", path: "/reports/fees" },
-          { title: "Expenses", path: "/reports/expenses" },
-        ],
-      },
+      { title: "Payments", path: "/reports/payments" },
+      { title: "Exceptions", path: "/reports/exceptions" },
+      { title: "Expenses", path: "/reports/expenses" },
     ],
   },
 ];
@@ -195,6 +173,7 @@ export const MENU_MEGA: MenuConfig = [
                 path: "/organizations",
               },
               { title: "Members", icon: Users, path: "/organizations/members" },
+              { title: "Audit trail", icon: ShieldCheck, path: "/organizations/audit" },
             ],
           },
         ],

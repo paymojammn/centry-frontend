@@ -154,7 +154,7 @@ export function NotificationsSheet({ trigger }: { trigger: ReactNode }) {
         {/* Footer — link to full audit log */}
         <div className="border-t border-border px-4 py-3 bg-card">
           <Link
-            href="/reports/audit"
+            href="/organizations/audit"
             className="inline-flex items-center gap-1.5 text-[12px] font-normal text-primary hover:opacity-80 transition-opacity"
           >
             View all activity
