@@ -645,7 +645,7 @@ export default function PayBillsModal({
                     onClick={() => editPayoutMutation.mutate({ rerun: true })}
                     disabled={!allRecipientsComplete || editPayoutMutation.isPending}
                     className="flex-1 text-white"
-                    style={{ backgroundColor: '#5C8A65' }}
+                    style={{ backgroundColor: 'var(--color-success)' }}
                   >
                     <Send className="h-4 w-4 mr-1.5" />
                     Save &amp; Re-run
@@ -676,7 +676,7 @@ export default function PayBillsModal({
                   <p className="text-sm font-semibold text-foreground truncate">{selectedSource.name}</p>
                 </div>
                 {selectedSource.currency !== currency && (
-                  <span className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-800">
+                  <span className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-warning-100 text-warning-800">
                     {currency} → {selectedSource.currency}
                   </span>
                 )}
@@ -684,9 +684,9 @@ export default function PayBillsModal({
 
               {/* Hosted-checkout banner */}
               {isHostedCheckoutSource && (
-                <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 text-xs text-blue-900">
+                <div className="border border-info-200 bg-info-50 rounded-lg p-3 text-xs text-info-900">
                   <p className="font-medium mb-0.5">Hosted-checkout flow</p>
-                  <p className="text-blue-800">
+                  <p className="text-info-800">
                     After approval, the final payer will confirm the amount and complete payment on{' '}
                     {selectedSource.provider === 'onegate' ? 'CallPay/OneGate' : 'Ozow'}'s hosted page.
                     The amount below is a suggestion and can be adjusted later.
@@ -722,7 +722,7 @@ export default function PayBillsModal({
                           max={bill.amount_due}
                         />
                         <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {isPartial && <span className="text-amber-600 font-medium">Partial &middot; </span>}
+                          {isPartial && <span className="text-warning-600 font-medium">Partial &middot; </span>}
                           of {String(bill.currency_code).split('.').pop()} {parseFloat(bill.amount_due).toLocaleString()}
                         </p>
                       </div>
@@ -868,7 +868,7 @@ export default function PayBillsModal({
                   acknowledgement) when in the uncleared gap between booked
                   and available. */}
               {balanceGate.kind === 'insufficient' && (
-                <div className="border border-red-200 bg-red-50 rounded-lg p-3 text-sm text-red-900">
+                <div className="border border-danger-200 bg-danger-50 rounded-lg p-3 text-sm text-danger-900">
                   <div className="flex items-center gap-2 font-medium">
                     <AlertCircle className="h-4 w-4" />
                     Insufficient balance
@@ -882,12 +882,12 @@ export default function PayBillsModal({
                 </div>
               )}
               {balanceGate.kind === 'uncleared_gap' && (
-                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                <div className="border border-warning-200 bg-warning-50 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-warning-900">
                     <AlertCircle className="h-4 w-4" />
                     Paying from uncleared funds
                   </div>
-                  <div className="text-xs text-amber-900">
+                  <div className="text-xs text-warning-900">
                     Booked balance is {selectedSource!.currency}{' '}
                     {balanceGate.booked.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     {' '}— {selectedSource!.currency}{' '}
@@ -895,7 +895,7 @@ export default function PayBillsModal({
                     {' '}of your balance is same-day credit that hasn't settled yet. If
                     those credits reverse, the account could go into overdraft.
                   </div>
-                  <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                  <label className="flex items-start gap-2 text-xs text-warning-900 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={ackUncleared}

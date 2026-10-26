@@ -107,7 +107,7 @@ function exportPDF(
   const headerRow = headers
     .map(
       (h) =>
-        `<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;background:#f8fafc;border-bottom:2px solid #e2e8f0;white-space:nowrap">${h}</th>`
+        `<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;background:var(--color-neutral-50);border-bottom:2px solid var(--color-neutral-200);white-space:nowrap">${h}</th>`
     )
     .join("");
 
@@ -117,7 +117,7 @@ function exportPDF(
         `<tr>${row
           .map(
             (cell) =>
-              `<td style="padding:6px 12px;font-size:11px;border-bottom:1px solid #f1f5f9">${cell}</td>`
+              `<td style="padding:6px 12px;font-size:11px;border-bottom:1px solid var(--color-neutral-50)">${cell}</td>`
           )
           .join("")}</tr>`
     )
@@ -131,7 +131,7 @@ function exportPDF(
     @page { size: landscape; margin: 12mm; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
     h1 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
-    .meta { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+    .meta { font-size: 11px; color: var(--color-neutral-500); margin-bottom: 16px; }
     table { width: 100%; border-collapse: collapse; }
   </style>
 </head>

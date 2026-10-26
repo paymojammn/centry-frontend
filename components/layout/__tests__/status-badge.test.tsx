@@ -21,13 +21,14 @@ describe('StatusBadge', () => {
   it('applies correct background color for paid status', () => {
     const { container } = render(<StatusBadge status="paid" variant="solid" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.style.backgroundColor).toBe('rgb(107, 155, 113)');
+    // Colours are design tokens (see lib/colors.ts), never literals.
+    expect(badge.style.backgroundColor).toBe('var(--color-success-600)');
   });
 
   it('applies correct background color for failed status', () => {
     const { container } = render(<StatusBadge status="failed" variant="solid" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.style.backgroundColor).toBe('rgb(184, 92, 92)');
+    expect(badge.style.backgroundColor).toBe('var(--color-danger-600)');
   });
 
   it('renders with different sizes', () => {
@@ -43,7 +44,7 @@ describe('StatusDot', () => {
   it('renders a colored dot', () => {
     const { container } = render(<StatusDot status="paid" />);
     const dot = container.firstChild as HTMLElement;
-    expect(dot.style.backgroundColor).toBe('rgb(107, 155, 113)');
+    expect(dot.style.backgroundColor).toBe('var(--color-success-600)');
   });
 
   it('renders with lg size class', () => {

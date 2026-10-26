@@ -60,7 +60,7 @@ export default function Item7() {
                 size="sm"
                 variant="warning"
                 appearance="light"
-                className="text-yellow-400 me-1"
+                className="text-warning-400 me-1"
               >
                 <NotepadText /> Project
               </Badge>
@@ -120,7 +120,7 @@ export default function Item7() {
                 { path: '/media/avatars/300-2.png' },
                 {
                   fallback: '+3',
-                  variant: 'text-white size-6 ring-background bg-green-500',
+                  variant: 'text-white size-6 ring-background bg-success-500',
                 },
               ]}
             />

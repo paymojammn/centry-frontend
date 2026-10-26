@@ -107,7 +107,7 @@ export default function ExpenseDetailModal({
                 {expense.currency} {parseFloat(expense.amount).toLocaleString()}
               </p>
               {expense.payment_status === 'partial' && expense.remaining_amount && (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-warning-600">
                   Remaining: {expense.currency} {parseFloat(expense.remaining_amount).toLocaleString()}
                 </p>
               )}

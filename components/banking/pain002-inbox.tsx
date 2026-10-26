@@ -165,7 +165,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         {([
           { value: "all", label: "All", count: pain002Files.length, color: undefined },
-          { value: "new", label: "New", count: statusCount(false), color: "#6B8FB8" },
+          { value: "new", label: "New", count: statusCount(false), color: "var(--color-info)" },
           { value: "processed", label: "Processed", count: statusCount(true), color: PILL_COLORS.processed },
         ]).map((p) => {
           const active = statusFilter === p.value;
@@ -353,7 +353,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
                   <span
                     className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${
                       file.archived
-                        ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+                        ? "bg-success-500/10 text-success-700 border-success-500/20"
                         : "bg-muted text-muted-foreground border-border"
                     }`}
                   >

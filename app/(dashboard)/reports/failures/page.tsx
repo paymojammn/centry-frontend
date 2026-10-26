@@ -38,8 +38,8 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 const SOURCE_COLOR: Record<string, string> = {
-  provider: "bg-amber-500/10 text-amber-700",
-  bank: "bg-red-500/10 text-red-700",
+  provider: "bg-warning-500/10 text-warning-700",
+  bank: "bg-danger-500/10 text-danger-700",
   pain002: "bg-purple-500/10 text-purple-700",
 };
 

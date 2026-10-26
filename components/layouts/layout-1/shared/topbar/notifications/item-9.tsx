@@ -47,7 +47,7 @@ export default function Item9() {
             size="sm"
             variant="success"
             appearance="light"
-            className="text-green-500 me-1 text-xs"
+            className="text-success-500 me-1 text-xs"
           >
             <CircleCheck /> Feature Prioritization
           </Badge>

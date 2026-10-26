@@ -55,14 +55,14 @@ function formatCurrency(amount: string, currency: string): string {
 function renderStatusBadge(status: string) {
   const style =
     status === "uploaded" || status === "uploading"
-      ? "bg-blue-500/10 text-blue-700 border-blue-500/20"
+      ? "bg-info-500/10 text-info-700 border-info-500/20"
       : status === "processed"
-      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+      ? "bg-success-500/10 text-success-700 border-success-500/20"
       : status === "failed"
-      ? "bg-red-500/10 text-red-700 border-red-500/20"
+      ? "bg-danger-500/10 text-danger-700 border-danger-500/20"
       : status === "superseded"
       ? "bg-muted text-muted-foreground border-border"
-      : "bg-amber-500/10 text-amber-700 border-amber-500/20";
+      : "bg-warning-500/10 text-warning-700 border-warning-500/20";
   const label =
     status === "generated" || status === "pending"
       ? "Ready"
@@ -240,7 +240,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         {([
           { value: "all", label: "All", count: exports.length, color: undefined },
-          { value: "ready", label: "Ready", count: pendingExports.length, color: "#D4B35A" },
+          { value: "ready", label: "Ready", count: pendingExports.length, color: "var(--color-warning-400)" },
           { value: "uploaded", label: "Uploaded", count: uploadedExports.length, color: PILL_COLORS.uploaded },
         ]).map((p) => {
           const active = statusFilter === p.value;

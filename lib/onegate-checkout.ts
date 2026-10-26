@@ -1,3 +1,4 @@
+import { hex } from '@/lib/colors';
 /**
  * OneGate EFTsecure Checkout V4 — self-hosted embed.
  *
@@ -19,7 +20,7 @@
 // the CDN's missing CORS headers entirely and keeps the widget under our
 // control. (basePath-aware so it also works behind the nginx prefix in prod.)
 const SCRIPT_SRC = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/onegate-widget/checkout-v4.js`;
-const BRAND_PRIMARY = '#5C8A65'; // --brand-primary (muted sage green)
+const BRAND_PRIMARY = hex.success; // --brand-primary (muted sage green)
 
 /** Result object the widget resolves with on a completed transaction. */
 export interface OneGateCheckoutResult {
@@ -172,21 +173,21 @@ const HOSTED_MODAL_STYLE_ID = 'onegate-hosted-modal-styles';
 function injectHostedModalCss() {
   if (typeof document === 'undefined' || document.getElementById(HOSTED_MODAL_STYLE_ID)) return;
   const css = `
-    .ogh-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:2147483647;
+    .ogh-overlay{position:fixed;inset:0;background:${hex.ink}8C;z-index:2147483647;
       display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s ease;}
     .ogh-overlay.ogh-open{opacity:1;}
     .ogh-modal{position:relative;width:480px;max-width:calc(100vw - 32px);height:680px;
       max-height:calc(100vh - 48px);background:#fff;border-radius:16px;overflow:hidden;
       box-shadow:0 24px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;}
     .ogh-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
-      border-bottom:1px solid #eef0f2;font:600 14px system-ui,sans-serif;color:#1c1c1e;}
+      border-bottom:1px solid ${hex.neutral50};font:600 14px system-ui,sans-serif;color:${hex.ink};}
     .ogh-close{appearance:none;border:none;background:transparent;cursor:pointer;font-size:20px;
-      line-height:1;color:#6b6b6f;padding:4px 8px;border-radius:8px;}
-    .ogh-close:hover{background:#f4f4f5;color:#1c1c1e;}
+      line-height:1;color:${hex.neutral500};padding:4px 8px;border-radius:8px;}
+    .ogh-close:hover{background:${hex.neutral50};color:${hex.ink};}
     .ogh-body{position:relative;flex:1;}
     .ogh-iframe{width:100%;height:100%;border:0;background:#fff;}
     .ogh-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-    .ogh-spin{width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:${BRAND_PRIMARY};
+    .ogh-spin{width:40px;height:40px;border:4px solid ${hex.neutral200};border-top-color:${BRAND_PRIMARY};
       border-radius:50%;animation:ogh-spin 1s linear infinite;}
     @keyframes ogh-spin{to{transform:rotate(360deg);}}
     body.ogh-open{overflow:hidden!important;}

@@ -39,12 +39,12 @@ import { parseIsoDate } from "@/lib/value-date";
 // ============================================================
 
 const FILE_STATUS_STYLES: Record<string, string> = {
-  pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  generated: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  uploading: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  uploaded: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  processed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  failed: "bg-red-500/10 text-red-700 border-red-500/20",
+  pending: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  generated: "bg-info-500/10 text-info-700 border-info-500/20",
+  uploading: "bg-info-500/10 text-info-700 border-info-500/20",
+  uploaded: "bg-info-500/10 text-info-700 border-info-500/20",
+  processed: "bg-success-500/10 text-success-700 border-success-500/20",
+  failed: "bg-danger-500/10 text-danger-700 border-danger-500/20",
   superseded: "bg-muted text-muted-foreground border-border",
 };
 
@@ -414,7 +414,7 @@ export default function BankingExportPage() {
                         </div>
                         <div
                           className={`col-span-1 tabular-nums ${
-                            e.value_date_passed ? "text-red-700" : "text-foreground"
+                            e.value_date_passed ? "text-danger-700" : "text-foreground"
                           }`}
                           title={
                             e.value_date_passed

@@ -20,10 +20,10 @@ import { cn } from "@/lib/utils";
 
 export const CHART_COLORS = {
   primary: "rgb(var(--brand-primary))",
-  success: "#16a34a",
-  warning: "#d97706",
-  danger: "#dc2626",
-  info: "#0891b2",
+  success: "var(--color-success)",
+  warning: "var(--color-warning)",
+  danger: "var(--color-danger)",
+  info: "var(--color-info)",
   neutral: "rgb(var(--muted-foreground))",
   axis: "rgb(var(--muted-foreground) / 0.5)",
   grid: "rgb(var(--border) / 0.5)",
@@ -33,16 +33,16 @@ export const CHART_COLORS = {
 // degrade gracefully through tints. Used by the channels pie and any
 // other "N slices" chart so adjacent slices never collide visually.
 export const CATEGORICAL_PALETTE = [
-  "rgb(var(--brand-primary))",
-  "#6366f1", // indigo
-  "#0891b2", // cyan
-  "#16a34a", // green
-  "#d97706", // amber
-  "#db2777", // pink
-  "#7c3aed", // violet
-  "#0ea5e9", // sky
-  "#f59e0b", // gold
-  "#475569", // slate
+  "rgb(var(--brand-primary))", // forest
+  "var(--color-sage)", // sage
+  "var(--color-info)", // teal
+  "var(--color-gold)", // gold
+  "var(--color-info-600)", // deep teal
+  "var(--color-ochre)", // ochre
+  "var(--color-olive)", // olive-lime (lime is too light on white)
+  "var(--color-heather)", // heather
+  "var(--color-danger)", // brick
+  "var(--color-neutral-500)", // green-grey
 ];
 
 export function pickColor(i: number, custom?: string[]): string {

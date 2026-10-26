@@ -87,25 +87,25 @@ export function TrendChart({
                 type="monotone"
                 dataKey="income"
                 name="Income"
-                stroke="#10b981"
+                stroke="var(--color-success)"
                 strokeWidth={2}
-                dot={{ fill: "#10b981" }}
+                dot={{ fill: "var(--color-success)" }}
               />
               <Line
                 type="monotone"
                 dataKey="expenses"
                 name="Expenses"
-                stroke="#ef4444"
+                stroke="var(--color-danger)"
                 strokeWidth={2}
-                dot={{ fill: "#ef4444" }}
+                dot={{ fill: "var(--color-danger)" }}
               />
               <Line
                 type="monotone"
                 dataKey="net"
                 name="Net"
-                stroke="#8b5cf6"
+                stroke="var(--color-heather)"
                 strokeWidth={2}
-                dot={{ fill: "#8b5cf6" }}
+                dot={{ fill: "var(--color-heather)" }}
                 strokeDasharray="5 5"
               />
             </LineChart>

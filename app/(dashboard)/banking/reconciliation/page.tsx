@@ -80,22 +80,22 @@ const STATUS_CONFIG: Record<
 > = {
   ACSP: {
     label: "Accepted",
-    className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+    className: "bg-success-500/10 text-success-700 border-success-500/20",
     icon: CheckCircle2,
   },
   ACWC: {
     label: "Accepted",
-    className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+    className: "bg-success-500/10 text-success-700 border-success-500/20",
     icon: CheckCircle2,
   },
   RJCT: {
     label: "Rejected",
-    className: "bg-red-500/10 text-red-700 border-red-500/20",
+    className: "bg-danger-500/10 text-danger-700 border-danger-500/20",
     icon: XCircle,
   },
   PDNG: {
     label: "Pending",
-    className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    className: "bg-warning-500/10 text-warning-700 border-warning-500/20",
     icon: Clock,
   },
 };
@@ -511,9 +511,9 @@ export default function BankReconciliationPage() {
           <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
           {([
             { value: "all", label: "All", count: counts.accepted + counts.rejected + counts.pending, color: undefined as string | undefined },
-            { value: "ACSP", label: "Accepted", count: counts.accepted, color: "#5C8A65" },
-            { value: "RJCT", label: "Rejected", count: counts.rejected, color: "#dc2626" },
-            { value: "PDNG", label: "Pending", count: counts.pending, color: "#fed652" },
+            { value: "ACSP", label: "Accepted", count: counts.accepted, color: "var(--color-success)" },
+            { value: "RJCT", label: "Rejected", count: counts.rejected, color: "var(--color-danger)" },
+            { value: "PDNG", label: "Pending", count: counts.pending, color: "var(--color-warning-400)" },
           ]).map((p) => {
             const active = statusFilter === p.value;
             return (
@@ -745,7 +745,7 @@ export default function BankReconciliationPage() {
                           {/* Action */}
                           <td className="text-right pr-6">
                             {isSynced && (
-                              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                              <span className="inline-flex items-center gap-1 text-xs text-success-600">
                                 <CheckCircle2 className="h-3 w-3" />
                                 Synced
                               </span>

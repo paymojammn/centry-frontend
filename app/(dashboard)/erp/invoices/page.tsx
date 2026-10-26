@@ -2,11 +2,11 @@
  * Invoices Page - Sales Invoices (Receivables / Payins)
  *
  * Color Scheme:
- * - #6B8FB8 Blue - Draft
- * - #fed652 Mustard - Sent
- * - #f77f00 Orange - Outstanding
- * - #5C8A65 Green - Paid
- * - #bec3c6 Grey - Voided / Repeating
+ * - var(--color-info) Blue - Draft
+ * - var(--color-warning-400) Mustard - Sent
+ * - var(--color-ochre) Orange - Outstanding
+ * - var(--color-success) Green - Paid
+ * - var(--color-neutral-300) Grey - Voided / Repeating
  */
 
 'use client';
@@ -270,7 +270,7 @@ export default function InvoicesPage() {
     }
     if (isDueSoon(inv.due_date)) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 ml-2">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-warning-600 ml-2">
           <Clock className="h-3 w-3" /> Soon
         </span>
       );
@@ -349,7 +349,7 @@ export default function InvoicesPage() {
                 value={collPendingApproval.length}
                 subtext={`${orgCurrency} ${formatCompactNumber(collPendingApprovalAmount)}`}
                 icon={Calendar}
-                iconColor="#b08b00"
+                iconColor="var(--color-warning-800)"
                 iconBgColor={STATUS_COLORS.awaiting_approval.light}
                 variant={collPendingApproval.length > 0 ? 'warning' : 'default'}
               />
@@ -442,7 +442,7 @@ export default function InvoicesPage() {
                 </div>
               ) : error ? (
                 <div className="text-center py-16">
-                  <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-3" />
+                  <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />
                   <p className="text-sm font-medium text-foreground">Error loading invoices</p>
                   <p className="text-sm text-muted-foreground mt-1">Please try refreshing the page</p>
                 </div>

@@ -278,16 +278,16 @@ export default function WalletPage() {
             value={`${selectedWallet?.currency} ${totalTransfers}`}
             subtext="All completed transfers"
             icon={ArrowUpRight}
-            iconColor="#10b981"
-            iconBgColor="rgba(16, 185, 129, 0.1)"
+            iconColor="var(--color-success)"
+            iconBgColor="color-mix(in srgb, var(--color-success) 10%, transparent)"
           />
           <StatCard
             label="Total Fees"
             value={`${selectedWallet?.currency} ${totalFees}`}
             subtext={`${selectedWallet?.fee_percentage}% per transfer`}
             icon={ArrowDownRight}
-            iconColor="#3b82f6"
-            iconBgColor="rgba(59, 130, 246, 0.1)"
+            iconColor="var(--color-info)"
+            iconBgColor="color-mix(in srgb, var(--color-info) 10%, transparent)"
           />
           <StatCard
             label="Pending"
@@ -311,8 +311,8 @@ export default function WalletPage() {
 
           {!selectedWallet?.has_linked_account ? (
             <div className="p-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-[#D4B35A]/10 rounded-full mb-3">
-                <AlertCircle className="w-6 h-6 text-[#D4B35A]" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-warning-400/10 rounded-full mb-3">
+                <AlertCircle className="w-6 h-6 text-warning-400" />
               </div>
               <h3 className="text-sm font-medium text-foreground mb-1">No Linked Accounts</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -530,14 +530,14 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'account_transfer':
-        return { bg: '#3b82f6', light: 'rgba(59, 130, 246, 0.1)' };
+        return { bg: 'var(--color-info)', light: 'color-mix(in srgb, var(--color-info) 10%, transparent)' };
       case 'expense_payment':
       case 'bill_payment':
-        return { bg: '#ef4444', light: 'rgba(239, 68, 68, 0.1)' };
+        return { bg: 'var(--color-danger)', light: 'color-mix(in srgb, var(--color-danger) 10%, transparent)' };
       case 'refund':
-        return { bg: '#10b981', light: 'rgba(16, 185, 129, 0.1)' };
+        return { bg: 'var(--color-success)', light: 'color-mix(in srgb, var(--color-success) 10%, transparent)' };
       default:
-        return { bg: '#6b7280', light: 'rgba(107, 114, 128, 0.1)' };
+        return { bg: 'var(--color-neutral-500)', light: 'color-mix(in srgb, var(--color-neutral-500) 10%, transparent)' };
     }
   };
 
@@ -552,14 +552,14 @@ function TransactionsTable({ transactions, currency }: TransactionsTableProps) {
         );
       case 'pending':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A] border border-[#D4B35A]/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-warning-400/10 text-warning-400 border border-warning-400/20">
             <Clock className="w-3 h-3" />
             Pending
           </span>
         );
       case 'processing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8] border border-[#6B8FB8]/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-info/10 text-info border border-info/20">
             <Loader2 className="w-3 h-3 animate-spin" />
             Processing
           </span>

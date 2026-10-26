@@ -33,7 +33,7 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
     }
     if (status === 'FAILED') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4944A]/10 text-[#D4944A]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-500/10 text-warning-700">
           <XCircle className="h-3 w-3" />
           Failed
         </span>
@@ -41,14 +41,14 @@ export function ImportHistory({ onSelectImport, selectedImportId, organizationId
     }
     if (syncedCount > 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-info/10 text-info">
           <Clock className="h-3 w-3" />
           {syncedCount}/{totalCount}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-[#D4B35A]/10 text-[#D4B35A]">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-warning-400/10 text-warning-400">
         <Clock className="h-3 w-3" />
         Pending
       </span>

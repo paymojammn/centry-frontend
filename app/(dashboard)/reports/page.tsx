@@ -112,11 +112,11 @@ function ChartSkeleton({ height = "h-[350px]" }: { height?: string }) {
 // ============================================================
 
 const STAGE_COLORS: Record<string, string> = {
-  pending_approval: "#D4B35A",
-  ready_for_export: "#6B8FB8",
-  sent_to_bank: "#D4944A",
-  bank_accepted: "#6B9B71",
-  bank_rejected: "#B85C5C",
+  pending_approval: "var(--color-warning-400)",
+  ready_for_export: "var(--color-info)",
+  sent_to_bank: "var(--color-ochre)",
+  bank_accepted: "var(--color-success)",
+  bank_rejected: "var(--color-danger)",
 };
 
 // ============================================================
@@ -565,13 +565,13 @@ export default function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="py-2.5 text-right tabular-nums text-emerald-600">
+                              <td className="py-2.5 text-right tabular-nums text-success-600">
                                 {r.completed}
                               </td>
-                              <td className="py-2.5 text-right tabular-nums text-amber-600">
+                              <td className="py-2.5 text-right tabular-nums text-warning-600">
                                 {r.in_flight}
                               </td>
-                              <td className="py-2.5 text-right tabular-nums text-red-600">
+                              <td className="py-2.5 text-right tabular-nums text-danger-600">
                                 {r.failed}
                               </td>
                             </tr>
@@ -592,10 +592,10 @@ export default function ReportsPage() {
             const txns = overview?.recent_transactions || [];
             const statusClass = (status: string) => {
               if (["completed", "processed"].includes(status))
-                return "text-emerald-600";
-              if (["failed", "rejected"].includes(status)) return "text-red-600";
+                return "text-success-600";
+              if (["failed", "rejected"].includes(status)) return "text-danger-600";
               if (["processing", "uploaded", "approved"].includes(status))
-                return "text-amber-600";
+                return "text-warning-600";
               return "text-muted-foreground";
             };
             return (
@@ -809,8 +809,8 @@ export default function ReportsPage() {
               <ContentCard hover className="group cursor-pointer h-full">
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
-                    <div className="p-2 rounded-xl bg-emerald-500/10 w-fit">
-                      <Wallet className="h-5 w-5 text-emerald-600" />
+                    <div className="p-2 rounded-xl bg-success-500/10 w-fit">
+                      <Wallet className="h-5 w-5 text-success-600" />
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-foreground">
@@ -901,8 +901,8 @@ export default function ReportsPage() {
               <ContentCard hover className="group cursor-pointer h-full">
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
-                    <div className="p-2 rounded-xl bg-emerald-500/10 w-fit">
-                      <Receipt className="h-5 w-5 text-emerald-600" />
+                    <div className="p-2 rounded-xl bg-success-500/10 w-fit">
+                      <Receipt className="h-5 w-5 text-success-600" />
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-foreground">
@@ -922,8 +922,8 @@ export default function ReportsPage() {
               <ContentCard hover className="group cursor-pointer h-full">
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
-                    <div className="p-2 rounded-xl bg-red-500/10 w-fit">
-                      <AlertOctagon className="h-5 w-5 text-red-600" />
+                    <div className="p-2 rounded-xl bg-danger-500/10 w-fit">
+                      <AlertOctagon className="h-5 w-5 text-danger-600" />
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-foreground">
@@ -987,8 +987,8 @@ export default function ReportsPage() {
             <ContentCard hover className="group cursor-pointer h-full">
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 w-fit">
-                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  <div className="p-2 rounded-xl bg-success-500/10 w-fit">
+                    <ShieldCheck className="h-5 w-5 text-success-600" />
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-foreground">Approvals</h3>

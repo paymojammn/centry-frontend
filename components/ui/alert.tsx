@@ -55,7 +55,7 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'success',
       appearance: 'solid',
       className:
-        'bg-[var(--color-success,var(--color-green-500))] text-[var(--color-success-foreground,var(--color-white))]',
+        'bg-[var(--color-success,var(--color-success-500))] text-[var(--color-success-foreground,var(--color-white))]',
     },
     {
       variant: 'info',
@@ -67,7 +67,7 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'warning',
       appearance: 'solid',
       className:
-        'bg-[var(--color-warning,var(--color-yellow-500))] text-[var(--color-warning-foreground,var(--color-white))]',
+        'bg-[var(--color-warning,var(--color-warning-500))] text-[var(--color-warning-foreground,var(--color-white))]',
     },
     {
       variant: 'mono',
@@ -95,7 +95,7 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'success',
       appearance: 'outline',
       className:
-        'border border-border bg-background text-[var(--color-success,var(--color-green-500))] [&_[data-slot=alert-close]]:text-foreground',
+        'border border-border bg-background text-[var(--color-success,var(--color-success-500))] [&_[data-slot=alert-close]]:text-foreground',
     },
     {
       variant: 'info',
@@ -107,7 +107,7 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'warning',
       appearance: 'outline',
       className:
-        'border border-border bg-background text-[var(--color-warning,var(--color-yellow-500))] [&_[data-slot=alert-close]]:text-foreground',
+        'border border-border bg-background text-[var(--color-warning,var(--color-warning-500))] [&_[data-slot=alert-close]]:text-foreground',
     },
     {
       variant: 'mono',
@@ -125,19 +125,19 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'primary',
       appearance: 'light',
       className:
-        'text-foreground bg-[var(--color-primary-soft,var(--color-blue-50))] border border-[var(--color-primary-alpha,var(--color-blue-100))] [&_[data-slot=alert-icon]]:text-primary dark:bg-[var(--color-primary-soft,var(--color-blue-950))] dark:border-[var(--color-primary-alpha,var(--color-blue-900))]',
+        'text-foreground bg-[var(--color-primary-soft,var(--color-info-50))] border border-[var(--color-primary-alpha,var(--color-info-100))] [&_[data-slot=alert-icon]]:text-primary dark:bg-[var(--color-primary-soft,var(--color-info-950))] dark:border-[var(--color-primary-alpha,var(--color-info-900))]',
     },
     {
       variant: 'destructive',
       appearance: 'light',
       className:
-        'bg-[var(--color-destructive-soft,var(--color-red-50))] border border-[var(--color-destructive-alpha,var(--color-red-100))] text-foreground [&_[data-slot=alert-icon]]:text-destructive dark:bg-[var(--color-destructive-soft,var(--color-red-950))] dark:border-[var(--color-destructive-alpha,var(--color-red-900))] ',
+        'bg-[var(--color-destructive-soft,var(--color-danger-50))] border border-[var(--color-destructive-alpha,var(--color-danger-100))] text-foreground [&_[data-slot=alert-icon]]:text-destructive dark:bg-[var(--color-destructive-soft,var(--color-danger-950))] dark:border-[var(--color-destructive-alpha,var(--color-danger-900))] ',
     },
     {
       variant: 'success',
       appearance: 'light',
       className:
-        'bg-[var(--color-success-soft,var(--color-green-50))] border border-[var(--color-success-alpha,var(--color-green-200))] text-foreground [&_[data-slot=alert-icon]]:text-[var(--color-success-foreground,var(--color-green-600))] dark:bg-[var(--color-success-soft,var(--color-green-950))] dark:border-[var(--color-success-alpha,var(--color-green-900))]',
+        'bg-[var(--color-success-soft,var(--color-success-50))] border border-[var(--color-success-alpha,var(--color-success-200))] text-foreground [&_[data-slot=alert-icon]]:text-[var(--color-success-foreground,var(--color-success-600))] dark:bg-[var(--color-success-soft,var(--color-success-950))] dark:border-[var(--color-success-alpha,var(--color-success-900))]',
     },
     {
       variant: 'info',
@@ -149,7 +149,7 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
       variant: 'warning',
       appearance: 'light',
       className:
-        'bg-[var(--color-warning-soft,var(--color-yellow-50))] border border-[var(--color-warning-alpha,var(--color-yellow-200))] text-foreground [&_[data-slot=alert-icon]]:text-[var(--color-warning-foreground,var(--color-yellow-600))] dark:bg-[var(--color-warning-soft,var(--color-yellow-950))] dark:border-[var(--color-warning-alpha,var(--color-yellow-900))]',
+        'bg-[var(--color-warning-soft,var(--color-warning-50))] border border-[var(--color-warning-alpha,var(--color-warning-200))] text-foreground [&_[data-slot=alert-icon]]:text-[var(--color-warning-foreground,var(--color-warning-600))] dark:bg-[var(--color-warning-soft,var(--color-warning-950))] dark:border-[var(--color-warning-alpha,var(--color-warning-900))]',
     },
 
     /* Mono */
@@ -161,12 +161,12 @@ const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(-
     {
       variant: 'mono',
       icon: 'warning',
-      className: '[&_[data-slot=alert-icon]]:text-[var(--color-warning-foreground,var(--color-yellow-600))]',
+      className: '[&_[data-slot=alert-icon]]:text-[var(--color-warning-foreground,var(--color-warning-600))]',
     },
     {
       variant: 'mono',
       icon: 'success',
-      className: '[&_[data-slot=alert-icon]]:text-[var(--color-success-foreground,var(--color-green-600))]',
+      className: '[&_[data-slot=alert-icon]]:text-[var(--color-success-foreground,var(--color-success-600))]',
     },
     {
       variant: 'mono',

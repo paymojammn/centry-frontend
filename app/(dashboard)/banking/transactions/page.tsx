@@ -71,14 +71,14 @@ interface PaymentEvent {
 // ============================================================
 
 const STATUS_STYLES: Record<string, string> = {
-  SUCCESS_PAYMENT: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  SENT_PAYMENT: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  PROCESSING: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  PENDING: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  PENDING_APPROVAL: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  FAILED_PAYMENT: "bg-red-500/10 text-red-700 border-red-500/20",
-  ERROR_PAYMENT: "bg-red-500/10 text-red-700 border-red-500/20",
-  REJECTED: "bg-red-500/10 text-red-700 border-red-500/20",
+  SUCCESS_PAYMENT: "bg-success-500/10 text-success-700 border-success-500/20",
+  SENT_PAYMENT: "bg-info-500/10 text-info-700 border-info-500/20",
+  PROCESSING: "bg-info-500/10 text-info-700 border-info-500/20",
+  PENDING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  PENDING_APPROVAL: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  FAILED_PAYMENT: "bg-danger-500/10 text-danger-700 border-danger-500/20",
+  ERROR_PAYMENT: "bg-danger-500/10 text-danger-700 border-danger-500/20",
+  REJECTED: "bg-danger-500/10 text-danger-700 border-danger-500/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -312,8 +312,8 @@ export default function BankTransactionsPage() {
             value={statusCount(PAID)}
             subtext={statusAmount(PAID)}
             icon={CheckCircle2}
-            iconColor="#5C8A65"
-            iconBgColor="#E8F5E5"
+            iconColor="var(--color-success)"
+            iconBgColor="var(--color-success-50)"
             variant="success"
           />
           <StatCard
@@ -321,8 +321,8 @@ export default function BankTransactionsPage() {
             value={statusCount(IN_FLIGHT)}
             subtext={statusAmount(IN_FLIGHT)}
             icon={Clock}
-            iconColor="#b87a00"
-            iconBgColor="#FFF6E0"
+            iconColor="var(--color-warning-600)"
+            iconBgColor="var(--color-warning-50)"
             variant="warning"
           />
           <StatCard
@@ -330,8 +330,8 @@ export default function BankTransactionsPage() {
             value={statusCount(FAILED)}
             subtext={statusAmount(FAILED)}
             icon={XCircle}
-            iconColor="#dc2626"
-            iconBgColor="#FEE2E2"
+            iconColor="var(--color-danger)"
+            iconBgColor="var(--color-danger-50)"
             variant={statusCount(FAILED) > 0 ? "danger" : "default"}
           />
         </div>

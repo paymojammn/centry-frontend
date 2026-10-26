@@ -526,7 +526,7 @@ export default function OrganizationDetailsPage() {
                           <span className={`px-2.5 py-0.5 rounded text-xs font-medium ${
                             member.role === 'owner' ? 'bg-destructive/10 text-destructive' :
                             member.role === 'admin' ? 'bg-primary/10 text-primary' :
-                            member.role === 'manager' ? 'bg-[#6B8FB8]/10 text-[#6B8FB8]' :
+                            member.role === 'manager' ? 'bg-info/10 text-info' :
                             'bg-muted text-foreground'
                           }`}>
                             {member.role.charAt(0).toUpperCase() + member.role.slice(1)}

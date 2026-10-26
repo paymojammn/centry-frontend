@@ -4,12 +4,12 @@
  * Premium European fintech aesthetic with muted, calm colors.
  *
  * STATUS COLORS (muted palette):
- * - #6B8FB8 Soft Blue - Draft
- * - #D4B35A Warm Amber – Awaiting Approval
- * - #D4944A Muted Orange – Awaiting Payment
- * - #6B9B71 Soft Green – Paid/Success
- * - #9B9B9F Warm Grey - Repeating/Neutral
- * - #B85C5C Soft Red - Failed
+ * - var(--color-info) Soft Blue - Draft
+ * - var(--color-warning-400) Warm Amber – Awaiting Approval
+ * - var(--color-ochre) Muted Orange – Awaiting Payment
+ * - var(--color-success) Soft Green – Paid/Success
+ * - var(--color-neutral-300) Warm Grey - Repeating/Neutral
+ * - var(--color-danger) Soft Red - Failed
  */
 
 // Single vivid palette for the status-filter PILLS — uniform across the app
@@ -19,78 +19,78 @@
 // grey=neutral, red=failed, teal=accepted.
 export const PILL_COLORS: Record<string, string> = {
   // document statuses (bills / invoices lists)
-  draft: '#6B8FB8',
-  awaiting_approval: '#fed652',
-  awaiting_payment: '#f77f00',
-  reconcile: '#2A9D8F',
-  sent: '#fed652',
-  outstanding: '#f77f00',
-  paid: '#5C8A65',
-  repeating: '#bec3c6',
+  draft: 'var(--color-info)',
+  awaiting_approval: 'var(--color-warning-400)',
+  awaiting_payment: 'var(--color-ochre)',
+  reconcile: 'var(--color-reconcile)',
+  sent: 'var(--color-warning-400)',
+  outstanding: 'var(--color-ochre)',
+  paid: 'var(--color-success)',
+  repeating: 'var(--color-neutral-300)',
   // payment-event statuses (processing / collections queues)
-  pending_approval: '#fed652',
-  processing: '#6B8FB8',
-  pending: '#bec3c6',
-  accepted: '#2A9D8F',
-  sent_payment: '#f77f00',
-  success: '#5C8A65',
-  success_payment: '#5C8A65',
-  failed: '#dc2626',
-  failed_payment: '#dc2626',
-  error_payment: '#dc2626',
-  rejected: '#dc2626',
-  reversed: '#bec3c6',
+  pending_approval: 'var(--color-warning-400)',
+  processing: 'var(--color-info)',
+  pending: 'var(--color-neutral-300)',
+  accepted: 'var(--color-reconcile)',
+  sent_payment: 'var(--color-ochre)',
+  success: 'var(--color-success)',
+  success_payment: 'var(--color-success)',
+  failed: 'var(--color-danger)',
+  failed_payment: 'var(--color-danger)',
+  error_payment: 'var(--color-danger)',
+  rejected: 'var(--color-danger)',
+  reversed: 'var(--color-neutral-300)',
   // bank export-file statuses (outbox)
-  generated: '#6B8FB8',
-  uploaded: '#2A9D8F',
-  processed: '#5C8A65',
-  superseded: '#bec3c6',
+  generated: 'var(--color-info)',
+  uploaded: 'var(--color-reconcile)',
+  processed: 'var(--color-success)',
+  superseded: 'var(--color-neutral-300)',
 };
 
 // Primary status colors used across bills, payments, and expenses
 export const STATUS_COLORS = {
   draft: {
-    bg: '#3F5E86',
-    text: '#ffffff',
-    light: '#EAF1F8',
-    border: '#3F5E86',
+    bg: 'var(--color-info-600)',
+    text: 'var(--color-white)',
+    light: 'var(--color-info-50)',
+    border: 'var(--color-info-600)',
   },
   awaiting_approval: {
-    bg: '#8A6A1A',
-    text: '#ffffff',
-    light: '#FAF2DD',
-    border: '#8A6A1A',
+    bg: 'var(--color-warning-600)',
+    text: 'var(--color-white)',
+    light: 'var(--color-warning-50)',
+    border: 'var(--color-warning-600)',
   },
   awaiting_payment: {
-    bg: '#9A5A1E',
-    text: '#ffffff',
-    light: '#FBEEE0',
-    border: '#9A5A1E',
+    bg: 'var(--color-ochre-700)',
+    text: 'var(--color-white)',
+    light: 'var(--color-ochre-50)',
+    border: 'var(--color-ochre-700)',
   },
   paid: {
-    bg: '#3E7A4E',
-    text: '#ffffff',
-    light: '#E7F3EB',
-    border: '#3E7A4E',
+    bg: 'var(--color-success-600)',
+    text: 'var(--color-white)',
+    light: 'var(--color-success-50)',
+    border: 'var(--color-success-600)',
   },
   repeating: {
-    bg: '#56565C',
-    text: '#ffffff',
-    light: '#F1F1F2',
-    border: '#56565C',
+    bg: 'var(--color-neutral-500)',
+    text: 'var(--color-white)',
+    light: 'var(--color-neutral-50)',
+    border: 'var(--color-neutral-500)',
   },
   failed: {
-    bg: '#9E3B3B',
-    text: '#ffffff',
-    light: '#FAEAEA',
-    border: '#9E3B3B',
+    bg: 'var(--color-danger-600)',
+    text: 'var(--color-white)',
+    light: 'var(--color-danger-50)',
+    border: 'var(--color-danger-600)',
   },
   // Paid through the pipeline, awaiting bank-statement reconciliation
   reconcile: {
-    bg: '#2A7E78',
-    text: '#ffffff',
-    light: '#E3F1EF',
-    border: '#2A7E78',
+    bg: 'var(--color-reconcile)',
+    text: 'var(--color-white)',
+    light: 'var(--color-reconcile-50)',
+    border: 'var(--color-reconcile)',
   },
 } as const;
 
@@ -174,9 +174,9 @@ export const COMPONENTS = {
 
 // Expense-specific status colors (muted palette)
 export const EXPENSE_STATUS_COLORS = {
-  pending_manager_approval: { bg: '#D4B35A', text: '#5C4A1A', light: '#FAF5E8', border: '#D4B35A' },
-  pending_finance_approval: { bg: '#8B7BB8', text: '#ffffff', light: '#F0ECF7', border: '#8B7BB8' },
-  manager_approved: { bg: '#6B8FB8', text: '#ffffff', light: '#EDF2F7', border: '#6B8FB8' },
+  pending_manager_approval: { bg: 'var(--color-warning-400)', text: 'var(--color-warning-900)', light: 'var(--color-warning-50)', border: 'var(--color-warning-400)' },
+  pending_finance_approval: { bg: 'var(--color-heather)', text: 'var(--color-white)', light: 'var(--color-heather-50)', border: 'var(--color-heather)' },
+  manager_approved: { bg: 'var(--color-info)', text: 'var(--color-white)', light: 'var(--color-info-50)', border: 'var(--color-info)' },
 } as const;
 
 // Helper function to get status color

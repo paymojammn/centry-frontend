@@ -90,8 +90,8 @@ export default function ProfilePage() {
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
-      employee: "bg-[#6B8FB8]/10 text-[#6B8FB8]",
-      team_lead: "bg-[#8B7BB8]/10 text-[#8B7BB8]",
+      employee: "bg-info/10 text-info",
+      team_lead: "bg-heather/10 text-heather",
       finance: "bg-primary/5 text-primary",
     };
     const style = styles[role] || "bg-muted text-foreground";
@@ -189,7 +189,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2">
               {getRoleBadge(profile.role)}
               {profile.erp_provider && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#8B7BB8]/10 text-[#8B7BB8]">
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-heather/10 text-heather">
                   {profile.erp_provider.toUpperCase()}
                 </span>
               )}
@@ -202,7 +202,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Joined:</span>
-              <span className="px-2 py-0.5 rounded text-sm font-medium bg-[#6B8FB8]/10 text-[#6B8FB8]">
+              <span className="px-2 py-0.5 rounded text-sm font-medium bg-info/10 text-info">
                 {format(new Date(profile.date_joined), "MMM yyyy")}
               </span>
             </div>

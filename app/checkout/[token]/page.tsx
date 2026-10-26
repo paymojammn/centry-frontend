@@ -210,8 +210,8 @@ export default function CheckoutPage() {
       <CheckoutLayout>
         <CheckoutCard>
           <CheckoutCardContent className="py-16 text-center">
-            <div className="size-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="size-7 text-red-400" />
+            <div className="size-14 rounded-full bg-danger-50 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="size-7 text-danger-400" />
             </div>
             <h2 className="text-lg font-semibold text-slate-800 mb-1">Session not found</h2>
             <p className="text-sm text-slate-400">This checkout session may have expired or is invalid.</p>
@@ -227,8 +227,8 @@ export default function CheckoutPage() {
       <CheckoutLayout merchantName={checkoutInfo.session.merchant.name} merchantLogo={checkoutInfo.session.merchant.logo_url}>
         <CheckoutCard>
           <CheckoutCardContent className="py-16 text-center">
-            <div className="size-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
-              <Clock className="size-7 text-amber-400" />
+            <div className="size-14 rounded-full bg-warning-50 flex items-center justify-center mx-auto mb-4">
+              <Clock className="size-7 text-warning-400" />
             </div>
             <h2 className="text-lg font-semibold text-slate-800 mb-1">Session expired</h2>
             <p className="text-sm text-slate-400 mb-6">This checkout session has expired. Please start a new checkout.</p>
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
 
             {/* Trust badge */}
             <div className="flex items-center justify-center gap-1.5 pt-1">
-              <ShieldCheck className="size-3 text-emerald-500" />
+              <ShieldCheck className="size-3 text-success-500" />
               <span className="text-[11px] text-slate-400">
                 256-bit encrypted &middot; PCI compliant
               </span>

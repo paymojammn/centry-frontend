@@ -114,13 +114,13 @@ export default function PaymentsPage() {
     {
       label: 'To Reconcile',
       value: stats?.unmatched_count || 0,
-      color: '#f59e0b',
+      color: 'var(--color-warning)',
       variant: (stats?.unmatched_count || 0) > 0 ? 'warning' as const : 'default' as const,
     },
     {
       label: 'Unmatched Amount',
       value: formatCurrency(stats?.total_unmatched_amount || 0, organizationCurrency),
-      color: '#f59e0b',
+      color: 'var(--color-warning)',
     },
     {
       label: 'Matched',

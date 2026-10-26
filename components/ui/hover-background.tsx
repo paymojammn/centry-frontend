@@ -18,14 +18,14 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
   const {
     background = 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
     objects = [
-      'bg-cyan-400/20',
+      'bg-info-400/20',
       'bg-purple-400/20',
       'bg-fuchsia-400/20',
       'bg-violet-400/20',
-      'bg-blue-400/20',
+      'bg-info-400/20',
       'bg-indigo-400/20',
     ],
-    glow = 'shadow-cyan-400/50',
+    glow = 'shadow-info-400/50',
   } = colors;
 
   const [isHovered, setIsHovered] = React.useState(false);

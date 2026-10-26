@@ -44,14 +44,14 @@ import {
 import { StatusDot } from '@/components/ui/status-badge';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING_APPROVAL: { label: 'Pending', color: '#b08b00', bg: '#fed652' },
-  PROCESSING: { label: 'Processing', color: '#6B8FB8', bg: '#6B8FB8' },
-  SENT_PAYMENT: { label: 'Sent', color: '#f77f00', bg: '#f77f00' },
-  SUCCESS_PAYMENT: { label: 'Paid', color: '#5C8A65', bg: '#5C8A65' },
-  FAILED_PAYMENT: { label: 'Failed', color: '#dc2626', bg: '#dc2626' },
-  ERROR_PAYMENT: { label: 'Failed', color: '#dc2626', bg: '#dc2626' },
-  REJECTED: { label: 'Rejected', color: '#dc2626', bg: '#dc2626' },
-  PENDING: { label: 'Pending', color: '#bec3c6', bg: '#bec3c6' },
+  PENDING_APPROVAL: { label: 'Pending', color: 'var(--color-warning-800)', bg: 'var(--color-warning-400)' },
+  PROCESSING: { label: 'Processing', color: 'var(--color-info)', bg: 'var(--color-info)' },
+  SENT_PAYMENT: { label: 'Sent', color: 'var(--color-ochre)', bg: 'var(--color-ochre)' },
+  SUCCESS_PAYMENT: { label: 'Paid', color: 'var(--color-success)', bg: 'var(--color-success)' },
+  FAILED_PAYMENT: { label: 'Failed', color: 'var(--color-danger)', bg: 'var(--color-danger)' },
+  ERROR_PAYMENT: { label: 'Failed', color: 'var(--color-danger)', bg: 'var(--color-danger)' },
+  REJECTED: { label: 'Rejected', color: 'var(--color-danger)', bg: 'var(--color-danger)' },
+  PENDING: { label: 'Pending', color: 'var(--color-neutral-300)', bg: 'var(--color-neutral-300)' },
 };
 
 const METHOD_ICONS: Record<string, typeof Smartphone> = {
@@ -355,7 +355,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                           <button
                             onClick={() => handleApprove(e.id)}
                             disabled={actingId === e.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-success-50 text-success-700 hover:bg-success-100 transition-colors disabled:opacity-50"
                             title="Approve"
                           >
                             {actingId === e.id ? (
@@ -368,7 +368,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                           <button
                             onClick={() => handleReject(e.id)}
                             disabled={actingId === e.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal rounded bg-danger-50 text-danger-700 hover:bg-danger-100 transition-colors disabled:opacity-50"
                             title="Reject"
                           >
                             <X className="h-3 w-3" />
@@ -423,7 +423,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                         </button>
                         {e.fx_rate && isFxStale(e.fx_fetched_at) && (
                           <span
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-normal bg-amber-50 text-amber-800 border border-amber-200"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-normal bg-warning-50 text-warning-800 border border-warning-200"
                             title={`FX rate locked ${formatDate(e.fx_fetched_at)} — over ${FX_STALE_HOURS}h old`}
                           >
                             <AlertCircle className="h-2.5 w-2.5" />
@@ -546,7 +546,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
                 </div>
 
                 {stale && (
-                  <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  <div className="flex items-start gap-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-xs text-warning-900">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                     <span>
                       FX rate locked {formatDate(t.fx_fetched_at)} — over {FX_STALE_HOURS}h old.

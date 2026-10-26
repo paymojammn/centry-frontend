@@ -52,8 +52,8 @@ export function ReconciliationStats() {
       label: "Unmatched",
       value: summary?.total_unmatched || 0,
       icon: AlertCircle,
-      color: "text-[#D4944A]",
-      bgColor: "bg-[#D4944A]/10",
+      color: "text-ochre",
+      bgColor: "bg-ochre/10",
       description: "Need reconciliation",
     },
     {
@@ -76,8 +76,8 @@ export function ReconciliationStats() {
       label: "Total",
       value: summary?.total_transactions || 0,
       icon: Clock,
-      color: "text-[#6B8FB8]",
-      bgColor: "bg-[#6B8FB8]/10",
+      color: "text-info",
+      bgColor: "bg-info/10",
       description: "All transactions",
     },
   ];

@@ -12,22 +12,22 @@ interface ReconciliationInfoProps {
 
 export function ReconciliationInfo({ hasSyncedTransactions = false }: ReconciliationInfoProps) {
   return (
-    <Card className="border-[#6B8FB8]/20 bg-[#6B8FB8]/10/50">
+    <Card className="border-info/20 bg-info/10">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-[#6B8FB8]">
+        <CardTitle className="flex items-center gap-2 text-info">
           <ListChecks className="h-5 w-5" />
           Bank Reconciliation Workflow
         </CardTitle>
-        <CardDescription className="text-[#6B8FB8]">
+        <CardDescription className="text-info">
           How transactions appear in Xero for reconciliation
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Important Note about Statement Lines */}
-        <Alert className="border-[#D4944A]/30 bg-[#D4944A]/10">
-          <Info className="h-4 w-4 text-[#D4944A]" />
-          <AlertTitle className="text-[#D4944A]">Important: Statement Import vs Transactions</AlertTitle>
-          <AlertDescription className="text-[#D4944A] space-y-2">
+        <Alert className="border-ochre/30 bg-ochre/10">
+          <Info className="h-4 w-4 text-ochre" />
+          <AlertTitle className="text-ochre">Important: Statement Import vs Transactions</AlertTitle>
+          <AlertDescription className="text-ochre space-y-2">
             <p className="text-sm"><strong>Two ways to import to Xero:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-2 text-sm">
               <li>
@@ -42,10 +42,10 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         </Alert>
 
         {/* How it works */}
-        <Alert className="border-[#6B8FB8]/30 bg-card">
-          <Info className="h-4 w-4 text-[#6B8FB8]" />
-          <AlertTitle className="text-[#6B8FB8]">How Transactions Are Synced</AlertTitle>
-          <AlertDescription className="text-[#6B8FB8] space-y-2">
+        <Alert className="border-info/30 bg-card">
+          <Info className="h-4 w-4 text-info" />
+          <AlertTitle className="text-info">How Transactions Are Synced</AlertTitle>
+          <AlertDescription className="text-info space-y-2">
             <p>When you sync bank statements to Xero, transactions are created with:</p>
             <ul className="list-disc list-inside space-y-1 ml-2 text-sm">
               <li>
@@ -61,7 +61,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
                 → Type: <strong>SPEND</strong> (money out)
               </li>
               <li>
-                <Badge variant="outline" className="mr-2 border-[#D4B35A]/30 bg-[#D4B35A]/10 text-[#D4B35A]">
+                <Badge variant="outline" className="mr-2 border-warning-400/30 bg-warning-400/10 text-warning-400">
                   IsReconciled
                 </Badge>
                 → <strong>false</strong> (ready to match)
@@ -72,42 +72,42 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
 
         {/* Steps to verify */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-[#6B8FB8] flex items-center gap-2">
+          <h4 className="font-semibold text-info flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Verify in Xero (5 Steps)
           </h4>
           
-          <ol className="space-y-2 text-sm text-[#6B8FB8]">
+          <ol className="space-y-2 text-sm text-info">
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#6B8FB8] text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
                 1
               </span>
               <span>Log in to your <strong>Xero account</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#6B8FB8] text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
                 2
               </span>
               <span>Go to <strong>Accounting → Bank Accounts</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#6B8FB8] text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
                 3
               </span>
               <span>Click on your <strong>bank account</strong></span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#6B8FB8] text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
                 4
               </span>
               <span>Click the <strong>&quot;Reconcile&quot;</strong> tab</span>
             </li>
             
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#6B8FB8] text-white flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-info text-white flex items-center justify-center text-xs font-bold">
                 5
               </span>
               <span>You should see your imported transactions as <strong>unreconciled</strong></span>
@@ -116,9 +116,9 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         </div>
 
         {/* What you can do */}
-        <div className="rounded-lg border border-[#6B8FB8]/20 bg-card p-4 space-y-2">
-          <h4 className="font-semibold text-[#6B8FB8]">In Xero&apos;s Reconciliation Screen:</h4>
-          <ul className="text-sm text-[#6B8FB8] space-y-1 ml-4 list-disc">
+        <div className="rounded-lg border border-info/20 bg-card p-4 space-y-2">
+          <h4 className="font-semibold text-info">In Xero&apos;s Reconciliation Screen:</h4>
+          <ul className="text-sm text-info space-y-1 ml-4 list-disc">
             <li>Match transactions to existing invoices or bills</li>
             <li>Create new spend/receive money entries</li>
             <li>Split transactions across multiple accounts</li>
@@ -129,7 +129,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         {/* Action button */}
         {hasSyncedTransactions && (
           <Button 
-            className="w-full bg-[#6B8FB8] hover:bg-[#5A7FA8] text-white"
+            className="w-full bg-info hover:bg-info text-white"
             onClick={() => window.open('https://go.xero.com/Bank/BankAccounts.aspx', '_blank')}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
@@ -138,7 +138,7 @@ export function ReconciliationInfo({ hasSyncedTransactions = false }: Reconcilia
         )}
 
         {/* Documentation link */}
-        <div className="text-xs text-[#6B8FB8] text-center pt-2 border-t border-[#6B8FB8]/20">
+        <div className="text-xs text-info text-center pt-2 border-t border-info/20">
           <a 
             href="https://central.xero.com/s/article/Reconcile-bank-accounts" 
             target="_blank" 

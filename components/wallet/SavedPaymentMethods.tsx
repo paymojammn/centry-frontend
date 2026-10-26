@@ -7,32 +7,32 @@ import type { SavedPaymentMethod } from '@/types/wallet';
 import SavePaymentMethodModal from './SavePaymentMethodModal';
 
 // Card gradient configurations for different providers using brand colors
-// #6B8FB8 Blue, #fed652 Mustard, #f77f00 Orange, #5C8A65 Green, #bec3c6 Grey
+// var(--color-info) Blue, var(--color-warning-400) Mustard, var(--color-ochre) Orange, var(--color-success) Green, var(--color-neutral-300) Grey
 const cardStyles: Record<string, { gradient: string; accent: string; pattern: string }> = {
   mtn: {
-    gradient: 'from-[#fed652] via-[#f5c842] to-[#f77f00]',
-    accent: 'bg-[#fed652]/40',
-    pattern: 'bg-gradient-to-br from-[#fed652]/20 to-transparent',
+    gradient: 'from-warning-400 via-warning-300 to-ochre',
+    accent: 'bg-warning-400/40',
+    pattern: 'bg-gradient-to-br from-warning-400/20 to-transparent',
   },
   airtel: {
-    gradient: 'from-[#f77f00] via-[#e06d00] to-[#c45a00]',
-    accent: 'bg-[#f77f00]/40',
-    pattern: 'bg-gradient-to-br from-[#f77f00]/20 to-transparent',
+    gradient: 'from-ochre via-ochre to-ochre-700',
+    accent: 'bg-ochre/40',
+    pattern: 'bg-gradient-to-br from-ochre/20 to-transparent',
   },
   mpesa: {
-    gradient: 'from-primary via-[#4A7252] to-[#3A5B42]',
+    gradient: 'from-primary via-success to-forest-light',
     accent: 'bg-primary/40',
     pattern: 'bg-gradient-to-br from-primary/20 to-transparent',
   },
   bank: {
-    gradient: 'from-[#6B8FB8] via-[#567A9E] to-[#3F5D7A]',
-    accent: 'bg-[#6B8FB8]/40',
-    pattern: 'bg-gradient-to-br from-[#6B8FB8]/20 to-transparent',
+    gradient: 'from-info via-info to-info-700',
+    accent: 'bg-info/40',
+    pattern: 'bg-gradient-to-br from-info/20 to-transparent',
   },
   default: {
-    gradient: 'from-[#bec3c6] via-[#9ca3a8] to-[#6b7280]',
-    accent: 'bg-[#bec3c6]/40',
-    pattern: 'bg-gradient-to-br from-[#bec3c6]/20 to-transparent',
+    gradient: 'from-neutral-300 via-neutral-400 to-neutral-500',
+    accent: 'bg-neutral-300/40',
+    pattern: 'bg-gradient-to-br from-neutral-300/20 to-transparent',
   },
 };
 

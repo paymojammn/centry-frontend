@@ -84,9 +84,9 @@ const formatAmountFull = (value: number) =>
   }).format(value);
 
 const STATUS_COLORS: Record<string, string> = {
-  Success: "#10b981",
-  Failed: "#ef4444",
-  Processing: "#f59e0b",
+  Success: "var(--color-success)",
+  Failed: "var(--color-danger)",
+  Processing: "var(--color-warning)",
 };
 
 const CHANNEL_ICONS: Record<string, typeof Landmark> = {
@@ -118,35 +118,35 @@ const STATUS_BADGE_MAP: Record<
 > = {
   SUCCESS_PAYMENT: {
     label: "Success",
-    className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+    className: "bg-success-500/10 text-success-700 border-success-500/20",
   },
   FAILED_PAYMENT: {
     label: "Failed",
-    className: "bg-red-500/10 text-red-700 border-red-500/20",
+    className: "bg-danger-500/10 text-danger-700 border-danger-500/20",
   },
   ERROR_PAYMENT: {
     label: "Error",
-    className: "bg-red-500/10 text-red-700 border-red-500/20",
+    className: "bg-danger-500/10 text-danger-700 border-danger-500/20",
   },
   REJECTED: {
     label: "Rejected",
-    className: "bg-red-500/10 text-red-700 border-red-500/20",
+    className: "bg-danger-500/10 text-danger-700 border-danger-500/20",
   },
   PENDING_APPROVAL: {
     label: "Pending Approval",
-    className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    className: "bg-warning-500/10 text-warning-700 border-warning-500/20",
   },
   PROCESSING: {
     label: "Processing",
-    className: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    className: "bg-info-500/10 text-info-700 border-info-500/20",
   },
   PENDING: {
     label: "Pending",
-    className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    className: "bg-warning-500/10 text-warning-700 border-warning-500/20",
   },
   SENT_PAYMENT: {
     label: "Sent",
-    className: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    className: "bg-info-500/10 text-info-700 border-info-500/20",
   },
   REVERSED: {
     label: "Reversed",
@@ -239,34 +239,34 @@ function ChannelStatusCard({ channel }: { channel: ChannelBreakdown }) {
       <div className="h-2.5 rounded-full bg-muted overflow-hidden flex mb-2.5">
         {succPct > 0 && (
           <div
-            className="h-full bg-emerald-500 transition-all"
+            className="h-full bg-success-500 transition-all"
             style={{ width: `${succPct}%` }}
           />
         )}
         {failPct > 0 && (
           <div
-            className="h-full bg-red-500 transition-all"
+            className="h-full bg-danger-500 transition-all"
             style={{ width: `${failPct}%` }}
           />
         )}
         {pendPct > 0 && (
           <div
-            className="h-full bg-amber-500 transition-all"
+            className="h-full bg-warning-500 transition-all"
             style={{ width: `${pendPct}%` }}
           />
         )}
       </div>
 
       <div className="flex items-center gap-4 text-xs">
-        <span className="flex items-center gap-1 text-emerald-600">
+        <span className="flex items-center gap-1 text-success-600">
           <CheckCircle2 className="h-3 w-3" />
           {channel.successful.count}
         </span>
-        <span className="flex items-center gap-1 text-red-500">
+        <span className="flex items-center gap-1 text-danger-500">
           <XCircle className="h-3 w-3" />
           {channel.failed.count}
         </span>
-        <span className="flex items-center gap-1 text-amber-600">
+        <span className="flex items-center gap-1 text-warning-600">
           <Clock className="h-3 w-3" />
           {channel.pending.count}
         </span>
@@ -289,7 +289,7 @@ function StatusDonut({
       name: d.status,
       value: d.count,
       amount: d.amount,
-      fill: STATUS_COLORS[d.status] || "#94a3b8",
+      fill: STATUS_COLORS[d.status] || "var(--color-neutral-400)",
     }));
 
   const total = chartData.reduce((s, d) => s + d.value, 0);
@@ -424,7 +424,7 @@ function FileRow({ file }: { file: PaymentFile }) {
             <div className="h-1.5 rounded-full bg-muted overflow-hidden flex">
               {file.successful_count > 0 && (
                 <div
-                  className="h-full bg-emerald-500"
+                  className="h-full bg-success-500"
                   style={{
                     width: `${(file.successful_count / file.payment_count) * 100}%`,
                   }}
@@ -432,7 +432,7 @@ function FileRow({ file }: { file: PaymentFile }) {
               )}
               {file.failed_count > 0 && (
                 <div
-                  className="h-full bg-red-500"
+                  className="h-full bg-danger-500"
                   style={{
                     width: `${(file.failed_count / file.payment_count) * 100}%`,
                   }}
@@ -440,7 +440,7 @@ function FileRow({ file }: { file: PaymentFile }) {
               )}
               {file.pending_count > 0 && (
                 <div
-                  className="h-full bg-amber-500"
+                  className="h-full bg-warning-500"
                   style={{
                     width: `${(file.pending_count / file.payment_count) * 100}%`,
                   }}
@@ -448,11 +448,11 @@ function FileRow({ file }: { file: PaymentFile }) {
               )}
             </div>
             <div className="flex gap-2 text-[10px] text-muted-foreground">
-              <span className="text-emerald-600">
+              <span className="text-success-600">
                 {file.successful_count}ok
               </span>
-              <span className="text-red-500">{file.failed_count}fail</span>
-              <span className="text-amber-600">
+              <span className="text-danger-500">{file.failed_count}fail</span>
+              <span className="text-warning-600">
                 {file.pending_count}wait
               </span>
             </div>
@@ -554,16 +554,16 @@ function TransactionRow({ txn }: { txn: PaymentTransaction }) {
       <div className="col-span-1 min-w-0">
         {txn.approved_by ? (
           <div className="flex items-center gap-1.5 min-w-0">
-            <ShieldCheck className="h-3 w-3 text-emerald-600 shrink-0" />
+            <ShieldCheck className="h-3 w-3 text-success-600 shrink-0" />
             <span className="text-[12px] text-foreground truncate" title={txn.approved_by.email}>
               {txn.approved_by.name}
             </span>
           </div>
         ) : txn.rejected_by ? (
           <div className="flex items-center gap-1.5 min-w-0">
-            <XCircle className="h-3 w-3 text-red-500 shrink-0" />
+            <XCircle className="h-3 w-3 text-danger-500 shrink-0" />
             <span
-              className="text-[12px] text-red-600 truncate"
+              className="text-[12px] text-danger-600 truncate"
               title={txn.rejected_by.reason || txn.rejected_by.email}
             >
               {txn.rejected_by.name}
@@ -743,8 +743,8 @@ export default function TransactionReportsPage() {
                       report?.overview.successful.amount || 0
                     )}
                     icon={CheckCircle2}
-                    iconColor="#10b981"
-                    iconBgColor="#10b98115"
+                    iconColor="var(--color-success)"
+                    iconBgColor="#3E8A5515"
                     subtext={`${report?.overview.successful.count || 0} payments cleared`}
                   />
                   <StatCard
@@ -910,19 +910,19 @@ export default function TransactionReportsPage() {
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="success">
                     <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="w-2 h-2 rounded-full bg-success-500" />
                       Success
                     </span>
                   </SelectItem>
                   <SelectItem value="failed">
                     <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="w-2 h-2 rounded-full bg-danger-500" />
                       Failed
                     </span>
                   </SelectItem>
                   <SelectItem value="processing">
                     <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span className="w-2 h-2 rounded-full bg-warning-500" />
                       Processing
                     </span>
                   </SelectItem>

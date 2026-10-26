@@ -65,7 +65,7 @@ export function CashFlowCard({ data }: CashFlowCardProps) {
             <div className="text-right">
               <p
                 className={`text-sm font-semibold tabular-nums ${
-                  net >= 0 ? "text-emerald-600" : "text-red-600"
+                  net >= 0 ? "text-success-600" : "text-danger-600"
                 }`}
               >
                 {net >= 0 ? "+" : "−"}
@@ -88,7 +88,7 @@ export function CashFlowCard({ data }: CashFlowCardProps) {
           <>
             <div className="flex items-center gap-4 px-3 pt-3 pb-1">
               <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1 text-emerald-600">
+                <span className="flex items-center gap-1 text-success-600">
                   <ArrowDownLeft className="h-3.5 w-3.5" />
                   <span className="text-sm font-semibold tabular-nums">
                     {formatCurrencyCompact(total_inflow, currency)}
@@ -97,7 +97,7 @@ export function CashFlowCard({ data }: CashFlowCardProps) {
                 <span className="text-[11px] text-muted-foreground">in</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1 text-red-600">
+                <span className="flex items-center gap-1 text-danger-600">
                   <ArrowUpRight className="h-3.5 w-3.5" />
                   <span className="text-sm font-semibold tabular-nums">
                     {formatCurrencyCompact(total_outflow, currency)}

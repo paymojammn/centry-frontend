@@ -62,12 +62,12 @@ export function CashFlowChart({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorCredits" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorDebits" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-danger)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-danger)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -97,7 +97,7 @@ export function CashFlowChart({
                 type="monotone"
                 dataKey="credits"
                 name="Inflows"
-                stroke="#10b981"
+                stroke="var(--color-success)"
                 fillOpacity={1}
                 fill="url(#colorCredits)"
               />
@@ -105,7 +105,7 @@ export function CashFlowChart({
                 type="monotone"
                 dataKey="debits"
                 name="Outflows"
-                stroke="#ef4444"
+                stroke="var(--color-danger)"
                 fillOpacity={1}
                 fill="url(#colorDebits)"
               />

@@ -43,8 +43,8 @@ export default function Item10() {
           <div className="flex items-center justify-between flex-wrap gap-2.5">
             <div className="flex items-center gap-2.5">
               <div className="border border-warning-transparent rounded-lg">
-                <div className="flex items-center justify-center border-b border-b-warning-transparent bg-yellow-400/10 rounded-t-lg">
-                  <span className="text-xs text-yellow-400 fw-medium p-1.5">
+                <div className="flex items-center justify-center border-b border-b-warning-transparent bg-warning-400/10 rounded-t-lg">
+                  <span className="text-xs text-warning-400 fw-medium p-1.5">
                     Apr
                   </span>
                 </div>
@@ -76,7 +76,7 @@ export default function Item10() {
                 { path: '/media/avatars/300-3.png' },
                 {
                   fallback: '+3',
-                  variant: 'text-white size-6 ring-background bg-green-500',
+                  variant: 'text-white size-6 ring-background bg-success-500',
                 },
               ]}
             />

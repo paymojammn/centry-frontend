@@ -49,7 +49,7 @@ export function CountrySelector({
           <p className="text-sm font-medium text-slate-700">{country.name}</p>
           <p className="text-[11px] text-slate-400">{country.currency}</p>
         </div>
-        <Check className="size-4 text-emerald-500" />
+        <Check className="size-4 text-success-500" />
       </div>
     );
   }

@@ -4,25 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, Loader2, ArrowRight, XCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { getApiUrl } from '@/config/api';
-import { BRAND } from '@/config/brand';
+import { BRAND, copyrightLine } from '@/config/brand';
+import { vendorBrand, vendorBrandDefault } from '@/lib/colors';
 import { signInWithOdoo } from '@/lib/odoo-api';
 
-// Provider branding — colors & icons for known ERPs
-const PROVIDER_BRANDING: Record<string, { color: string; icon: string }> = {
-  xero:       { color: '#13B5EA', icon: 'X' },
-  qbo:        { color: '#2CA01C', icon: 'QB' },
-  erpnext:    { color: '#0089FF', icon: 'EN' },
-  sage:       { color: '#00DC00', icon: 'S' },
-  freshbooks: { color: '#0075DD', icon: 'FB' },
-  zoho:       { color: '#E42527', icon: 'Z' },
-  wave:       { color: '#2A3B4C', icon: 'W' },
-  netsuite:   { color: '#1B3A56', icon: 'NS' },
-  dynamics:   { color: '#002050', icon: 'D' },
-  myob:       { color: '#6100A5', icon: 'M' },
-  odoo:       { color: '#714B67', icon: 'O' },
-};
-
-const DEFAULT_BRANDING = { color: '#64748B', icon: '?' };
+// Provider branding — vendors' own identity colours live in lib/colors.ts
+const PROVIDER_BRANDING = vendorBrand;
+const DEFAULT_BRANDING = vendorBrandDefault;
 
 interface Provider {
   id: string;
@@ -152,158 +140,167 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="fixed inset-0 flex">
-      {/* Left - Branding Panel */}
-      <div className="hidden lg:flex w-[45%] bg-[rgb(var(--brand-dark))] relative overflow-hidden">
-        <svg className="absolute inset-0 w-full h-full opacity-15" viewBox="0 0 800 600" preserveAspectRatio="none">
-          <path d="M0,200 Q200,150 400,200 T800,180" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="1" />
-          <path d="M0,220 Q200,170 400,220 T800,200" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.8" />
-          <path d="M0,240 Q200,190 400,240 T800,220" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.6" />
-          <path d="M0,400 Q200,350 400,400 T800,380" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="1" />
-          <path d="M0,420 Q200,370 400,420 T800,400" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.8" />
-          <path d="M0,440 Q200,390 400,440 T800,420" fill="none" stroke="rgb(var(--brand-primary-light))" strokeWidth="0.6" />
-        </svg>
+    <div className="relative w-full min-h-dvh flex flex-col bg-[rgb(var(--page-bg))]">
+      {/* Forest hairline across the top — the only chrome on the page */}
+      <div aria-hidden className="relative z-10 h-1 w-full bg-forest" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
-          <img src={BRAND.logo.markDark} alt={BRAND.name} className="h-24 w-24 mb-6" />
-          <h1 className="text-5xl xl:text-6xl font-bold text-white tracking-wide">{BRAND.name}</h1>
-          <p className="text-white/40 mt-3 text-sm">{BRAND.tagline}</p>
-        </div>
-      </div>
+      {/* Topographic contour texture from the brand board, sage at very low
+          opacity so it reads as paper grain, not decoration. */}
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full text-sage opacity-[0.14]"
+        viewBox="0 0 1600 900"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        stroke="currentColor"
+      >
+        <path d="M-50,120 C250,60 450,200 800,140 S1350,60 1650,160" strokeWidth="1" />
+        <path d="M-50,160 C250,100 450,240 800,180 S1350,100 1650,200" strokeWidth="0.8" />
+        <path d="M-50,200 C250,140 450,280 800,220 S1350,140 1650,240" strokeWidth="0.6" />
+        <path d="M-50,700 C250,640 450,780 800,720 S1350,640 1650,740" strokeWidth="1" />
+        <path d="M-50,740 C250,680 450,820 800,760 S1350,680 1650,780" strokeWidth="0.8" />
+        <path d="M-50,780 C250,720 450,860 800,800 S1350,720 1650,820" strokeWidth="0.6" />
+      </svg>
 
-      {/* Right - ERP Picker */}
-      <div className="w-full lg:w-[55%] flex flex-col bg-card overflow-hidden">
-        {/* Mobile header */}
-        <div className="lg:hidden p-5 border-b border-border shrink-0">
-          <div className="flex items-center gap-3">
-            <img src={BRAND.logo.mark} alt={BRAND.name} className="h-8 w-8" />
-            <span className="text-lg font-semibold text-foreground">{BRAND.name}</span>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="px-8 pt-10 pb-6 lg:px-12 xl:px-16 shrink-0">
-          <h2 className="text-2xl font-semibold text-foreground mb-1">
-            Connect your ERP
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Choose your accounting software to get started
+      {/* Optically centred composition: header + card move together */}
+      <main className="relative z-10 flex flex-1 flex-col justify-center px-4 py-12">
+        {/* Wordmark + motto — the logo is the hero, nothing competes with it */}
+        <header className="flex flex-col items-center pb-10 text-center">
+          <img src={BRAND.logo.wordmark} alt={BRAND.name} className="h-11 w-auto" />
+          <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            {BRAND.motto}
           </p>
+        </header>
 
-          {/* Search */}
-          <div className="relative mt-5">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search accounting software..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 bg-muted/50 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
+        {/* Single centred card */}
+        <div className="mx-auto w-full max-w-md rounded-2xl bg-white/60 backdrop-blur-sm border border-forest/[0.08] shadow-lg shadow-forest/[0.04] animate-fade-in-up">
+          <div className="px-6 pt-7 pb-4 sm:px-8">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Sign in</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choose the accounting software you use and we&apos;ll sign you in with it.
+            </p>
 
-          {/* Category pills */}
-          {categories.length > 2 && (
-            <div className="flex gap-2 mt-4 flex-wrap">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    selectedCategory === cat
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  {cat === 'all' ? 'All' : cat}
-                </button>
-              ))}
+            {/* Search */}
+            <div className="relative mt-6">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search accounting software…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 bg-white/70 border border-forest/10 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all"
+              />
             </div>
-          )}
-        </div>
 
-        {/* Provider Grid — scrollable */}
-        <div className="flex-1 overflow-y-auto px-8 pb-6 lg:px-12 xl:px-16">
-          {/* Error banner for failed OAuth */}
-          {errorMessage && (
-            <div className="mb-4 flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
-              <XCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              <div className="flex-1">{errorMessage}</div>
-              <button onClick={() => setErrorMessage(null)} className="shrink-0 text-destructive/60 hover:text-destructive">
-                &times;
-              </button>
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filtered.map((provider) => {
-              const branding = PROVIDER_BRANDING[provider.code] || DEFAULT_BRANDING;
-              const isLoading = loadingProvider === provider.code;
-              const isDisabled = loadingProvider !== null;
-
-              return (
-                <button
-                  key={provider.id}
-                  onClick={() => selectProvider(provider)}
-                  disabled={isDisabled}
-                  className="group relative flex items-center gap-3.5 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-left"
-                >
-                  {/* Provider icon */}
-                  <div
-                    className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                    style={{ backgroundColor: branding.color }}
+            {/* Category pills */}
+            {categories.length > 2 && (
+              <div className="flex gap-2 mt-4 flex-wrap">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      selectedCategory === cat
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
+                    }`}
                   >
-                    {branding.icon}
-                  </div>
-
-                  {/* Provider info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">
-                      {provider.name}
-                    </div>
-                    {provider.category && (
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {provider.category}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Arrow / Loading */}
-                  <div className="shrink-0">
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 text-primary animate-spin" />
-                    ) : (
-                      <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground text-sm">
-                No providers found for &ldquo;{searchQuery}&rdquo;
+                    {cat === 'all' ? 'All' : cat}
+                  </button>
+                ))}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Footer */}
-        <div className="px-8 py-4 border-t border-border shrink-0 lg:px-12 xl:px-16">
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-wrap">
-            <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms</a>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-            <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</a>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-            <a href="/help-centre" className="hover:text-foreground transition-colors">Help</a>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-            <a href="/docs" className="hover:text-foreground transition-colors">Docs</a>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-            <a href={`${getApiUrl()}/admin/`} className="hover:text-foreground transition-colors">Admin</a>
+          {/* Provider list */}
+          <div className="px-6 pb-7 sm:px-8">
+            {/* Error banner for failed OAuth */}
+            {errorMessage && (
+              <div className="mb-4 flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+                <XCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <div className="flex-1">{errorMessage}</div>
+                <button onClick={() => setErrorMessage(null)} className="shrink-0 text-destructive/60 hover:text-destructive">
+                  &times;
+                </button>
+              </div>
+            )}
+            {/* One column, Xero-style: each provider is a full-width row so
+                three or eleven providers read equally well. */}
+            <div className="flex flex-col gap-2">
+              {filtered.map((provider) => {
+                const branding = PROVIDER_BRANDING[provider.code] || DEFAULT_BRANDING;
+                const isLoading = loadingProvider === provider.code;
+                const isDisabled = loadingProvider !== null;
+
+                return (
+                  <button
+                    key={provider.id}
+                    onClick={() => selectProvider(provider)}
+                    disabled={isDisabled}
+                    className="group relative flex items-center gap-3.5 p-3.5 bg-white/55 border border-forest/[0.08] rounded-xl hover:border-primary/40 hover:bg-white/90 hover:shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed text-left"
+                  >
+                    {/* Provider icon — the ERP's own colour, not ours */}
+                    <div
+                      className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-xs"
+                      style={{ backgroundColor: branding.color }}
+                    >
+                      {branding.icon}
+                    </div>
+
+                    {/* Provider info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground truncate">
+                        {provider.name}
+                      </div>
+                      {provider.category && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {provider.category}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Arrow / Loading */}
+                    <div className="shrink-0">
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                      ) : (
+                        <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {filtered.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground text-sm">
+                  {searchQuery
+                    ? <>No providers found for &ldquo;{searchQuery}&rdquo;</>
+                    : 'No accounting software is connected yet.'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 px-6 py-5">
+        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-wrap">
+          <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms</a>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</a>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          <a href="/help-centre" className="hover:text-foreground transition-colors">Help</a>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          <a href="/docs" className="hover:text-foreground transition-colors">Docs</a>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          <a href={`${getApiUrl()}/admin/`} className="hover:text-foreground transition-colors">Admin</a>
+        </div>
+        <p className="mt-2 text-center text-[11px] text-muted-foreground/70">{copyrightLine()}</p>
+      </footer>
 
       {/* API-key connect modal (Odoo) */}
       {apiKeyProvider && (

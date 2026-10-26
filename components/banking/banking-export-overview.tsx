@@ -345,20 +345,20 @@ const ACCENTS = {
     ring: "ring-primary/20",
   },
   amber: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-700",
-    ring: "ring-amber-500/20",
+    bg: "bg-warning-500/10",
+    text: "text-warning-700",
+    ring: "ring-warning-500/20",
   },
   emerald: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700",
-    ring: "ring-emerald-500/20",
+    bg: "bg-success-500/10",
+    text: "text-success-700",
+    ring: "ring-success-500/20",
   },
-  red: { bg: "bg-red-500/10", text: "text-red-700", ring: "ring-red-500/20" },
+  red: { bg: "bg-danger-500/10", text: "text-danger-700", ring: "ring-danger-500/20" },
   info: {
-    bg: "bg-blue-500/10",
-    text: "text-blue-700",
-    ring: "ring-blue-500/20",
+    bg: "bg-info-500/10",
+    text: "text-info-700",
+    ring: "ring-info-500/20",
   },
   muted: {
     bg: "bg-muted",
@@ -490,9 +490,9 @@ function AcceptanceRing({
       </div>
       <div className="w-full space-y-1.5 text-[12px]">
         <LegendRow color="bg-primary" label="Accepted" value={accepted} />
-        <LegendRow color="bg-red-500" label="Rejected" value={rejected} />
+        <LegendRow color="bg-danger-500" label="Rejected" value={rejected} />
         <LegendRow
-          color="bg-amber-500/70"
+          color="bg-warning-500/70"
           label="Pending"
           value={pending}
         />
@@ -523,14 +523,14 @@ function LegendRow({
 
 const STATUS_DOT: Record<string, string> = {
   pending: "bg-muted-foreground/40",
-  generated: "bg-blue-500",
-  uploaded: "bg-amber-500",
+  generated: "bg-info-500",
+  uploaded: "bg-warning-500",
   processed: "bg-primary",
-  failed: "bg-red-500",
+  failed: "bg-danger-500",
   // imports
   COMPLETED: "bg-primary",
-  PARTIAL: "bg-amber-500",
-  FAILED: "bg-red-500",
+  PARTIAL: "bg-warning-500",
+  FAILED: "bg-danger-500",
 };
 
 function RecentList<T>({

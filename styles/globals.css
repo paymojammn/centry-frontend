@@ -25,96 +25,119 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
   
-  /** Brand Colors - Muted Sage / European Fintech **/
-  --brand-primary: 92 138 101; /* #5C8A65 - Muted Sage Green */
-  --brand-primary-light: 120 160 128; /* #78A080 - Lighter sage */
-  --brand-primary-dark: 72 118 81; /* #487651 - Darker sage */
-  --brand-dark: 28 28 30; /* #1C1C1E - Charcoal */
-  --brand-dark-light: 44 44 46; /* #2C2C2E - Lighter charcoal */
-  --brand-black: 28 28 30; /* Charcoal, not pure black */
+  /** Brand Colors — Centry: Forest, Sage & Cream
+      Source: brand board (Forest #1E3528 primary · Sage #8FA377 · Cream #F2F0E6
+      · Gold #B8900E · Teal #638C80 · Lime #E2FF60 · Ink #26302A). RGB triples
+      so `rgb(var(--x) / a)` works everywhere. **/
+  --brand-forest: 30 53 40;        /* #1E3528 Forest Green — primary */
+  --brand-forest-light: 44 74 56;  /* #2C4A38 Hover / raised forest */
+  --brand-forest-deep: 21 40 29;   /* #15281D Pressed / deepest */
+  --brand-sage: 143 163 119;       /* #8FA377 Sage — secondary, logo mark */
+  --brand-cream: 242 240 230;      /* #F2F0E6 Cream — page canvas */
+  --brand-cream-deep: 233 230 217; /* #E9E6D9 Cream, one step deeper */
+  --brand-gold: 184 144 14;        /* #B8900E Gold — accent rules, never text */
+  --brand-teal: 99 140 128;        /* #638C80 Teal — supporting / info */
+  --brand-lime: 226 255 96;        /* #E2FF60 Lime — highlight on forest only */
+  --brand-ink: 38 48 42;           /* #26302A Ink — body text */
+
+  /* Semantic aliases — the rest of the app keys off these names. */
+  --brand-primary: var(--brand-forest);
+  --brand-primary-light: var(--brand-forest-light);
+  --brand-primary-dark: var(--brand-forest-deep);
+  --brand-dark: var(--brand-forest);          /* dark panels, sidebar, checkout */
+  --brand-dark-light: var(--brand-forest-light);
+  --brand-black: var(--brand-ink);
   --brand-white: 255 255 255;
-  --brand-gray-light: 248 248 247; /* #F8F8F7 - Soft off-white */
-  --brand-gray: 107 107 111; /* #6B6B6F - Warm grey */
-  --brand-gray-dark: 92 92 96; /* #5C5C60 - Subtle graphite */
+  --brand-gray-light: 247 245 239; /* #F7F5EF Cream-tinted surface (muted/secondary) */
+  --brand-gray: 104 113 107;       /* #68716B Green-grey — secondary text */
+  --brand-gray-dark: 78 88 82;     /* #4E5852 Graphite green */
+  --brand-accent: var(--brand-gold);
+  --brand-paper: 251 250 246;      /* #FBFAF6 Card surface — warm near-white, not pure white */
+  --brand-paper-light: 253 252 249; /* #FDFCF9 App background / inputs */
 
   /** Accent Colors **/
-  --accent-sand: 176 162 138; /* #B0A28A - Deep sand */
-  --accent-graphite: 92 92 96; /* #5C5C60 - Subtle graphite */
+  --accent-gold: var(--brand-gold);
+  --accent-teal: var(--brand-teal);
+  --accent-lime: var(--brand-lime);
 
   /** Page-level tokens **/
-  --page-bg: 248 248 247; /* #F8F8F7 - Soft off-white */
-  --page-bg-subtle: 242 242 240; /* #F2F2F0 - Slightly deeper */
+  --page-bg: var(--brand-cream);        /* #F2F0E6 */
+  --page-bg-subtle: var(--brand-cream-deep); /* #E9E6D9 */
 
-  /** Semantic Status Colors **/
-  --warning: 196 163 64; /* #C4A340 - Warm amber */
-  --success: 107 155 113; /* #6B9B71 - Soft muted green */
+  /** Semantic Status Colors (RGB triples; full scales live in @theme) **/
+  --success: 62 138 85;   /* #3E8A55 Moss — brighter than forest so it reads as "good" */
+  --warning: 200 146 31;  /* #C8921F Ochre — kept apart from Gold, which is decorative */
+  --danger: 191 75 62;    /* #BF4B3E Brick */
+  --info: var(--brand-teal);
 
   /** Border & Divider Colors **/
-  --divider-light: 235 235 234; /* #EBEBEA - Very subtle hairline */
-  --divider-warm: 220 220 218; /* #DCDCDA - Warm neutral grey */
-  --divider-teal: rgba(92, 138, 101, 0.12); /* Sage accent border */
-  --hover-row: rgba(92, 138, 101, 0.05); /* Very subtle sage hover */
+  --divider-light: 234 232 223; /* #EAE8DF Cream hairline */
+  --divider-warm: 219 216 204;  /* #DBD8CC Deeper cream rule */
+  --divider-teal: rgb(var(--brand-forest) / 0.14); /* Forest accent border */
+  --hover-row: rgb(var(--brand-forest) / 0.035);   /* Barely-there forest wash */
 
-  --background: rgb(var(--brand-white));
-  --foreground: rgb(var(--brand-dark)); /* Charcoal #1C1C1E */
-  --card: rgb(var(--brand-white));
-  --card-foreground: rgb(var(--brand-dark));
-  --popover: rgb(var(--brand-white));
-  --popover-foreground: rgb(var(--brand-dark));
-  --primary: rgb(var(--brand-primary));
+  --background: rgb(var(--brand-paper-light));
+  --foreground: rgb(var(--brand-ink)); /* Ink #26302A */
+  --card: rgb(var(--brand-paper));
+  --card-foreground: rgb(var(--brand-ink));
+  --popover: rgb(var(--brand-paper));
+  --popover-foreground: rgb(var(--brand-ink));
+  --primary: rgb(var(--brand-forest));
   --primary-foreground: rgb(var(--brand-white));
   --secondary: rgb(var(--brand-gray-light));
-  --secondary-foreground: rgb(var(--brand-dark));
+  --secondary-foreground: rgb(var(--brand-ink));
   --muted: rgb(var(--brand-gray-light));
-  --muted-foreground: rgb(var(--brand-gray)); /* Warm grey #6B6B6F */
-  --accent: rgb(var(--brand-primary-light));
-  --accent-foreground: rgb(var(--brand-dark));
-  --destructive: 184 92 92; /* #B85C5C - Soft muted red */
+  --muted-foreground: rgb(var(--brand-gray)); /* Green-grey #68716B */
+  --accent: rgb(var(--brand-sage) / 0.18);    /* Soft sage wash for hover/active menus */
+  --accent-foreground: rgb(var(--brand-forest));
+  --destructive: var(--danger);
   --destructive-foreground: rgb(var(--brand-white));
-  --chart-1: rgb(var(--brand-primary));
-  --chart-2: rgb(var(--brand-primary-light));
-  --chart-3: rgb(var(--brand-gray));
-  --chart-4: rgb(var(--brand-gray-dark));
-  --chart-5: rgb(var(--brand-primary-dark));
-  --border: rgb(var(--divider-light)); /* Very subtle hairline border */
+  --chart-1: rgb(var(--brand-forest));
+  --chart-2: rgb(var(--brand-sage));
+  --chart-3: rgb(var(--brand-teal));
+  --chart-4: rgb(var(--brand-gold));
+  --chart-5: rgb(var(--brand-gray));
+  --border: rgb(var(--divider-light)); /* Cream hairline border */
   --border-warm: rgb(var(--divider-warm));
   --border-accent: var(--divider-teal);
-  --input: rgb(235 235 234); /* #EBEBEA */
-  --ring: rgb(var(--brand-primary));
+  --input: rgb(var(--divider-warm));
+  --ring: rgb(var(--brand-forest));
   --radius: 0.875rem; /* 14px base for premium feel */
 }
 
+/* Dark: deep forest canvas, sage as the active colour (forest-on-forest has
+   no contrast), lime reserved for focus rings and the nav stripe. */
 .dark {
-  --page-bg: var(--brand-dark);
-  --page-bg-subtle: 44 44 46;
+  --page-bg: 15 26 20;          /* #0F1A14 */
+  --page-bg-subtle: 21 40 29;   /* #15281D */
 
-  --background: rgb(var(--brand-dark));
-  --foreground: rgb(220 220 218);
-  --card: rgb(var(--brand-dark-light));
-  --card-foreground: rgb(220 220 218);
-  --popover: rgb(var(--brand-dark-light));
-  --popover-foreground: rgb(220 220 218);
-  --primary: rgb(var(--brand-primary));
-  --primary-foreground: rgb(var(--brand-white));
-  --secondary: rgb(44 44 46);
-  --secondary-foreground: rgb(200 200 198);
-  --muted: rgb(44 44 46);
-  --muted-foreground: rgb(140 140 144);
-  --accent: rgb(var(--brand-primary-light));
-  --accent-foreground: rgb(var(--brand-white));
-  --destructive: 184 92 92;
+  --background: rgb(15 26 20);
+  --foreground: rgb(236 233 222);          /* warm off-white */
+  --card: rgb(var(--brand-forest));
+  --card-foreground: rgb(236 233 222);
+  --popover: rgb(var(--brand-forest));
+  --popover-foreground: rgb(236 233 222);
+  --primary: rgb(var(--brand-sage));
+  --primary-foreground: rgb(var(--brand-ink));
+  --secondary: rgb(var(--brand-forest-light));
+  --secondary-foreground: rgb(214 214 204);
+  --muted: rgb(var(--brand-forest-light));
+  --muted-foreground: rgb(166 178 166);
+  --accent: rgb(var(--brand-sage) / 0.22);
+  --accent-foreground: rgb(236 233 222);
+  --destructive: 209 104 92;               /* lifted brick for dark */
   --destructive-foreground: rgb(var(--brand-white));
-  --border: rgb(60 60 64);
-  --input: rgb(60 60 64);
-  --ring: rgb(var(--brand-primary));
-  --divider-teal: rgba(92, 138, 101, 0.2);
-  --hover-row: rgba(92, 138, 101, 0.08);
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: rgb(var(--brand-lime));
+  --divider-teal: rgb(var(--brand-sage) / 0.25);
+  --hover-row: rgb(255 255 255 / 0.04);
 
-  --chart-1: rgb(var(--brand-primary));
-  --chart-2: rgb(var(--brand-primary-light));
-  --chart-3: rgb(140 140 144);
-  --chart-4: rgb(100 100 104);
-  --chart-5: rgb(var(--brand-primary-dark));
+  --chart-1: rgb(var(--brand-sage));
+  --chart-2: rgb(var(--brand-lime));
+  --chart-3: rgb(var(--brand-teal));
+  --chart-4: rgb(var(--brand-gold));
+  --chart-5: rgb(166 178 166);
 }
 
 /** Theme Setup **/
@@ -148,6 +171,105 @@
   --color-destructive: rgb(var(--destructive));
   --color-destructive-foreground: var(--destructive-foreground);
 
+  /** Brand Colors — hex literals so `/N` opacity modifiers work
+      (bg-forest/10, text-sage, border-gold/40, text-lime/80 …). **/
+  --color-forest: #1E3528;
+  --color-forest-light: #2C4A38;
+  --color-sage: #8FA377;
+  --color-cream: #F2F0E6;
+  --color-cream-deep: #E9E6D9;
+  --color-gold: #B8900E;
+  --color-lime: #E2FF60;
+  --color-ink: #26302A;
+
+  /** Semantic Status Scales — brand-harmonised replacements for the raw
+      Tailwind emerald/amber/red/blue palettes. Use `success-*`, `warning-*`,
+      `danger-*`, `info-*` exactly like a Tailwind scale. **/
+  --color-success: #3E8A55;
+  --color-success-50: #EEF5EF;
+  --color-success-100: #DCEBDF;
+  --color-success-200: #B9D7C0;
+  --color-success-300: #8CBE98;
+  --color-success-400: #5E9E6F;
+  --color-success-500: #3E8A55;
+  --color-success-600: #2F7245;
+  --color-success-700: #275C3A;
+  --color-success-800: #1F4A2F;
+  --color-success-900: #183B26;
+  --color-success-950: #0E2417;
+
+  --color-warning: #C8921F;
+  --color-warning-50: #FBF5E6;
+  --color-warning-100: #F6E9C6;
+  --color-warning-200: #EDD48F;
+  --color-warning-300: #E3BF5F;
+  --color-warning-400: #D9A83A;
+  --color-warning-500: #C8921F;
+  --color-warning-600: #A97718;
+  --color-warning-700: #875E15;
+  --color-warning-800: #6B4A13;
+  --color-warning-900: #533A11;
+  --color-warning-950: #30200A;
+
+  --color-danger: #BF4B3E;
+  --color-danger-50: #FBEEEC;
+  --color-danger-100: #F6DAD6;
+  --color-danger-200: #ECB4AD;
+  --color-danger-300: #DF8E84;
+  --color-danger-400: #D1685C;
+  --color-danger-500: #BF4B3E;
+  --color-danger-600: #A63D32;
+  --color-danger-700: #87322A;
+  --color-danger-800: #6C2A24;
+  --color-danger-900: #55231F;
+  --color-danger-950: #311210;
+
+  --color-info: #638C80;
+  --color-info-50: #EEF4F2;
+  --color-info-100: #D9E7E3;
+  --color-info-200: #B4CFC8;
+  --color-info-300: #97B9B0;
+  --color-info-400: #7AA397;
+  --color-info-500: #638C80;
+  --color-info-600: #4F7569;
+  --color-info-700: #405E55;
+  --color-info-800: #344B44;
+  --color-info-900: #2B3D38;
+  --color-info-950: #182320;
+
+  /** Supporting hues — the palette's "in-between" roles. Ochre = outstanding
+      / sent, heather = approvals & AI, reconcile = awaiting bank match,
+      olive = chart slice where lime would be too light. **/
+  --color-ochre: #C77A2E;
+  --color-ochre-50: #FBF0E4;
+  --color-ochre-700: #9A5A1E;
+  --color-heather: #7A6FA3;
+  --color-heather-50: #F1EFF6;
+  --color-heather-700: #4B4370;
+  --color-reconcile: #2A7E78;
+  --color-reconcile-50: #E3F1EF;
+  --color-olive: #9FB83D;
+
+  /** Neutral scale — green-tinted greys that replace Tailwind's cool
+      neutral-* so borders, muted text and placeholders sit on cream. **/
+  --color-neutral-50: #F7F5EF;
+  --color-neutral-100: #EFEDE6;
+  --color-neutral-200: #E3E1D8;
+  --color-neutral-300: #C9CBC2;
+  --color-neutral-400: #9DA39C;
+  --color-neutral-500: #68716B;
+  --color-neutral-600: #525A55;
+  --color-neutral-700: #3F4642;
+  --color-neutral-800: #2E3431;
+  --color-neutral-900: #1F2421;
+  --color-neutral-950: #141916;
+
+  /* Badge component reads these (components/ui/badge.tsx). */
+  --color-success-accent: var(--color-success-600);
+  --color-warning-accent: var(--color-warning-500);
+  --color-info-accent: var(--color-info-600);
+  --color-danger-accent: var(--color-danger-600);
+
   /** Base Styles **/
   --color-border: var(--border);
   --color-input: var(--input);
@@ -158,11 +280,11 @@
   --radius-sm: calc(var(--radius) - 6px); /* 8px - Small elements */
 
   /** Softer Shadows **/
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
-  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.03);
-  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.03);
-  --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.1), 0 8px 16px -8px rgb(0 0 0 / 0.04);
+  --shadow-xs: 0 1px 2px 0 rgb(var(--brand-forest) / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(var(--brand-forest) / 0.04), 0 1px 2px -1px rgb(var(--brand-forest) / 0.02);
+  --shadow-md: 0 4px 8px -2px rgb(var(--brand-forest) / 0.06), 0 2px 4px -2px rgb(var(--brand-forest) / 0.03);
+  --shadow-lg: 0 12px 24px -4px rgb(var(--brand-forest) / 0.08), 0 4px 8px -4px rgb(var(--brand-forest) / 0.03);
+  --shadow-xl: 0 20px 40px -8px rgb(var(--brand-forest) / 0.1), 0 8px 16px -8px rgb(var(--brand-forest) / 0.04);
 
   /** Animations **/
   --animate-marquee: marquee var(--duration) infinite linear;
@@ -238,20 +360,29 @@ html {
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
-/** Classy Card Styles - Inspired by Xero Dashboard **/
+/** Sidebar navigation — active item on the forest rail.
+    Forest-on-forest has no contrast, so the active state is a quiet white
+    wash with a 2px lime stripe (the brand's "highlight on dark" rule). **/
+@utility nav-active {
+  background-color: rgb(255 255 255 / 0.08);
+  color: #fff;
+  box-shadow: inset 2px 0 0 0 rgb(var(--brand-lime));
+}
+
+/** Classy Card Styles — white card on the cream canvas **/
 @layer base {
-  /* Subtle card with barely-visible border and soft shadow */
+  /* Subtle card with a cream hairline and a soft, green-tinted shadow */
   .card-classy {
     background: var(--card);
-    border: 1px solid rgb(var(--page-bg-subtle) / 0.8);
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    border: 1px solid rgb(var(--divider-light));
+    box-shadow: 0 1px 2px 0 rgb(var(--brand-forest) / 0.04);
     border-radius: 1rem;
     transition: all 0.2s ease;
   }
 
   .card-classy:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    border-color: rgb(var(--page-bg-subtle));
+    box-shadow: 0 4px 10px -2px rgb(var(--brand-forest) / 0.08), 0 2px 4px -1px rgb(var(--brand-forest) / 0.04);
+    border-color: rgb(var(--divider-warm));
   }
 }
 
@@ -312,8 +443,8 @@ html {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted-foreground);
-    background-color: var(--background);
-    border-bottom: 1px solid var(--border);
+    background-color: var(--card);
+    border-bottom: 1px solid var(--border-warm); /* one step deeper than body rules */
     white-space: nowrap;
     position: sticky;
     top: 0;
@@ -405,7 +536,7 @@ html {
     border-bottom: none;
   }
 
-  /* Selected row — soft sage tint with a 2px left accent stripe. */
+  /* Selected row — soft forest tint with a 2px left accent stripe. */
   .table-professional tbody tr.is-selected,
   .table-professional tbody tr[data-state='selected'] {
     background-color: rgb(var(--brand-primary) / 0.06);
@@ -421,19 +552,19 @@ html {
     width: 1.75rem;                   /* 28px */
     height: 1.75rem;
     border-radius: 9999px;
-    background-color: var(--muted);
-    color: var(--muted-foreground);
+    background-color: rgb(var(--brand-sage) / 0.22); /* sage bubble, forest initial */
+    color: rgb(var(--brand-forest));
     font-size: 0.6875rem;             /* 11px */
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.02em;
     flex-shrink: 0;
   }
 
   /* Status pill — uniform shape so a column of pills with different
      labels ("Paid" / "Pending Approval" / "Rejected") still reads as one
-     coherent column. Pages add `.status-pill` plus the colour utility
-     classes (bg-emerald-500/10 text-emerald-700 border-emerald-500/20,
-     etc.) for the variant tint. */
+     coherent column. Pages add `.status-pill` plus the semantic colour
+     utilities (bg-success-500/10 text-success-700 border-success-500/20,
+     warning-*, danger-*, info-*) for the variant tint. */
   .status-pill {
     display: inline-flex;
     align-items: center;
@@ -549,7 +680,7 @@ html {
   }
   .card-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.06), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 8px 25px -5px rgb(var(--brand-forest) / 0.08), 0 4px 10px -5px rgb(var(--brand-forest) / 0.03);
   }
 
   /* Interactive row highlight */

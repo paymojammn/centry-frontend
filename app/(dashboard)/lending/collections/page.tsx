@@ -253,7 +253,7 @@ export default function CollectionsPage() {
                     <div className="col-span-1 text-right">
                       <span
                         className={`tabular-nums ${
-                          row.days_overdue > 0 ? "text-red-600 font-medium" : "text-muted-foreground"
+                          row.days_overdue > 0 ? "text-danger-600 font-medium" : "text-muted-foreground"
                         }`}
                       >
                         {row.days_overdue > 0 ? row.days_overdue : "—"}

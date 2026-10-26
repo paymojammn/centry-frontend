@@ -71,7 +71,7 @@ function badgeStatus(b: SignoffBadge): { status: string; label: string } {
 }
 
 function intentTone(intent: OneGateSignoffIntent | undefined): string {
-  if (intent?.will_use === true) return "border-emerald-200 bg-emerald-50/50";
+  if (intent?.will_use === true) return "border-success-200 bg-success-50/50";
   if (intent?.will_use === false) return "border-slate-200 bg-slate-50/50 opacity-90";
   return "";
 }
@@ -668,8 +668,8 @@ export default function OnegateSignoffPage() {
                     className={
                       "text-[10px] font-mono px-1.5 py-0.5 rounded " +
                       (a.active_environment === "sandbox"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-rose-100 text-rose-800")
+                        ? "bg-info-100 text-info-800"
+                        : "bg-danger-100 text-danger-800")
                     }
                   >
                     {a.active_environment}
@@ -683,13 +683,13 @@ export default function OnegateSignoffPage() {
 
       <div className="px-6 py-6 space-y-6">
         {selectedAccount && !isSandbox && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="flex items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 px-4 py-3 text-sm text-warning-900">
             <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium">
                 Production account selected — sign-off tests are disabled.
               </p>
-              <p className="text-amber-800 mt-0.5">
+              <p className="text-warning-800 mt-0.5">
                 OneGate creates a separate merchant profile for live processing.
                 Pick a sandbox/UAT account, or switch this one's{" "}
                 <span className="font-mono">active_environment</span> to{" "}
@@ -946,7 +946,7 @@ export default function OnegateSignoffPage() {
               (charge). Each step shows its own request + response panel.
               PAN + CVV are masked in the captured request panels so the
               JSON is safe to paste anywhere.{" "}
-              <span className="font-medium text-amber-700">
+              <span className="font-medium text-warning-700">
                 Sign-off runs MUST use the docs test card 4242 4242 4242
                 4242 — production credit-card collection uses Redirect
                 (Test Case 5) to keep us out of PCI scope.
@@ -987,7 +987,7 @@ export default function OnegateSignoffPage() {
               </code>{" "}
               (3DS challenge URL surfaced via the "Open 3DS challenge"
               button).{" "}
-              <span className="font-medium text-amber-700">
+              <span className="font-medium text-warning-700">
                 PCI WARNING: only use known test PANs.
               </span>
             </>
@@ -1118,7 +1118,7 @@ export default function OnegateSignoffPage() {
               Read-only by default: lists the org's transactions and
               optionally looks one up by id / merchant reference /
               payment key. The Refund and Resend Webhook steps are{" "}
-              <span className="font-medium text-amber-700">opt-in</span>{" "}
+              <span className="font-medium text-warning-700">opt-in</span>{" "}
               — toggle them on for the destructive paths.
             </>
           }
@@ -1465,10 +1465,10 @@ function ResponsePanel({
 }) {
   const ok = response.status_code >= 200 && response.status_code < 300;
   const codeClass = ok
-    ? "text-emerald-700"
+    ? "text-success-700"
     : response.status_code === 404
-      ? "text-amber-700"
-      : "text-red-700";
+      ? "text-warning-700"
+      : "text-danger-700";
   const bodyJson =
     typeof response.body === "string"
       ? response.body
@@ -1574,7 +1574,7 @@ function PaymentMethodMatrix({
                   return (
                     <td key={col} className="px-4 py-2 text-center">
                       {supported ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-semibold">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-success-100 text-success-800 text-[11px] font-semibold">
                           ✓
                         </span>
                       ) : (
@@ -2165,7 +2165,7 @@ function CardTokenDirectForm({
           </Button>
         </div>
       </div>
-      <div className="text-[11px] text-amber-700">
+      <div className="text-[11px] text-warning-700">
         ⚠ Use ONLY known test PANs (4242…). The Enterprise path keeps
         the server in PCI scope — production credit-card collection
         should go via Redirect (Test Case 5).
@@ -2597,7 +2597,7 @@ function OttPayoutForm({
         </div>
         <div>
           <Label className="text-[11px] text-muted-foreground">
-            ID number{idRequired && <span className="text-amber-700"> *</span>}
+            ID number{idRequired && <span className="text-warning-700"> *</span>}
           </Label>
           <Input
             value={value.id_number}
@@ -2750,8 +2750,8 @@ function ReconForm({
         </div>
       </div>
 
-      <div className="rounded-md border border-amber-200 bg-amber-50/40 px-3 py-2 space-y-2">
-        <label className="flex items-start gap-2 text-xs text-amber-900">
+      <div className="rounded-md border border-warning-200 bg-warning-50/40 px-3 py-2 space-y-2">
+        <label className="flex items-start gap-2 text-xs text-warning-900">
           <input
             type="checkbox"
             checked={value.do_refund}
@@ -2781,8 +2781,8 @@ function ReconForm({
         )}
       </div>
 
-      <div className="rounded-md border border-amber-200 bg-amber-50/40 px-3 py-2 space-y-2">
-        <label className="flex items-start gap-2 text-xs text-amber-900">
+      <div className="rounded-md border border-warning-200 bg-warning-50/40 px-3 py-2 space-y-2">
+        <label className="flex items-start gap-2 text-xs text-warning-900">
           <input
             type="checkbox"
             checked={value.do_resend_webhook}
@@ -2876,11 +2876,11 @@ function DepositCard({
       </div>
       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
         <span>
-          Paid <span className="font-mono text-emerald-700">{row.paid}</span>
+          Paid <span className="font-mono text-success-700">{row.paid}</span>
         </span>
         <span>·</span>
         <span>
-          Failed <span className="font-mono text-rose-700">{row.failed}</span>
+          Failed <span className="font-mono text-danger-700">{row.failed}</span>
         </span>
         <span>·</span>
         <span>
@@ -2905,7 +2905,7 @@ function DepositCard({
                 ? "opacity-70 cursor-not-allowed"
                 : amountValid
                 ? ""
-                : "border-rose-400 focus-visible:ring-rose-200")
+                : "border-danger-400 focus-visible:ring-danger-200")
             }
           />
         </div>
@@ -2927,7 +2927,7 @@ function DepositCard({
           </span>
         )}
         {!isVoucher && !amountValid && (
-          <span className="text-[11px] text-rose-600">
+          <span className="text-[11px] text-danger-600">
             Enter a positive amount
           </span>
         )}
@@ -2967,11 +2967,11 @@ function TestRefsList({ refs }: { refs: OneGateDepositRow["references"] }) {
               className={
                 "inline-block w-1.5 h-1.5 rounded-full " +
                 (r.classification === "paid"
-                  ? "bg-emerald-500"
+                  ? "bg-success-500"
                   : r.classification === "failed"
-                  ? "bg-rose-500"
+                  ? "bg-danger-500"
                   : r.classification === "pending"
-                  ? "bg-amber-500"
+                  ? "bg-warning-500"
                   : "bg-slate-400")
               }
               aria-hidden
@@ -3028,13 +3028,13 @@ function PayoutCard({
         </button>
         <StatusBadge status={status.status} label={status.label} size="sm" />
         {row.rsa_id_required && (
-          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
+          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-warning-100 text-warning-900">
             RSA ID required
           </span>
         )}
         {limits && (
           <span
-            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-100 text-sky-900"
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-info-100 text-info-900"
             title={`OneGate limits · ${limits.action_time}`}
           >
             R{Number(limits.min).toLocaleString()}–R
@@ -3043,11 +3043,11 @@ function PayoutCard({
         )}
         <div className="text-[11px] text-muted-foreground flex items-center gap-2 ml-2">
           <span>
-            Paid <span className="font-mono text-emerald-700">{row.paid}</span>
+            Paid <span className="font-mono text-success-700">{row.paid}</span>
           </span>
           <span>·</span>
           <span>
-            Failed <span className="font-mono text-rose-700">{row.failed}</span>
+            Failed <span className="font-mono text-danger-700">{row.failed}</span>
           </span>
           <span>·</span>
           <span>
@@ -3180,11 +3180,11 @@ function PayoutTestForm({
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
           inputMode="decimal"
           className={
-            amountValid ? "" : "border-rose-400 focus-visible:ring-rose-200"
+            amountValid ? "" : "border-danger-400 focus-visible:ring-danger-200"
           }
         />
         {!amountValid && limits && (
-          <span className="text-[11px] text-rose-600">
+          <span className="text-[11px] text-danger-600">
             OneGate accepts R{fmt(limits.min)}–R{fmt(limits.max)} for{" "}
             {slug} ({limits.action_time})
           </span>
@@ -3227,7 +3227,7 @@ function PayoutTestForm({
           }
           className={
             bankRequired && !(form.account_number ?? "").trim()
-              ? "border-rose-400 focus-visible:ring-rose-200"
+              ? "border-danger-400 focus-visible:ring-danger-200"
               : ""
           }
         />
@@ -3252,7 +3252,7 @@ function PayoutTestForm({
             </SelectContent>
           </Select>
           {bankRequired && !form.branch_code && (
-            <span className="text-[11px] text-rose-600">
+            <span className="text-[11px] text-danger-600">
               Pick a {slug === "payshap-account" ? "PayShap" : "RTC"}{" "}
               participating bank
             </span>
@@ -3276,10 +3276,10 @@ function PayoutTestForm({
           value={form.id_number}
           placeholder={rsaIdRequired ? "13-digit RSA ID" : ""}
           onChange={(e) => setForm({ ...form, id_number: e.target.value })}
-          className={idMissing ? "border-rose-400 focus-visible:ring-rose-200" : ""}
+          className={idMissing ? "border-danger-400 focus-visible:ring-danger-200" : ""}
         />
         {idMissing && (
-          <span className="text-[11px] text-rose-600">
+          <span className="text-[11px] text-danger-600">
             OneGate rejects this payout method when id_number is blank
           </span>
         )}

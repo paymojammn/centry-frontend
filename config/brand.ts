@@ -29,7 +29,9 @@ export const BRAND = {
     governingLaw: 'the Republic of Uganda',
   },
   /** Short positioning line under the logo on the login screen. */
-  tagline: 'Business payments, simplified.',
+  tagline: 'Payments for a more connected Africa.',
+  /** Three-word brand motto from the identity board; set in small caps. */
+  motto: 'Connect. Transact. Sync.',
 
   logo: {
     /** Square mark, dark ink — for light backgrounds. */

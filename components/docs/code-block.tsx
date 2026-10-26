@@ -36,7 +36,7 @@ function Highlighted({ code, language }: { code: string; language: string }) {
   return (
     <Highlight code={code.trimEnd()} language={lang} theme={themes.vsDark}>
       {({ tokens, getLineProps, getTokenProps }) => (
-        <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto bg-[#0d1117] font-mono">
+        <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto bg-ink font-mono">
           {tokens.map((line, i) => {
             const lineProps = getLineProps({ line });
             return (
@@ -78,7 +78,7 @@ export function CodeBlock({ code, language = 'javascript', filename, className }
           className="absolute top-3 right-3 z-10 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
           aria-label="Copy code"
         >
-          {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+          {copied ? <Check className="size-3.5 text-success-400" /> : <Copy className="size-3.5" />}
         </button>
         <Highlighted code={code} language={language} />
       </div>
@@ -107,7 +107,7 @@ export function TabbedCodeBlock({ tabs, className }: TabbedCodeBlockProps) {
             className={cn(
               'px-4 py-2 text-xs font-medium transition-colors shrink-0',
               i === activeTab
-                ? 'text-white bg-[#0d1117] border-b-2 border-primary'
+                ? 'text-white bg-ink border-b-2 border-primary'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
             )}
           >
@@ -122,7 +122,7 @@ export function TabbedCodeBlock({ tabs, className }: TabbedCodeBlockProps) {
           className="absolute top-3 right-3 z-10 p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
           aria-label="Copy code"
         >
-          {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+          {copied ? <Check className="size-3.5 text-success-400" /> : <Copy className="size-3.5" />}
         </button>
         <Highlighted code={current.code} language={current.language} />
       </div>

@@ -39,8 +39,8 @@ export default function Item19() {
         </div>
 
         <Card className="kt-card shadow-none flex items-center flex-row gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/70">
-          <UserRoundCheck size={16} className="text-green-500 text-base" />
-          <span className="font-medium text-green-500 text-sm">
+          <UserRoundCheck size={16} className="text-success-500 text-base" />
+          <span className="font-medium text-success-500 text-sm">
             You allowed Aaron to view
           </span>
         </Card>

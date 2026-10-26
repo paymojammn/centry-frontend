@@ -32,9 +32,9 @@ const DOCSTATUS_LABELS: Record<number, string> = {
 };
 
 const DOCSTATUS_STYLES: Record<number, string> = {
-  0: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  1: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  2: "bg-red-500/10 text-red-700 border-red-500/20",
+  0: "bg-warning-500/10 text-warning-700 border-warning-500/20",
+  1: "bg-success-500/10 text-success-700 border-success-500/20",
+  2: "bg-danger-500/10 text-danger-700 border-danger-500/20",
 };
 
 export default function DisbursementsPage() {

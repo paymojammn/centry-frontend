@@ -88,14 +88,14 @@ export function SidebarMenu() {
     root: 'space-y-0.5',
     group: 'space-y-0.5',
     label:
-      'uppercase text-[11px] font-bold text-white/40 pt-5 pb-2 px-3 tracking-wider',
+      'uppercase text-[11px] font-bold text-sage/70 pt-5 pb-2 px-3 tracking-wider',
     separator: 'border-white/10',
-    item: 'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-primary! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+    item: 'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:nav-active! data-[selected=true]:font-medium transition-all duration-200 rounded-lg',
     sub: '',
     subTrigger:
-      'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:bg-primary! data-[selected=true]:text-white! data-[selected=true]:font-semibold data-[selected=true]:shadow-md transition-all duration-200 rounded-lg',
+      'h-10 bg-transparent! text-white/70! hover:bg-white/5! hover:text-white! data-[selected=true]:nav-active! data-[selected=true]:font-medium transition-all duration-200 rounded-lg',
     subContent: 'py-0.5 ps-6',
-    indicator: 'text-primary',
+    indicator: 'text-lime/80',
   };
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {
@@ -133,7 +133,7 @@ export function SidebarMenu() {
               href={child.path}
               className={cn(
                 'flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition-colors',
-                matchPath(child.path) && 'bg-primary text-white font-semibold',
+                matchPath(child.path) && 'nav-active font-medium',
               )}
             >
               {child.icon && <child.icon className="size-3.5 shrink-0 opacity-70" />}
@@ -170,7 +170,7 @@ export function SidebarMenu() {
                 className={cn(
                   'flex w-full h-10 items-center justify-start px-3 rounded-lg transition-colors',
                   active
-                    ? 'bg-primary text-white shadow-sm'
+                    ? 'nav-active'
                     : 'text-white/80 hover:bg-white/5 hover:text-white',
                 )}
               >
@@ -229,7 +229,7 @@ export function SidebarMenu() {
                 className={cn(
                   'flex w-full h-10 items-center justify-start px-3 rounded-lg transition-colors',
                   active
-                    ? 'bg-primary text-white shadow-sm'
+                    ? 'nav-active'
                     : 'text-white/80 hover:bg-white/5 hover:text-white',
                 )}
               >

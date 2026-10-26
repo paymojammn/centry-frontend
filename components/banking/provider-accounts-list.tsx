@@ -232,7 +232,7 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
               <td className="px-6 py-3">
                 <div className="flex items-center gap-2">
                   {account.is_default && (
-                    <Star className="h-3.5 w-3.5 text-[#D4B35A] fill-[#D4B35A] flex-shrink-0" />
+                    <Star className="h-3.5 w-3.5 text-warning-400 fill-warning-400 flex-shrink-0" />
                   )}
                   <div className="text-sm font-medium text-foreground">{account.name}</div>
                 </div>
@@ -280,7 +280,7 @@ export function ProviderAccountsList({ organizationId }: ProviderAccountsListPro
                   className={`text-[10px] px-2 py-0.5 rounded font-medium ${
                     account.is_live
                       ? "bg-primary/10 text-primary"
-                      : "bg-amber-500/10 text-amber-700"
+                      : "bg-warning-500/10 text-warning-700"
                   }`}
                 >
                   {account.active_environment}

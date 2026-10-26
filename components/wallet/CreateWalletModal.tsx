@@ -246,8 +246,8 @@ export default function CreateWalletModal({
                   onClick={() => handleSelectAccountType('mobile_money')}
                   className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group text-center"
                 >
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mb-3 group-hover:bg-orange-200 transition-colors">
-                    <Smartphone className="w-6 h-6 text-orange-600" />
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-warning-100 rounded-full mb-3 group-hover:bg-warning-200 transition-colors">
+                    <Smartphone className="w-6 h-6 text-warning-600" />
                   </div>
                   <h4 className="font-medium text-foreground">Mobile Money</h4>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -320,8 +320,8 @@ export default function CreateWalletModal({
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <div className="p-2 bg-orange-100 rounded-lg">
-                                    <Smartphone className="w-5 h-5 text-orange-600" />
+                                  <div className="p-2 bg-warning-100 rounded-lg">
+                                    <Smartphone className="w-5 h-5 text-warning-600" />
                                   </div>
                                   <div>
                                     <p className="font-medium text-foreground">{account.account_name}</p>

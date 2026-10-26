@@ -175,7 +175,7 @@ export default function PaymentSourceSelector({
                             text-[10px] font-semibold px-2 py-0.5 rounded-full
                             ${isSelected 
                               ? 'bg-card/20 text-white' 
-                              : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+                              : 'bg-gradient-to-r from-warning-500 to-warning-600 text-white'
                             }
                           `}>
                             DEFAULT
@@ -199,8 +199,8 @@ export default function PaymentSourceSelector({
 
                   {/* Insufficient balance warning */}
                   {!hasBalance && (
-                    <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-xs text-amber-800 font-medium">
+                    <div className="mt-2 px-3 py-2 bg-warning-50 border border-warning-200 rounded-lg">
+                      <p className="text-xs text-warning-800 font-medium">
                         ⚠️ Insufficient balance. Please top up this account.
                       </p>
                     </div>

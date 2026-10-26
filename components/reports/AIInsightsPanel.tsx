@@ -37,8 +37,8 @@ const INSIGHT_ICONS = {
 
 const PRIORITY_COLORS = {
   low: { bg: 'bg-muted', text: 'text-foreground', border: 'border-border' },
-  medium: { bg: 'bg-[#6B8FB8]/10', text: 'text-[#6B8FB8]', border: 'border-[#6B8FB8]/20' },
-  high: { bg: 'bg-[#D4B35A]/10', text: 'text-[#D4B35A]', border: 'border-[#D4B35A]/20' },
+  medium: { bg: 'bg-info-500/10', text: 'text-info-700', border: 'border-info/20' },
+  high: { bg: 'bg-warning-400/10', text: 'text-warning-400', border: 'border-warning-400/20' },
   critical: { bg: 'bg-destructive/5', text: 'text-destructive', border: 'border-destructive/20' },
 };
 
@@ -87,13 +87,13 @@ export default function AIInsightsPanel({
   }
 
   return (
-    <Card className="border-[#8B7BB8]/20 bg-gradient-to-r from-[#8B7BB8]/10 to-card">
+    <Card className="border-heather/20 bg-gradient-to-r from-heather/10 to-card">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[#8B7BB8]" />
-            <CardTitle className="text-base text-[#8B7BB8]">AI Insights</CardTitle>
-            <span className="text-xs bg-[#8B7BB8]/10 text-[#8B7BB8] px-2 py-0.5 rounded-full">
+            <Sparkles className="h-5 w-5 text-heather" />
+            <CardTitle className="text-base text-heather">AI Insights</CardTitle>
+            <span className="text-xs bg-heather/10 text-heather px-2 py-0.5 rounded-full">
               {visibleInsights.length} new
             </span>
           </div>
@@ -101,7 +101,7 @@ export default function AIInsightsPanel({
             variant="ghost"
             size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="text-[#8B7BB8] hover:text-[#7A6BA8]"
+            className="text-heather hover:text-heather"
           >
             {expanded ? (
               <>
@@ -159,7 +159,7 @@ export default function AIInsightsPanel({
                           </div>
                         )}
                         {insight.suggestion && (
-                          <div className="text-sm text-[#8B7BB8] bg-[#8B7BB8]/10 p-2 rounded">
+                          <div className="text-sm text-heather bg-heather/10 p-2 rounded">
                             <Lightbulb className="h-3 w-3 inline mr-1" />
                             {insight.suggestion}
                           </div>

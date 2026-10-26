@@ -21,8 +21,8 @@ export function NoAccess({
     <div className="flex items-center justify-center min-h-[70vh]">
       <div className="max-w-md w-full text-center px-6">
         {/* Icon */}
-        <div className="mx-auto w-20 h-20 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-6">
-          <ShieldX className="w-10 h-10 text-red-500 dark:text-red-400" />
+        <div className="mx-auto w-20 h-20 rounded-2xl bg-danger-50 dark:bg-danger-950/30 flex items-center justify-center mb-6">
+          <ShieldX className="w-10 h-10 text-danger-500 dark:text-danger-400" />
         </div>
 
         {/* Title */}

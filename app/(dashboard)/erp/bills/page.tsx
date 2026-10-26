@@ -2,11 +2,11 @@
  * Bills Page - Accounts Payable Invoices
  *
  * Color Scheme:
- * - #6B8FB8 Blue - Draft
- * - #fed652 Mustard – Awaiting Approval
- * - #f77f00 Orange – Awaiting Payment
- * - #5C8A65 Green – Paid
- * - #bec3c6 Grey - Repeating
+ * - var(--color-info) Blue - Draft
+ * - var(--color-warning-400) Mustard – Awaiting Approval
+ * - var(--color-ochre) Orange – Awaiting Payment
+ * - var(--color-success) Green – Paid
+ * - var(--color-neutral-300) Grey - Repeating
  */
 
 'use client';
@@ -365,7 +365,7 @@ export default function BillsPage() {
                 value={pipelinePendingApproval}
                 subtext={`${organizationCurrency} ${formatCompactNumber(pipelinePendingApprovalAmount)}`}
                 icon={Calendar}
-                iconColor="#b08b00"
+                iconColor="var(--color-warning-800)"
                 iconBgColor={STATUS_COLORS.awaiting_approval.light}
                 variant={pipelinePendingApproval > 0 ? 'warning' : 'default'}
               />
@@ -464,7 +464,7 @@ export default function BillsPage() {
                 </div>
               ) : error ? (
                 <div className="text-center py-16">
-                  <AlertCircle className="h-8 w-8 text-[#D4944A] mx-auto mb-3" />
+                  <AlertCircle className="h-8 w-8 text-ochre mx-auto mb-3" />
                   <p className="text-sm font-medium text-foreground">Error loading bills</p>
                   <p className="text-sm text-muted-foreground mt-1">Please try refreshing the page</p>
                 </div>
@@ -583,7 +583,7 @@ function BillsTable({ bills, selectedBills, canCreatePayment, onSelectBill, onSe
     }
     if (isDueSoon(bill.due_date)) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 ml-2">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-warning-600 ml-2">
           <Clock className="h-3 w-3" />
           Soon
         </span>

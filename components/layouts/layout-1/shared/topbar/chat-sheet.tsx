@@ -122,7 +122,7 @@ export function ChatSheet({ trigger }: { trigger: ReactNode }) {
                 <div>
                   <Link
                     href="#"
-                    className="text-sm font-semibold text-mono hover:text-blue-600"
+                    className="text-sm font-semibold text-mono hover:text-info-600"
                   >
                     HR Team
                   </Link>
@@ -140,7 +140,7 @@ export function ChatSheet({ trigger }: { trigger: ReactNode }) {
                     { path: '/media/avatars/300-2.png' },
                     {
                       fallback: '+10',
-                      variant: 'bg-green-500 text-white',
+                      variant: 'bg-success-500 text-white',
                     },
                   ]}
                 />
@@ -217,7 +217,7 @@ export function ChatSheet({ trigger }: { trigger: ReactNode }) {
                       className={cn(
                         'w-4 h-4',
                         message.read
-                          ? 'text-green-500'
+                          ? 'text-success-500'
                           : 'text-muted-foreground',
                       )}
                     />

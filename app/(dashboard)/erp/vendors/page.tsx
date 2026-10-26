@@ -132,9 +132,9 @@ export default function VendorsPage() {
 
   const typePills = [
     { value: 'all', label: 'All', count: s.total, color: undefined as string | undefined },
-    { value: 'supplier', label: 'Suppliers', count: s.suppliers, color: '#6B8FB8' },
-    { value: 'customer', label: 'Customers', count: s.customers, color: '#5C8A65' },
-    { value: 'other', label: 'Other', count: s.other, color: '#bec3c6' },
+    { value: 'supplier', label: 'Suppliers', count: s.suppliers, color: 'var(--color-info)' },
+    { value: 'customer', label: 'Customers', count: s.customers, color: 'var(--color-success)' },
+    { value: 'other', label: 'Other', count: s.other, color: 'var(--color-neutral-300)' },
   ];
 
   return (
@@ -248,7 +248,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
     }
     if (contact.is_supplier) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-[#6B8FB8]/10 text-[#6B8FB8]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-normal bg-info/10 text-info">
           <Package className="h-3 w-3" />
           Supplier
         </span>
