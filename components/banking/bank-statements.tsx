@@ -24,9 +24,14 @@ import {
 } from "@/components/ui/select";
 import { ContentCard } from "@/components/layout/content-card";
 import { StatCard } from "@/components/layout/stat-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
+import {
+  StatementDetailSheet,
+  StatementStatusBadge,
+  type BankStatementRow,
+} from "@/components/banking/statement-detail-sheet";
 import { api } from "@/lib/api";
-import { formatCurrency } from "@/lib/utils";
-import { PILL_COLORS } from "@/lib/theme";
 
 // Strip a "CurrencyCode.UGX"-style prefix down to the bare ISO code.
 function cleanCurrencyCode(currency: string | null | undefined): string {
@@ -44,7 +49,6 @@ function formatBalanceAmount(num: number): string {
 import {
   useBankAccounts,
   useBankImports,
-  useBankTransactions,
   useRefreshAccountBalance,
   useSFTPCredentials,
   useSFTPDownloadStatements,
@@ -68,37 +72,12 @@ interface BankAccount {
   balance_as_of_date: string | null;
 }
 
-interface BankFileImportRow {
-  id: number;
-  original_filename: string;
-  status: string;
-  transactions_count: number;
-  imported_at: string;
-  bank_account?: {
-    id: number;
-    account_name: string;
-    account_number: string;
-    currency: string;
-  } | null;
+type StatusFilter = "all" | "synced" | "pending" | "failed" | "imports";
+
+function filterByAccount(rows: BankStatementRow[], accountId?: number) {
+  if (!accountId) return rows;
+  return rows.filter((s) => String(s.bank_account?.id ?? "") === String(accountId));
 }
-
-const STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "bg-success-500/10 text-success-700 border-success-500/20",
-  FULLY_SYNCED: "bg-success-500/10 text-success-700 border-success-500/20",
-  PARTIALLY_SYNCED: "bg-info-500/10 text-info-700 border-info-500/20",
-  PROCESSING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  PENDING: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  FAILED: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  COMPLETED: "Imported",
-  FULLY_SYNCED: "Synced",
-  PARTIALLY_SYNCED: "Partial sync",
-  PROCESSING: "Processing",
-  PENDING: "Pending",
-  FAILED: "Failed",
-};
 
 export function BankStatements({ organizationId }: BankStatementsProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
@@ -107,10 +86,10 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
   >();
   const [pullTaskId, setPullTaskId] = useState<string | undefined>();
   const [isPulling, setIsPulling] = useState(false);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [selectedStatementId, setSelectedStatementId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState<string>("");
 
   const hasBankingExport = useHasPermission("banking.export");
@@ -126,7 +105,10 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   const { data: importsData, isLoading: importsLoading, refetch: refetchImports } =
     useBankImports({ organizationId });
-  const allImports: BankFileImportRow[] = (importsData?.results as any) || [];
+  const allImports = useMemo<BankStatementRow[]>(
+    () => (importsData?.results as unknown as BankStatementRow[] | undefined) ?? [],
+    [importsData]
+  );
 
   // One SFTP login often serves multiple accounts at the same bank (Stanbic
   // drops FINSTMT files for both UGX and USD into the same Inbox). Restrict
@@ -154,12 +136,20 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
   const isPendingStatus = (s: string) => ["PROCESSING", "PENDING"].includes(s);
 
   // Statements for the chosen account (drives both the list and the pill counts).
-  const accountStatements = useMemo(() => {
-    if (!selectedAccountId) return statements;
-    return statements.filter(
-      (s) => String(s.bank_account?.id ?? "") === String(selectedAccountId)
-    );
-  }, [statements, selectedAccountId]);
+  const accountStatements = useMemo(
+    () => filterByAccount(statements, selectedAccountId),
+    [statements, selectedAccountId]
+  );
+
+  // Full import history for the account — every file the bank dropped,
+  // including pain.002 acks and audit files the statement filter hides.
+  const accountImports = useMemo(
+    () => filterByAccount(allImports, selectedAccountId),
+    [allImports, selectedAccountId]
+  );
+
+  const selectedStatement =
+    allImports.find((row) => row.id === selectedStatementId) ?? null;
 
   const statusCount = (pred: (s: string) => boolean) =>
     accountStatements.filter((row) => pred(row.status)).length;
@@ -188,14 +178,15 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
 
   const filteredStatements = useMemo(() => {
     const q = search.toLowerCase();
-    return accountStatements.filter((row) => {
+    const base = statusFilter === "imports" ? accountImports : accountStatements;
+    return base.filter((row) => {
       if (statusFilter === "synced" && !isSynced(row.status)) return false;
       if (statusFilter === "pending" && !isPendingStatus(row.status)) return false;
       if (statusFilter === "failed" && row.status !== "FAILED") return false;
       if (q && !(row.original_filename || "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [accountStatements, statusFilter, search]);
+  }, [accountStatements, accountImports, statusFilter, search]);
 
   const pullStatements = useSFTPDownloadStatements();
   const { data: taskStatus } = useSFTPTaskStatus(pullTaskId);
@@ -283,8 +274,8 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
       a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      toast.error(err?.message || "Download failed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Download failed");
     } finally {
       setDownloadingId(null);
     }
@@ -344,22 +335,27 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         </div>
       ) : null}
 
-      {/* Imported statements — one grid: status pills + pull controls in the header */}
+      {/* Statements — one .table-professional list; filter pills + pull controls in the header */}
       <ContentCard noPadding>
         <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
-          {([
-            { value: "all", label: "All", count: accountStatements.length, color: undefined },
-            { value: "synced", label: "Synced", count: statusCount(isSynced), color: PILL_COLORS.processed },
-            { value: "pending", label: "Pending", count: statusCount(isPendingStatus), color: "var(--color-warning-400)" },
-            { value: "failed", label: "Failed", count: statusCount((s) => s === "FAILED"), color: PILL_COLORS.failed },
-          ]).map((p) => {
+          {(
+            [
+              { value: "all", label: "All", count: accountStatements.length },
+              { value: "synced", label: "Synced", count: statusCount(isSynced) },
+              { value: "pending", label: "Pending", count: statusCount(isPendingStatus) },
+              { value: "failed", label: "Failed", count: statusCount((s) => s === "FAILED") },
+              { value: "imports", label: "Imports", count: accountImports.length },
+            ] as { value: StatusFilter; label: string; count: number }[]
+          ).map((p) => {
             const active = statusFilter === p.value;
             return (
               <button
                 key={p.value}
                 onClick={() => setStatusFilter(p.value)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                 }`}
               >
                 {p.label} ({p.count})
@@ -429,7 +425,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
               onClick={handlePullFiles}
               disabled={!selectedSFTPCredentialId || isPulling || !hasBankingExport}
               size="sm"
-              className="h-9 bg-primary hover:bg-primary/90 btn-press"
+              className="h-9 btn-press"
             >
               {isPulling ? (
                 <>
@@ -460,6 +456,7 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
               onClick={() => refetchImports()}
               disabled={importsLoading}
               className="h-9 btn-press"
+              aria-label="Refresh statements"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${importsLoading ? "animate-spin" : ""}`} />
             </Button>
@@ -467,216 +464,131 @@ export function BankStatements({ organizationId }: BankStatementsProps) {
         </div>
 
         {importsLoading ? (
-          <div className="space-y-3 p-6">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-11 w-full rounded-lg" />
-            ))}
-          </div>
+          <LoadingState />
         ) : filteredStatements.length === 0 ? (
-          <div className="py-20 text-center">
-            <div className="mx-auto mb-3 w-fit rounded-xl bg-muted p-3">
-              <FileText className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-normal text-foreground">
-              No statements yet
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Use “Pull Statements” above to fetch FINSTMT files from the bank
-            </p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title={
+              search || statusFilter !== "all"
+                ? "No statements match"
+                : "No statements yet"
+            }
+            description={
+              search || statusFilter !== "all"
+                ? "Try a different search or filter"
+                : "Use Pull above to fetch FINSTMT files from the bank"
+            }
+          />
         ) : (
-          <>
-            <div className="grid grid-cols-12 gap-3 border-b border-border/50 px-6 py-2.5 text-xs font-normal uppercase tracking-wider text-muted-foreground">
-              <div className="col-span-2">Imported</div>
-              <div className="col-span-5">Filename</div>
-              <div className="col-span-2">Account</div>
-              <div className="col-span-1 text-center">Txns</div>
-              <div className="col-span-1">Status</div>
-              <div className="col-span-1"></div>
-            </div>
-            <div className="max-h-[calc(100vh-560px)] divide-y divide-border/50 overflow-y-auto">
-              {filteredStatements.map((row) => (
-                <StatementRow
-                  key={row.id}
-                  row={row}
-                  expanded={expandedId === row.id}
-                  onToggle={() =>
-                    setExpandedId(expandedId === row.id ? null : row.id)
-                  }
-                  onDownload={() =>
-                    handleDownload(row.id, row.original_filename)
-                  }
-                  downloading={downloadingId === row.id}
-                />
-              ))}
-            </div>
-          </>
+          <div className="max-h-[calc(100vh-560px)] overflow-auto">
+            <table className="w-full table-professional">
+              <colgroup>
+                <col className="w-[120px]" />{/* Imported */}
+                <col />{/* Statement — flexible */}
+                <col />{/* Account */}
+                <col className="w-[120px]" />{/* Synced */}
+                <col className="w-[72px]" />{/* Txns */}
+                <col className="w-[130px]" />{/* Status */}
+                <col className="w-[150px]" />{/* Actions */}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Imported</th>
+                  <th>Statement</th>
+                  <th>Account</th>
+                  <th>Synced</th>
+                  <th className="text-right">Txns</th>
+                  <th>Status</th>
+                  <th className="text-right pr-4"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredStatements.map((row) => {
+                  const isSelected = selectedStatementId === row.id;
+                  const downloading = downloadingId === row.id;
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`${isSelected ? "is-selected" : ""} cursor-pointer`}
+                      onClick={() => setSelectedStatementId(row.id)}
+                    >
+                      <td className="cell-muted whitespace-nowrap">
+                        {format(new Date(row.imported_at), "dd MMM yyyy")}
+                        <span className="cell-sub">
+                          {format(new Date(row.imported_at), "HH:mm")}
+                        </span>
+                      </td>
+                      <td className="cell-primary">
+                        <div className="truncate max-w-[360px]" title={row.original_filename}>
+                          {row.original_filename}
+                        </div>
+                      </td>
+                      <td className="cell-muted">
+                        <div className="truncate">
+                          {row.bank_account?.account_name || "—"}
+                        </div>
+                        {row.bank_account?.account_number && (
+                          <span className="cell-sub">{row.bank_account.account_number}</span>
+                        )}
+                      </td>
+                      <td className="cell-muted whitespace-nowrap">
+                        {row.synced_at ? (
+                          <>
+                            {format(new Date(row.synced_at), "dd MMM yyyy")}
+                            <span className="cell-sub">
+                              {format(new Date(row.synced_at), "HH:mm")}
+                            </span>
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="cell-amount">{row.transactions_count}</td>
+                      <td>
+                        <StatementStatusBadge status={row.status} />
+                      </td>
+                      <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs"
+                            disabled={downloading}
+                            onClick={() => handleDownload(row.id, row.original_filename)}
+                          >
+                            {downloading ? (
+                              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                            ) : (
+                              <Download className="h-3.5 w-3.5 mr-1" />
+                            )}
+                            Download
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-muted-foreground/50 hover:text-foreground"
+                            aria-label="View statement transactions"
+                            onClick={() => setSelectedStatementId(row.id)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </ContentCard>
-    </div>
-  );
-}
 
-function StatementRow({
-  row,
-  expanded,
-  onToggle,
-  onDownload,
-  downloading,
-}: {
-  row: BankFileImportRow;
-  expanded: boolean;
-  onToggle: () => void;
-  onDownload: () => void;
-  downloading: boolean;
-}) {
-  return (
-    <div className="text-sm">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-        className="grid w-full cursor-pointer grid-cols-12 items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/30 focus-visible:outline-hidden focus-visible:bg-muted/40"
-      >
-        <div className="col-span-2 text-muted-foreground">
-          {format(new Date(row.imported_at), "dd MMM yyyy")}
-          <p className="text-xs text-muted-foreground/60">
-            {format(new Date(row.imported_at), "HH:mm")}
-          </p>
-        </div>
-        <div className="col-span-5 flex min-w-0 items-center gap-2">
-          <ChevronRight
-            className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${
-              expanded ? "rotate-90" : ""
-            }`}
-          />
-          <p className="truncate font-normal text-foreground">
-            {row.original_filename}
-          </p>
-        </div>
-        <div className="col-span-2 min-w-0">
-          <p className="truncate text-xs text-muted-foreground">
-            {row.bank_account?.account_name || "—"}
-          </p>
-        </div>
-        <div className="col-span-1 text-center tabular-nums text-foreground">
-          {row.transactions_count}
-        </div>
-        <div className="col-span-1">
-          <span
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-normal ${
-              STATUS_STYLES[row.status] ||
-              "bg-muted text-muted-foreground border-border"
-            }`}
-          >
-            {STATUS_LABELS[row.status] || row.status}
-          </span>
-        </div>
-        <div className="col-span-1 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 px-2.5 text-xs"
-            disabled={downloading}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownload();
-            }}
-          >
-            {downloading ? (
-              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-            ) : (
-              <Download className="h-3.5 w-3.5 mr-1" />
-            )}
-            Download
-          </Button>
-        </div>
-      </div>
-      {expanded && <StatementTransactions fileImportId={row.id} />}
-    </div>
-  );
-}
-
-function StatementTransactions({ fileImportId }: { fileImportId: number }) {
-  const { data, isLoading } = useBankTransactions({ file_import: fileImportId });
-  const txns: any[] = (data?.results as any) || [];
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2 bg-muted/20 px-6 py-4">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-full" />
-      </div>
-    );
-  }
-
-  if (txns.length === 0) {
-    return (
-      <div className="bg-muted/20 px-6 py-4 text-xs text-muted-foreground">
-        No transactions in this statement.
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-muted/20 px-6 py-3">
-      <div className="grid grid-cols-12 gap-2 px-2 py-1.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground/70">
-        <div className="col-span-2">Date</div>
-        <div className="col-span-6">Description</div>
-        <div className="col-span-1">Type</div>
-        <div className="col-span-3 text-right">Amount</div>
-      </div>
-      <div className="divide-y divide-border/30">
-        {txns.map((t) => {
-          const credit = parseFloat(t.credit_amount ?? "0");
-          const debit = parseFloat(t.debit_amount ?? "0");
-          const amount = credit > 0 ? credit : debit;
-          const isCredit = t.transaction_type === "CREDIT" || credit > 0;
-          return (
-            <div
-              key={t.id}
-              className="grid grid-cols-12 items-center gap-2 px-2 py-2 text-xs"
-            >
-              <div className="col-span-2 text-muted-foreground">
-                {format(new Date(t.transaction_date), "dd MMM")}
-              </div>
-              <div className="col-span-6 min-w-0">
-                <p className="truncate text-foreground">{t.description}</p>
-                {t.reference && (
-                  <p className="truncate text-[10px] text-muted-foreground/60">
-                    {t.reference}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-1">
-                <span
-                  className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-normal ${
-                    isCredit
-                      ? "bg-success-500/10 text-success-700"
-                      : "bg-danger-500/10 text-danger-700"
-                  }`}
-                >
-                  {isCredit ? "CR" : "DR"}
-                </span>
-              </div>
-              <div
-                className={`col-span-3 text-right tabular-nums ${
-                  isCredit ? "text-success-700" : "text-foreground"
-                }`}
-              >
-                {isCredit ? "+" : "−"}
-                {formatCurrency(amount || 0, t.currency || "UGX")}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <StatementDetailSheet
+        statement={selectedStatement}
+        onClose={() => setSelectedStatementId(null)}
+        onDownload={(s) => handleDownload(s.id, s.original_filename)}
+        downloading={selectedStatement ? downloadingId === selectedStatement.id : false}
+      />
     </div>
   );
 }

@@ -99,7 +99,7 @@ export function BankingExportOverview({
       <div>
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <MetricTile
-            label="Outbox"
+            label="Files"
             value={fmtNum(outboxFiles)}
             hint={`${fmtNum(exports?.results?.reduce((s, e) => s + (e.payment_count || 0), 0) || 0)} payments`}
             icon={FolderOpen}
@@ -164,7 +164,7 @@ export function BankingExportOverview({
       <div className="grid gap-6 lg:grid-cols-3">
         <ContentCard noPadding>
           <ContentCardHeader className="px-6">
-            <SectionTitle icon={<FolderOpen className="h-4 w-4" />} title="Outbox" right={<ViewAll onClick={() => onNavigate?.("files")} />} />
+            <SectionTitle icon={<FolderOpen className="h-4 w-4" />} title="Files" right={<ViewAll onClick={() => onNavigate?.("files")} />} />
           </ContentCardHeader>
           <RecentList
             items={recentOutbox}

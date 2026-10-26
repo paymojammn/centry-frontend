@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -13,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ContentCard } from "@/components/layout/content-card";
+import { LoadingState } from "@/components/layout/loading-state";
+import { EmptyState } from "@/components/layout/empty-state";
 import {
   Download,
   RefreshCw,
@@ -24,7 +25,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
-import { PILL_COLORS } from "@/lib/theme";
 import {
   useBankAccounts,
   usePain002RemoteFiles,
@@ -164,9 +164,9 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
       {/* Toolbar: status pills + account/connection/pull + search (bills-grid style) */}
       <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
         {([
-          { value: "all", label: "All", count: pain002Files.length, color: undefined },
-          { value: "new", label: "New", count: statusCount(false), color: "var(--color-info)" },
-          { value: "processed", label: "Processed", count: statusCount(true), color: PILL_COLORS.processed },
+          { value: "all", label: "All", count: pain002Files.length },
+          { value: "new", label: "New", count: statusCount(false) },
+          { value: "processed", label: "Processed", count: statusCount(true) },
         ]).map((p) => {
           const active = statusFilter === p.value;
           return (
@@ -236,7 +236,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
             onClick={handlePullFiles}
             disabled={!selectedSFTPCredentialId || isPulling}
             size="sm"
-            className="h-9 bg-primary hover:bg-primary/90 btn-press"
+            className="h-9 btn-press"
           >
             {isPulling ? (
               <>
@@ -281,6 +281,7 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
             size="sm"
             onClick={() => refetchRemoteFiles()}
             disabled={remoteFilesLoading || !selectedAccountId}
+            title="Refresh"
             className="h-9 btn-press"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${remoteFilesLoading ? "animate-spin" : ""}`} />
@@ -290,90 +291,86 @@ export function Pain002Inbox({ organizationId }: Pain002InboxProps) {
 
       {/* Body */}
       {!selectedAccountId ? (
-        <div className="text-center py-20">
-          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-            <InboxIcon className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-normal text-foreground">Select a bank account</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Choose an account, then pull bank responses from SFTP
-          </p>
-        </div>
+        <EmptyState
+          icon={InboxIcon}
+          title="Select a bank account"
+          description="Choose an account, then pull bank responses from SFTP"
+        />
       ) : remoteFilesLoading ? (
-        <div className="p-6 space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-11 w-full rounded-lg" />
-          ))}
-        </div>
+        <LoadingState />
       ) : filteredFiles.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="p-3 rounded-xl bg-muted w-fit mx-auto mb-3">
-            <InboxIcon className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-normal text-foreground">
-            {hasFileFilters ? "No files match your filters" : "Inbox is empty"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {hasFileFilters
+        <EmptyState
+          icon={InboxIcon}
+          title={hasFileFilters ? "No files match your filters" : "Inbox is empty"}
+          description={
+            hasFileFilters
               ? "Try adjusting your filters"
-              : "Pull bank responses from SFTP to see files here"}
-          </p>
-        </div>
+              : "Pull bank responses from SFTP to see files here"
+          }
+        />
       ) : (
-        <>
-          <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-            <div className="col-span-3">Modified</div>
-            <div className="col-span-6">Filename</div>
-            <div className="col-span-1">Status</div>
-            <div className="col-span-1 text-right">Size</div>
-            <div className="col-span-1"></div>
-          </div>
-          <div className="divide-y divide-border max-h-[calc(100vh-350px)] overflow-y-auto">
-            {filteredFiles.map((file) => (
-              <div
-                key={file.name}
-                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
-              >
-                <div className="col-span-3 text-muted-foreground tabular-nums">
-                  {format(new Date(file.mtime), "dd MMM yyyy")}
-                  <p className="text-[12px] text-muted-foreground/60 mt-0.5">
-                    {format(new Date(file.mtime), "HH:mm")}
-                  </p>
-                </div>
-                <div className="col-span-6 min-w-0 flex items-center gap-2">
-                  <FileText className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                  <p className="text-foreground truncate">{file.name}</p>
-                </div>
-                <div className="col-span-1">
-                  <span
-                    className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-normal border ${
-                      file.archived
-                        ? "bg-success-500/10 text-success-700 border-success-500/20"
-                        : "bg-muted text-muted-foreground border-border"
-                    }`}
-                  >
-                    {file.archived ? "Processed" : "New"}
-                  </span>
-                </div>
-                <div className="col-span-1 text-right">
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {formatFileSize(file.size)}
-                  </span>
-                </div>
-                <div className="col-span-1 flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => handleDownload(file.name)}
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+        <div className="overflow-auto max-h-[calc(100vh-350px)]">
+          <table className="w-full table-professional">
+            <colgroup>
+              <col className="w-[140px]" />{/* Received */}
+              <col />{/* Filename — flexible */}
+              <col className="w-[140px]" />{/* Status */}
+              <col className="w-[90px]" />{/* Size */}
+              <col className="w-[56px]" />{/* Download */}
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Received</th>
+                <th>Filename</th>
+                <th>Status</th>
+                <th className="text-right">Size</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredFiles.map((file) => (
+                <tr key={file.name}>
+                  <td className="cell-muted">
+                    {format(new Date(file.mtime), "dd MMM yyyy")}
+                    <span className="cell-sub">{format(new Date(file.mtime), "HH:mm")}</span>
+                  </td>
+                  <td className="cell-primary">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate" title={file.name}>
+                        {file.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className={`status-pill ${
+                        file.archived
+                          ? "bg-success-500/10 text-success-700 border-success-500/20"
+                          : "bg-info-500/10 text-info-700 border-info-500/20"
+                      }`}
+                    >
+                      {file.archived ? "Processed" : "New"}
+                    </span>
+                  </td>
+                  <td className="cell-amount cell-muted">{formatFileSize(file.size)}</td>
+                  <td className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      title="Download"
+                      aria-label={`Download ${file.name}`}
+                      onClick={() => handleDownload(file.name)}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </ContentCard>
   );

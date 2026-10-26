@@ -286,7 +286,7 @@ export default function DashboardPage() {
                   label: 'Bank Files',
                   count: bankFilesReady,
                   icon: Send,
-                  href: '/banking/export?tab=sftp-export&status=ready',
+                  href: '/banking/export?tab=files&status=ready',
                   tone: 'accent' as const,
                 },
                 {
