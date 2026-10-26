@@ -183,7 +183,7 @@ export default function BankingExportPage() {
   const tabs = useMemo(() => {
     const allTabs = [
       { value: "overview", label: "Overview" },
-      { value: "sftp-export", label: "Pay", requiresExport: true },
+      { value: "sftp-export", label: "Upload", requiresExport: true },
       { value: "files", label: "Outbox" },
       { value: "inbox", label: "Inbox", requiresExport: true },
       { value: "statements", label: "Statements" },
