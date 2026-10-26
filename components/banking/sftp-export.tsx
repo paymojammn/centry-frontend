@@ -351,10 +351,11 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
       ) : (
         <>
           <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-            <div className="col-span-2">Date</div>
+            <div className="col-span-1">Created</div>
             <div className="col-span-2">Filename</div>
             <div className="col-span-2">Account</div>
             <div className="col-span-1">Value date</div>
+            <div className="col-span-1">Uploaded</div>
             <div className="col-span-1 text-center">Payments</div>
             <div className="col-span-1 text-right">Amount</div>
             <div className="col-span-1">Status</div>
@@ -366,7 +367,7 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
                 key={e.id}
                 className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
               >
-                <div className="col-span-2 text-muted-foreground tabular-nums">
+                <div className="col-span-1 text-muted-foreground tabular-nums">
                   {e.created_at ? format(new Date(e.created_at), "dd MMM yyyy") : "—"}
                   {e.created_at && (
                     <p className="text-[12px] text-muted-foreground/60 mt-0.5">
@@ -387,13 +388,11 @@ export function SFTPExport({ organizationId, onExportComplete, initialStatus }: 
                 </div>
                 <div className="col-span-1 min-w-0 tabular-nums">
                   <p className="text-foreground">{formatValueDate(e.requested_execution_date)}</p>
-                  {isStale(e) && (
-                    <p
-                      className="text-[11px] text-muted-foreground mt-0.5"
-                      title={`The bank can no longer pay on this date. Upload will move it to ${formatValueDate(e.earliest_value_date)}.`}
-                    >
-                      Updated on upload
-                    </p>
+                </div>
+                <div className="col-span-1 text-muted-foreground tabular-nums">
+                  {e.sftp_uploaded_at ? format(new Date(e.sftp_uploaded_at), "dd MMM yyyy") : "—"}
+                  {e.sftp_uploaded_at && (
+                    <p className="text-[12px] text-muted-foreground/60 mt-0.5">{format(new Date(e.sftp_uploaded_at), "HH:mm")}</p>
                   )}
                 </div>
                 <div className="col-span-1 text-center">

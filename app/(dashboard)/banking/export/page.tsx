@@ -365,10 +365,11 @@ export default function BankingExportPage() {
               ) : (
                 <>
                   <div className="grid grid-cols-12 gap-3 px-6 py-2.5 text-[11px] font-normal text-muted-foreground uppercase tracking-[0.06em] border-b border-border">
-                    <div className="col-span-2">Date</div>
+                    <div className="col-span-1">Created</div>
                     <div className="col-span-2">Filename</div>
                     <div className="col-span-1">Account</div>
                     <div className="col-span-1">Value date</div>
+                    <div className="col-span-1">Uploaded</div>
                     <div className="col-span-1 text-center">Payments</div>
                     <div className="col-span-1 text-right">Ccy</div>
                     <div className="col-span-2 text-right">Amount</div>
@@ -381,7 +382,7 @@ export default function BankingExportPage() {
                         key={e.id}
                         className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center text-[13px] font-normal hover:bg-[var(--hover-row)] transition-colors"
                       >
-                        <div className="col-span-2 text-muted-foreground tabular-nums">
+                        <div className="col-span-1 text-muted-foreground tabular-nums">
                           {format(new Date(e.created_at), "dd MMM yyyy")}
                           <p className="text-[12px] text-muted-foreground/60 mt-0.5">
                             {format(new Date(e.created_at), "HH:mm")}
@@ -409,11 +410,14 @@ export default function BankingExportPage() {
                           }`}
                           title={
                             e.value_date_passed
-                              ? `The bank can no longer pay on this date. Upload it from the Pay tab and the date moves to ${formatValueDate(e.earliest_value_date)}.`
+                              ? `The bank can no longer pay on this date. Upload it from the Upload tab and the date moves to ${formatValueDate(e.earliest_value_date)}.`
                               : undefined
                           }
                         >
                           {formatValueDate(e.requested_execution_date)}
+                        </div>
+                        <div className="col-span-1 text-muted-foreground tabular-nums">
+                          {e.sftp_uploaded_at ? format(new Date(e.sftp_uploaded_at), "dd MMM yyyy") : "—"}
                         </div>
                         <div className="col-span-1 text-center">
                           <span className="tabular-nums text-foreground">
