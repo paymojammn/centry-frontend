@@ -24,67 +24,63 @@ interface PricingTier {
 
 const pricingTiers: PricingTier[] = [
   {
-    name: 'SME',
-    code: 'sme',
-    description: 'For small and medium businesses getting started with payment automation',
-    monthlyPrice: 100,
-    annualPrice: 960,
-    txnFee: '0.8%',
+    name: 'Starter',
+    code: 'starter',
+    description: 'Payments sync, bank and mobile money rails, and approval workflows for small teams',
+    monthlyPrice: 499,
+    annualPrice: 5988,
+    txnFee: '',
     features: [
-      `${BRAND.name} Lite ERP — included free`,
-      'Mobile money — MTN & Airtel',
-      'Card & EFT acceptance',
-      'SA · Uganda · Zambia',
-      'Standard reconciliation & reporting',
-      'Up to 5 users',
-      '1 ERP connection',
+      'Full two-way sync: payments',
+      'ERP integration',
+      'Bank + Mobile Money integration',
+      'Multi-step approval workflows',
+      '24/5 support',
+      '3 users',
     ],
-    excluded: ['Third-party ERP integrations', 'Dedicated account manager'],
+    excluded: ['Collections sync'],
     cta: 'Start 14-day free trial',
-    ctaLink: '/auth/login?plan=sme',
+    ctaLink: '/auth/login?plan=starter',
   },
   {
-    name: 'Medium Business',
-    code: 'medium',
-    description: 'For growing businesses with advanced ERP integrations and payment routing',
-    monthlyPrice: 500,
-    annualPrice: 4800,
-    txnFee: '0.6%',
+    name: 'Premium',
+    code: 'premium',
+    description: 'Two-way payments and collections sync for growing finance teams',
+    monthlyPrice: 999,
+    annualPrice: 11988,
+    txnFee: '',
     highlighted: true,
     features: [
-      'Everything in SME',
-      'Sage, Odoo & QuickBooks ERP',
-      'Multi-rail payment routing',
-      'Invoice discounting access',
-      'Advanced reconciliation',
-      'Priority support',
-      'Up to 25 users',
-      '5 ERP connections',
-    ],
-    excluded: ['SAP integration', 'Custom SLAs'],
-    cta: 'Start 14-day free trial',
-    ctaLink: '/auth/login?plan=medium',
-  },
-  {
-    name: 'Enterprise',
-    code: 'enterprise',
-    description: 'Full payment orchestration, multi-currency, and dedicated support',
-    monthlyPrice: 2000,
-    annualPrice: 19200,
-    txnFee: '0.4%',
-    features: [
-      'Everything in Medium',
-      'SAP & all ERP integrations',
-      'Full payment orchestration',
-      'Multi-currency & FX settlement',
-      'Dedicated account manager',
-      'Custom SLAs & uptime guarantee',
-      'B2B supplier marketplace access',
-      'Unlimited users & connections',
+      'Full two-way sync: payments + collections',
+      'ERP integration',
+      'Bank + Mobile Money integration',
+      'Multi-step approval workflows',
+      '24/5 support',
+      '5 users',
     ],
     excluded: [],
-    cta: 'Contact Sales',
-    ctaLink: `mailto:${BRAND.email.sales}`,
+    cta: 'Start 14-day free trial',
+    ctaLink: '/auth/login?plan=premium',
+  },
+  {
+    name: 'Pro',
+    code: 'pro',
+    description: 'Everything in Premium plus a dedicated customer success manager and priority support',
+    monthlyPrice: 2499,
+    annualPrice: 29988,
+    txnFee: '',
+    features: [
+      'Full two-way sync: payments + collections',
+      'ERP integration',
+      'Bank + Mobile Money integration',
+      'Multi-step approval workflows',
+      'Dedicated Customer Success Manager',
+      'Priority 24/5 support with phone escalation',
+      '10 users',
+    ],
+    excluded: [],
+    cta: 'Start 14-day free trial',
+    ctaLink: '/auth/login?plan=pro',
   },
 ];
 
@@ -159,13 +155,20 @@ export default function PricingPage() {
     max: '-',
   }));
 
-  const feeByCode = (code: string) =>
-    tiers.find((t) => t.code === code)?.txnFee ?? '—';
 
   const formatPrice = (price: number) => {
     if (price === 0) return 'Custom';
-    return `$${price}`;
+    return `$${price.toLocaleString('en-US')}`;
   };
+
+  // Annual discount derived from the plans themselves (largest saving across
+  // tiers), so the toggle badge can never promise more than checkout charges.
+  const annualSaving = Math.max(
+    0,
+    ...tiers
+      .filter((t) => t.monthlyPrice > 0 && t.annualPrice > 0)
+      .map((t) => Math.round((1 - t.annualPrice / (t.monthlyPrice * 12)) * 100))
+  );
 
   return (
     <div className="min-h-screen bg-card">
@@ -227,9 +230,11 @@ export default function PricingPage() {
               }`}
             >
               Annual
-              <span className="ml-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                Save 20%
-              </span>
+              {annualSaving > 0 && (
+                <span className="ml-2 bg-lime text-forest text-xs px-2 py-0.5 rounded-full">
+                  Save {annualSaving}%
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -282,17 +287,19 @@ export default function PricingPage() {
                     </p>
                   )}
 
-                  {/* Transaction fee */}
-                  <div className="mt-4 bg-muted rounded-lg px-4 py-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Transaction fee</p>
-                    <p className="text-base font-bold text-foreground">{tier.txnFee} per payment</p>
-                  </div>
+                  {/* Transaction fee — only when the plan carries one */}
+                  {tier.txnFee && (
+                    <div className="mt-4 bg-muted rounded-lg px-4 py-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Transaction fee</p>
+                      <p className="text-base font-bold text-foreground">{tier.txnFee} per payment</p>
+                    </div>
+                  )}
 
                   <Link
                     href={ctaHref}
                     className={`mt-6 w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                       tier.highlighted
-                        ? 'bg-[rgb(var(--brand-dark))] text-white hover:bg-[#2C2C2E]'
+                        ? 'bg-[rgb(var(--brand-dark))] text-white hover:bg-ink'
                         : 'bg-muted text-foreground hover:bg-muted'
                     }`}
                   >
@@ -329,7 +336,8 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Transaction Fees */}
+      {/* Transaction Fees — only when at least one plan carries a fee */}
+      {tiers.some((t) => t.txnFee) && (
       <section className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">Transaction Fees</h2>
@@ -371,6 +379,7 @@ export default function PricingPage() {
           Volume discounts available for Enterprise customers. <Link href={`mailto:${BRAND.email.sales}`} className="text-[rgb(var(--brand-dark))] hover:underline">Contact sales</Link> for custom pricing.
         </p>
       </section>
+      )}
 
       {/* Features Comparison */}
       <section className="bg-muted py-24">
@@ -385,62 +394,56 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-4 px-6 font-medium text-foreground">Feature</th>
-                  <th className="text-center py-4 px-4 font-medium text-foreground">SME</th>
-                  <th className="text-center py-4 px-4 font-medium text-foreground bg-muted">Medium</th>
-                  <th className="text-center py-4 px-4 font-medium text-foreground">Enterprise</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground">Starter</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground bg-muted">Premium</th>
+                  <th className="text-center py-4 px-4 font-medium text-foreground">Pro</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {[
-                  { feature: 'Transaction Fee', sme: feeByCode('sme'), medium: feeByCode('medium'), enterprise: feeByCode('enterprise') },
-                  { feature: 'Users', sme: '5', medium: '25', enterprise: 'Unlimited' },
-                  { feature: 'ERP Connections', sme: '1', medium: '5', enterprise: 'Unlimited' },
-                  { feature: 'Mobile Money (MTN/Airtel)', sme: true, medium: true, enterprise: true },
-                  { feature: 'Card & EFT', sme: true, medium: true, enterprise: true },
-                  { feature: 'Reconciliation', sme: 'Standard', medium: 'Advanced', enterprise: 'Advanced' },
-                  { feature: 'Sage / Odoo / QuickBooks', sme: false, medium: true, enterprise: true },
-                  { feature: 'Multi-Rail Routing', sme: false, medium: true, enterprise: true },
-                  { feature: 'Invoice Discounting', sme: false, medium: true, enterprise: true },
-                  { feature: 'SAP Integration', sme: false, medium: false, enterprise: true },
-                  { feature: 'Full Payment Orchestration', sme: false, medium: false, enterprise: true },
-                  { feature: 'Multi-Currency & FX', sme: false, medium: false, enterprise: true },
-                  { feature: 'Dedicated Account Manager', sme: false, medium: false, enterprise: true },
-                  { feature: 'Custom SLAs', sme: false, medium: false, enterprise: true },
-                  { feature: 'B2B Marketplace', sme: false, medium: false, enterprise: true },
+                  { feature: 'Users', starter: '3', premium: '5', pro: '10' },
+                  { feature: 'Two-way payments sync', starter: true, premium: true, pro: true },
+                  { feature: 'Two-way collections sync', starter: false, premium: true, pro: true },
+                  { feature: 'ERP integration', starter: true, premium: true, pro: true },
+                  { feature: 'Bank + Mobile Money integration', starter: true, premium: true, pro: true },
+                  { feature: 'Multi-step approval workflows', starter: true, premium: true, pro: true },
+                  { feature: '24/5 support', starter: true, premium: true, pro: true },
+                  { feature: 'Priority support with phone escalation', starter: false, premium: false, pro: true },
+                  { feature: 'Dedicated Customer Success Manager', starter: false, premium: false, pro: true },
                 ].map((row, idx) => (
                   <tr key={idx} className="border-b border-border last:border-0">
                     <td className="py-4 px-6 text-foreground">{row.feature}</td>
                     <td className="py-4 px-4 text-center">
-                      {typeof row.sme === 'boolean' ? (
-                        row.sme ? (
+                      {typeof row.starter === 'boolean' ? (
+                        row.starter ? (
                           <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
                           <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-muted-foreground">{row.sme}</span>
+                        <span className="text-muted-foreground">{row.starter}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center bg-muted">
-                      {typeof row.medium === 'boolean' ? (
-                        row.medium ? (
+                      {typeof row.premium === 'boolean' ? (
+                        row.premium ? (
                           <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
                           <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-foreground font-medium">{row.medium}</span>
+                        <span className="text-foreground font-medium">{row.premium}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
-                      {typeof row.enterprise === 'boolean' ? (
-                        row.enterprise ? (
+                      {typeof row.pro === 'boolean' ? (
+                        row.pro ? (
                           <RiCheckLine className="w-5 h-5 text-primary mx-auto" />
                         ) : (
                           <span className="text-muted-foreground/40">—</span>
                         )
                       ) : (
-                        <span className="text-muted-foreground">{row.enterprise}</span>
+                        <span className="text-muted-foreground">{row.pro}</span>
                       )}
                     </td>
                   </tr>

@@ -178,6 +178,16 @@ export default function SubscribePage() {
       parseFloat(price)
     );
 
+  // Annual discount derived from the plans (largest saving across tiers) so
+  // the toggle badge only appears when annual billing is actually cheaper.
+  const annualSaving = Math.max(
+    0,
+    ...plans
+      .map((p) => ({ m: parseFloat(p.monthly_price), a: parseFloat(p.annual_price) }))
+      .filter(({ m, a }) => m > 0 && a > 0)
+      .map(({ m, a }) => Math.round((1 - a / (m * 12)) * 100))
+  );
+
   const fmtFee = (fee: string) => {
     const n = parseFloat(fee);
     return n > 0 ? `${n}%` : 'Custom';
@@ -271,8 +281,8 @@ export default function SubscribePage() {
                                 <span
                                   className={
                                     badge.ok
-                                      ? 'text-xs text-emerald-600'
-                                      : 'text-xs text-amber-600'
+                                      ? 'text-xs text-success-600'
+                                      : 'text-xs text-warning-600'
                                   }
                                 >
                                   {badge.label}
@@ -289,8 +299,8 @@ export default function SubscribePage() {
                   <span
                     className={
                       billingBadge(selectedOrg).ok
-                        ? 'text-xs font-medium text-emerald-600 shrink-0'
-                        : 'text-xs font-medium text-amber-600 shrink-0'
+                        ? 'text-xs font-medium text-success-600 shrink-0'
+                        : 'text-xs font-medium text-warning-600 shrink-0'
                     }
                   >
                     {billingBadge(selectedOrg).label}
@@ -342,7 +352,9 @@ export default function SubscribePage() {
                 }`}
               >
                 Annual
-                <span className="ml-2 text-primary text-xs font-bold">Save 20%</span>
+                {annualSaving > 0 && (
+                  <span className="ml-2 text-primary text-xs font-bold">Save {annualSaving}%</span>
+                )}
               </button>
             </div>
           </div>
@@ -397,13 +409,15 @@ export default function SubscribePage() {
                       <p className="text-xs text-muted-foreground mb-4">billed monthly</p>
                     )}
 
-                    {/* Transaction fee */}
+                    {/* Transaction fee — only when the plan carries one */}
+                    {parseFloat(plan.transaction_fee) > 0 && (
                     <div className="bg-muted/60 rounded-lg px-4 py-3 mb-5">
                       <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
                         Transaction fee
                       </p>
                       <p className="text-base font-bold text-foreground">{fmtFee(plan.transaction_fee)} per payment</p>
                     </div>
+                    )}
 
                     {/* Feature list — grows to fill card */}
                     <ul className="space-y-3 mb-6 flex-1">
