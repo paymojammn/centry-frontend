@@ -664,7 +664,7 @@ export default function RecipientDetailsStep({
               onClick={() => handleRecipientTypeChange(key)}
               className={`flex items-center gap-2.5 p-3 rounded-lg border text-left transition-all ${
                 recipientType === key
-                  ? 'border-foreground bg-foreground text-card'
+                  ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border hover:border-foreground/20'
               }`}
             >
@@ -713,7 +713,7 @@ export default function RecipientDetailsStep({
                           onClick={() => applySaved(bill, a)}
                           className={`px-2 py-1 rounded-md text-[11px] border transition-colors ${
                             active
-                              ? 'border-foreground bg-foreground text-card'
+                              ? 'border-primary bg-primary text-primary-foreground'
                               : 'border-border text-muted-foreground hover:text-foreground'
                           }`}
                         >

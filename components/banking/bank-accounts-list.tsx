@@ -208,10 +208,10 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
               key={p.value}
               type="button"
               onClick={() => setStatusFilter(p.value)}
-              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 active
                   ? "bg-primary text-white"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
               }`}
             >
               {p.label} ({p.count})

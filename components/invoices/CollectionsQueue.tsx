@@ -254,7 +254,7 @@ export default function CollectionsQueue({ organizationId }: CollectionsQueuePro
         <button
           onClick={() => setStatusFilter('all')}
           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-            statusFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
+            statusFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
           }`}
         >
           All ({byProvider.length})

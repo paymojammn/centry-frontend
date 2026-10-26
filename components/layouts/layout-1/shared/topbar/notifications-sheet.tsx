@@ -193,7 +193,7 @@ function FilterChips({
           className={cn(
             'px-2 py-0.5 rounded-full text-[11px] font-normal transition-colors',
             value === c.key
-              ? 'bg-foreground text-card'
+              ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground',
           )}
         >

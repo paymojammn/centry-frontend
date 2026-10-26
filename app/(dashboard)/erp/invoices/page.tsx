@@ -398,7 +398,7 @@ export default function InvoicesPage() {
                 <button
                   onClick={() => setFilters({ ...filters, status: 'all' })}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    (filters.status || 'all') === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
+                    (filters.status || 'all') === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
                   }`}
                 >
                   All ({invoiceStats?.total_invoices ?? 0})

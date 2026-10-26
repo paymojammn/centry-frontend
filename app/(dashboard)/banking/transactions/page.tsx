@@ -297,7 +297,7 @@ export default function BankTransactionsPage() {
         </div>
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-5">
+      <div className="px-6 py-6 space-y-5">
         {/* Summary cards (bills-page style) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
           <StatCard
@@ -416,7 +416,7 @@ export default function BankTransactionsPage() {
           </div>
 
           {isLoading ? (
-            <div className="p-6 space-y-3">
+            <div className="px-6 py-6 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-11 w-full rounded-lg" />
               ))}

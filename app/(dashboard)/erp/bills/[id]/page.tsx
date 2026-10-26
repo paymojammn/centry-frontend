@@ -44,7 +44,7 @@ export default function BillDetailPage() {
 
   if (error || !bill) {
     return (
-      <div className="container py-8">
+      <div className="px-6 py-6">
         <div className="bg-card border border-border rounded-lg shadow-sm p-12 text-center">
           <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Bill</h3>
@@ -73,7 +73,7 @@ export default function BillDetailPage() {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))] px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
@@ -85,7 +85,7 @@ export default function BillDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground">Bill Details</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">Bill Details</h1>
           <p className="text-muted-foreground mt-1">
             Invoice #{bill.invoice_number || bill.invoice_id}
           </p>
@@ -199,7 +199,7 @@ export default function BillDetailPage() {
                 {payments.length} attempt{payments.length === 1 ? '' : 's'}
               </span>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="px-6 py-6 space-y-3">
               {payments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No payment attempts yet.</p>
               ) : (
@@ -244,7 +244,7 @@ export default function BillDetailPage() {
                 Organization
               </h2>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="px-6 py-6 space-y-3">
               <InfoRow 
                 label="Name" 
                 value={bill.organization_name} 
@@ -362,7 +362,7 @@ function InfoRow({ label, value, icon }: InfoRowProps) {
 // Loading Skeleton
 function BillDetailSkeleton() {
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))] px-6 py-6 space-y-6">
       <div className="flex items-center gap-4">
         <div className="h-10 w-10 bg-muted animate-pulse rounded-lg" />
         <div className="flex-1 space-y-2">

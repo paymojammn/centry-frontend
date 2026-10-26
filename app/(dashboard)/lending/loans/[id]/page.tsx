@@ -238,7 +238,7 @@ export default function LoanDetailPage() {
         </div>
       </PageHeader>
 
-      <div className="px-6 py-8 space-y-5">
+      <div className="px-6 py-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
           <StatCard label="Loan amount" value={fmt(loan.loan_amount)} icon={Banknote} variant="accent" />
           <StatCard label="Disbursed" value={fmt(loan.disbursed_amount)} icon={ArrowUpFromLine} variant="info" />
@@ -254,10 +254,10 @@ export default function LoanDetailPage() {
                 <button
                   key={s.value}
                   onClick={() => setSection(s.value)}
-                  className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     active
-                      ? "bg-foreground text-card"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground"
                   }`}
                 >
                   {s.label} ({s.count})

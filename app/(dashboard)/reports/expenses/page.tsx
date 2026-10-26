@@ -52,7 +52,7 @@ export default function ExpenseReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))]">
       <PageHeader
         title="Expense Analytics"
         subtitle="Detailed breakdown of your expenses"
@@ -87,7 +87,7 @@ export default function ExpenseReportsPage() {
         )}
       </PageHeader>
 
-      <div className="px-4 sm:px-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

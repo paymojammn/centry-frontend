@@ -348,7 +348,7 @@ export default function BankingExportPage() {
               </div>
 
               {exportsLoading ? (
-                <div className="p-6 space-y-3">
+                <div className="px-6 py-6 space-y-3">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Skeleton key={i} className="h-11 w-full rounded-lg" />
                   ))}

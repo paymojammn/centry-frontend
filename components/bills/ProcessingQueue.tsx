@@ -690,8 +690,8 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
         <div className="px-4 py-3 border-b border-border flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-              statusFilter === 'all' ? 'bg-foreground text-card' : 'bg-muted text-muted-foreground hover:text-foreground'
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              statusFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
             }`}
           >
             All ({stats.total})
@@ -711,10 +711,9 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
             <button
               key={p.value}
               onClick={() => setStatusFilter(statusFilter === p.value ? 'all' : (p.value as PaymentEventStatus))}
-              className={`px-3 py-1 rounded-full text-xs font-normal transition-colors ${
-                statusFilter === p.value ? 'text-white' : 'bg-muted text-muted-foreground hover:text-foreground'
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                statusFilter === p.value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-sage/20 hover:text-foreground'
               }`}
-              style={statusFilter === p.value ? { backgroundColor: p.color } : undefined}
             >
               {p.label} ({p.count})
             </button>

@@ -298,7 +298,7 @@ export default function OrganizationDetailsPage() {
 
   if (!organization) {
     return (
-      <div className="container py-8">
+      <div className="px-6 py-6">
         <div className="bg-card border border-border rounded-lg shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <Building2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
@@ -313,7 +313,7 @@ export default function OrganizationDetailsPage() {
   }
 
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))] px-6 py-6 space-y-6">
       {/* Header Section */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">
@@ -322,7 +322,7 @@ export default function OrganizationDetailsPage() {
               <Building2 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{organization.name}</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">{organization.name}</h1>
               <p className="text-muted-foreground">@{organization.slug}</p>
             </div>
           </div>
@@ -441,7 +441,7 @@ export default function OrganizationDetailsPage() {
                 <h3 className="text-lg font-semibold text-foreground">Danger Zone</h3>
                 <p className="text-sm text-muted-foreground">Irreversible data operations</p>
               </div>
-              <div className="p-6 space-y-3">
+              <div className="px-6 py-6 space-y-3">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
@@ -956,7 +956,7 @@ function InfoRow({
   );
 }function OrganizationDetailsSkeleton() {
   return (
-    <div className="container py-8 space-y-6">
+    <div className="min-h-screen bg-[rgb(var(--page-bg))] px-6 py-6 space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 bg-muted animate-pulse rounded-lg" />

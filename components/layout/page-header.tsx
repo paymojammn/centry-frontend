@@ -51,7 +51,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        'bg-card/95 backdrop-blur-sm border-b border-border shadow-sm',
+        'bg-background/95 backdrop-blur-sm border-b border-border',
         sticky && 'sticky top-0 z-10'
       )}
     >
@@ -78,18 +78,18 @@ export function PageHeader({
         )}
 
         {/* Main header content */}
+        {/* One line: title left, org switcher + actions right. The subtitle
+            prop is accepted for compatibility but intentionally not rendered —
+            page headers carry a heading only. */}
         <div
           className={cn(
-            'flex items-center justify-between',
-            breadcrumbs ? 'h-14' : 'h-16'
+            'flex items-center justify-between gap-4',
+            breadcrumbs ? 'h-12' : 'h-14'
           )}
         >
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">{title}</h1>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
-            )}
-          </div>
+          <h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
+            {title}
+          </h1>
           <div className="flex items-center gap-3">
             {showOrgSelector && (
               <OrganizationSelect
@@ -116,9 +116,9 @@ interface CompactHeaderProps {
 
 export function CompactHeader({ title, backHref, children }: CompactHeaderProps) {
   return (
-    <div className="bg-card/95 backdrop-blur-sm border-b border-border shadow-sm">
+    <div className="bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="px-4 sm:px-6">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between gap-4 h-14">
           <div className="flex items-center gap-3">
             {backHref && (
               <a
@@ -128,7 +128,7 @@ export function CompactHeader({ title, backHref, children }: CompactHeaderProps)
                 <ChevronRight className="h-5 w-5 text-muted-foreground rotate-180" />
               </a>
             )}
-            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+            <h1 className="truncate text-lg font-semibold tracking-tight text-foreground">{title}</h1>
           </div>
           {children && <div className="flex items-center gap-3">{children}</div>}
         </div>
