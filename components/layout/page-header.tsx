@@ -26,6 +26,7 @@ interface Breadcrumb {
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  /** Accepted for compatibility; no longer rendered — the header is a heading only. */
   breadcrumbs?: Breadcrumb[];
   organizations?: Organization[];
   selectedOrganizationId?: string | null;
@@ -37,8 +38,6 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
-  subtitle,
-  breadcrumbs,
   organizations,
   selectedOrganizationId,
   onOrganizationChange,
@@ -56,35 +55,13 @@ export function PageHeader({
       )}
     >
       <div className="px-4 sm:px-6">
-        {/* Breadcrumbs */}
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <div className="flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
-            {breadcrumbs.map((crumb, index) => (
-              <span key={index} className="flex items-center gap-1.5">
-                {index > 0 && <ChevronRight className="h-3 w-3" />}
-                {crumb.href ? (
-                  <a
-                    href={crumb.href}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span className="text-foreground font-medium">{crumb.label}</span>
-                )}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Main header content */}
         {/* One line: title left, org switcher + actions right. The subtitle
             prop is accepted for compatibility but intentionally not rendered —
             page headers carry a heading only. */}
         <div
           className={cn(
             'flex items-center justify-between gap-4',
-            breadcrumbs ? 'h-12' : 'h-14'
+            'h-14'
           )}
         >
           <h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
