@@ -578,7 +578,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       case 'PENDING':
         return <Clock className="h-4 w-4 text-muted-foreground" />;
       case 'ACCEPTED_BANK':
-        return <ShieldCheck className="h-4 w-4" style={{ color: STATUS_COLORS.accepted.bg }} />;
+        return <ShieldCheck className="h-4 w-4 text-reconcile" />;
       case 'SENT_PAYMENT':
         return <Loader2 className="h-4 w-4 text-info-500 animate-spin" />;
       case 'SUCCESS_PAYMENT':
@@ -764,8 +764,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                 onClick={handleApprove}
                 disabled={approvePayments.isPending}
                 size="sm"
-                className="h-8 text-white"
-                style={{ backgroundColor: STATUS_COLORS.success.bg }}
+                className="h-8"
               >
                 {approvePayments.isPending ? (
                   <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -777,8 +776,8 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               <Button
                 onClick={() => setIsRejectDialogOpen(true)}
                 size="sm"
-                className="h-8 text-white"
-                style={{ backgroundColor: STATUS_COLORS.failed.bg }}
+                variant="destructive"
+                className="h-8"
               >
                 <X className="h-4 w-4 mr-1.5" />
                 Reject
@@ -791,7 +790,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               onClick={handleGenerateFileClick}
               disabled={generateFile.isPending}
               size="sm"
-              className="h-8 text-white hover:opacity-90"
+              className="h-8"
             >
               <FileDown className="h-4 w-4 mr-1.5" />
               Generate File
@@ -802,7 +801,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
             <Button
               onClick={handleOpenPayNow}
               size="sm"
-              className="h-8 text-white hover:opacity-90"
+              className="h-8"
             >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Pay Now
@@ -814,7 +813,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               onClick={handleSendProviderPayout}
               disabled={sendProviderPayout.isPending}
               size="sm"
-              className="h-8 text-white hover:opacity-90"
+              className="h-8"
             >
               {sendProviderPayout.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending...</>
@@ -830,7 +829,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               variant="outline"
               size="sm"
               className="h-8"
-              style={{ borderColor: STATUS_COLORS.sent.bg, color: STATUS_COLORS.sent.bg }}
             >
               <Ban className="h-4 w-4 mr-1.5" />
               Deny
@@ -965,7 +963,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                       <span className="cell-sub">by {payment.created_by_name}</span>
                     )}
                     {payment.approved_by_name && (
-                      <span className="cell-sub" style={{ color: STATUS_COLORS.success.bg }}>
+                      <span className="cell-sub text-success">
                         Approved by {payment.approved_by_name}
                       </span>
                     )}
@@ -1053,7 +1051,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                                 handleSendRow(payment.id);
                               }}
                               disabled={sendProviderPayout.isPending}
-                              className="h-7 px-2 text-xs text-white hover:opacity-90"
+                              className="h-7 px-2 text-xs"
                               title={
                                 payment.provider_status === 'ERROR_PAYMENT'
                                   ? 'Re-run this payout (the previous attempt was rejected)'
@@ -1187,8 +1185,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               size="sm"
               onClick={handleReject}
               disabled={rejectPayments.isPending}
-              className="text-white"
-              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
+              variant="destructive"
             >
               {rejectPayments.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -1272,8 +1269,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               size="sm"
               onClick={() => handleGenerateFile()}
               disabled={!selectedBankAccountId || generateFile.isPending}
-              className="text-white"
-              style={{ backgroundColor: STATUS_COLORS.processing.bg }}
             >
               {generateFile.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -1315,8 +1310,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               size="sm"
               onClick={handleDeny}
               disabled={denyPayments.isPending}
-              className="text-white"
-              style={{ backgroundColor: STATUS_COLORS.sent.bg }}
+              variant="destructive"
             >
               {denyPayments.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -1417,8 +1411,6 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                     size="sm"
                     onClick={handleHostedModalCheckout}
                     disabled={payNowLoading || amountInvalid}
-                    className="text-white"
-                    style={{ backgroundColor: STATUS_COLORS.success.bg }}
                   >
                     {payNowLoading ? (
                       <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -1494,8 +1486,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               size="sm"
               onClick={handleReverse}
               disabled={reversePayment.isPending || !reverseReason.trim()}
-              className="text-white"
-              style={{ backgroundColor: STATUS_COLORS.failed.bg }}
+              variant="destructive"
             >
               {reversePayment.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
