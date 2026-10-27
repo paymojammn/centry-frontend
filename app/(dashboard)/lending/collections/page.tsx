@@ -1,5 +1,6 @@
 "use client";
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -97,7 +98,7 @@ function RecordPaymentDialog({
   );
 }
 
-export default function CollectionsPage() {
+function CollectionsPage() {
   const [asOf, setAsOf] = useState("");
   const [payingRow, setPayingRow] = useState<LoanDueRow | null>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
@@ -281,5 +282,15 @@ export default function CollectionsPage() {
         <RecordPaymentDialog row={payingRow} onClose={() => setPayingRow(null)} />
       )}
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `lending` on.
+export default function CollectionsPageGated() {
+  return (
+    <FeatureGate feature="lending" title="Collections">
+      <CollectionsPage />
+    </FeatureGate>
   );
 }

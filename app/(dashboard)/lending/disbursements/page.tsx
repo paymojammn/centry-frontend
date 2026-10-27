@@ -1,5 +1,6 @@
 "use client";
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -37,7 +38,7 @@ const DOCSTATUS_STYLES: Record<number, string> = {
   2: "bg-danger-500/10 text-danger-700 border-danger-500/20",
 };
 
-export default function DisbursementsPage() {
+function DisbursementsPage() {
   const [search, setSearch] = useState("");
   const [docstatusFilter, setDocstatusFilter] = useState<"all" | number>("all");
   const [startDate, setStartDate] = useState("");
@@ -303,5 +304,15 @@ export default function DisbursementsPage() {
         </ContentCard>
       </div>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `lending` on.
+export default function DisbursementsPageGated() {
+  return (
+    <FeatureGate feature="lending" title="Disbursements">
+      <DisbursementsPage />
+    </FeatureGate>
   );
 }

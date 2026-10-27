@@ -23,12 +23,14 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useCurrentUser } from '@/hooks/use-user';
+import { useCurrentUser, useOrgFeatures } from '@/hooks/use-user';
+import { filterMenuByFeatures } from '@/lib/features';
 import { useLayout } from './context';
 
 export function SidebarMenu() {
   const pathname = usePathname();
   const { data: user } = useCurrentUser();
+  const { hasFeature } = useOrgFeatures();
   const { sidebarCollapse } = useLayout();
 
   // Check if user is finance role or an org owner/admin (bypass)
@@ -40,35 +42,24 @@ export function SidebarMenu() {
     );
   }, [user]);
 
-  // Filter menu items based on user role
+  // Filter menu items by role, then by the selected organization's features
+  // (items and whole groups whose children are all off disappear), then
+  // drop headings left with nothing under them.
   const filteredMenu = useMemo(() => {
+    const byRole = MENU_SIDEBAR.filter(
+      (item) => !(item.requiredRole === 'finance' && !isFinanceOrAdmin),
+    );
+    const byFeature = filterMenuByFeatures(byRole, hasFeature);
     const items: MenuConfig = [];
-    for (let i = 0; i < MENU_SIDEBAR.length; i++) {
-      const item = MENU_SIDEBAR[i];
-
-      // If item requires a role, check access
-      if (item.requiredRole === 'finance' && !isFinanceOrAdmin) {
-        continue;
-      }
-
-      // If this is a heading, check if the next non-heading items are all filtered out
+    byFeature.forEach((item, i) => {
       if (item.heading) {
-        let hasVisibleChild = false;
-        for (let j = i + 1; j < MENU_SIDEBAR.length; j++) {
-          const next = MENU_SIDEBAR[j];
-          if (next.heading) break;
-          if (!next.requiredRole || next.requiredRole !== 'finance' || isFinanceOrAdmin) {
-            hasVisibleChild = true;
-            break;
-          }
-        }
-        if (!hasVisibleChild) continue;
+        const next = byFeature[i + 1];
+        if (!next || next.heading) return;
       }
-
       items.push(item);
-    }
+    });
     return items;
-  }, [isFinanceOrAdmin]);
+  }, [isFinanceOrAdmin, hasFeature]);
 
   // Memoize matchPath to prevent unnecessary re-renders.
   // Active when the path equals the pathname exactly, or when the

@@ -12,6 +12,15 @@ import { signInWithOdoo } from '@/lib/odoo-api';
 const PROVIDER_BRANDING = vendorBrand;
 const DEFAULT_BRANDING = vendorBrandDefault;
 
+/**
+ * Only same-origin paths may be used as a post-login destination (`?next=`),
+ * e.g. `/invitations/accept?token=…`. Anything else falls back to the dashboard.
+ */
+function safeNextPath(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
+  return next;
+}
+
 interface Provider {
   id: string;
   code: string;
@@ -93,7 +102,7 @@ export default function LoginPage() {
     const cycle = searchParams.get('cycle');
     const redirectUrl = plan
       ? `${frontendUrl}/billing/subscribe?plan=${plan}${cycle ? `&cycle=${cycle}` : ''}`
-      : `${frontendUrl}/dashboard`;
+      : `${frontendUrl}${safeNextPath(searchParams.get('next')) ?? '/dashboard'}`;
 
     let authUrl = `${apiUrl}/api/auth/${code}/signin/?redirect_url=${encodeURIComponent(redirectUrl)}`;
     if (plan) authUrl += `&plan=${encodeURIComponent(plan)}`;
@@ -115,7 +124,7 @@ export default function LoginPage() {
       const frontendUrl = window.location.origin;
       const redirect_url = plan
         ? `${frontendUrl}/billing/subscribe?plan=${plan}${cycle ? `&cycle=${cycle}` : ''}`
-        : `${frontendUrl}/dashboard`;
+        : `${frontendUrl}${safeNextPath(searchParams.get('next')) ?? '/dashboard'}`;
 
       const result = await signInWithOdoo({
         base_url: odooForm.base_url.trim(),

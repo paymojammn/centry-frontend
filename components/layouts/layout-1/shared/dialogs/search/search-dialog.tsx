@@ -6,16 +6,22 @@ import {
   Building2,
   Landmark,
   ArrowRightLeft,
+  CheckSquare,
   FileDown,
   FileUp,
   Search,
   Shield,
-  Settings,
+  ShieldCheck,
+  Send,
+  TrendingUp,
   User,
   Wallet,
   Users,
   Receipt,
+  Banknote,
 } from 'lucide-react';
+import { useOrgFeatures } from '@/hooks/use-user';
+import type { OrgFeature } from '@/lib/features';
 import {
   Dialog,
   DialogBody,
@@ -35,45 +41,74 @@ interface NavItem {
   path: string;
   keywords: string[];
   section: string;
+  /** Shown only when the selected organization has this feature on. */
+  feature?: OrgFeature;
 }
 
+// Mirrors MENU_SIDEBAR (config/layout-1.config.tsx) plus the account and
+// organization pages that live in the user menu. Every path here is a real route.
 const NAV_ITEMS: NavItem[] = [
   // Main
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard', keywords: ['home', 'overview', 'stats'], section: 'Main' },
-  { icon: FileText, label: 'Bills', path: '/erp/bills', keywords: ['invoices', 'payables', 'vendor'], section: 'Main' },
-  { icon: CreditCard, label: 'Payments', path: '/payments', keywords: ['pay', 'transfer', 'send'], section: 'Main' },
-  { icon: Receipt, label: 'Expenses', path: '/expenses', keywords: ['spend', 'cost', 'claims'], section: 'Main' },
-  { icon: Users, label: 'Vendors', path: '/erp/vendors', keywords: ['suppliers', 'contacts'], section: 'Main' },
-  { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main' },
+  { icon: Receipt, label: 'Expenses', path: '/expenses', keywords: ['spend', 'cost', 'claims'], section: 'Main', feature: 'expenses' },
+  { icon: Wallet, label: 'Wallet', path: '/wallet', keywords: ['balance', 'funds'], section: 'Main', feature: 'wallet' },
+  // ERP
+  { icon: FileText, label: 'Invoices', path: '/erp/invoices', keywords: ['receivables', 'customers', 'sales'], section: 'ERP' },
+  { icon: FileText, label: 'Bills', path: '/erp/bills', keywords: ['payables', 'vendor', 'purchases'], section: 'ERP' },
+  { icon: Users, label: 'Vendors', path: '/erp/vendors', keywords: ['suppliers', 'contacts', 'bank details'], section: 'ERP' },
   // Banking
   { icon: FileUp, label: 'Banking Dashboard', path: '/banking/export', keywords: ['pain.001', 'bank file', 'xml'], section: 'Banking' },
   { icon: ArrowRightLeft, label: 'Bank Payments', path: '/banking/transactions', keywords: ['payments', 'history'], section: 'Banking' },
+  { icon: CheckSquare, label: 'Approvals', path: '/banking/approvals', keywords: ['approve', 'maker', 'checker', 'queue'], section: 'Banking' },
   { icon: FileDown, label: 'ERP Sync', path: '/banking/reconciliation', keywords: ['pain.002', 'bank response', 'sync'], section: 'Banking' },
   { icon: Building2, label: 'Accounts', path: '/banking/accounts', keywords: ['accounts', 'iban'], section: 'Banking' },
   { icon: Landmark, label: 'Banks', path: '/banking/banks', keywords: ['bank', 'branch', 'sort code', 'swift', 'registry'], section: 'Banking' },
+  // Payments (mobile money)
+  { icon: TrendingUp, label: 'Pay In', path: '/payments/payin', keywords: ['collect', 'request to pay', 'mobile money'], section: 'Payments', feature: 'mobile_money' },
+  { icon: Send, label: 'Pay Out', path: '/payments/payout', keywords: ['disburse', 'transfer', 'send', 'mobile money'], section: 'Payments', feature: 'mobile_money' },
+  { icon: CreditCard, label: 'Reconciliation', path: '/payments', keywords: ['match', 'unmatched', 'mobile money'], section: 'Payments', feature: 'mobile_money' },
+  // Rails certification
+  { icon: Send, label: 'MTN Sign-off', path: '/payments/mtn-certification', keywords: ['momo', 'sit', 'certification'], section: 'Rails', feature: 'rails_certification' },
+  { icon: Send, label: 'Airtel Sign-off', path: '/payments/airtel-certification', keywords: ['airtel money', 'certification'], section: 'Rails', feature: 'rails_certification' },
+  { icon: Send, label: 'Ozow Sign-off', path: '/banking/ozow/signoff', keywords: ['eft', 'south africa', 'certification'], section: 'Rails', feature: 'rails_certification' },
+  { icon: Send, label: 'Onegate Sign-off', path: '/banking/onegate/signoff', keywords: ['card', 'south africa', 'certification'], section: 'Rails', feature: 'rails_certification' },
+  // Lending
+  { icon: Banknote, label: 'Loan Book', path: '/lending', keywords: ['loans', 'borrowers', 'sacco'], section: 'Lending', feature: 'lending' },
+  { icon: Banknote, label: 'Collections', path: '/lending/collections', keywords: ['repayments', 'due', 'instalments'], section: 'Lending', feature: 'lending' },
+  { icon: Banknote, label: 'Disbursements', path: '/lending/disbursements', keywords: ['payout', 'loan release'], section: 'Lending', feature: 'lending' },
   // Reports
-  { icon: BarChart3, label: 'Reports', path: '/reports', keywords: ['analytics', 'pipeline', 'charts'], section: 'Reports' },
+  { icon: BarChart3, label: 'Reports', path: '/reports', keywords: ['analytics', 'pipeline', 'charts', 'overview'], section: 'Reports' },
   { icon: ArrowRightLeft, label: 'Payments report', path: '/reports/payments', keywords: ['history', 'export'], section: 'Reports' },
-  // Settings
-  { icon: User, label: 'My Profile', path: '/account/profile', keywords: ['account', 'name', 'email'], section: 'Settings' },
-  { icon: Shield, label: 'Security', path: '/account/security', keywords: ['password', '2fa', 'two-factor'], section: 'Settings' },
-  { icon: Building2, label: 'Organizations', path: '/organizations', keywords: ['org', 'company', 'team'], section: 'Settings' },
-  { icon: Settings, label: 'Integrations', path: '/integrations', keywords: ['xero', 'erp', 'connect'], section: 'Settings' },
+  { icon: Shield, label: 'Exceptions report', path: '/reports/exceptions', keywords: ['failed', 'errors', 'rejected'], section: 'Reports' },
+  { icon: Receipt, label: 'Expenses report', path: '/reports/expenses', keywords: ['spend', 'departments'], section: 'Reports' },
+  // Organization
+  { icon: Building2, label: 'Organizations', path: '/organizations', keywords: ['org', 'company', 'team'], section: 'Organization' },
+  { icon: Users, label: 'Users', path: '/organizations/members', keywords: ['members', 'invite', 'roles'], section: 'Organization' },
+  { icon: ShieldCheck, label: 'Audit trail', path: '/organizations/audit', keywords: ['log', 'history', 'who did what'], section: 'Organization' },
+  // Account
+  { icon: User, label: 'My Profile', path: '/account/profile', keywords: ['account', 'name', 'email'], section: 'Account' },
+  { icon: Shield, label: 'Security', path: '/account/security', keywords: ['password', '2fa', 'two-factor'], section: 'Account' },
 ];
 
 export function SearchDialog({ trigger }: { trigger: ReactNode }) {
   const [searchInput, setSearchInput] = useState('');
+  const { hasFeature } = useOrgFeatures();
+
+  const available = useMemo(
+    () => NAV_ITEMS.filter((item) => !item.feature || hasFeature(item.feature)),
+    [hasFeature],
+  );
 
   const filtered = useMemo(() => {
     const query = searchInput.toLowerCase().trim();
-    if (!query) return NAV_ITEMS;
-    return NAV_ITEMS.filter(
+    if (!query) return available;
+    return available.filter(
       (item) =>
         item.label.toLowerCase().includes(query) ||
         item.keywords.some((kw) => kw.includes(query)) ||
         item.section.toLowerCase().includes(query)
     );
-  }, [searchInput]);
+  }, [searchInput, available]);
 
   const grouped = useMemo(() => {
     const sections: Record<string, NavItem[]> = {};

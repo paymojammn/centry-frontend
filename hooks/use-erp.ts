@@ -2,10 +2,22 @@
  * React Query hooks for ERP Connections
  */
 
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { erpApi } from '@/lib/erp-api';
-import type { ERPConnection, SyncBillsResponse } from '@/lib/erp-api';
+import type {
+  SyncBillsOptions,
+  SyncBillsResponse,
+  SyncLogsParams,
+  SyncStatusResponse,
+} from '@/lib/erp-api';
+import { isSyncRunning } from '@/lib/erp-sync';
 import { toast } from 'sonner';
+
+/** Query keys touched when a bill sync finishes. */
+const BILL_QUERY_KEYS: string[][] = [['bills'], ['bill-stats'], ['erp-connections'], ['erp-sync-logs']];
+
+const SYNC_POLL_INTERVAL_MS = 3000;
 
 /**
  * Hook to fetch ERP connections.
@@ -33,22 +45,94 @@ export function useERPConnection(id: string) {
 }
 
 /**
- * Hook to sync bills from ERP
+ * Hook to sync bills from ERP.
+ *
+ * The backend queues a Celery task and answers 202 `{status: "queued",
+ * task_id}`; the actual result arrives through `useSyncStatus`, which
+ * invalidates the bills queries once the run finishes. When the backend had
+ * to run inline (`status: "success"`) we invalidate right away.
  */
 export function useSyncBills() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (connectionId: string) => erpApi.syncBills(connectionId),
-    onSuccess: (data: SyncBillsResponse) => {
-      toast.success(data.message || `Synced ${data.synced_count} bills successfully`);
-      // Invalidate bills query to refetch
-      queryClient.invalidateQueries({ queryKey: ['bills'] });
-      queryClient.invalidateQueries({ queryKey: ['bill-stats'] });
+    mutationFn: ({
+      connectionId,
+      options,
+    }: {
+      connectionId: string;
+      options?: SyncBillsOptions;
+    }) => erpApi.syncBills(connectionId, options),
+    onSuccess: (data: SyncBillsResponse, { connectionId }) => {
+      if (data.status === 'queued') {
+        toast.success('Sync started', {
+          description: 'Bills are being pulled from your ERP in the background.',
+        });
+        // Make the poller pick the new "running" row up immediately.
+        queryClient.invalidateQueries({ queryKey: ['erp-sync-status', connectionId] });
+        queryClient.invalidateQueries({ queryKey: ['erp-sync-logs'] });
+        return;
+      }
+      toast.success(data.message || `Synced ${data.synced_count ?? 0} bills successfully`);
+      BILL_QUERY_KEYS.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+      queryClient.invalidateQueries({ queryKey: ['erp-sync-status', connectionId] });
     },
     onError: (error: Error) => {
       toast.error(`Failed to sync bills: ${error.message}`);
     },
+  });
+}
+
+/**
+ * Latest sync run for a connection. Polls every 3s while a run is in
+ * flight, then invalidates the bills queries exactly once when it ends.
+ */
+export function useSyncStatus(connectionId: string | null | undefined, entity = 'bills') {
+  const queryClient = useQueryClient();
+  const wasRunning = useRef(false);
+
+  const query = useQuery<SyncStatusResponse>({
+    queryKey: ['erp-sync-status', connectionId, entity],
+    queryFn: () => erpApi.getSyncStatus(connectionId as string, entity),
+    enabled: !!connectionId,
+    refetchInterval: (q) => (isSyncRunning(q.state.data?.latest) ? SYNC_POLL_INTERVAL_MS : false),
+    refetchIntervalInBackground: false,
+  });
+
+  const latest = query.data?.latest ?? null;
+  const running = isSyncRunning(latest);
+
+  useEffect(() => {
+    if (running) {
+      wasRunning.current = true;
+      return;
+    }
+    if (!wasRunning.current || !latest) return;
+    wasRunning.current = false;
+    BILL_QUERY_KEYS.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+    if (latest.status === 'failed') {
+      toast.error('Sync failed', { description: latest.error_message || 'Unknown error' });
+    } else {
+      toast.success('Sync complete', {
+        description: `${latest.fetched.toLocaleString()} ${latest.entity} fetched`,
+      });
+    }
+  }, [running, latest, queryClient]);
+
+  return { ...query, latest, isSyncRunning: running };
+}
+
+/**
+ * Sync history (newest first, paginated) for an organization or connection.
+ */
+export function useSyncLogs(params: SyncLogsParams, options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ['erp-sync-logs', params],
+    queryFn: () => erpApi.getSyncLogs(params),
+    enabled: options.enabled ?? true,
+    // Keep the table live while any listed run is still going.
+    refetchInterval: (q) =>
+      q.state.data?.results.some((log) => isSyncRunning(log)) ? SYNC_POLL_INTERVAL_MS : false,
   });
 }
 

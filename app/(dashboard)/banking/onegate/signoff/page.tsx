@@ -11,6 +11,7 @@
  * Sandbox-only — OneGate creates a separate merchant profile for live.
  */
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -80,7 +81,7 @@ function intentTone(intent: OneGateSignoffIntent | undefined): string {
 // Page
 // ---------------------------------------------------------------------------
 
-export default function OnegateSignoffPage() {
+function OnegateSignoffPage() {
   const queryClient = useQueryClient();
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -3379,4 +3380,14 @@ function updateLocalIntent(
       intentMap[row.slug] ? { ...row, intent: intentMap[row.slug] } : row,
     ),
   };
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `rails_certification` on.
+export default function OnegateSignoffPageGated() {
+  return (
+    <FeatureGate feature="rails_certification" title="OneGate Sign-off">
+      <OnegateSignoffPage />
+    </FeatureGate>
+  );
 }
