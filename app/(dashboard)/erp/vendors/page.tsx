@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { contactsApi, type Contact, type ContactsFilters } from '@/lib/contacts-api';
+import { contactsApi, vendorDetailPath, type Contact, type ContactsFilters } from '@/lib/contacts-api';
 import { useSyncContacts, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import { Input } from '@/components/ui/input';
@@ -312,9 +312,9 @@ function ContactsTable({ contacts }: ContactsTableProps) {
       <tbody className="animate-stagger">
         {contacts.map((contact) => (
           <tr
-            key={contact.id}
+            key={`${contact.erp ?? contact.provider ?? 'xero'}-${contact.id}`}
             className="cursor-pointer"
-            onClick={() => router.push(`/erp/vendors/${contact.id}`)}
+            onClick={() => router.push(vendorDetailPath(contact))}
           >
             <td className="cell-primary">
               <div className="flex items-center gap-3">
