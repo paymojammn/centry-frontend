@@ -34,6 +34,8 @@ export interface Invoice {
   amount_paid: string;
   sent_to_contact: boolean;
   created_at: string;
+  /** Which ERP the invoice was synced from (xero | qbo | erpnext). */
+  provider?: 'xero' | 'qbo' | 'erpnext';
 }
 
 export interface InvoiceStats {
