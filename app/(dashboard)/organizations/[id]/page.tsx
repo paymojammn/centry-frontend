@@ -78,6 +78,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { clearOrganizationData, resyncOrganizationData } from '@/lib/organization-api';
 import { MembersPanel } from '@/components/organizations/members-panel';
+import { FeaturesCard } from '@/components/organizations/features-card';
 
 export default function OrganizationDetailsPage() {
   const params = useParams();
@@ -591,7 +592,8 @@ export default function OrganizationDetailsPage() {
         </TabsContent>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="mt-6">
+        <TabsContent value="settings" className="mt-6 space-y-6">
+          <FeaturesCard organizationId={organizationId} features={organization.features} />
           <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
               <h3 className="text-lg font-semibold text-foreground">Organization Settings</h3>

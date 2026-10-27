@@ -7,6 +7,7 @@
 
 'use client';
 
+import { FeatureGate } from '@/components/layout/feature-gate';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,7 +75,7 @@ const ITEM_STATUS_STYLES: Record<
   expired: { label: 'Expired', className: 'text-destructive bg-destructive/5', Icon: XCircle },
 };
 
-export default function PayInPage() {
+function PayInPage() {
   const { data: organizationsResponse, isLoading: loadingOrgs } = useOrganizations();
   const organizations = useMemo(
     () =>
@@ -625,5 +626,15 @@ function StatusPill({ status, label }: { status: string; label: string }) {
     >
       {label}
     </span>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `mobile_money` on.
+export default function PayInPageGated() {
+  return (
+    <FeatureGate feature='mobile_money' title='Pay In'>
+      <PayInPage />
+    </FeatureGate>
   );
 }

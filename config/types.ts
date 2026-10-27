@@ -12,6 +12,8 @@ export interface MenuItem {
   children?: MenuConfig;
   disabled?: boolean;
   requiredRole?: string;
+  /** Organization feature key (lib/features.ts) that must be on for this item to show. */
+  feature?: string;
   collapse?: boolean;
   collapseTitle?: string;
   expandTitle?: string;

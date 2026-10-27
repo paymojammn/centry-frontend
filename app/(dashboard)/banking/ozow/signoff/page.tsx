@@ -11,6 +11,7 @@
  * disabled — Ozow's sign-off is required on staging by their docs.
  */
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -191,7 +192,7 @@ function deriveStatus(slug: string, result: OzowSignoffResult): {
 // Page
 // ---------------------------------------------------------------------------
 
-export default function OzowSignoffPage() {
+function OzowSignoffPage() {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   // payoutId carries between tests: get-status reuses whatever valid-submit
@@ -869,3 +870,12 @@ function deriveWebhookItemStatus(
   return { status: "pending", label: "—" };
 }
 
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `rails_certification` on.
+export default function OzowSignoffPageGated() {
+  return (
+    <FeatureGate feature="rails_certification" title="Ozow Sign-off">
+      <OzowSignoffPage />
+    </FeatureGate>
+  );
+}
