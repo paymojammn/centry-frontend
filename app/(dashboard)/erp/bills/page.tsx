@@ -45,6 +45,7 @@ import { StatCard } from '@/components/layout/stat-card';
 import { ContentCard, ContentCardHeader } from '@/components/layout/content-card';
 import { STATUS_COLORS, formatCompactNumber } from '@/lib/theme';
 import { LoadingState } from '@/components/layout/loading-state';
+import { SyncStatusIndicator } from '@/components/erp/SyncStatusIndicator';
 
 // Helper to extract clean currency code from enum-style strings
 const cleanCurrencyCode = (currency: string): string => {
@@ -288,7 +289,7 @@ export default function BillsPage() {
 
   const handleSyncBills = () => {
     if (activeConnectionId) {
-      syncBills(activeConnectionId);
+      syncBills({ connectionId: activeConnectionId });
     }
   };
 
@@ -304,17 +305,26 @@ export default function BillsPage() {
         onOrganizationChange={setSelectedOrganizationId}
         isLoadingOrgs={orgsLoading}
       >
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSyncBills}
-          disabled={isSyncing || !activeConnectionId}
-          title={syncDisabledReason}
-          className="h-9 btn-press disabled:pointer-events-auto disabled:cursor-not-allowed"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-          Sync
-        </Button>
+        <div className="flex items-center gap-3">
+          <SyncStatusIndicator
+            connectionId={activeConnectionId}
+            entity="bills"
+            onRetry={handleSyncBills}
+            retryDisabled={isSyncing}
+            className="hidden sm:inline-flex"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncBills}
+            disabled={isSyncing || !activeConnectionId}
+            title={syncDisabledReason}
+            className="h-9 btn-press disabled:pointer-events-auto disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            Sync
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Tabs */}
