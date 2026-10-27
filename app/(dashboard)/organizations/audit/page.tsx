@@ -2,38 +2,29 @@
 
 /**
  * Audit trail — the system-wide security.AuditLog: who did what, when,
- * with severity. Stats follow the period; the event list is paged and
- * filtered by severity, module, action and free text.
+ * with severity. The period pills filter BOTH the tiles and the event list
+ * (date_from / date_to); the toolbar adds severity, module, action, user
+ * email and free text. Every active filter also drives the CSV export, and
+ * each row opens a details sheet with the recorded changes and metadata.
  */
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { AlertOctagon, AlertTriangle, Download, ScrollText, Search } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Download, ScrollText } from "lucide-react";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/layout/loading-state";
 import { EmptyState } from "@/components/layout/empty-state";
 import { MetricTile } from "@/components/reports/MetricTile";
 import { ReportSection, ReportShell, ReportSummary } from "@/components/reports/report-shell";
+import { AuditEventSheet, SeverityPill } from "@/components/audit/audit-event-sheet";
+import { AuditFilters, EMPTY_AUDIT_FILTERS, type AuditFilterState } from "@/components/audit/audit-filters";
 import { useAuditLogs, useAuditStats } from "@/hooks/use-reports";
 import { useReportOrganization, useReportPeriod } from "@/hooks/use-report-context";
-import { reportsApi } from "@/lib/reports-api";
+import { reportsApi, type AuditLogQuery } from "@/lib/reports-api";
+import type { AuditLog } from "@/types/reports";
 
 const PAGE_SIZE = 100;
-
-const SEVERITY_PILL: Record<string, string> = {
-  info: "bg-info-500/10 text-info-700 border-info-500/20",
-  warning: "bg-warning-500/10 text-warning-700 border-warning-500/20",
-  error: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-  critical: "bg-danger-500/10 text-danger-700 border-danger-500/20",
-};
-
-function SeverityPill({ severity }: { severity: string }) {
-  const pill = SEVERITY_PILL[severity] || "bg-muted text-muted-foreground border-border";
-  return <span className={`status-pill ${pill} capitalize`}>{severity}</span>;
-}
 
 function DateCell({ iso }: { iso: string }) {
   const d = new Date(iso);
@@ -49,26 +40,32 @@ function DateCell({ iso }: { iso: string }) {
 export default function AuditTrailPage() {
   const org = useReportOrganization();
   const period = useReportPeriod("30d");
-  const [severity, setSeverity] = useState("all");
-  const [module, setModule] = useState("all");
-  const [actionType, setActionType] = useState("");
-  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<AuditFilterState>(EMPTY_AUDIT_FILTERS);
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<AuditLog | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const organizationId = org.organizationId || undefined;
+  const updateFilters = (patch: Partial<AuditFilterState>) => {
+    setFilters((f) => ({ ...f, ...patch }));
+    setPage(1);
+  };
 
-  const { data, isLoading } = useAuditLogs({
-    organization: organizationId,
-    severity: severity === "all" ? undefined : severity,
-    module: module === "all" ? undefined : module,
-    action_type: actionType || undefined,
-    search: search || undefined,
-    page,
-    page_size: PAGE_SIZE,
-    ordering: "-timestamp",
-  });
-  const { data: stats } = useAuditStats(organizationId, period.days);
+  // One query object feeds the list, the tiles and the CSV so they can never
+  // disagree about which events are in scope.
+  const query: AuditLogQuery = {
+    organization: org.organizationId || undefined,
+    date_from: period.startDate,
+    date_to: period.endDate,
+    severity: filters.severity === "all" ? undefined : filters.severity,
+    module: filters.module === "all" ? undefined : filters.module,
+    action_type: filters.actionType || undefined,
+    user_email: filters.userEmail || undefined,
+    search: filters.search || undefined,
+    ordering: "-created_at",
+  };
+
+  const { data, isLoading } = useAuditLogs({ ...query, page, page_size: PAGE_SIZE });
+  const { data: stats } = useAuditStats(query);
 
   const rows = data?.results || [];
   const total = data?.count || 0;
@@ -77,21 +74,10 @@ export default function AuditTrailPage() {
   const errors = stats?.error_count || 0;
   const critical = stats?.critical_count || 0;
 
-  // Modules and actions surfaced in stats so the user can pick a real value.
-  const moduleOptions = Object.keys(stats?.by_module || {});
-  const actionOptions = Object.keys(stats?.by_action || {});
-
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      await reportsApi.downloadAuditLogs({
-        organization: organizationId,
-        severity: severity === "all" ? "" : severity,
-        module: module === "all" ? "" : module,
-        action_type: actionType,
-        search,
-        ordering: "-timestamp",
-      });
+      await reportsApi.downloadAuditLogs(query);
       toast.success("Audit log downloaded");
     } catch (e) {
       toast.error(e instanceof Error && e.message ? e.message : "Download failed");
@@ -105,7 +91,7 @@ export default function AuditTrailPage() {
       title="Audit trail"
       organizations={org.organizations}
       organizationId={org.organizationId}
-      onOrganizationChange={org.setOrganizationId}
+      onOrganizationChange={(id) => { org.setOrganizationId(id); setPage(1); }}
       isLoadingOrgs={org.isLoading}
       period={period}
       actions={
@@ -114,58 +100,7 @@ export default function AuditTrailPage() {
           {isDownloading ? "Downloading…" : "Download CSV"}
         </Button>
       }
-      filters={
-        <>
-          <Select value={severity} onValueChange={(v) => { setSeverity(v); setPage(1); }}>
-            <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All severities</SelectItem>
-              <SelectItem value="info">Info</SelectItem>
-              <SelectItem value="warning">Warning</SelectItem>
-              <SelectItem value="error">Error</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={module} onValueChange={(v) => { setModule(v); setPage(1); }}>
-            <SelectTrigger className="h-9 w-[170px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All modules</SelectItem>
-              {moduleOptions.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m} ({stats?.by_module[m]})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={actionType || "all"} onValueChange={(v) => { setActionType(v === "all" ? "" : v); setPage(1); }}>
-            <SelectTrigger className="h-9 w-[210px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All actions</SelectItem>
-              {actionOptions.map((a) => (
-                <SelectItem key={a} value={a}>
-                  {a} ({stats?.by_action[a]})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search description, user, target…"
-              className="h-9 w-[260px] pl-8"
-              aria-label="Search audit events"
-            />
-          </div>
-        </>
-      }
+      filters={<AuditFilters value={filters} onChange={updateFilters} stats={stats} />}
     >
       {!stats ? (
         <LoadingState />
@@ -203,7 +138,7 @@ export default function AuditTrailPage() {
 
       <ReportSection
         title="Event log"
-        subtitle={`${total.toLocaleString()} events · page ${page} of ${totalPages}`}
+        subtitle={`${total.toLocaleString()} events · ${period.label.toLowerCase()} · page ${page} of ${totalPages}`}
         icon={<ScrollText className="h-4 w-4" />}
         right={
           <div className="flex items-center gap-2">
@@ -222,7 +157,7 @@ export default function AuditTrailPage() {
           <EmptyState
             icon={ScrollText}
             title="No audit events match your filters"
-            description="Clear a filter or widen the search to see more events."
+            description="Widen the period, clear a filter or broaden the search to see more events."
           />
         ) : (
           <div className="table-scroll-container">
@@ -236,11 +171,17 @@ export default function AuditTrailPage() {
                   <th>Module</th>
                   <th>Target</th>
                   <th>Description</th>
+                  <th className="text-right">Details</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((e) => (
-                  <tr key={e.id}>
+                  <tr
+                    key={e.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(e)}
+                    data-state={selected?.id === e.id ? "selected" : undefined}
+                  >
                     <td className="cell-muted whitespace-nowrap"><DateCell iso={e.timestamp} /></td>
                     <td className="font-mono text-xs whitespace-nowrap">
                       {e.action_type}
@@ -252,7 +193,10 @@ export default function AuditTrailPage() {
                     </td>
                     <td><SeverityPill severity={e.severity} /></td>
                     <td className="cell-primary">
-                      {e.user_name || "—"}
+                      {e.user_name || "System"}
+                      {e.user_email && e.user_email !== e.user_name && (
+                        <span className="cell-sub">{e.user_email}</span>
+                      )}
                       {e.user_ip && <span className="cell-sub font-mono">{e.user_ip}</span>}
                     </td>
                     <td className="cell-muted">{e.module || "—"}</td>
@@ -261,6 +205,16 @@ export default function AuditTrailPage() {
                       {e.action_description}
                       {e.error_message && <span className="cell-sub text-danger-600">{e.error_message}</span>}
                     </td>
+                    <td className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(ev) => { ev.stopPropagation(); setSelected(e); }}
+                        aria-label={`Details for ${e.action_type}`}
+                      >
+                        Details
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -268,6 +222,8 @@ export default function AuditTrailPage() {
           </div>
         )}
       </ReportSection>
+
+      <AuditEventSheet event={selected} onClose={() => setSelected(null)} />
     </ReportShell>
   );
 }

@@ -600,6 +600,12 @@ export interface AuditLog {
   metadata: Record<string, any>;
   success: boolean;
   error_message: string;
+  /** Present on the detail endpoint only. */
+  request_id?: string | null;
+  user_agent?: string;
+  session_id?: string | null;
+  content_type?: number | null;
+  object_id?: string;
 }
 
 export interface AuditLogListResponse {
