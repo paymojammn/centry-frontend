@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { PaymentEvent } from '@/types/bill';
 import { LoadingState } from '@/components/layout/loading-state';
+import { InvoiceFiscalCard } from '@/components/fiscal/invoice-fiscal-card';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -205,6 +206,9 @@ export default function InvoiceDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Fiscalization (feature-flagged; renders nothing when off) */}
+            <InvoiceFiscalCard invoice={invoice} />
 
             {/* Dates */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-6">
