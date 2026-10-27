@@ -6,7 +6,6 @@ import {
   FileText,
   LayoutGrid,
   Plug,
-  Receipt,
   Send,
   Settings,
   TrendingUp,
@@ -40,6 +39,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "Dashboard", path: "/banking/export" },
       { title: "Payments", path: "/banking/transactions" },
+      { title: "Collections", path: "/banking/collections" },
       { title: "ERP Sync", path: "/banking/reconciliation" },
       { title: "Accounts", path: "/banking/accounts" },
       { title: "Banks", path: "/banking/banks" },
@@ -52,7 +52,7 @@ export const MENU_SIDEBAR: MenuConfig = [
     children: [
       { title: "Pay In", path: "/payments/payin" },
       { title: "Pay Out", path: "/payments/payout" },
-      { title: "Reconciliation", path: "/payments" },
+      { title: "Reconciliation", path: "/banking/collections" },
     ],
   },
   {
