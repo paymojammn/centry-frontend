@@ -44,6 +44,11 @@ import CollectionsQueue from '@/components/invoices/CollectionsQueue';
 import { CreditCard } from 'lucide-react';
 import type { Invoice, InvoiceFilters } from '@/lib/invoices-api';
 import { LoadingState } from '@/components/layout/loading-state';
+import {
+  InvoiceFiscalCell,
+  useFiscalDocumentsBySource,
+  useFiscalInvoiceSupport,
+} from '@/components/fiscal/fiscalize-invoice';
 
 const cleanCurrencyCode = (currency: string): string => {
   if (!currency) return 'USD';
@@ -113,6 +118,10 @@ export default function InvoicesPage() {
   const organizations = Array.isArray(organizationsResponse)
     ? organizationsResponse
     : (organizationsResponse as any)?.results || [];
+
+  // Fiscalization (feature-flagged): Fiscalize action + fiscal status per row.
+  const fiscal = useFiscalInvoiceSupport(selectedOrganizationId);
+  const fiscalDocsBySource = useFiscalDocumentsBySource(selectedOrganizationId, invoices, fiscal.enabled);
 
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse
@@ -463,7 +472,7 @@ export default function InvoicesPage() {
                       <col className="w-[48px]" />{/* Ccy */}
                       <col />{/* Amount */}
                       <col />{/* Status */}
-                      <col className="w-[110px]" />{/* Collect action */}
+                      <col className={fiscal.enabled ? 'w-[280px]' : 'w-[110px]'} />{/* Fiscal + Collect actions */}
                     </colgroup>
                     <thead>
                       <tr>
@@ -567,6 +576,13 @@ export default function InvoicesPage() {
                             <td className="text-center">{getStatusBadge(inv.status)}</td>
                             <td className="text-right pr-4" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1.5">
+                                {fiscal.enabled && (
+                                  <InvoiceFiscalCell
+                                    invoice={inv}
+                                    connections={fiscal.connections}
+                                    documentsBySource={fiscalDocsBySource}
+                                  />
+                                )}
                                 {canCollect && isCollectable && (
                                   <Button
                                     size="sm"

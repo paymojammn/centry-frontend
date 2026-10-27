@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   Receipt,
   Send,
+  Stamp,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -109,6 +110,18 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: "Loan Book", path: "/lending" },
       { title: "Collections", path: "/lending/collections" },
       { title: "Disbursements", path: "/lending/disbursements" },
+    ],
+  },
+  {
+    title: "Fiscalization",
+    icon: Stamp,
+    requiredRole: "finance",
+    feature: "fiscalization",
+    children: [
+      { title: "Documents", path: "/fiscal/documents" },
+      { title: "Connections", path: "/fiscal/connections" },
+      { title: "Goods & Stock", path: "/fiscal/goods" },
+      { title: "Lookups", path: "/fiscal/lookups" },
     ],
   },
   {
