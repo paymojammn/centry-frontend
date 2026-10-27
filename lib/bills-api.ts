@@ -268,7 +268,8 @@ export const paymentEventsApi = {
   async generatePaymentFile(
     paymentEventIds: number[],
     sourceBankAccountId: number,
-    fileFormat: 'csv' | 'xml' = 'xml'
+    fileFormat: 'csv' | 'xml' = 'xml',
+    options: { upload?: boolean } = {}
   ): Promise<GenerateFileResponse> {
     return await api.post<GenerateFileResponse>(
       `${PAYMENTS_BASE_URL}/generate-file/`,
@@ -276,6 +277,10 @@ export const paymentEventsApi = {
         payment_event_ids: paymentEventIds,
         source_bank_account_id: sourceBankAccountId,
         file_format: fileFormat,
+        // One-click submission: hand the file to the bank's SFTP in the same
+        // request. The backend also uploads when the connection has
+        // auto_upload_enabled, regardless of this flag.
+        upload: options.upload === true,
       }
     );
   },

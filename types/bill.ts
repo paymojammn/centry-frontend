@@ -290,6 +290,17 @@ export interface GenerateFileResponse {
   export_id?: number;
   /** Value date (ReqdExctnDt) written into the file, YYYY-MM-DD. */
   requested_execution_date?: string | null;
+  /** Name of the host-to-host connection the file goes to (null when the account has none). */
+  sftp_credential?: string | null;
+  /** True when that connection sends files automatically after approval. */
+  auto_upload?: boolean;
+  /** True when the SFTP upload was queued as part of this request. */
+  upload_queued?: boolean;
+  upload_task_id?: string | null;
+  /** Why the upload was not queued (no connection, broker down). */
+  upload_reason?: string;
+  upload?: { queued: boolean; task_id?: string; sftp_credential?: string | null; reason?: string };
+  skipped_payments?: Array<{ payment_event_id?: number; reason?: string }>;
   error?: string;
 }
 

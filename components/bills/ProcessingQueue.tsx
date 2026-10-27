@@ -18,6 +18,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { PILL_COLORS } from '@/lib/theme';
 import {
   usePaymentEvents,
@@ -31,7 +32,7 @@ import {
 } from '@/hooks/use-bills';
 import { paymentEventsApi } from '@/lib/bills-api';
 import { launchOneGateCheckout, openOneGateHostedModal } from '@/lib/onegate-checkout';
-import { useBankAccounts } from '@/hooks/use-banking';
+import { useBankAccounts, useSFTPCredentials, type SFTPCredential } from '@/hooks/use-banking';
 import { useHasPermission } from '@/hooks/use-user';
 import type { PaymentEvent, PaymentEventStatus } from '@/types/bill';
 import {
@@ -79,6 +80,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Status color constants (matching bills page)
 const STATUS_COLORS = {
@@ -126,6 +128,12 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
   const [denyReason, setDenyReason] = useState('');
   const [reverseReason, setReverseReason] = useState('');
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
+  // "Send to bank now" in the generate dialog. Default on: when the source
+  // account has a host-to-host connection, generating the file and handing it
+  // to the bank is one action. Ignored (always sends) when the connection is
+  // set to upload automatically after approval.
+  const [sendToBankNow, setSendToBankNow] = useState(true);
+  const router = useRouter();
   const [selectedFileFormat, setSelectedFileFormat] = useState<'csv' | 'xml'>('xml');
   const [isPayNowDialogOpen, setIsPayNowDialogOpen] = useState(false);
   const [payNowAmount, setPayNowAmount] = useState('');
@@ -220,6 +228,22 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       : null;
   }, [canGenerateFile, selectedPaymentsData]);
 
+  // The account the file will be paid from — the consensus source (which skips
+  // the picker) or the one chosen in the dialog. Its host-to-host connection
+  // decides whether "Generate" can also send the file to the bank.
+  const targetBankAccountId = consensusSourceBankAccountId ?? selectedBankAccountId ?? undefined;
+  const { data: sftpCredentialsData } = useSFTPCredentials(
+    canGenerateFile && targetBankAccountId ? targetBankAccountId : undefined
+  );
+  const bankConnection = useMemo<SFTPCredential | undefined>(() => {
+    const active = (sftpCredentialsData?.results || []).filter((c) => c.is_active);
+    return active.find((c) => c.is_default) || active[0];
+  }, [sftpCredentialsData]);
+  const connectionAutoUploads = !!bankConnection?.auto_upload_enabled;
+  const willSendToBank = !!bankConnection && (connectionAutoUploads || sendToBankNow);
+  const generateLabel = willSendToBank ? 'Generate & send to bank' : 'Generate file';
+  const bankConnectionName = bankConnection?.name || bankConnection?.host || 'host-to-host';
+
   // Check if selected PROCESSING payments are provider payouts (Ozow, OneGate, Paystack, etc.)
   const isProviderPayout = canGenerateFile &&
     selectedPaymentsData.every((p: PaymentEvent) =>
@@ -294,12 +318,12 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       const failed = result.results?.filter((r: { success: boolean; error?: string }) => !r.success) || [];
       if (failed.length > 0) {
         const errors = failed.map((f: { error?: string }) => f.error).join('\n');
-        alert(errors);
+        toast.error(errors);
         return;
       }
       setSelectedPayments(new Set());
     } catch (error: any) {
-      alert(error?.message || 'Failed to approve payments. You may not have permission.');
+      toast.error(error?.message || 'Failed to approve payments. You may not have permission.');
     }
   };
 
@@ -313,14 +337,14 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       const failed = result.results?.filter((r: { success: boolean; error?: string }) => !r.success) || [];
       if (failed.length > 0) {
         const errors = failed.map((f: { error?: string }) => f.error).join('\n');
-        alert(errors);
+        toast.error(errors);
         return;
       }
       setSelectedPayments(new Set());
       setIsRejectDialogOpen(false);
       setRejectionReason('');
     } catch (error: any) {
-      alert(error?.message || 'Failed to reject payments. You may not have permission.');
+      toast.error(error?.message || 'Failed to reject payments. You may not have permission.');
     }
   };
 
@@ -333,12 +357,51 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
         paymentEventIds: Array.from(selectedPayments),
         sourceBankAccountId: sourceId,
         fileFormat: selectedFileFormat,
+        upload: willSendToBank,
       });
       setSelectedPayments(new Set());
       setIsGenerateDialogOpen(false);
-      alert(`Payment file generated: ${result.filename}\nPayments: ${result.payment_count}\nTotal: ${result.total_amount}`);
+
+      const viewFiles = {
+        label: 'View files',
+        onClick: () => router.push('/banking/export?tab=files'),
+      };
+      const summary = [
+        `${result.payment_count} payment(s) · ${result.total_amount}`,
+        result.requested_execution_date ? `value date ${result.requested_execution_date}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+
+      if (result.upload_queued) {
+        toast.success(`Sent to bank via ${result.sftp_credential || bankConnectionName}`, {
+          description: `${result.filename} · ${summary}`,
+          action: viewFiles,
+        });
+      } else if (willSendToBank || result.auto_upload) {
+        // The file exists; only the hand-off failed (no connection, broker down).
+        toast.warning('File generated but not sent to the bank', {
+          description: `${result.filename} · ${summary}. ${result.upload_reason || 'Upload it from Banking › Files.'}`,
+          action: viewFiles,
+        });
+      } else {
+        toast.success(`Payment file generated: ${result.filename}`, {
+          description: `${summary}. Upload it from Banking › Files.`,
+          action: viewFiles,
+        });
+      }
+      if (result.skipped_payments?.length) {
+        toast.info(`${result.skipped_payments.length} payment(s) were left out of the file`, {
+          description: result.skipped_payments.map((sp) => sp.reason).filter(Boolean).join('; '),
+        });
+      }
     } catch (error: any) {
-      alert(error?.message || 'Failed to generate file. You may not have permission.');
+      toast.error(
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'Failed to generate file. You may not have permission.'
+      );
     }
   };
 
@@ -529,7 +592,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       setIsDenyDialogOpen(false);
       setDenyReason('');
     } catch (error: any) {
-      alert(error?.message || 'Failed to deny payments. You may not have permission.');
+      toast.error(error?.message || 'Failed to deny payments. You may not have permission.');
     }
   };
 
@@ -550,7 +613,7 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
       setReverseTarget(null);
       setReverseReason('');
     } catch (error: any) {
-      alert(
+      toast.error(
         error?.message
           || 'Failed to reverse payment. You may not have permission, or the payment cannot be reversed from its current state.'
       );
@@ -791,9 +854,20 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
               disabled={generateFile.isPending}
               size="sm"
               className="h-8"
+              title={
+                willSendToBank
+                  ? `Generate the payment file and upload it to ${bankConnectionName}`
+                  : 'Generate the payment file; upload it from Banking › Files'
+              }
             >
-              <FileDown className="h-4 w-4 mr-1.5" />
-              Generate File
+              {generateFile.isPending ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : willSendToBank ? (
+                <Send className="h-4 w-4 mr-1.5" />
+              ) : (
+                <FileDown className="h-4 w-4 mr-1.5" />
+              )}
+              {generateLabel}
             </Button>
           )}
 
@@ -1204,7 +1278,8 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
           <DialogHeader>
             <DialogTitle>Generate Payment File</DialogTitle>
             <DialogDescription>
-              Generate a payment file for {selectedPayments.size} approved payment(s).
+              Generate a payment file for {selectedPayments.size} approved payment(s)
+              {willSendToBank ? ' and send it to the bank.' : '.'}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -1260,6 +1335,29 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
                 </button>
               </div>
             </div>
+            {selectedBankAccountId && bankConnection && (
+              <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+                <Checkbox
+                  checked={connectionAutoUploads || sendToBankNow}
+                  disabled={connectionAutoUploads}
+                  onCheckedChange={(checked) => setSendToBankNow(checked === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block text-sm text-foreground">Send to bank now</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">
+                    {connectionAutoUploads
+                      ? `${bankConnectionName} sends payment files automatically after approval.`
+                      : `Upload the file to ${bankConnectionName} as soon as it is generated. A lapsed value date is refreshed before sending.`}
+                  </span>
+                </span>
+              </label>
+            )}
+            {selectedBankAccountId && !bankConnection && (
+              <p className="text-xs text-muted-foreground">
+                This account has no host-to-host connection; the file will wait in Banking › Files for a manual upload.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setIsGenerateDialogOpen(false)}>
@@ -1272,10 +1370,12 @@ export default function ProcessingQueue({ organizationId, initialStatus }: Proce
             >
               {generateFile.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : willSendToBank ? (
+                <Send className="h-4 w-4 mr-1.5" />
               ) : (
                 <FileDown className="h-4 w-4 mr-1.5" />
               )}
-              Generate
+              {generateLabel}
             </Button>
           </DialogFooter>
         </DialogContent>

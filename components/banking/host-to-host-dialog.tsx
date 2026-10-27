@@ -79,6 +79,7 @@ interface FormData {
   archive_path: string;
   is_active: boolean;
   is_default: boolean;
+  auto_upload_enabled: boolean;
 }
 
 const DEFAULTS: FormData = {
@@ -98,6 +99,7 @@ const DEFAULTS: FormData = {
   archive_path: "processed",
   is_active: true,
   is_default: false,
+  auto_upload_enabled: false,
 };
 
 function StatusBadge({ status }: { status: SFTPCredential["connection_status"] }) {
@@ -175,6 +177,7 @@ export function HostToHostDialog({
       archive_path: cred.archive_path,
       is_active: cred.is_active,
       is_default: cred.is_default,
+      auto_upload_enabled: cred.auto_upload_enabled ?? false,
     });
     setView("form");
   };
@@ -196,6 +199,7 @@ export function HostToHostDialog({
       archive_path: form.archive_path,
       is_active: form.is_active,
       is_default: form.is_default,
+      auto_upload_enabled: form.auto_upload_enabled,
     };
     if (form.password) payload.password = form.password;
     if (form.private_key) payload.private_key = form.private_key;
@@ -248,6 +252,7 @@ export function HostToHostDialog({
   const authType = watch("auth_type");
   const isActive = watch("is_active");
   const isDefault = watch("is_default");
+  const autoUpload = watch("auto_upload_enabled");
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
@@ -290,6 +295,9 @@ export function HostToHostDialog({
                       </Badge>
                       {cred.is_default && (
                         <Badge variant="secondary" className="text-[10px]">Default</Badge>
+                      )}
+                      {cred.auto_upload_enabled && (
+                        <Badge variant="secondary" className="text-[10px]">Sends automatically</Badge>
                       )}
                       {!cred.is_active && (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">
@@ -484,6 +492,18 @@ export function HostToHostDialog({
                     </p>
                   </div>
                   <Switch checked={isDefault} onCheckedChange={(c) => setValue("is_default", c)}
+                    className="data-[state=checked]:bg-primary" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Send automatically after approval</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {autoUpload
+                        ? "Payment files go to the bank as soon as they are generated; a lapsed value date is refreshed server-side"
+                        : "Payment files wait in Files until someone uploads them"}
+                    </p>
+                  </div>
+                  <Switch checked={autoUpload} onCheckedChange={(c) => setValue("auto_upload_enabled", c)}
                     className="data-[state=checked]:bg-primary" />
                 </div>
               </div>
