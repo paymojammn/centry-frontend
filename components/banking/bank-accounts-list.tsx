@@ -45,7 +45,11 @@ interface BankAccount {
   account_number: string;
   account_type: string;
   currency: string;
+  /** Statement-sourced (read-only): MT940 :64:/:62F: or camt.053 CLAV/CLBD. */
   balance: number;
+  booked_balance?: number | string | null;
+  balance_as_of_date?: string | null;
+  balance_is_stale?: boolean;
   bank: {
     id: string;
     name: string;
@@ -93,6 +97,14 @@ const formatDate = (iso: string | null | undefined) => {
   if (!iso) return "—";
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "—" : format(d, "dd MMM yyyy");
+};
+
+// Statement closing dates are plain ISO dates; anchor to local midnight so
+// they don't shift a day in west-of-UTC browsers.
+const formatAsOf = (iso: string | null | undefined) => {
+  if (!iso) return "No statement yet";
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? "No statement yet" : `As of ${format(d, "dd MMM yyyy")}`;
 };
 
 // Semantic status-pill tints (success / warning / danger / info / neutral).
@@ -303,7 +315,15 @@ export function BankAccountsList({ onEditAccount, organizationId }: BankAccounts
                     {account.branch_name && <span className="cell-sub">{account.branch_name}</span>}
                   </td>
                   <td className="cell-currency">{cleanCurrencyCode(account.currency)}</td>
-                  <td className="cell-amount">{formatBalanceAmount(account.balance || 0)}</td>
+                  <td className="cell-amount">
+                    {formatBalanceAmount(account.balance || 0)}
+                    <span className="cell-sub">
+                      {formatAsOf(account.balance_as_of_date)}
+                      {account.balance_is_stale && (
+                        <span className={`status-pill ml-2 ${PILL.neutral}`}>Stale</span>
+                      )}
+                    </span>
+                  </td>
                   <td>
                     <ActivePill active={account.is_active} />
                   </td>

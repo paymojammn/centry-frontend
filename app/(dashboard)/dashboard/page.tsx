@@ -49,6 +49,7 @@ import {
 import { LoadingState } from '@/components/layout/loading-state';
 import { StatusBadge } from '@/components/layout/status-badge';
 import { MetricTile } from '@/components/reports/MetricTile';
+import { AccountsOverview } from '@/components/dashboard/accounts-overview';
 import {
   ChartGradients,
   EmptyState,
@@ -316,6 +317,13 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
+
+          {/* ─── Accounts: active accounts and their statement balances ─── */}
+          {/* Bank (MT940 / camt.053 closing balances) and mobile money
+              (provider sync) in one grid, one MetricTile per currency. Read
+              from /api/v1/banking/accounts/overview/ — balances are never
+              typed in, only imported. */}
+          <AccountsOverview organizationId={orgId} />
 
           {/* ─── Section 2: Cash flow ─── */}
           {/* All-time successful Centry collections (IN) and bill payments (OUT)
