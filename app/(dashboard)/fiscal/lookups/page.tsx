@@ -121,6 +121,7 @@ export default function FiscalLookupsPage() {
                           value={params[p.name] ?? ''}
                           onChange={(e) => setParams((prev) => ({ ...prev, [p.name]: e.target.value }))}
                         />
+                        {p.help && <p className="text-xs text-muted-foreground">{p.help}</p>}
                       </div>
                     ))}
                   </div>
@@ -144,11 +145,11 @@ export default function FiscalLookupsPage() {
                   <p className="text-sm font-medium text-foreground">Lookup failed</p>
                   <p className="text-sm text-muted-foreground mt-1">{lookup.error.message}</p>
                 </div>
-              ) : lookup.data === undefined ? (
+              ) : !lookup.data ? (
                 <EmptyState icon={ScanSearch} title="No lookup yet" description="Pick a lookup and run it to see the authority's answer." />
               ) : (
                 <div className="space-y-4 pb-4">
-                  <DataView data={lookup.data} />
+                  <DataView data={lookup.data.result} />
                   <div className="px-4">
                     <JsonBlock title="Raw response" data={lookup.data} />
                   </div>

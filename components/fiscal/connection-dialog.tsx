@@ -22,6 +22,7 @@ import {
   FISCAL_ENVIRONMENTS,
   buildCredentialsPayload,
   credentialFieldsFor,
+  isCredentialSet,
   jsonCredentialError,
   missingRequiredCredentials,
 } from '@/lib/fiscal';
@@ -225,7 +226,7 @@ export function ConnectionDialog({
             <h3 className="text-sm font-semibold text-foreground">Credentials</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {credentialFields.map((f) => {
-                const isSet = setKeys.includes(f.key);
+                const isSet = isCredentialSet(f.key, setKeys);
                 const isMissing = missing.includes(f.key);
                 return (
                   <div key={f.key} className={`space-y-1.5 ${f.input === 'textarea' || f.input === 'json' ? 'sm:col-span-2' : ''}`}>

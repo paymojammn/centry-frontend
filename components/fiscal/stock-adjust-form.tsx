@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useAdjustFiscalStock } from '@/hooks/use-fiscal';
 import type { FiscalStockItem, FiscalStockOperation } from '@/types/fiscal';
+import { ItemResults } from './item-results';
 
 /** EFRIS T131 adjustType for stock decreases. */
 const DECREASE_TYPES = [
@@ -18,19 +19,39 @@ const DECREASE_TYPES = [
   { value: '105', label: '105 · Raw materials' },
 ];
 
-const blankItem = (): FiscalStockItem => ({ good_code: '', quantity: '', unit_price: '' });
+/** EFRIS T131 stockInType for stock increases (backend default 102). */
+const STOCK_IN_TYPES = [
+  { value: '101', label: '101 · Import' },
+  { value: '102', label: '102 · Local purchase' },
+  { value: '103', label: '103 · Manufacture / assembly' },
+  { value: '104', label: '104 · Opening stock' },
+];
+
+interface StockDraft {
+  good_code: string;
+  quantity: string;
+  unit_price: string;
+}
+
+const blankItem = (): StockDraft => ({ good_code: '', quantity: '', unit_price: '' });
+
+function toStockItem(d: StockDraft): FiscalStockItem {
+  const price = d.unit_price.trim();
+  return { good_code: d.good_code.trim(), quantity: d.quantity.trim(), ...(price ? { unit_price: price } : {}) };
+}
 
 /** Stock increase / decrease (EFRIS T131). */
 export function StockAdjustForm({ connectionId }: { connectionId: string }) {
   const [operation, setOperation] = useState<FiscalStockOperation>('increase');
-  const [items, setItems] = useState<FiscalStockItem[]>([blankItem()]);
+  const [items, setItems] = useState<StockDraft[]>([blankItem()]);
+  const [stockInType, setStockInType] = useState('102');
   const [supplierName, setSupplierName] = useState('');
   const [supplierTin, setSupplierTin] = useState('');
   const [adjustType, setAdjustType] = useState('');
   const [remarks, setRemarks] = useState('');
   const adjust = useAdjustFiscalStock(connectionId);
 
-  const setItem = (i: number, patch: Partial<FiscalStockItem>) =>
+  const setItem = (i: number, patch: Partial<StockDraft>) =>
     setItems((list) => list.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
 
   const itemsValid = items.length > 0 && items.every((it) => it.good_code.trim() && parseFloat(it.quantity) > 0);
@@ -49,19 +70,24 @@ export function StockAdjustForm({ connectionId }: { connectionId: string }) {
     adjust.mutate(
       {
         operation,
-        items: items.map((it) => ({ ...it, good_code: it.good_code.trim() })),
+        items: items.map(toStockItem),
         ...(operation === 'increase'
-          ? { supplier_name: supplierName.trim() || undefined, supplier_tin: supplierTin.trim() || undefined }
+          ? {
+              stock_in_type: stockInType,
+              supplier_name: supplierName.trim() || undefined,
+              supplier_tin: supplierTin.trim() || undefined,
+            }
           : { adjust_type: adjustType }),
         remarks: remarks.trim() || undefined,
       },
-      { onSuccess: reset },
+      // Keep the form on failure so the failed lines can be fixed.
+      { onSuccess: (res) => res?.ok && reset() },
     );
   };
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div className="space-y-1">
           <label htmlFor="stock-op" className="text-xs font-medium text-muted-foreground">
             Operation
@@ -79,6 +105,23 @@ export function StockAdjustForm({ connectionId }: { connectionId: string }) {
         {operation === 'increase' ? (
           <>
             <div className="space-y-1">
+              <label htmlFor="stock-in-type" className="text-xs font-medium text-muted-foreground">
+                Stock-in type
+              </label>
+              <Select value={stockInType} onValueChange={setStockInType}>
+                <SelectTrigger id="stock-in-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STOCK_IN_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
               <label htmlFor="stock-supplier" className="text-xs font-medium text-muted-foreground">
                 Supplier name
               </label>
@@ -92,7 +135,7 @@ export function StockAdjustForm({ connectionId }: { connectionId: string }) {
             </div>
           </>
         ) : (
-          <div className="space-y-1 sm:col-span-2">
+          <div className="space-y-1 sm:col-span-3">
             <label htmlFor="stock-adjust-type" className="text-xs font-medium text-muted-foreground">
               Adjustment type
             </label>
@@ -129,7 +172,7 @@ export function StockAdjustForm({ connectionId }: { connectionId: string }) {
             </div>
             <div className="space-y-1">
               <label htmlFor={`stock-${i}-price`} className="text-xs font-medium text-muted-foreground">
-                Unit price
+                Unit price (optional)
               </label>
               <Input id={`stock-${i}-price`} type="number" min="0" value={item.unit_price} onChange={(e) => setItem(i, { unit_price: e.target.value })} />
             </div>
@@ -161,6 +204,7 @@ export function StockAdjustForm({ connectionId }: { connectionId: string }) {
           {adjust.isPending ? 'Submitting…' : operation === 'increase' ? 'Increase stock' : 'Decrease stock'}
         </Button>
       </div>
+      {adjust.data && <ItemResults result={adjust.data} />}
     </div>
   );
 }

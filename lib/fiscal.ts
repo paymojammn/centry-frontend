@@ -184,8 +184,19 @@ export const CREDENTIAL_FIELDS: Record<FiscalCountryCode, CredentialField[]> = {
   ],
 };
 
-/** GET connections/credential-schema/: {country: {required, optional, secret}}. */
-export type CredentialSchema = Record<string, { required?: string[]; optional?: string[]; secret?: string[] }>;
+/** GET connections/credential-schema/: {country: {required, optional, secret, validated, label}}. */
+export type CredentialSchema = Record<
+  string,
+  { required?: string[]; optional?: string[]; secret?: string[]; validated?: boolean; label?: string }
+>;
+
+/** Per-environment credential blocks (UG): keys arrive as `staging.app_id` / `production.app_id`. */
+const CREDENTIAL_ENV_PREFIXES = ['staging.', 'production.'];
+
+/** Whether `key` is stored, flat or inside a per-environment block. */
+export function isCredentialSet(key: string, setKeys: string[] = []): boolean {
+  return setKeys.includes(key) || CREDENTIAL_ENV_PREFIXES.some((p) => setKeys.includes(`${p}${key}`));
+}
 
 /**
  * Credential fields for `country`. With a server schema, the schema's keys
@@ -196,7 +207,8 @@ export type CredentialSchema = Record<string, { required?: string[]; optional?: 
 export function resolveCredentialFields(country: string, schema?: CredentialSchema | null): CredentialField[] {
   const known = CREDENTIAL_FIELDS[country as FiscalCountryCode] ?? [];
   const entry = schema?.[country];
-  if (!entry || (!entry.required?.length && !entry.optional?.length)) return known;
+  // `validated: false` means the backend has no handler schema for this country.
+  if (!entry || entry.validated === false || (!entry.required?.length && !entry.optional?.length)) return known;
   const required = entry.required ?? [];
   const secret = new Set(entry.secret ?? []);
   const keys = [...required, ...(entry.optional ?? []).filter((k) => !required.includes(k))];
@@ -259,7 +271,7 @@ export function missingRequiredCredentials(
   schema?: CredentialSchema | null,
 ): string[] {
   return credentialFieldsFor(country, schema)
-    .filter((f) => f.required && !setKeys.includes(f.key) && !(values[f.key] ?? '').trim())
+    .filter((f) => f.required && !isCredentialSet(f.key, setKeys) && !(values[f.key] ?? '').trim())
     .map((f) => f.key);
 }
 
@@ -327,7 +339,9 @@ export function normalizeInformationRequests(raw: unknown): FiscalInformationReq
         if (typeof p === 'string') return { name: p, label: humanize(p) };
         const o = (p ?? {}) as Record<string, unknown>;
         const name = String(o.name ?? o.key ?? '');
-        return { name, label: String(o.label ?? humanize(name)), required: Boolean(o.required) };
+        const param: FiscalInformationParam = { name, label: String(o.label ?? humanize(name)), required: Boolean(o.required) };
+        if (typeof o.help === 'string' && o.help) param.help = o.help;
+        return param;
       });
       return { key, label: String(r.label ?? humanize(key)), params };
     })
@@ -407,32 +421,56 @@ export function isFiscalizableInvoiceStatus(status?: string | null): boolean {
   return s !== 'DRAFT' && s !== 'VOIDED' && s !== 'CANCELLED' && s !== 'DELETED';
 }
 
+type SourceKeyed = Pick<FiscalDocument, 'source_invoice_type' | 'source_invoice_id' | 'created_at'>;
+
 /** The most recent fiscal document for a source invoice, if any. */
-export function findDocumentForSource<T extends Pick<FiscalDocument, 'source_system' | 'source_invoice_id' | 'created_at'>>(
+export function findDocumentForSource<T extends SourceKeyed>(
   docs: T[],
-  source: Pick<FiscalSourceRef, 'source_system' | 'source_invoice_id'>,
+  source: Pick<FiscalSourceRef, 'source_invoice_type' | 'source_invoice_id'>,
 ): T | undefined {
   return docs
-    .filter((d) => d.source_system === source.source_system && String(d.source_invoice_id) === source.source_invoice_id)
+    .filter(
+      (d) => d.source_invoice_type === source.source_invoice_type && String(d.source_invoice_id) === source.source_invoice_id,
+    )
     .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))[0];
 }
 
-export function documentSourceKey(d: Pick<FiscalDocument, 'source_system' | 'source_invoice_id'>): string {
-  return `${d.source_system}:${d.source_invoice_id}`;
+/** Documents are keyed on the exact source model + row, as the API filters them. */
+export function documentSourceKey(d: Pick<FiscalDocument, 'source_invoice_type' | 'source_invoice_id'>): string {
+  return `${d.source_invoice_type}:${d.source_invoice_id}`;
 }
 
 /** Keep each source invoice's newest document. */
-export function indexDocumentsBySource<T extends Pick<FiscalDocument, 'source_system' | 'source_invoice_id' | 'created_at'>>(
-  docs: T[],
-): Map<string, T> {
+export function indexDocumentsBySource<T extends SourceKeyed>(docs: T[]): Map<string, T> {
   const map = new Map<string, T>();
   for (const d of docs) {
-    if (!d.source_system || !d.source_invoice_id) continue;
+    if (!d.source_invoice_type || !d.source_invoice_id) continue;
     const key = documentSourceKey(d);
     const existing = map.get(key);
     if (!existing || existing.created_at < d.created_at) map.set(key, d);
   }
   return map;
+}
+
+/** Distinct source invoice types among invoice rows (one documents query each). */
+export function sourceInvoiceTypes(invoices: { id: number | string; provider?: string | null }[]): string[] {
+  const types = new Set<string>();
+  for (const inv of invoices) {
+    const src = fiscalSourceForInvoice(inv);
+    if (src) types.add(src.source_invoice_type);
+  }
+  return [...types].sort();
+}
+
+/** Per-item outcome of a goods / stock call: `{ok, results:[{good_code, ok, message}]}`. */
+export function summarizeItemResults(res: { ok?: boolean; results?: { ok?: boolean }[] } | null | undefined): {
+  ok: boolean;
+  total: number;
+  failed: number;
+} {
+  const results = res?.results ?? [];
+  const failed = results.filter((r) => r.ok === false).length;
+  return { ok: res?.ok ?? failed === 0, total: results.length, failed };
 }
 
 /**

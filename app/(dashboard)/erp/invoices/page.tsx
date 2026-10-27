@@ -121,7 +121,7 @@ export default function InvoicesPage() {
 
   // Fiscalization (feature-flagged): Fiscalize action + fiscal status per row.
   const fiscal = useFiscalInvoiceSupport(selectedOrganizationId);
-  const fiscalDocsBySource = useFiscalDocumentsBySource(selectedOrganizationId, fiscal.enabled);
+  const fiscalDocsBySource = useFiscalDocumentsBySource(selectedOrganizationId, invoices, fiscal.enabled);
 
   const erpConnections = Array.isArray(erpConnectionsResponse)
     ? erpConnectionsResponse

@@ -52,8 +52,8 @@ export function CancelDocumentDialog({
           <DialogTitle>Cancel fiscal invoice</DialogTitle>
           <DialogDescription>
             {isUG
-              ? 'Applies for a credit note with URA. It stays pending until URA approves it.'
-              : 'Submits a cancellation to the tax authority.'}
+              ? 'Applies for a credit note with URA. The credit note is a new document that stays pending until URA approves it.'
+              : 'Submits a cancellation to the tax authority as a new credit-note document.'}
             {document?.fdn ? ` FDN ${document.fdn}.` : ''}
           </DialogDescription>
         </DialogHeader>

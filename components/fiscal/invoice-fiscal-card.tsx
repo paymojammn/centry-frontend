@@ -10,7 +10,7 @@ import { FiscalizeInvoiceButton, useFiscalDocumentForInvoice, useFiscalInvoiceSu
 export function InvoiceFiscalCard({ invoice }: { invoice: Invoice }) {
   const { enabled, connections } = useFiscalInvoiceSupport(invoice.org);
   const source = fiscalSourceForInvoice(invoice);
-  const doc = useFiscalDocumentForInvoice(invoice.org, source, invoice.invoice_number, enabled);
+  const doc = useFiscalDocumentForInvoice(invoice.org, source, enabled);
 
   if (!enabled || !source) return null;
 

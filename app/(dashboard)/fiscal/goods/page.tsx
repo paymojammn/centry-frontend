@@ -35,11 +35,20 @@ export default function FiscalGoodsPage() {
   const [pickedId, setPickedId] = useState<string>('');
   const connection = connections.find((c) => c.id === pickedId) ?? connections[0];
   const connectionId = connection?.id ?? '';
+  const pickConnection = (id: string) => {
+    setPickedId(id);
+    setGoodsPage(1);
+  };
 
   const [tab, setTab] = useState('inquiry');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState<string | undefined>(undefined);
-  const goods = useFiscalGoods(tab === 'inquiry' ? connectionId : null, search);
+  const [goodsPage, setGoodsPage] = useState(1);
+  const goods = useFiscalGoods(tab === 'inquiry' ? connectionId : null, search, goodsPage);
+  const records = goods.data?.records ?? [];
+  // EFRIS page block: {pageNo, pageSize, totalSize, pageCount}.
+  const pageCount = Number(goods.data?.page?.pageCount ?? 1) || 1;
+  const totalSize = Number(goods.data?.page?.totalSize ?? records.length) || records.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +60,7 @@ export default function FiscalGoodsPage() {
         isLoadingOrgs={isLoadingOrgs}
       >
         {connections.length > 0 && (
-          <FiscalConnectionSelect connections={connections} value={connectionId} onChange={setPickedId} className="h-9 w-72" />
+          <FiscalConnectionSelect connections={connections} value={connectionId} onChange={pickConnection} className="h-9 w-72" />
         )}
       </PageHeader>
 
@@ -83,6 +92,7 @@ export default function FiscalGoodsPage() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     setSearch(searchInput.trim() || undefined);
+                    setGoodsPage(1);
                   }}
                 >
                   <div className="relative w-72 max-w-full">
@@ -106,14 +116,29 @@ export default function FiscalGoodsPage() {
                     <p className="text-sm font-medium text-foreground">Goods inquiry failed</p>
                     <p className="text-sm text-muted-foreground mt-1">{goods.error.message}</p>
                   </div>
-                ) : (goods.data?.length ?? 0) === 0 ? (
+                ) : records.length === 0 ? (
                   <EmptyState
                     icon={Package}
                     title={search ? 'No goods match your search' : 'No goods registered'}
                     description="Register goods with the authority before invoicing them."
                   />
                 ) : (
-                  <DataView data={goods.data} />
+                  <>
+                    <DataView data={records} />
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-border text-sm">
+                      <span className="text-muted-foreground">
+                        {totalSize} goods · page {goodsPage} of {pageCount}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={goodsPage <= 1} onClick={() => setGoodsPage((p) => p - 1)}>
+                          Previous
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={goodsPage >= pageCount} onClick={() => setGoodsPage((p) => p + 1)}>
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </>
                 )}
               </ContentCard>
             )}

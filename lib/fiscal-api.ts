@@ -9,6 +9,7 @@ import api, { apiRequest } from './api';
 import { cleanParams, normalizeInformationRequests, toPage, type CredentialSchema } from './fiscal';
 import type {
   FiscalCancelPayload,
+  FiscalCancelResponse,
   FiscalConnection,
   FiscalConnectionCreatePayload,
   FiscalConnectionFilters,
@@ -17,11 +18,13 @@ import type {
   FiscalDocumentDetail,
   FiscalDocumentFilters,
   FiscalDocumentSummary,
-  FiscalGoodRow,
+  FiscalGoodsInquiry,
   FiscalGoodsPayload,
   FiscalInformationRequest,
+  FiscalInformationResponse,
   FiscalIssueInvoicePayload,
   FiscalIssueInvoiceResponse,
+  FiscalItemsResponse,
   FiscalizePayload,
   FiscalQueuedResponse,
   FiscalStockPayload,
@@ -106,8 +109,9 @@ export const fiscalApi = {
     return api.post<FiscalDocument>(`${BASE}/documents/${id}/refresh/`, {});
   },
 
-  cancelDocument(id: string, payload: FiscalCancelPayload): Promise<FiscalQueuedResponse> {
-    return api.post<FiscalQueuedResponse>(`${BASE}/documents/${id}/cancel/`, payload);
+  /** 202: queues a credit note / cancellation, which is a NEW document. */
+  cancelDocument(id: string, payload: FiscalCancelPayload): Promise<FiscalCancelResponse> {
+    return api.post<FiscalCancelResponse>(`${BASE}/documents/${id}/cancel/`, payload);
   },
 
   /** Printable HTML receipt. Needs the auth header, so it is fetched, not linked. */
@@ -129,21 +133,23 @@ export const fiscalApi = {
   },
 
   // ---- Goods & stock -----------------------------------------------------
-  async getGoods(connectionId: string, search?: string): Promise<FiscalGoodRow[]> {
-    const res = await api.get<PageLike<FiscalGoodRow> | { items?: FiscalGoodRow[] }>(
-      `${BASE}/connections/${connectionId}/goods/`,
-      { params: cleanParams({ search }) },
-    );
-    if (res && !Array.isArray(res) && 'items' in res && Array.isArray(res.items)) return res.items;
-    return toPage(res as PageLike<FiscalGoodRow>).results;
+  /** EFRIS T127 goods inquiry: `{records, page}`. */
+  async getGoods(
+    connectionId: string,
+    params?: { search?: string; page?: number; page_size?: number },
+  ): Promise<FiscalGoodsInquiry> {
+    const res = await api.get<Partial<FiscalGoodsInquiry>>(`${BASE}/connections/${connectionId}/goods/`, {
+      params: cleanParams(params),
+    });
+    return { records: Array.isArray(res?.records) ? res.records : [], page: res?.page ?? {} };
   },
 
-  registerGoods(connectionId: string, payload: FiscalGoodsPayload): Promise<unknown> {
-    return api.post<unknown>(`${BASE}/connections/${connectionId}/goods/`, payload);
+  registerGoods(connectionId: string, payload: FiscalGoodsPayload): Promise<FiscalItemsResponse> {
+    return api.post<FiscalItemsResponse>(`${BASE}/connections/${connectionId}/goods/`, payload);
   },
 
-  adjustStock(connectionId: string, payload: FiscalStockPayload): Promise<unknown> {
-    return api.post<unknown>(`${BASE}/connections/${connectionId}/stock/`, payload);
+  adjustStock(connectionId: string, payload: FiscalStockPayload): Promise<FiscalItemsResponse> {
+    return api.post<FiscalItemsResponse>(`${BASE}/connections/${connectionId}/stock/`, payload);
   },
 
   // ---- Authority lookups -------------------------------------------------
@@ -156,8 +162,8 @@ export const fiscalApi = {
     connectionId: string,
     request: string,
     params: Record<string, string>,
-  ): Promise<unknown> {
-    return api.get<unknown>(
+  ): Promise<FiscalInformationResponse> {
+    return api.get<FiscalInformationResponse>(
       `${BASE}/connections/${connectionId}/information/${encodeURIComponent(request)}/`,
       { params: cleanParams(params) },
     );

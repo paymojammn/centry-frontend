@@ -11,11 +11,14 @@ import {
   fiscalStatusBadge,
   indexDocumentsBySource,
   inertReceiptHtml,
+  isCredentialSet,
   isFiscalizableInvoiceStatus,
   jsonCredentialError,
   missingRequiredCredentials,
   normalizeInformationRequests,
   resolveCredentialFields,
+  sourceInvoiceTypes,
+  summarizeItemResults,
   supportsGoodsAndStock,
   tabulate,
   toPage,
@@ -142,6 +145,39 @@ describe('credentials', () => {
   });
 });
 
+describe('credential set state', () => {
+  it('treats per-environment keys as set', () => {
+    expect(isCredentialSet('app_id', ['app_id'])).toBe(true);
+    expect(isCredentialSet('app_id', ['staging.app_id'])).toBe(true);
+    expect(isCredentialSet('app_id', ['production.app_id'])).toBe(true);
+    expect(isCredentialSet('app_id', ['staging.efris_url'])).toBe(false);
+    expect(missingRequiredCredentials('UG', {}, ['staging.app_id', 'production.efris_version'])).toEqual([
+      'efris_username',
+      'efris_url',
+      'efris_url_online',
+    ]);
+  });
+
+  it('ignores an unvalidated server schema', () => {
+    const schema = { BJ: { required: ['x'], optional: [], secret: [], validated: false, label: 'Benin (DGI)' } };
+    expect(resolveCredentialFields('BJ', schema)).toBe(CREDENTIAL_FIELDS.BJ);
+  });
+});
+
+describe('item results', () => {
+  it('summarizes goods / stock outcomes', () => {
+    expect(summarizeItemResults({ ok: true, results: [{ ok: true }] })).toEqual({ ok: true, total: 1, failed: 0 });
+    expect(summarizeItemResults({ ok: false, results: [{ ok: true }, { ok: false }] })).toEqual({
+      ok: false,
+      total: 2,
+      failed: 1,
+    });
+    // Stock only lists failures; an empty list with ok=true is a full success.
+    expect(summarizeItemResults({ ok: true, results: [] }).ok).toBe(true);
+    expect(summarizeItemResults(undefined)).toEqual({ ok: true, total: 0, failed: 0 });
+  });
+});
+
 describe('query helpers', () => {
   it('cleans params', () => {
     expect(
@@ -161,12 +197,12 @@ describe('query helpers', () => {
     expect(
       normalizeInformationRequests([
         { key: 'taxpayer', label: 'Taxpayer', params: ['tin'] },
-        { key: 'exchange_rate', params: [{ name: 'currency', required: true }] },
+        { key: 'exchange_rate', params: [{ name: 'currency', required: true, help: 'e.g. USD' }] },
         { label: 'no key' },
       ]),
     ).toEqual([
       { key: 'taxpayer', label: 'Taxpayer', params: [{ name: 'tin', label: 'Tin' }] },
-      { key: 'exchange_rate', label: 'Exchange rate', params: [{ name: 'currency', label: 'Currency', required: true }] },
+      { key: 'exchange_rate', label: 'Exchange rate', params: [{ name: 'currency', label: 'Currency', required: true, help: 'e.g. USD' }] },
     ]);
   });
 
@@ -193,15 +229,26 @@ describe('ERP invoice source', () => {
     expect(fiscalSourceForInvoice({ id: 1, provider: 'sage' })).toBeNull();
   });
 
-  it('finds the newest document for a source', () => {
+  it('finds the newest document for a source, keyed on type + id', () => {
+    const X = 'erp_xero.XeroOutgoingInvoices';
     const docs = [
-      { source_system: 'xero', source_invoice_id: '7', created_at: '2026-01-01T00:00:00Z', id: 'old' },
-      { source_system: 'xero', source_invoice_id: '7', created_at: '2026-02-01T00:00:00Z', id: 'new' },
-      { source_system: 'qbo', source_invoice_id: '7', created_at: '2026-03-01T00:00:00Z', id: 'other' },
+      { source_invoice_type: X, source_invoice_id: '7', created_at: '2026-01-01T00:00:00Z', id: 'old' },
+      { source_invoice_type: X, source_invoice_id: '7', created_at: '2026-02-01T00:00:00Z', id: 'new' },
+      { source_invoice_type: 'erp_qbo.QBOInvoice', source_invoice_id: '7', created_at: '2026-03-01T00:00:00Z', id: 'qbo' },
+      { source_invoice_type: '', source_invoice_id: '', created_at: '2026-04-01T00:00:00Z', id: 'native' },
     ];
-    expect(findDocumentForSource(docs, { source_system: 'xero', source_invoice_id: '7' })?.id).toBe('new');
-    expect(indexDocumentsBySource(docs).get('xero:7')?.id).toBe('new');
-    expect(indexDocumentsBySource(docs).size).toBe(2);
+    expect(findDocumentForSource(docs, { source_invoice_type: X, source_invoice_id: '7' })?.id).toBe('new');
+    const index = indexDocumentsBySource(docs);
+    expect(index.get(`${X}:7`)?.id).toBe('new');
+    expect(index.get('erp_qbo.QBOInvoice:7')?.id).toBe('qbo');
+    expect(index.size).toBe(2);
+  });
+
+  it('lists distinct source invoice types on screen', () => {
+    expect(sourceInvoiceTypes([{ id: 1 }, { id: 2, provider: 'xero' }, { id: 3, provider: 'qbo' }, { id: 4, provider: 'sage' }])).toEqual([
+      'erp_qbo.QBOInvoice',
+      'erp_xero.XeroOutgoingInvoices',
+    ]);
   });
 
   it('only fiscalizes issued invoices', () => {

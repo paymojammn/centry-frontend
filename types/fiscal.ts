@@ -142,6 +142,8 @@ export interface FiscalDocumentFilters {
   country_code?: FiscalCountryCode | 'all';
   connection?: string;
   source_system?: string;
+  source_invoice_type?: string;
+  source_invoice_id?: string;
   kind?: FiscalDocumentKind | 'all';
   search?: string;
   date_from?: string;
@@ -163,6 +165,14 @@ export interface FiscalDocumentSummary {
 export interface FiscalQueuedResponse {
   detail: string;
   task_id?: string;
+}
+
+/** POST documents/{id}/cancel/ (202): the credit note is a NEW document. */
+export interface FiscalCancelResponse extends FiscalQueuedResponse {
+  id: string;
+  document_id: string;
+  original_id: string;
+  status: FiscalStatus;
 }
 
 export interface FiscalCancelPayload {
@@ -193,10 +203,13 @@ export interface FiscalGoodInput {
   name: string;
   measure_unit: string;
   unit_price: string;
+  /** EFRIS currency code, e.g. 101 = UGX. */
   currency: string;
   commodity_category: string;
   have_excise_tax: boolean;
-  stock_prewarning: string;
+  stock_prewarning?: number;
+  description?: string;
+  operation?: 'add' | 'update';
 }
 
 export interface FiscalGoodsPayload {
@@ -206,12 +219,33 @@ export interface FiscalGoodsPayload {
 /** Goods inquiry rows are the authority's own shape; rendered generically. */
 export type FiscalGoodRow = Record<string, unknown>;
 
+/** GET connections/{id}/goods/ — EFRIS T127 records + its page block. */
+export interface FiscalGoodsInquiry {
+  records: FiscalGoodRow[];
+  /** EFRIS page block, e.g. {pageNo, pageSize, totalSize, pageCount}. */
+  page: Record<string, unknown>;
+}
+
+/** POST goods/ and stock/: overall + per-item outcome, with the authority envelope. */
+export interface FiscalItemResult {
+  good_code: string;
+  ok: boolean;
+  message: string;
+}
+
+export interface FiscalItemsResponse {
+  ok: boolean;
+  results: FiscalItemResult[];
+  request?: unknown;
+  response?: unknown;
+}
+
 export type FiscalStockOperation = 'increase' | 'decrease';
 
 export interface FiscalStockItem {
   good_code: string;
   quantity: string;
-  unit_price: string;
+  unit_price?: string;
 }
 
 export interface FiscalStockPayload {
@@ -219,7 +253,10 @@ export interface FiscalStockPayload {
   items: FiscalStockItem[];
   supplier_name?: string;
   supplier_tin?: string;
+  /** Decrease reason (EFRIS adjustType), required for decreases. */
   adjust_type?: string;
+  /** Increase source (EFRIS stockInType); backend default 102 local purchase. */
+  stock_in_type?: string;
   remarks?: string;
 }
 
@@ -227,6 +264,13 @@ export interface FiscalInformationParam {
   name: string;
   label: string;
   required?: boolean;
+  help?: string;
+}
+
+/** GET connections/{id}/information/{key}/ */
+export interface FiscalInformationResponse {
+  request: string;
+  result: unknown;
 }
 
 export interface FiscalInformationRequest {

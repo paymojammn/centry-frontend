@@ -4,6 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { summarizeItemResults } from '@/lib/fiscal';
 import { fiscalApi } from '@/lib/fiscal-api';
 import type {
   FiscalCancelPayload,
@@ -27,7 +28,9 @@ export const fiscalKeys = {
   documentList: (filters?: FiscalDocumentFilters) => [...fiscalKeys.documents(), 'list', filters] as const,
   document: (id: string) => [...fiscalKeys.documents(), 'detail', id] as const,
   summary: (filters?: FiscalDocumentFilters) => [...fiscalKeys.documents(), 'summary', filters] as const,
-  goods: (connectionId: string, search?: string) => [...fiscalKeys.all, 'goods', connectionId, search] as const,
+  goodsAll: (connectionId: string) => [...fiscalKeys.all, 'goods', connectionId] as const,
+  goods: (connectionId: string, search?: string, page?: number) =>
+    [...fiscalKeys.goodsAll(connectionId), search, page] as const,
   informationRequests: (connectionId: string) => [...fiscalKeys.all, 'information', connectionId] as const,
 };
 
@@ -186,9 +189,10 @@ export function useCancelFiscalDocument() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: FiscalCancelPayload }) =>
       fiscalApi.cancelDocument(id, payload),
-    onSuccess: (res) => {
+    onSuccess: () => {
+      // The credit note / cancellation is a new document: refetch the list.
       invalidate();
-      toast.success(res?.detail || 'Cancellation submitted');
+      toast.success('Cancellation queued. A credit note document has been added to the list.');
     },
     onError: (error: Error) => toast.error(error.message || 'Failed to cancel document'),
   });
@@ -227,21 +231,30 @@ export function useIssueFiscalInvoice() {
 
 // ---- Goods & stock --------------------------------------------------------
 
-export function useFiscalGoods(connectionId?: string | null, search?: string) {
+export function useFiscalGoods(connectionId?: string | null, search?: string, page = 1) {
   return useQuery({
-    queryKey: fiscalKeys.goods(connectionId || '', search),
-    queryFn: () => fiscalApi.getGoods(connectionId as string, search),
+    queryKey: fiscalKeys.goods(connectionId || '', search, page),
+    queryFn: () => fiscalApi.getGoods(connectionId as string, { search, page, page_size: 20 }),
     enabled: !!connectionId,
+    placeholderData: (prev) => prev,
   });
+}
+
+/** Toast the per-item outcome of a goods / stock call. */
+function toastItems(res: Parameters<typeof summarizeItemResults>[0], what: string) {
+  const { ok, total, failed } = summarizeItemResults(res);
+  if (ok) toast.success(`${what}: accepted by the authority`);
+  else if (failed > 0 && failed < total) toast.warning(`${what}: ${failed} of ${total} items failed`);
+  else toast.error(`${what}: rejected by the authority`);
 }
 
 export function useRegisterFiscalGoods(connectionId?: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: FiscalGoodsPayload) => fiscalApi.registerGoods(connectionId as string, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [...fiscalKeys.all, 'goods', connectionId || ''] });
-      toast.success('Goods registered with the authority');
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: fiscalKeys.goodsAll(connectionId || '') });
+      toastItems(res, 'Goods registration');
     },
     onError: (error: Error) => toast.error(error.message || 'Failed to register goods'),
   });
@@ -251,9 +264,9 @@ export function useAdjustFiscalStock(connectionId?: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: FiscalStockPayload) => fiscalApi.adjustStock(connectionId as string, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [...fiscalKeys.all, 'goods', connectionId || ''] });
-      toast.success('Stock adjustment submitted');
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: fiscalKeys.goodsAll(connectionId || '') });
+      toastItems(res, 'Stock adjustment');
     },
     onError: (error: Error) => toast.error(error.message || 'Failed to adjust stock'),
   });

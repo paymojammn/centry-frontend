@@ -7,6 +7,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Stamp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useFiscalConnections, useFiscalDocuments, useFiscalizeInvoice } from '@/hooks/use-fiscal';
+import { fiscalKeys, useFiscalConnections, useFiscalDocuments, useFiscalizeInvoice } from '@/hooks/use-fiscal';
+import { fiscalApi } from '@/lib/fiscal-api';
 import { useOrgFeatures } from '@/hooks/use-user';
 import {
   canRetry,
@@ -26,6 +28,7 @@ import {
   findDocumentForSource,
   fiscalSourceForInvoice,
   isFiscalizableInvoiceStatus,
+  sourceInvoiceTypes,
   indexDocumentsBySource,
   type FiscalSourceRef,
 } from '@/lib/fiscal';
@@ -43,39 +46,52 @@ export function useFiscalInvoiceSupport(organizationId?: string | null) {
 }
 
 /**
- * Newest fiscal documents of the org indexed by source invoice, for list
- * pages. TODO(fiscal-source-filter): bounded to the latest 200 documents —
- * switch to a `source_invoice_id__in` filter once the documents API has one.
+ * Newest fiscal document per source invoice for a list of ERP invoices.
+ *
+ * The documents API filters `source_invoice_type` / `source_invoice_id`
+ * exactly but takes one value each (no comma lists), so the list page makes
+ * one call per source invoice type on screen (usually one: the org's ERP),
+ * capped at the API's max page size, and indexes the result on
+ * `source_invoice_type:source_invoice_id`.
  */
-export function useFiscalDocumentsBySource(organizationId: string | null | undefined, enabled: boolean) {
-  const { data } = useFiscalDocuments(
-    { organization: organizationId || undefined, page_size: 200 },
-    { enabled },
-  );
-  return useMemo(() => indexDocumentsBySource(data?.results ?? []), [data]);
+export function useFiscalDocumentsBySource(
+  organizationId: string | null | undefined,
+  invoices: { id: number | string; provider?: string | null }[],
+  enabled: boolean,
+) {
+  const types = sourceInvoiceTypes(invoices);
+  const results = useQueries({
+    queries: types.map((source_invoice_type) => {
+      const filters = { organization: organizationId || undefined, source_invoice_type, page_size: 200 };
+      return {
+        queryKey: fiscalKeys.documentList(filters),
+        queryFn: () => fiscalApi.getDocuments(filters),
+        enabled: enabled && !!organizationId,
+      };
+    }),
+  });
+  const docs = results.flatMap((r) => r.data?.results ?? []);
+  const dataKey = results.map((r) => r.dataUpdatedAt).join('|');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => indexDocumentsBySource(docs), [dataKey]);
 }
 
-/**
- * The fiscal document for one source invoice (detail pages). The documents
- * API searches invoice number / instance id / FDN / buyer but has no
- * source-invoice filter, so search by invoice number and match the source
- * client-side. TODO(fiscal-source-filter): use a source_invoice_id filter.
- */
+/** The fiscal document for one source invoice: one exact API call. */
 export function useFiscalDocumentForInvoice(
   organizationId: string | null | undefined,
   source: FiscalSourceRef | null,
-  invoiceNumber: string | undefined,
   enabled: boolean,
 ): FiscalDocument | undefined {
   const { data } = useFiscalDocuments(
     {
       organization: organizationId || undefined,
-      source_system: source?.source_system,
-      search: invoiceNumber || source?.source_invoice_id,
-      page_size: 50,
+      source_invoice_type: source?.source_invoice_type,
+      source_invoice_id: source?.source_invoice_id,
+      page_size: 20,
     },
     { enabled: enabled && !!source },
   );
+  // Newest first by default (credit notes for the same source sort above).
   return source ? findDocumentForSource(data?.results ?? [], source) : undefined;
 }
 
