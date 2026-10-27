@@ -168,10 +168,20 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
   });
 }
 
-export function useAuditStats(organizationId: string | undefined, days = 30) {
+export function useAuditLogDetail(id: string | null) {
   return useQuery({
-    queryKey: ["reports", "audit-stats", organizationId, days],
-    queryFn: () => reportsApi.getAuditStats(organizationId, days),
+    queryKey: ["reports", "audit-log", id],
+    queryFn: () => reportsApi.getAuditLog(id!),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+type AuditStatsFilters = Parameters<typeof reportsApi.getAuditStats>[0];
+export function useAuditStats(filters: AuditStatsFilters = {}) {
+  return useQuery({
+    queryKey: ["reports", "audit-stats", filters],
+    queryFn: () => reportsApi.getAuditStats(filters),
     staleTime: 1000 * 60,
   });
 }

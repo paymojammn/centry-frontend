@@ -3,6 +3,7 @@
 import { get, post } from "./api";
 import type {
   ApprovalCycleReport,
+  AuditLog,
   AuditLogListResponse,
   AuditStats,
   CEODashboard,
@@ -28,6 +29,35 @@ import type {
 } from "@/types/reports";
 
 const BASE_URL = "/api/v1/reports";
+
+/** Every filter the audit-log list, stats and export endpoints share. */
+export interface AuditLogQuery {
+  organization?: string;
+  action_type?: string;
+  severity?: string;
+  module?: string;
+  user?: number | string;
+  user_email?: string;
+  success?: boolean;
+  /** Inclusive ISO dates (YYYY-MM-DD), interpreted in UTC by the API. */
+  date_from?: string;
+  date_to?: string;
+  search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
+  /** Legacy window for stats; ignored by the API when date_from/date_to are set. */
+  days?: number;
+}
+
+function compactParams<T extends object>(filters: T): Record<string, string | number | boolean> {
+  const params: Record<string, string | number | boolean> = {};
+  for (const [k, v] of Object.entries(filters as Record<string, unknown>)) {
+    if (v === undefined || v === null || v === "") continue;
+    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") params[k] = v;
+  }
+  return params;
+}
 
 export const reportsApi = {
   // CEO Dashboard
@@ -214,42 +244,30 @@ export const reportsApi = {
 
   // Audit log — backed by security.AuditLog (canonical system-wide
   // audit trail). Backend endpoint: /api/v1/security/audit-logs/
-  getAuditLogs: async (filters: {
-    organization?: string;
-    action_type?: string;
-    severity?: string;
-    module?: string;
-    user?: number | string;
-    success?: boolean;
-    search?: string;
-    page?: number;
-    page_size?: number;
-    ordering?: string;
-  } = {}): Promise<AuditLogListResponse> => {
-    const params: Record<string, string | number | boolean> = {};
-    for (const [k, v] of Object.entries(filters)) {
-      if (v !== undefined && v !== "") params[k] = v as string | number | boolean;
-    }
+  getAuditLogs: async (filters: AuditLogQuery = {}): Promise<AuditLogListResponse> => {
     return get<AuditLogListResponse>(`/api/v1/security/audit-logs/`, {
-      params,
+      params: compactParams(filters),
     });
   },
 
-  getAuditStats: async (organizationId?: string, days = 30): Promise<AuditStats> => {
-    const params: Record<string, string | number> = { days };
-    if (organizationId) params.organization = organizationId;
-    return get<AuditStats>(`/api/v1/security/audit-logs/stats/`, { params });
+  // One event with its detail-only fields (request id, user agent, target ids).
+  getAuditLog: async (id: string): Promise<AuditLog> => {
+    return get<AuditLog>(`/api/v1/security/audit-logs/${id}/`);
+  },
+
+  // Stats take the same filters as the list (date_from/date_to, user_email,
+  // severity, module, …) so the tiles describe exactly the rows in the table.
+  getAuditStats: async (filters: AuditLogQuery = {}): Promise<AuditStats> => {
+    return get<AuditStats>(`/api/v1/security/audit-logs/stats/`, {
+      params: compactParams(filters),
+    });
   },
 
   // CSV export via the existing security endpoint (limited to 1000 rows).
   // Triggers an authenticated blob download client-side.
-  downloadAuditLogs: async (filters: Record<string, string | number | boolean | undefined> = {}): Promise<void> => {
-    const params: Record<string, string | number | boolean> = {};
-    for (const [k, v] of Object.entries(filters)) {
-      if (v !== undefined && v !== "") params[k] = v;
-    }
+  downloadAuditLogs: async (filters: AuditLogQuery = {}): Promise<void> => {
     const blob = await get<Blob>(`/api/v1/security/audit-logs/export/`, {
-      params,
+      params: compactParams(filters),
       responseType: "blob",
     });
     const url = window.URL.createObjectURL(blob);
