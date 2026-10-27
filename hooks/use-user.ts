@@ -5,8 +5,20 @@
 
 'use client';
 
+import { useCallback, useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { SELECTED_ORGANIZATION_KEY, orgHasFeature } from '@/lib/features';
+
+export interface UserOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  membership_role: string;
+  permissions: Record<string, Record<string, boolean>>;
+  /** Optional product areas enabled for the org (lib/features.ts keys). */
+  features?: string[];
+}
 
 export interface UserProfile {
   id: string;
@@ -25,19 +37,14 @@ export interface UserProfile {
   login_provider: string | null;
   organizations_count: number;
   date_joined: string;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    membership_role: string;
-    permissions: Record<string, Record<string, boolean>>;
-  }>;
+  organizations: UserOrganization[];
   primary_organization: {
     id: string;
     name: string;
     slug: string;
     membership_role: string | null;
     permissions: Record<string, Record<string, boolean>>;
+    features?: string[];
   } | null;
 }
 
@@ -96,6 +103,87 @@ export function useHasPermission(permissionCode: string): boolean {
       membershipHasPermission(org.membership_role, org.permissions, permissionCode),
     ) ?? false
   );
+}
+
+// ---------------------------------------------------------------------------
+// Selected organization + per-organization features
+// ---------------------------------------------------------------------------
+
+const SELECTED_ORGANIZATION_EVENT = 'centry:selected-organization';
+
+function readSelectedOrganizationId(): string | null {
+  try {
+    return window.localStorage.getItem(SELECTED_ORGANIZATION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function subscribeSelectedOrganization(onChange: () => void): () => void {
+  window.addEventListener('storage', onChange);
+  window.addEventListener(SELECTED_ORGANIZATION_EVENT, onChange);
+  return () => {
+    window.removeEventListener('storage', onChange);
+    window.removeEventListener(SELECTED_ORGANIZATION_EVENT, onChange);
+  };
+}
+
+/** Persist the working organization and notify same-tab subscribers. */
+export function setSelectedOrganizationId(id: string): void {
+  try {
+    window.localStorage.setItem(SELECTED_ORGANIZATION_KEY, id);
+  } catch {
+    // per-viewer convenience only
+  }
+  window.dispatchEvent(new Event(SELECTED_ORGANIZATION_EVENT));
+}
+
+/**
+ * The organization the app is currently working in — the shared
+ * `selectedOrganizationId` localStorage key that login, the dashboard layout
+ * and the org switchers write. `null` on the server and when nothing is set.
+ */
+export function useSelectedOrganizationId(): string | null {
+  return useSyncExternalStore(
+    subscribeSelectedOrganization,
+    readSelectedOrganizationId,
+    () => null,
+  );
+}
+
+/**
+ * Feature flags of one organization, read from `/users/me` organizations[].
+ *
+ * Resolves `organizationId`, else the selected organization, else the user's
+ * first organization. `hasFeature` fails open when the org is unknown (see
+ * lib/features.ts) so a superuser outside their memberships is never locked
+ * out client-side; the API still enforces.
+ */
+export function useOrgFeatures(organizationId?: string | null) {
+  const { data: user, isLoading } = useCurrentUser();
+  const selectedId = useSelectedOrganizationId();
+  const wantedId = organizationId ?? selectedId;
+  const organizations = user?.organizations;
+  const organization = wantedId
+    ? organizations?.find((o) => o.id === wantedId)
+    : organizations?.[0];
+
+  const hasFeature = useCallback(
+    (feature: string) => orgHasFeature(organization, feature),
+    [organization],
+  );
+
+  return {
+    organization,
+    features: organization?.features ?? null,
+    hasFeature,
+    isLoading,
+  };
+}
+
+/** Convenience: does the selected (or given) organization have `feature`? */
+export function useHasFeature(feature: string, organizationId?: string | null): boolean {
+  return useOrgFeatures(organizationId).hasFeature(feature);
 }
 
 /**

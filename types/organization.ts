@@ -29,6 +29,8 @@ export interface Organization {
   /** Whether this org's subscription currently allows access (per-org billing). */
   billing_active?: boolean;
   billing_status?: string;
+  /** Optional product areas enabled for this org (lib/features.ts keys). */
+  features?: string[];
 }
 
 export interface OrganizationDetail extends Organization {
@@ -166,7 +168,10 @@ export interface OrganizationCreate {
   settings?: OrganizationSettings;
 }
 
-export type OrganizationUpdate = Partial<OrganizationCreate>;
+export type OrganizationUpdate = Partial<OrganizationCreate> & {
+  /** Superusers only — the API rejects it for everyone else. */
+  features?: string[];
+};
 
 export interface InviteUserPayload {
   email: string;

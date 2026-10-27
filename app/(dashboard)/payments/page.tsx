@@ -6,6 +6,7 @@
 
 'use client';
 
+import { FeatureGate } from '@/components/layout/feature-gate';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -50,7 +51,7 @@ interface ReconciliationStats {
   total_unmatched_amount: number;
 }
 
-export default function PaymentsPage() {
+function PaymentsPage() {
   const [activeTab, setActiveTab] = useState('reconcile');
   const queryClient = useQueryClient();
 
@@ -261,5 +262,15 @@ export default function PaymentsPage() {
         </Tabs>
       </PageContainer>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `mobile_money` on.
+export default function PaymentsPageGated() {
+  return (
+    <FeatureGate feature='mobile_money' title='Mobile Money'>
+      <PaymentsPage />
+    </FeatureGate>
   );
 }
