@@ -11,7 +11,13 @@
 
 import type { MenuConfig } from '@/config/types';
 
-export type OrgFeature = 'mobile_money' | 'rails_certification' | 'lending' | 'expenses' | 'wallet';
+export type OrgFeature =
+  | 'mobile_money'
+  | 'rails_certification'
+  | 'lending'
+  | 'expenses'
+  | 'wallet'
+  | 'fiscalization';
 
 export interface FeatureDefinition {
   key: OrgFeature;
@@ -45,6 +51,11 @@ export const FEATURE_CATALOGUE: FeatureDefinition[] = [
     key: 'wallet',
     label: 'Wallet',
     description: 'Organization wallet balances and top-ups.',
+  },
+  {
+    key: 'fiscalization',
+    label: 'Fiscalization',
+    description: 'EFRIS / ZRA / DGI e-invoicing: fiscal connections, fiscal documents, goods & stock.',
   },
 ];
 
