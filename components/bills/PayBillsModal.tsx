@@ -15,7 +15,10 @@ import type { Bill, PaymentEvent } from '@/types/bill';
 import { usePaymentSources } from '@/hooks/use-payment-sources';
 import type { PaymentSource } from '@/types/payment-sources';
 import PaymentSourcePicker from '@/components/shared/PaymentSourcePicker';
-import RecipientDetailsStep from './RecipientDetailsStep';
+import RecipientDetailsStep, {
+  effectiveRecipientType,
+  isSwiftOnlyRecipient,
+} from './RecipientDetailsStep';
 import { billsApi, paymentEventsApi } from '@/lib/bills-api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -186,8 +189,11 @@ export default function PayBillsModal({
       return true;
     }
     for (const r of recipients.values()) {
-      if (!r.recipient_bank_id || !(r.account_number || r.iban) || !r.account_name) return false;
-      if (r.recipient_type === 'international') {
+      // A bank outside the registry is identified by SWIFT/BIC alone (routed as
+      // international), so a registry bank pick isn't required for it.
+      const hasBank = !!r.recipient_bank_id || isSwiftOnlyRecipient(r);
+      if (!hasBank || !(r.account_number || r.iban) || !r.account_name) return false;
+      if (effectiveRecipientType(r, 'bank') === 'international') {
         if (
           !r.beneficiary_street?.trim() ||
           !r.beneficiary_city?.trim() ||
@@ -378,7 +384,7 @@ export default function PayBillsModal({
       if (!selectedSource) throw new Error('No payment source selected');
 
       const hasInternational = Array.from(recipients.values()).some(
-        (r) => r.recipient_type === 'international',
+        (r) => effectiveRecipientType(r, 'bank') === 'international',
       );
 
       // Reuse key across retries of this submit-click; only cleared on success/close.
@@ -432,7 +438,7 @@ export default function PayBillsModal({
       if (recipients.size > 0) {
         paymentData.recipients = Array.from(recipients.values()).map((r) => ({
           bill_id: r.bill_id,
-          recipient_type: r.recipient_type,
+          recipient_type: effectiveRecipientType(r, 'bank'),
           phone_number: r.phone_number,
           recipient_bank_id: r.recipient_bank_id,
           recipient_bank_branch_id: r.recipient_bank_branch_id,

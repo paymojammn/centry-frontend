@@ -214,8 +214,8 @@ const categories: Category[] = [
       },
       {
         q: 'Vendor bank details aren\'t loading in the pay modal',
-        keywords: 'bank not matched linked contact',
-        a: 'Click "Load bank details from ERP" in the pay modal. If the bank still doesn\'t appear, the vendor\'s contact may not have a linked bank. Go to the contact in Django Admin and set the linked_bank field, or re-import contacts from CSV with the BankAccountParticulars column.',
+        keywords: 'bank details swift missing supplier vendor saved account',
+        a: 'The pay modal prefills from the supplier\'s saved bank details. Open ERP → Vendors, pick the supplier and add or complete an account under "Bank details" — choose the bank (or "Other bank (not listed)" with its SWIFT code) and the account number. The Vendors list shows which suppliers still have details missing. Details synced from your ERP land in the same place; use "Sync" on the Vendors page to refresh them.',
       },
       {
         q: 'I can\'t approve a payment I created',

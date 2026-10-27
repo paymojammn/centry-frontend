@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { contactsApi, type Contact, type ContactsFilters } from '@/lib/contacts-api';
+import { contactsApi, vendorDetailPath, type Contact, type ContactsFilters } from '@/lib/contacts-api';
 import { useSyncContacts, useERPConnections } from '@/hooks/use-erp';
 import { useOrganizations } from '@/hooks/use-organization';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,8 @@ import {
   Package,
   ShoppingCart,
   CheckCircle,
+  Landmark,
+  AlertCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ContactImportDialog } from '@/components/contact-import-dialog';
@@ -273,6 +275,28 @@ function ContactsTable({ contacts }: ContactsTableProps) {
     );
   };
 
+  // Suppliers need payout details before they can be paid; show admins which
+  // ones are still missing them. Customers / "other" contacts show a dash.
+  const getBankDetailsBadge = (contact: Contact) => {
+    if (!contact.is_supplier || !contact.bank_details_status) {
+      return <span className="text-xs text-muted-foreground/60">-</span>;
+    }
+    if (contact.bank_details_status === 'complete') {
+      return (
+        <span className="status-pill bg-success-500/10 text-success-700 border-success-500/20">
+          <Landmark className="h-3 w-3" />
+          Complete
+        </span>
+      );
+    }
+    return (
+      <span className="status-pill bg-warning-500/10 text-warning-700 border-warning-500/20">
+        <AlertCircle className="h-3 w-3" />
+        Missing
+      </span>
+    );
+  };
+
   return (
     <table className="table-professional w-full">
       <thead>
@@ -280,6 +304,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
           <th>Contact</th>
           <th>Details</th>
           <th>Type</th>
+          <th>Bank details</th>
           <th>Status</th>
           <th className="w-10"></th>
         </tr>
@@ -287,9 +312,9 @@ function ContactsTable({ contacts }: ContactsTableProps) {
       <tbody className="animate-stagger">
         {contacts.map((contact) => (
           <tr
-            key={contact.id}
+            key={`${contact.erp ?? contact.provider ?? 'xero'}-${contact.id}`}
             className="cursor-pointer"
-            onClick={() => router.push(`/erp/vendors/${contact.id}`)}
+            onClick={() => router.push(vendorDetailPath(contact))}
           >
             <td className="cell-primary">
               <div className="flex items-center gap-3">
@@ -322,6 +347,7 @@ function ContactsTable({ contacts }: ContactsTableProps) {
               </div>
             </td>
             <td>{getTypeBadge(contact)}</td>
+            <td>{getBankDetailsBadge(contact)}</td>
             <td>{getStatusBadge(contact.contact_status)}</td>
             <td>
               <ChevronRight className="h-4 w-4 text-muted-foreground/60" />

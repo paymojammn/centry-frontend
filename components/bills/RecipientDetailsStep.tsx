@@ -5,7 +5,14 @@ import { Building2, Globe, ChevronDown, Check, Save, Loader2 } from 'lucide-reac
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { paymentSourcesApi } from '@/lib/payment-sources-api';
-import { contactsApi, type ContactBankAccount, type BankBranchOption } from '@/lib/contacts-api';
+import {
+  contactsApi,
+  normalizeIban,
+  normalizeSwift,
+  SWIFT_CODE_RE,
+  type ContactBankAccount,
+  type BankBranchOption,
+} from '@/lib/contacts-api';
 import { useBankBranches, useBankCountries } from '@/hooks/use-contacts';
 import { useOzowBanks } from '@/hooks/use-ozow';
 import { useOneGatePayoutMethods, useOneGatePayoutBanks } from '@/hooks/use-onegate';
@@ -29,6 +36,8 @@ import type { PaymentSourceType } from '@/types/payment-sources';
 export interface RecipientDetails {
   bill_id: number;
   recipient_type: 'bank' | 'international';
+  /** Mobile-money payee number, prefilled from a saved mobile-money account. */
+  phone_number?: string;
   recipient_bank_id?: number;
   recipient_bank_branch_id?: number;
   recipient_bank_branch_name?: string;
@@ -70,6 +79,57 @@ export interface RecipientDetails {
   email?: string;
   requires_id?: boolean;
   requires_bank?: boolean;
+}
+
+/**
+ * A recipient whose bank is not in Centry's registry ("Other bank" on the
+ * supplier's saved account): no `recipient_bank_id`, but a SWIFT/BIC. There is
+ * no branch sort code for the local pain.001 rail, so the backend routes these
+ * as international / SWIFT and the modal shows them as "International (SWIFT)"
+ * instead of forcing a registry bank pick.
+ */
+export function isSwiftOnlyRecipient(
+  r?: Pick<RecipientDetails, 'recipient_bank_id' | 'swift_code'> | null,
+): boolean {
+  return !!r && !r.recipient_bank_id && !!normalizeSwift(r.swift_code || '');
+}
+
+/** The transfer type a recipient is actually submitted as. */
+export function effectiveRecipientType(
+  r: Pick<RecipientDetails, 'recipient_type' | 'recipient_bank_id' | 'swift_code'> | undefined,
+  fallback: 'bank' | 'international',
+): 'bank' | 'international' {
+  if (isSwiftOnlyRecipient(r)) return 'international';
+  return r?.recipient_type ?? fallback;
+}
+
+/**
+ * Copy a saved vendor account onto the recipient form so the payment carries
+ * the supplier's SWIFT / IBAN / bank name (the pain.001 builder prefers the
+ * event's swift_code over the registry's). Mobile-money accounts fill the
+ * phone number only. Accounts at a bank outside the registry come back as
+ * international (SWIFT) recipients.
+ */
+function savedAccountToRecipient(a: ContactBankAccount): Partial<RecipientDetails> {
+  if (a.account_type === 'mobile_money') {
+    return {
+      account_name: a.account_name,
+      phone_number: a.mobile_number,
+    };
+  }
+  const swiftOnly = !a.bank && !!a.swift_code;
+  return {
+    ...(swiftOnly ? { recipient_type: 'international' as const } : {}),
+    recipient_bank_id: a.bank ?? undefined,
+    recipient_bank_branch_id: a.branch ?? undefined,
+    recipient_bank_branch_name: a.branch_name || undefined,
+    account_number: a.account_number || undefined,
+    account_name: a.account_name,
+    bank_name: a.bank_name,
+    swift_code: a.swift_code || undefined,
+    iban: a.iban || undefined,
+    beneficiary_country: a.bank_country_code || a.country || undefined,
+  };
 }
 
 interface RecipientDetailsStepProps {
@@ -477,7 +537,9 @@ export default function RecipientDetailsStep({
     setRecipientType(newType);
     const updated = new Map(recipients);
     updated.forEach((r, billId) => {
-      updated.set(billId, { ...r, recipient_type: newType });
+      // A bank outside the registry can only go out as SWIFT — keep it international.
+      const type = isSwiftOnlyRecipient(r) ? 'international' : newType;
+      updated.set(billId, { ...r, recipient_type: type });
     });
     onRecipientsChange(updated);
   };
@@ -547,16 +609,12 @@ export default function RecipientDetailsStep({
       if (!accts.length) return;
       const r = next.get(bill.id);
       if (r?.account_number || r?.recipient_bank_id) return; // already filled
-      const primary = accts.find((a) => a.is_primary) || accts[0];
+      const primary = accts.find((a) => a.is_primary && a.is_complete) || accts.find((a) => a.is_complete) || accts[0];
       if (!primary) return;
       next.set(bill.id, {
         ...(r || { bill_id: bill.id, recipient_type: recipientType }),
         recipient_type: recipientType,
-        recipient_bank_id: primary.bank,
-        recipient_bank_branch_id: primary.branch ?? undefined,
-        account_number: primary.account_number,
-        account_name: primary.account_name,
-        bank_name: primary.bank_name,
+        ...savedAccountToRecipient(primary),
       });
       changed = true;
     });
@@ -566,25 +624,29 @@ export default function RecipientDetailsStep({
   const applySaved = (bill: Bill, a: ContactBankAccount) => {
     update(bill.id, {
       recipient_type: recipientType,
-      recipient_bank_id: a.bank,
-      recipient_bank_branch_id: a.branch ?? undefined,
-      account_number: a.account_number,
-      account_name: a.account_name,
-      bank_name: a.bank_name,
+      ...savedAccountToRecipient(a),
     });
   };
 
   const saveForFuture = async (bill: Bill) => {
     const r = recipients.get(bill.id);
-    if (!bill.contact_id || !r?.recipient_bank_id || !r?.account_number || !r?.account_name) return;
+    const hasBank = !!r?.recipient_bank_id || isSwiftOnlyRecipient(r);
+    if (!bill.contact_id || !r || !hasBank || !(r.account_number || r.iban) || !r.account_name) return;
     setSavingFor(bill.id);
     try {
       const created = await contactsApi.createContactBankAccount({
         contact: bill.contact_id,
-        bank: r.recipient_bank_id,
+        account_type: 'bank',
+        bank: r.recipient_bank_id ?? null,
+        // Unlisted bank: the free-text name + SWIFT identify it instead.
+        bank_name: r.recipient_bank_id ? undefined : r.bank_name,
         branch: r.recipient_bank_branch_id ?? null,
+        swift_code: normalizeSwift(r.swift_code || ''),
+        iban: normalizeIban(r.iban || ''),
         account_name: r.account_name,
-        account_number: r.account_number,
+        account_number: r.account_number || '',
+        country: r.beneficiary_country || undefined,
+        currency: r.transfer_currency || undefined,
       });
       setSavedByContact((prev) => ({
         ...prev,
@@ -622,9 +684,13 @@ export default function RecipientDetailsStep({
       if (r.requires_bank && (!r.account_number?.trim() || !r.branch_code?.trim())) return false;
       return true;
     }
-    const baseOk = !!(r.recipient_bank_id && (r.account_number || r.iban) && r.account_name);
+    const swiftOnly = isSwiftOnlyRecipient(r);
+    const hasBank = !!r.recipient_bank_id || swiftOnly;
+    const baseOk = !!(hasBank && (r.account_number || r.iban) && r.account_name);
     if (!baseOk) return false;
-    if (r.recipient_type === 'international') {
+    // An unlisted bank is identified solely by its BIC — it has to be well-formed.
+    if (swiftOnly && !SWIFT_CODE_RE.test(normalizeSwift(r.swift_code || ''))) return false;
+    if (effectiveRecipientType(r, recipientType) === 'international') {
       // ISO 20022 SWIFT transfers require beneficiary address + purpose code.
       return !!(
         r.beneficiary_street?.trim() &&
@@ -679,6 +745,11 @@ export default function RecipientDetailsStep({
       {bills.map((bill) => {
         const r = recipients.get(bill.id);
         const done = isComplete(bill.id);
+        // Per-bill transfer type: follows the toggle, except that a bank
+        // outside the registry (SWIFT only) is always international.
+        const swiftOnly = isSwiftOnlyRecipient(r);
+        const billIntl = effectiveRecipientType(r, recipientType) === 'international';
+        const swiftValid = SWIFT_CODE_RE.test(normalizeSwift(r?.swift_code || ''));
 
         return (
           <div key={bill.id} className="border border-border rounded-lg overflow-hidden">
@@ -705,7 +776,9 @@ export default function RecipientDetailsStep({
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[11px] text-muted-foreground">Saved accounts:</span>
                     {(savedByContact[bill.contact_id] || []).map((a) => {
-                      const active = r?.account_number === a.account_number;
+                      const active = a.account_number
+                        ? r?.account_number === a.account_number
+                        : !!a.iban && r?.iban === a.iban;
                       return (
                         <button
                           key={a.id}
@@ -717,7 +790,9 @@ export default function RecipientDetailsStep({
                               : 'border-border text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          {a.bank_name} ••{a.account_number.slice(-4)}
+                          {a.account_type === 'mobile_money'
+                            ? `${a.mobile_provider ? a.mobile_provider.toUpperCase() : 'Mobile'} ${a.mobile_number}`
+                            : `${a.bank_name} ••${(a.account_number || a.iban).slice(-4)}`}
                           {a.is_primary ? ' ★' : ''}
                         </button>
                       );
@@ -958,7 +1033,7 @@ export default function RecipientDetailsStep({
               ) : null}
 
               {/* International: country selector */}
-              {!isCustomRail && recipientType === 'international' && (
+              {!isCustomRail && billIntl && (
                 <SearchableSelect
                   label="Country"
                   placeholder="Search country..."
@@ -980,8 +1055,40 @@ export default function RecipientDetailsStep({
                 />
               )}
 
+              {/* Bank outside the registry (saved "Other bank" account): routed by SWIFT,
+                  so no registry pick is forced. */}
+              {!isCustomRail && swiftOnly && (
+                <div className="rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-muted-foreground mb-0.5">Bank</p>
+                      <p className="text-sm text-foreground truncate">{r?.bank_name || 'Unlisted bank'}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-info/10 text-info shrink-0">
+                      <Globe className="h-3 w-3" /> International (SWIFT)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    Not in the bank registry — routed by SWIFT/BIC, no branch code needed.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      update(bill.id, {
+                        recipient_type: recipientType,
+                        bank_name: undefined,
+                        swift_code: undefined,
+                      })
+                    }
+                    className="text-[11px] text-primary hover:underline mt-1"
+                  >
+                    Pick a registry bank instead
+                  </button>
+                </div>
+              )}
+
               {/* Bank selector — non-Ozow path uses Centry's internal bank registry */}
-              {!isCustomRail && (
+              {!isCustomRail && !swiftOnly && (
                 <SearchableSelect
                   label="Bank"
                   placeholder="Search bank..."
@@ -1004,8 +1111,26 @@ export default function RecipientDetailsStep({
                   }}
                 />
               )}
-              {!isCustomRail && r?.swift_code && (
-                <p className="text-[10px] text-muted-foreground -mt-2">SWIFT: {r.swift_code}</p>
+              {!isCustomRail && (r?.recipient_bank_id || swiftOnly) && (
+                <TextField
+                  label="SWIFT / BIC"
+                  value={r?.swift_code || ''}
+                  onChange={(v) => update(bill.id, { swift_code: normalizeSwift(v).slice(0, 11) })}
+                  placeholder="e.g. SBICUGKX"
+                  maxLength={11}
+                  hint={
+                    r?.swift_code && !swiftValid
+                      ? swiftOnly
+                        ? 'SWIFT/BIC must be 8 or 11 characters — it is the only way to route this bank'
+                        : 'SWIFT/BIC must be 8 or 11 characters'
+                      : (() => {
+                          const bank = banksData?.banks.find((b: any) => b.id === r?.recipient_bank_id);
+                          return bank?.swift_code && normalizeSwift(bank.swift_code) !== normalizeSwift(r?.swift_code || '')
+                            ? `Registry value: ${bank.swift_code}`
+                            : undefined;
+                        })()
+                  }
+                />
               )}
 
               {/* Branch selector — local pain.001 routing requires a sort code
@@ -1016,7 +1141,7 @@ export default function RecipientDetailsStep({
                 <BranchSelector
                   bankId={r.recipient_bank_id}
                   value={r.recipient_bank_branch_id}
-                  optional={recipientType === 'international'}
+                  optional={billIntl}
                   onSelect={(branchId, branchName) =>
                     update(bill.id, {
                       recipient_bank_branch_id: branchId,
@@ -1028,12 +1153,15 @@ export default function RecipientDetailsStep({
 
               {/* Account fields — Ozow has its own block above */}
               {!isCustomRail && (
-                recipientType === 'international' ? (
+                billIntl ? (
                   <>
                     <div className="grid grid-cols-2 gap-3">
                       <TextField label="IBAN" value={r?.iban || ''} onChange={(v) => update(bill.id, { iban: v })} placeholder="IBAN" />
                       <TextField label="Account Number" value={r?.account_number || ''} onChange={(v) => update(bill.id, { account_number: v })} placeholder="If no IBAN" />
                     </div>
+                    {swiftOnly && !(r?.iban?.trim() || r?.account_number?.trim()) && (
+                      <p className="text-[11px] text-destructive -mt-1">An IBAN or account number is required to pay this bank.</p>
+                    )}
                     <TextField label="Beneficiary Name" value={r?.account_name || ''} onChange={(v) => update(bill.id, { account_name: v })} placeholder="Full name" />
                     <p className="text-[10px] text-muted-foreground -mt-1">Required by SWIFT: beneficiary address + purpose code.</p>
                     <div className="grid grid-cols-2 gap-3">
@@ -1069,7 +1197,11 @@ export default function RecipientDetailsStep({
                           </p>
                         );
                       }
-                      const canSave = !!(r?.recipient_bank_id && r?.account_number?.trim() && r?.account_name?.trim());
+                      const canSave = !!(
+                        (r?.recipient_bank_id || isSwiftOnlyRecipient(r)) &&
+                        (r?.account_number?.trim() || r?.iban?.trim()) &&
+                        r?.account_name?.trim()
+                      );
                       if (!canSave) return null;
                       return (
                         <button
