@@ -9,6 +9,7 @@
 
 'use client';
 
+import { FeatureGate } from '@/components/layout/feature-gate';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -229,7 +230,7 @@ function SheetTable({
   );
 }
 
-export default function MtnCertificationPage() {
+function MtnCertificationPage() {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string>('');
   const [currency, setCurrency] = useState('EUR');
@@ -361,5 +362,15 @@ export default function MtnCertificationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `rails_certification` on.
+export default function MtnCertificationPageGated() {
+  return (
+    <FeatureGate feature='rails_certification' title='MTN MoMo — SIT Sign-off'>
+      <MtnCertificationPage />
+    </FeatureGate>
   );
 }

@@ -8,6 +8,7 @@
 
 'use client';
 
+import { FeatureGate } from '@/components/layout/feature-gate';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -283,7 +284,7 @@ function LookupPanel({ kind, label, accountId }: { kind: 'kyc' | 'balance'; labe
   );
 }
 
-export default function AirtelCertificationPage() {
+function AirtelCertificationPage() {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string>('');
 
@@ -399,5 +400,15 @@ export default function AirtelCertificationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `rails_certification` on.
+export default function AirtelCertificationPageGated() {
+  return (
+    <FeatureGate feature='rails_certification' title='Airtel Money — Certification'>
+      <AirtelCertificationPage />
+    </FeatureGate>
   );
 }

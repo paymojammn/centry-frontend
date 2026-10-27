@@ -8,6 +8,7 @@
 
 'use client';
 
+import { FeatureGate } from '@/components/layout/feature-gate';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,7 +79,7 @@ const STATUS_BADGE_MAP: Record<string, { status: string; label: string }> = {
   failed: { status: 'failed', label: 'Failed' },
 };
 
-export default function PayOutPage() {
+function PayOutPage() {
   const { data: organizationsResponse, isLoading: loadingOrgs } = useOrganizations();
   const organizations = useMemo(
     () =>
@@ -792,5 +793,15 @@ function PayoutRow({
         )}
       </td>
     </tr>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `mobile_money` on.
+export default function PayOutPageGated() {
+  return (
+    <FeatureGate feature='mobile_money' title='Pay Out'>
+      <PayOutPage />
+    </FeatureGate>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
@@ -169,7 +170,7 @@ function PostDialog({
   );
 }
 
-export default function LoanDetailPage() {
+function LoanDetailPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id;
 
@@ -471,5 +472,15 @@ export default function LoanDetailPage() {
         />
       )}
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `lending` on.
+export default function LoanDetailPageGated() {
+  return (
+    <FeatureGate feature="lending" title="Loan">
+      <LoanDetailPage />
+    </FeatureGate>
   );
 }

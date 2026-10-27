@@ -1,11 +1,12 @@
 "use client";
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizations } from "@/hooks/use-organization";
 import { ProviderAccountsList } from "@/components/banking/provider-accounts-list";
 
-export default function ProviderAccountsPage() {
+function ProviderAccountsPage() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
 
   const { data: organizationsResponse, isLoading: orgsLoading } = useOrganizations();
@@ -41,5 +42,15 @@ export default function ProviderAccountsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `mobile_money` on.
+export default function ProviderAccountsPageGated() {
+  return (
+    <FeatureGate feature="mobile_money" title="Provider Accounts">
+      <ProviderAccountsPage />
+    </FeatureGate>
   );
 }

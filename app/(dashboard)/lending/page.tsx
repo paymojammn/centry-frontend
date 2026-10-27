@@ -1,5 +1,6 @@
 "use client";
 
+import { FeatureGate } from "@/components/layout/feature-gate";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -45,7 +46,7 @@ const STATUS_PILLS = [
   "Closed",
 ] as const;
 
-export default function LendingPage() {
+function LendingPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
@@ -281,5 +282,15 @@ export default function LendingPage() {
         </ContentCard>
       </div>
     </div>
+  );
+}
+
+// Feature-flagged per organization (lib/features.ts): the route stays, the
+// content renders only when the selected org has `lending` on.
+export default function LendingPageGated() {
+  return (
+    <FeatureGate feature="lending" title="Loan Book">
+      <LendingPage />
+    </FeatureGate>
   );
 }
