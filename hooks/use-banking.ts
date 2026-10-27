@@ -165,6 +165,70 @@ export function useBankResponseStats(organizationId?: string) {
   });
 }
 
+// ===========================================
+// Accounts overview (dashboard balances)
+// ===========================================
+
+export type OverviewAccountKind = 'bank' | 'mobile_money';
+
+export interface OverviewAccount {
+  id: string;
+  kind: OverviewAccountKind;
+  name: string;
+  /** Bank name for bank accounts, provider display name for mobile money. */
+  institution: string;
+  /** Last four digits only, e.g. "••••4567"; null for provider accounts. */
+  account_number_masked: string | null;
+  currency: string;
+  /** Available balance (MT940 :64: / camt.053 CLAV, else booked). */
+  balance: string | null;
+  /** Booked closing balance (MT940 :62F: / camt.053 CLBD); null for providers. */
+  booked_balance: string | null;
+  /** Statement closing date (bank) or last provider sync date (ISO date). */
+  balance_as_of: string | null;
+  balance_age_days: number | null;
+  /** As-of older than two business days, or never synced. */
+  is_stale: boolean;
+  is_default: boolean;
+  href: string;
+}
+
+export interface OverviewCurrencyTotals {
+  available: string;
+  booked: string;
+  account_count: number;
+  stale_count: number;
+  latest_as_of: string | null;
+}
+
+export interface AccountsOverview {
+  accounts: OverviewAccount[];
+  /** Keyed by ISO currency code; never summed across currencies. */
+  totals_by_currency: Record<string, OverviewCurrencyTotals>;
+  active_count: number;
+  stale_count: number;
+  stale_after_business_days: number;
+  as_of_today: string;
+}
+
+/**
+ * Active bank + provider accounts with their latest statement balances,
+ * for the dashboard Accounts section.
+ */
+export function useAccountsOverview(organizationId?: string) {
+  const params = new URLSearchParams();
+  if (organizationId) params.append('organization', organizationId);
+  const queryString = params.toString();
+
+  return useQuery<AccountsOverview>({
+    queryKey: ['accounts-overview', organizationId],
+    queryFn: () =>
+      get(`/api/v1/banking/accounts/overview/${queryString ? `?${queryString}` : ''}`),
+    enabled: !!organizationId,
+    staleTime: 60 * 1000,
+  });
+}
+
 // API Hooks
 
 /**
@@ -366,6 +430,8 @@ export function useRefreshAccountBalance() {
       post(`/api/v1/banking/accounts/${accountId}/refresh_balance/`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts-overview'] });
     },
   });
 }

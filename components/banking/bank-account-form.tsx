@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { api } from "@/lib/api";
 import {
   Dialog,
@@ -53,7 +54,6 @@ interface FormData {
   account_number: string;
   account_type: string;
   currency: string;
-  balance: number;
   branch_name?: string;
   branch_code?: string;
   swift_code?: string;
@@ -61,6 +61,19 @@ interface FormData {
   is_default: boolean;
   notes?: string;
 }
+
+const formatBalance = (value: unknown): string => {
+  const n = Number(value ?? 0);
+  return (Number.isFinite(n) ? n : 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const formatStatementDate = (iso: string): string => {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : format(d, "dd MMM yyyy");
+};
 
 // Helper to extract clean currency code from enum-style strings like "CurrencyCode.UGX" -> "UGX"
 const cleanCurrencyCode = (currency: string): string => {
@@ -86,7 +99,6 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
     defaultValues: {
       is_active: true,
       is_default: false,
-      balance: 0,
       currency: "KES",
       account_type: "checking",
       bank_provider_id: "",
@@ -150,7 +162,6 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
       setValue("account_type", account.account_type || "checking");
       // Clean currency code from "CurrencyCode.UGX" format to "UGX"
       setValue("currency", cleanCurrencyCode(account.currency || "KES"));
-      setValue("balance", account.balance || 0);
       setValue("branch_name", account.branch_name || "");
       setValue("branch_code", account.branch_code || "");
       setValue("swift_code", account.swift_code || "");
@@ -161,7 +172,6 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
       reset({
         is_active: true,
         is_default: false,
-        balance: 0,
         currency: "KES",
         account_type: "checking",
       });
@@ -310,24 +320,24 @@ export function BankAccountForm({ open, onClose, account }: BankAccountFormProps
             </div>
           </div>
 
-          {/* Balance */}
-          <div className="space-y-2">
-            <Label htmlFor="balance" className="text-sm font-medium text-foreground">Current Balance *</Label>
-            <Input
-              id="balance"
-              type="number"
-              step="0.01"
-              {...register("balance", {
-                required: "Balance is required",
-                valueAsNumber: true
-              })}
-              placeholder="0.00"
-              className="h-10 bg-muted border-border"
-            />
-            {errors.balance && (
-              <p className="text-sm text-destructive">{errors.balance.message}</p>
-            )}
-          </div>
+          {/* Balance — read-only. It only ever comes from an imported
+              statement (MT940 :64:/:62F: or camt.053 CLAV/CLBD); the API
+              ignores it on create/update. */}
+          {isEdit && (
+            <div className="rounded-xl border border-border bg-muted/80 p-4">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Balance
+              </p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {cleanCurrencyCode(account.currency || "")} {formatBalance(account.balance)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {account.balance_as_of_date
+                  ? `As of ${formatStatementDate(account.balance_as_of_date)} · from the latest bank statement`
+                  : "No statement imported yet — upload or pull an MT940 / camt.053 statement to set it."}
+              </p>
+            </div>
+          )}
 
           {/* Branch Details */}
           {branches.length > 0 ? (
